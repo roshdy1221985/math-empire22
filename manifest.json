@@ -1,0 +1,22 @@
+{
+  "name": "إمبراطورية الرياضيات الملكية",
+  "short_name": "إمبراطورية الرياضيات",
+  "description": "منصة الأستاذ رشدي سيد للتميز في الرياضيات - مدرسة الشيخ سعيد بن أحمد الكندي",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#040d21",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "static/teacher.jpg",
+      "sizes": "192x192",
+      "type": "image/jpg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "static/teacher.jpg",
+      "sizes": "512x512",
+      "type": "image/jpg"
+    }
+  ]
+}

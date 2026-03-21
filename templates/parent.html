@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>بوابة ولي الأمر | إمبراطورية الرياضيات</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #040d21;
+            --gold: #d4af37;
+            --gold-grad: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            --glass: rgba(255, 255, 255, 0.05);
+            --border: rgba(212, 175, 55, 0.3);
+        }
+
+        body {
+            margin: 0; font-family: 'Cairo', sans-serif;
+            background: radial-gradient(circle at top, #1a1a2e 0%, #040d21 100%);
+            color: #fff; min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; padding: 20px; box-sizing: border-box;
+        }
+
+        /* --- تحصينات الطباعة --- */
+        @media print {
+            body { background: white !important; color: black !important; padding: 0; }
+            .no-print { display: none !important; }
+            .card { border: 1px solid #000 !important; background: none !important; box-shadow: none !important; }
+            th { background: #eee !important; color: #000 !important; border-bottom: 2px solid #000 !important; }
+            td { border-bottom: 1px solid #ccc !important; color: #000 !important; }
+            .gold-text { color: black !important; }
+        }
+
+        .header-container {
+            text-align: center; margin-bottom: 40px; margin-top: 20px;
+        }
+        .header-container h1 {
+            font-family: 'Amiri'; color: var(--gold); font-size: 3rem; margin: 0;
+            text-shadow: 0 0 20px rgba(212, 175, 55, 0.4);
+        }
+
+        .card {
+            background: var(--glass); border: 1px solid var(--border);
+            border-radius: 25px; padding: 40px; width: 100%; max-width: 800px;
+            backdrop-filter: blur(15px); box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            margin-bottom: 30px; box-sizing: border-box;
+        }
+
+        .search-box {
+            display: flex; gap: 15px; width: 100%;
+        }
+        .search-input {
+            flex: 1; padding: 18px; border-radius: 15px; border: 2px solid var(--gold);
+            background: rgba(0,0,0,0.5); color: #fff; font-family: 'Cairo';
+            font-size: 1.2rem; outline: none; transition: 0.3s;
+        }
+        .search-input:focus { box-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+        
+        .btn-gold {
+            background: var(--gold-grad); color: #000; border: none; padding: 18px 30px;
+            border-radius: 15px; font-weight: 900; cursor: pointer; font-size: 1.2rem;
+            font-family: 'Cairo'; transition: 0.3s;
+        }
+        .btn-gold:hover { transform: scale(1.05); }
+
+        .gold-text { color: var(--gold); font-family: 'Amiri'; }
+
+        /* --- النتائج والجداول --- */
+        #results-container { display: none; width: 100%; max-width: 800px; }
+        
+        .student-info-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px; margin-bottom: 30px; text-align: center;
+        }
+        .info-box {
+            background: rgba(0,0,0,0.4); padding: 20px; border-radius: 15px;
+            border: 1px solid var(--border);
+        }
+        .info-box span { display: block; opacity: 0.7; margin-bottom: 5px; font-size: 0.9rem; }
+        .info-box strong { color: var(--gold); font-size: 1.5rem; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th { background: rgba(212,175,55,0.1); color: var(--gold); padding: 15px; text-align: right; font-weight: bold; border-bottom: 2px solid var(--gold); }
+        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .status-badge {
+            padding: 5px 12px; border-radius: 10px; font-size: 0.9rem; font-weight: bold;
+        }
+        .badge-excellent { background: rgba(40, 167, 69, 0.2); color: #28a745; border: 1px solid #28a745; }
+        .badge-good { background: rgba(255, 193, 7, 0.2); color: #ffc107; border: 1px solid #ffc107; }
+        .badge-needs-work { background: rgba(220, 53, 69, 0.2); color: #dc3545; border: 1px solid #dc3545; }
+
+        /* شاشة التحميل */
+        #loader {
+            display: none; text-align: center; margin: 20px 0; color: var(--gold);
+            font-weight: bold; font-size: 1.2rem; animation: pulse 1s infinite;
+        }
+        @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+
+        @media screen and (max-width: 600px) {
+            .search-box { flex-direction: column; }
+            .header-container h1 { font-size: 2.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-container no-print">
+        <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+        <h1>بوابة الديوان الملكي لأولياء الأمور</h1>
+        <p style="opacity: 0.8; font-size: 1.2rem;">إمبراطورية الرياضيات - الأستاذ رشدي سيد</p>
+    </div>
+
+    <div class="card no-print">
+        <label style="color:var(--gold); font-weight:bold; display:block; margin-bottom:15px; font-size:1.1rem;">🔍 ابحث عن البطل (أدخل الاسم الثلاثي):</label>
+        <div class="search-box">
+            <input type="text" id="search-input" class="search-input" placeholder="مثال: محمد رشدي سيد" onkeypress="handleEnter(event)">
+            <button class="btn-gold" onclick="searchStudent()">البحث في السجلات 📜</button>
+        </div>
+        <div id="loader">جاري البحث في سجلات الإمبراطورية... ⏳</div>
+        <div id="error-msg" style="color:#ff5e5e; text-align:center; margin-top:15px; font-weight:bold; display:none;"></div>
+    </div>
+
+    <div id="results-container">
+        <div class="card" style="border-color: var(--gold);">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border); padding-bottom:20px; margin-bottom:20px;">
+                <h2 class="gold-text" style="margin:0;">تقرير السجل الأكاديمي</h2>
+                <button class="btn-gold no-print" style="padding: 10px 20px; font-size: 1rem;" onclick="window.print()">طباعة التقرير 🖨️</button>
+            </div>
+
+            <div class="student-info-grid">
+                <div class="info-box">
+                    <span>اسم البطل</span>
+                    <strong id="res-name">--</strong>
+                </div>
+                <div class="info-box">
+                    <span>المدرسة</span>
+                    <strong id="res-school">--</strong>
+                </div>
+                <div class="info-box" style="background: rgba(212,175,55,0.1); border-color: var(--gold);">
+                    <span>الرتبة الملكية</span>
+                    <strong id="res-rank">--</strong>
+                </div>
+                <div class="info-box">
+                    <span>مجموع النقاط (XP)</span>
+                    <strong id="res-xp" style="font-family:'Amiri';">--</strong>
+                </div>
+            </div>
+
+            <h3 class="gold-text" style="margin-top:40px; border-bottom:2px dashed var(--border); padding-bottom:10px;">📊 تفاصيل الاختبارات والتحديات</h3>
+            <div style="overflow-x: auto;">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>الدرس / التحدي</th>
+                            <th>الدرجة</th>
+                            <th>التقييم</th>
+                            <th>تاريخ الإنجاز</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const API_URL = ""; // Relative path to use the same host
+
+    function handleEnter(e) {
+        if (e.key === "Enter") searchStudent();
+    }
+
+    function getRankTitle(xp) {
+        if (xp >= 3000) return "👑 سلطان الأرقام";
+        if (xp >= 1500) return "🧙‍♂️ الوزير الحكيم";
+        if (xp >= 500) return "⚔️ فارس الرياضيات";
+        if (xp >= 100) return "🛡️ جندي شجاع";
+        return "مستكشف جديد";
+    }
+
+    function getStatusBadge(score, total) {
+        const percentage = (score / total) * 100;
+        if(percentage >= 90) return `<span class="status-badge badge-excellent">ممتاز ✨</span>`;
+        if(percentage >= 70) return `<span class="status-badge badge-good">جيد جداً 👍</span>`;
+        return `<span class="status-badge badge-needs-work">يحتاج تدريب 📚</span>`;
+    }
+
+    function formatDate(dateString) {
+        const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' };
+        return new Date(dateString).toLocaleDateString('ar-EG', options);
+    }
+
+    async function searchStudent() {
+        const nameInput = document.getElementById('search-input').value.trim();
+        const errorMsg = document.getElementById('error-msg');
+        const loader = document.getElementById('loader');
+        const resultsContainer = document.getElementById('results-container');
+
+        if (!nameInput) {
+            errorMsg.innerText = "⚠️ يرجى كتابة اسم الطالب أولاً!";
+            errorMsg.style.display = "block";
+            return;
+        }
+
+        errorMsg.style.display = "none";
+        resultsContainer.style.display = "none";
+        loader.style.display = "block";
+
+        try {
+            const safeName = encodeURIComponent(nameInput);
+            const res = await fetch(`${API_URL}/api/parent/search/${safeName}`);
+            const data = await res.json();
+
+            loader.style.display = "none";
+
+            if (data.found) {
+                document.getElementById('res-name').innerText = data.student.full_name;
+                document.getElementById('res-school').innerText = data.student.school_name || "مدرسة الشيخ سعيد بن أحمد";
+                document.getElementById('res-xp').innerText = data.total_xp + " XP";
+                document.getElementById('res-rank').innerText = getRankTitle(data.total_xp);
+
+                const tbody = document.getElementById('history-table-body');
+                if (data.history && data.history.length > 0) {
+                    tbody.innerHTML = data.history.map(test => `
+                        <tr>
+                            <td style="font-weight:bold;">${test.lesson}</td>
+                            <td style="font-family:'Amiri'; font-size:1.2rem; font-weight:bold;">${test.score} / ${test.total}</td>
+                            <td>${getStatusBadge(test.score, test.total)}</td>
+                            <td style="direction:ltr; text-align:right; opacity:0.8; font-size:0.9rem;">${formatDate(test.timestamp)}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; opacity:0.6; padding:30px;">لم يقم البطل بإجراء أي اختبارات حتى الآن.</td></tr>`;
+                }
+
+                resultsContainer.style.display = "block";
+            } else {
+                errorMsg.innerHTML = "❌ لم يتم العثور على طالب بهذا الاسم في سجلات الإمبراطورية.<br><small>تأكد من كتابة الاسم بشكل صحيح كما سجله الطالب.</small>";
+                errorMsg.style.display = "block";
+            }
+        } catch (error) {
+            loader.style.display = "none";
+            errorMsg.innerText = "⚠️ فشل الاتصال بقاعدة البيانات. تأكد من تشغيل الخادم المركزي!";
+            errorMsg.style.display = "block";
+        }
+    }
+</script>
+</body>
+</html>
