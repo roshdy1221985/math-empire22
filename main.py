@@ -1,12 +1,9 @@
 import os
 import shutil
-import sqlite3
 import uuid
-import json
 from datetime import datetime, timedelta
 from typing import Optional, List
 from urllib.parse import unquote
-from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Depends, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +13,9 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import JWTError, jwt
+
+# استيراد مكتبة السحاب
+from supabase import create_client, Client
 
 # ==========================================
 # --- 1. الإعدادات الأمنية (Security) ---
@@ -35,21 +35,13 @@ def create_access_token(data: dict):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 # ==========================================
-# --- 2. إدارة قاعدة البيانات (Database) ---
+# --- 2. إدارة قاعدة البيانات (Supabase Cloud) ---
 # ==========================================
-class Database:
-    # تم تحديث الاسم ليتطابق مع الملف الحقيقي royal_platform.db (40KB)
-    def __init__(self, db_path='royal_platform.db'):
-        self.db_path = db_path
+# الرابط والمفتاح الصحيحان 100%
+SUPABASE_URL = "https://xlgttngreiuihutjrlev.supabase.co"
+SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw"
 
-    def __enter__(self):
-        self.conn = sqlite3.connect(self.db_path)
-        self.conn.row_factory = sqlite3.Row
-        return self.conn
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type is None: self.conn.commit()
-        self.conn.close()
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # دالة حماية المسارات (Admin Only)
 async def get_current_admin(request: Request):
@@ -78,45 +70,7 @@ for folder in [UPLOAD_FOLDER, STATIC_FOLDER, TEMPLATES_FOLDER]:
 
 templates = Jinja2Templates(directory="templates")
 
-def init_db():
-    with Database() as db:
-        db.executescript('''
-            CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                full_name TEXT NOT NULL, username TEXT UNIQUE NOT NULL,
-                password TEXT NOT NULL, grade TEXT NOT NULL,
-                school_name TEXT, avatar_url TEXT
-            );
-            CREATE TABLE IF NOT EXISTS questions (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                grade TEXT, lesson TEXT, subject TEXT, q_type TEXT,
-                question TEXT, options TEXT, answer TEXT, image_url TEXT
-            );
-            CREATE TABLE IF NOT EXISTS results (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                student_id INTEGER, student_name TEXT, lesson TEXT,
-                score INTEGER, total INTEGER, timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (student_id) REFERENCES students (id)
-            );
-            CREATE TABLE IF NOT EXISTS summaries (
-                id INTEGER PRIMARY KEY AUTOINCREMENT, lesson TEXT UNIQUE, pdf_url TEXT
-            );
-            CREATE TABLE IF NOT EXISTS exams (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL, exam_type TEXT NOT NULL, 
-                exam_date TEXT NOT NULL, exam_time TEXT NOT NULL,
-                target_lesson TEXT NOT NULL, duration INTEGER NOT NULL DEFAULT 15,
-                num_questions INTEGER NOT NULL DEFAULT 10, points_per_q INTEGER NOT NULL DEFAULT 10,
-                target_q_type TEXT NOT NULL DEFAULT 'all'
-            );
-        ''')
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    init_db()
-    yield
-
-app = FastAPI(lifespan=lifespan)
+app = FastAPI()
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 # تأمين الوصول للمجلدات الثابتة
@@ -140,12 +94,10 @@ async def read_parent(request: Request): return templates.TemplateResponse("pare
 
 # --- روابط الـ PWA والأيقونات لإصلاح أخطاء الـ 404 ---
 @app.get("/manifest.json")
-async def get_manifest():
-    return FileResponse("manifest.json")
+async def get_manifest(): return FileResponse("manifest.json")
 
 @app.get("/favicon.ico")
-async def get_favicon():
-    return FileResponse("static/teacher.jpg")
+async def get_favicon(): return FileResponse("static/teacher.jpg")
 
 # ==========================================
 # --- 5. نظام الدخول والحماية ---
@@ -163,20 +115,25 @@ async def register_student(
     password: str = Form(...), grade: str = Form(...),
     school_name: str = Form(None), avatar_url: str = Form(None)
 ):
-    with Database() as db:
-        try:
-            db.execute('INSERT INTO students (full_name, username, password, grade, school_name, avatar_url) VALUES (?, ?, ?, ?, ?, ?)', 
-                       (full_name, username, hash_password(password), grade, school_name, avatar_url))
-            return {"status": "success", "message": "تم انضمام البطل لجيش الرياضيات"}
-        except sqlite3.IntegrityError:
-            raise HTTPException(status_code=400, detail="اسم المستخدم موجود مسبقاً")
+    # فحص التكرار
+    existing = supabase.table("students").select("username").eq("username", username).execute()
+    if existing.data and len(existing.data) > 0:
+        raise HTTPException(status_code=400, detail="اسم المستخدم موجود مسبقاً")
+    
+    student_data = {
+        "full_name": full_name, "username": username, "password": hash_password(password),
+        "grade": grade, "school_name": school_name, "avatar_url": avatar_url
+    }
+    supabase.table("students").insert(student_data).execute()
+    return {"status": "success", "message": "تم انضمام البطل لجيش الرياضيات"}
 
 @app.post("/api/student/login")
 async def login_student(username: str = Form(...), password: str = Form(...)):
-    with Database() as db:
-        user = db.execute('SELECT * FROM students WHERE username = ?', (username,)).fetchone()
-    if user and verify_password(password, user['password']):
-        return {"status": "success", "user": dict(user)}
+    result = supabase.table("students").select("*").eq("username", username).execute()
+    if result.data and len(result.data) > 0:
+        user = result.data[0]
+        if verify_password(password, user['password']):
+            return {"status": "success", "user": user}
     raise HTTPException(status_code=401, detail="بيانات الدخول غير صحيحة")
 
 # ==========================================
@@ -189,19 +146,31 @@ async def create_exam(
     num_questions: int = Form(...), points_per_q: int = Form(...), target_q_type: str = Form(...),
     admin=Depends(get_current_admin)
 ):
-    with Database() as db:
-        db.execute('''INSERT INTO exams (title, exam_type, exam_date, exam_time, target_lesson, duration, num_questions, points_per_q, target_q_type) 
-                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', 
-                   (title, exam_type, exam_date, exam_time, target_lesson, duration, num_questions, points_per_q, target_q_type))
+    exam_data = {
+        "title": title, "exam_type": exam_type, "exam_date": exam_date, "exam_time": exam_time, 
+        "target_lesson": target_lesson, "duration": duration, "num_questions": num_questions, 
+        "points_per_q": points_per_q, "target_q_type": target_q_type
+    }
+    supabase.table("exams").insert(exam_data).execute()
     return {"status": "success"}
 
 @app.get("/api/admin/stats")
 async def get_student_stats(admin=Depends(get_current_admin)):
-    with Database() as db:
-        query = '''SELECT s.full_name, s.grade, COUNT(r.id) as tests_count, AVG(r.score) as avg_score, MAX(r.timestamp) as last_activity
-                   FROM students s LEFT JOIN results r ON s.id = r.student_id GROUP BY s.id'''
-        rows = db.execute(query).fetchall()
-    return [dict(row) for row in rows]
+    students = supabase.table("students").select("id, full_name, grade").execute().data
+    results = supabase.table("results").select("*").execute().data
+    
+    stats = []
+    if students and results is not None:
+        for s in students:
+            s_results = [r for r in results if r.get('student_id') == s.get('id')]
+            stats.append({
+                "full_name": s.get('full_name', ''),
+                "grade": s.get('grade', ''),
+                "tests_count": len(s_results),
+                "avg_score": (sum(r.get('score', 0) for r in s_results) / len(s_results)) if s_results else 0,
+                "last_activity": max(r.get('timestamp') for r in s_results) if s_results else None
+            })
+    return stats
 
 @app.post("/api/admin/questions")
 async def add_question(
@@ -214,9 +183,12 @@ async def add_question(
     if image:
         img_path = f"uploads/img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
         with open(os.path.join(BASE_DIR, img_path), "wb") as buffer: shutil.copyfileobj(image.file, buffer)
-    with Database() as db:
-        db.execute('INSERT INTO questions (grade, lesson, subject, q_type, question, options, answer, image_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?)', 
-                  (grade, lesson, subject, q_type, question, options, answer, img_path))
+    
+    q_data = {
+        "grade": grade, "lesson": lesson, "subject": subject, "q_type": q_type, 
+        "question": question, "options": options, "answer": answer, "image_url": img_path
+    }
+    supabase.table("questions").insert(q_data).execute()
     return {"status": "success"}
 
 @app.put("/api/admin/questions/{q_id}")
@@ -226,104 +198,123 @@ async def edit_question(
     answer: str = Form(...), image: UploadFile = File(None),
     admin=Depends(get_current_admin)
 ):
-    with Database() as db:
-        if image:
-            img_path = f"uploads/img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
-            with open(os.path.join(BASE_DIR, img_path), "wb") as buffer: shutil.copyfileobj(image.file, buffer)
-            db.execute('UPDATE questions SET grade=?, lesson=?, subject=?, q_type=?, question=?, options=?, answer=?, image_url=? WHERE id=?', 
-                       (grade, lesson, subject, q_type, question, options, answer, img_path, q_id))
-        else:
-            db.execute('UPDATE questions SET grade=?, lesson=?, subject=?, q_type=?, question=?, options=?, answer=? WHERE id=?', 
-                       (grade, lesson, subject, q_type, question, options, answer, q_id))
+    update_data = {
+        "grade": grade, "lesson": lesson, "subject": subject, 
+        "q_type": q_type, "question": question, "options": options, "answer": answer
+    }
+    if image:
+        img_path = f"uploads/img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
+        with open(os.path.join(BASE_DIR, img_path), "wb") as buffer: shutil.copyfileobj(image.file, buffer)
+        update_data["image_url"] = img_path
+        
+    supabase.table("questions").update(update_data).eq("id", q_id).execute()
     return {"status": "success"}
 
 @app.delete("/api/admin/questions/{q_id}")
 async def delete_question(q_id: int, admin=Depends(get_current_admin)):
-    with Database() as db: db.execute("DELETE FROM questions WHERE id=?", (q_id,))
+    supabase.table("questions").delete().eq("id", q_id).execute()
     return {"status": "success"}
 
 @app.post("/api/admin/summaries")
 async def upload_summary(lesson: str = Form(...), pdf: UploadFile = File(...), admin=Depends(get_current_admin)):
     pdf_path = f"uploads/summary_{uuid.uuid4().hex}{os.path.splitext(pdf.filename)[1]}"
     with open(os.path.join(BASE_DIR, pdf_path), "wb") as buffer: shutil.copyfileobj(pdf.file, buffer)
-    with Database() as db: db.execute('INSERT OR REPLACE INTO summaries (lesson, pdf_url) VALUES (?, ?)', (lesson, pdf_path))
+    
+    # بديل لـ INSERT OR REPLACE في SQLite
+    existing = supabase.table("summaries").select("id").eq("lesson", lesson).execute()
+    if existing.data:
+        supabase.table("summaries").update({"pdf_url": pdf_path}).eq("lesson", lesson).execute()
+    else:
+        supabase.table("summaries").insert({"lesson": lesson, "pdf_url": pdf_path}).execute()
+        
     return {"status": "success"}
 
 @app.get("/api/admin/summaries_list")
 async def get_all_summaries():
-    with Database() as db: rows = db.execute("SELECT lesson, pdf_url FROM summaries").fetchall()
-    return [dict(row) for row in rows]
+    res = supabase.table("summaries").select("lesson, pdf_url").execute()
+    return res.data if res.data else []
 
 @app.delete("/api/admin/summaries/{lesson_name:path}")
 async def delete_summary(lesson_name: str, admin=Depends(get_current_admin)):
     lesson_dec = unquote(lesson_name)
-    with Database() as db:
-        row = db.execute("SELECT pdf_url FROM summaries WHERE lesson=?", (lesson_dec,)).fetchone()
-        if row:
-            try: os.remove(os.path.join(BASE_DIR, row["pdf_url"]))
-            except: pass
-        db.execute("DELETE FROM summaries WHERE lesson=?", (lesson_dec,))
+    row = supabase.table("summaries").select("pdf_url").eq("lesson", lesson_dec).execute()
+    if row.data and len(row.data) > 0:
+        try: os.remove(os.path.join(BASE_DIR, row.data[0]["pdf_url"]))
+        except: pass
+    supabase.table("summaries").delete().eq("lesson", lesson_dec).execute()
     return {"message": "Deleted"}
 
 @app.get("/api/admin/results")
 async def get_admin_results(admin=Depends(get_current_admin)):
-    with Database() as db: rows = db.execute("SELECT * FROM results ORDER BY timestamp DESC").fetchall()
-    return [dict(row) for row in rows]
+    res = supabase.table("results").select("*").order("timestamp", desc=True).execute()
+    return res.data if res.data else []
 
 # السماح للطلاب بجلب الأسئلة لتشغيل اللعبة التعليمية
 @app.get("/api/admin/questions")
 async def get_questions_admin():
-    with Database() as db: rows = db.execute("SELECT * FROM questions ORDER BY id DESC").fetchall()
-    return [dict(row) for row in rows]
+    res = supabase.table("questions").select("*").order("id", desc=True).execute()
+    return res.data if res.data else []
 
 # ==========================================
 # --- 7. مسارات الطلاب وأولياء الأمور ---
 # ==========================================
 @app.post("/api/student/update")
 async def update_student(student_id: int = Form(...), full_name: str = Form(...), school_name: str = Form(None), avatar_url: str = Form(None)):
-    with Database() as db: db.execute('UPDATE students SET full_name=?, school_name=?, avatar_url=? WHERE id=?', (full_name, school_name, avatar_url, student_id))
+    supabase.table("students").update({"full_name": full_name, "school_name": school_name, "avatar_url": avatar_url}).eq("id", student_id).execute()
     return {"status": "success"}
 
 @app.post("/api/student/results")
 async def save_result(student_id: int = Form(...), student_name: str = Form(...), lesson: str = Form(...), score: int = Form(...), total: int = Form(...)):
-    with Database() as db: db.execute('INSERT INTO results (student_id, student_name, lesson, score, total) VALUES (?, ?, ?, ?, ?)', (student_id, student_name, lesson, score, total))
+    res_data = {"student_id": student_id, "student_name": student_name, "lesson": lesson, "score": score, "total": total}
+    supabase.table("results").insert(res_data).execute()
     return {"status": "success"}
 
 @app.get("/api/leaderboard")
 async def get_leaderboard():
-    with Database() as db:
-        rows = db.execute('SELECT student_name, (SUM(score) * 100) as total_points FROM results GROUP BY student_name ORDER BY total_points DESC LIMIT 10').fetchall()
-    return [dict(row) for row in rows]
+    results = supabase.table("results").select("student_name, score").execute().data
+    lb = {}
+    if results:
+        for r in results:
+            lb[r['student_name']] = lb.get(r['student_name'], 0) + (r['score'] * 100)
+    
+    sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)[:10]
+    return [{"student_name": name, "total_points": points} for name, points in sorted_lb]
 
 @app.get("/api/student/summaries/{lesson:path}")
 async def get_student_summary(lesson: str):
     lesson_dec = unquote(lesson)
-    with Database() as db: row = db.execute("SELECT pdf_url FROM summaries WHERE lesson = ?", (lesson_dec,)).fetchone()
-    return {"pdf_url": row["pdf_url"] if row else None}
+    res = supabase.table("summaries").select("pdf_url").eq("lesson", lesson_dec).execute()
+    return {"pdf_url": res.data[0]["pdf_url"] if res.data and len(res.data) > 0 else None}
 
 @app.get("/api/parent/search/{name:path}")
 async def parent_search(name: str):
     name_dec = unquote(name)
-    with Database() as db:
-        student = db.execute("SELECT id, full_name, grade, school_name FROM students WHERE full_name LIKE ?", (f"%{name_dec}%",)).fetchone()
-        if not student: return {"found": False}
-        results = db.execute("SELECT lesson, score, total, timestamp FROM results WHERE student_id = ? ORDER BY timestamp DESC", (student["id"],)).fetchall()
-        total_points = db.execute("SELECT SUM(score) * 100 FROM results WHERE student_id = ?", (student["id"],)).fetchone()[0] or 0
-    return {"found": True, "student": dict(student), "total_xp": total_points, "history": [dict(r) for r in results]}
+    student_res = supabase.table("students").select("id, full_name, grade, school_name").ilike("full_name", f"%{name_dec}%").execute()
+    
+    if not student_res.data or len(student_res.data) == 0: return {"found": False}
+    
+    student = student_res.data[0]
+    history = supabase.table("results").select("lesson, score, total, timestamp").eq("student_id", student["id"]).order("timestamp", desc=True).execute().data
+    
+    total_xp = 0
+    if history: total_xp = sum(r.get("score", 0) for r in history) * 100
+    else: history = []
+    
+    return {"found": True, "student": student, "total_xp": total_xp, "history": history}
 
 @app.get("/api/exams/upcoming")
 async def get_upcoming_exams():
-    with Database() as db: rows = db.execute("SELECT * FROM exams ORDER BY exam_date ASC, exam_time ASC").fetchall()
-    return [dict(row) for row in rows]
+    res = supabase.table("exams").select("*").order("exam_date", desc=False).order("exam_time", desc=False).execute()
+    return res.data if res.data else []
 
 @app.delete("/api/admin/exams/{exam_id}")
 async def delete_exam(exam_id: int, admin=Depends(get_current_admin)):
-    with Database() as db: db.execute("DELETE FROM exams WHERE id=?", (exam_id,))
+    supabase.table("exams").delete().eq("id", exam_id).execute()
     return {"status": "success"}
 
 if __name__ == "__main__":
     import uvicorn
     # تحسين التوافق مع بورت Render الديناميكي
     port = int(os.environ.get("PORT", 8000))
-    print(f"🚀 إمبراطورية الرياضيات الملكية تفتح أبوابها على بورت {port}...")
+    print(f"🚀 إمبراطورية الرياضيات الملكية تفتح أبوابها السحابية على بورت {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
