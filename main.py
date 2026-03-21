@@ -38,7 +38,8 @@ def create_access_token(data: dict):
 # --- 2. إدارة قاعدة البيانات (Database) ---
 # ==========================================
 class Database:
-    def __init__(self, db_path='royal_platform'):
+    # تم تحديث الاسم ليتطابق مع الملف الحقيقي royal_platform.db (40KB)
+    def __init__(self, db_path='royal_platform.db'):
         self.db_path = db_path
 
     def __enter__(self):
@@ -117,6 +118,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
+
+# تأمين الوصول للمجلدات الثابتة
 app.mount("/uploads", StaticFiles(directory=UPLOAD_FOLDER), name="uploads")
 app.mount("/static", StaticFiles(directory=STATIC_FOLDER), name="static")
 
@@ -134,6 +137,15 @@ async def read_student(request: Request): return templates.TemplateResponse("stu
 
 @app.get("/parent")
 async def read_parent(request: Request): return templates.TemplateResponse("parent.html", {"request": request})
+
+# --- روابط الـ PWA والأيقونات لإصلاح أخطاء الـ 404 ---
+@app.get("/manifest.json")
+async def get_manifest():
+    return FileResponse("manifest.json")
+
+@app.get("/favicon.ico")
+async def get_favicon():
+    return FileResponse("static/teacher.jpg")
 
 # ==========================================
 # --- 5. نظام الدخول والحماية ---
@@ -258,12 +270,9 @@ async def get_admin_results(admin=Depends(get_current_admin)):
     with Database() as db: rows = db.execute("SELECT * FROM results ORDER BY timestamp DESC").fetchall()
     return [dict(row) for row in rows]
 
-# ==========================================
-# --- التعديل هنا: السماح للجميع بجلب الأسئلة ---
-# ==========================================
+# السماح للطلاب بجلب الأسئلة لتشغيل اللعبة التعليمية
 @app.get("/api/admin/questions")
 async def get_questions_admin():
-    # تمت إزالة (admin=Depends(get_current_admin)) ليتمكن الطلاب من تحميل اللعبة
     with Database() as db: rows = db.execute("SELECT * FROM questions ORDER BY id DESC").fetchall()
     return [dict(row) for row in rows]
 
@@ -314,5 +323,7 @@ async def delete_exam(exam_id: int, admin=Depends(get_current_admin)):
 
 if __name__ == "__main__":
     import uvicorn
-    print("🚀 إمبراطورية الرياضيات الملكية جاهزة...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    # تحسين التوافق مع بورت Render الديناميكي
+    port = int(os.environ.get("PORT", 8000))
+    print(f"🚀 إمبراطورية الرياضيات الملكية تفتح أبوابها على بورت {port}...")
+    uvicorn.run(app, host="0.0.0.0", port=port)
