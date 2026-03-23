@@ -23,7 +23,6 @@
             color: #fff; min-height: 100vh; display: flex; overflow-x: hidden;
         }
 
-        /* --- تحصينات الطباعة الملكية --- */
         @media print {
             body { 
                 -webkit-print-color-adjust: exact !important; 
@@ -33,7 +32,6 @@
             .sidebar, .main-content, .menu-toggle, .no-print { display: none !important; }
         }
 
-        /* --- نافذة الاختبار الصارم --- */
         #exam-fullscreen-mode {
             position: fixed; inset: 0; background: #040d21; z-index: 99999;
             display: none; flex-direction: column; overflow-y: auto;
@@ -53,7 +51,6 @@
             background: rgba(255,255,255,0.03); padding: 40px; border-radius: 25px; border: 1px solid var(--border);
         }
 
-        /* --- اختيار الصور الرمزية --- */
         .avatar-grid {
             display: flex; justify-content: center; gap: 12px; margin: 20px 0;
             flex-wrap: wrap;
@@ -70,7 +67,6 @@
             box-shadow: 0 0 25px var(--gold); transform: scale(1.2);
         }
 
-        /* --- شريط التقدم --- */
         .stepper-container {
             display: flex; justify-content: center; align-items: center; gap: 10px;
             margin-bottom: 30px; flex-wrap: wrap; direction: ltr;
@@ -90,7 +86,6 @@
         .step-wrong { background: #dc3545; border-color: #dc3545; }
         .stepper-line { height: 2px; width: 15px; background: var(--border); }
 
-        /* --- لوحة القيادة --- */
         .profile-dashboard {
             background: var(--glass); border: 1px solid var(--border);
             border-radius: 25px; padding: 30px; text-align: center;
@@ -124,7 +119,6 @@
             width: 0%; transition: width 1s ease-out;
         }
 
-        /* --- الأنماط العامة --- */
         .gold-particle {
             position: absolute; pointer-events: none;
             background: radial-gradient(circle, #fff, #d4af37);
@@ -278,6 +272,21 @@
 
         #rank-title { font-size: 0.9rem; color: #ffeb3b; margin-top: 5px; font-weight: bold; }
 
+        /* --- تحسينات الأوسمة الملكية الجديدة --- */
+        .achievement-badge {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 24px; height: 24px; border-radius: 50%; margin: 0 2px;
+            font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.2);
+            cursor: help; transition: 0.3s;
+        }
+        .achievement-badge:hover { transform: scale(1.3); }
+
+        /* --- تأثيرات ارتقاء المستوى --- */
+        @keyframes levelPulse {
+            from { transform: scale(1); box-shadow: 0 0 20px var(--gold); }
+            to { transform: scale(1.2); box-shadow: 0 0 50px var(--gold); }
+        }
+
         @media screen and (max-width: 900px) {
             .menu-toggle { display: block; }
             body { flex-direction: row !important; }
@@ -296,6 +305,16 @@
     </style>
 </head>
 <body>
+
+    <div id="level-up-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100000; justify-content:center; align-items:center; flex-direction:column; text-align:center;">
+        <div class="wax-seal" style="width:150px; height:150px; margin-bottom:20px; animation: levelPulse 1s infinite alternate;">
+            <span style="font-size:4rem;">⚡</span>
+        </div>
+        <h1 style="color:var(--gold); font-family:'Amiri'; font-size:4rem; margin:0;">ارتقاء ملكي!</h1>
+        <h2 id="new-rank-name" style="color:#fff; font-size:2rem;">لقد أصبحت الآن: فارس الرياضيات</h2>
+        <p style="color:var(--gold); font-size:1.2rem; margin-top:10px;">استمر في حصد الـ XP لتعتلي العرش!</p>
+        <button class="nav-btn active shiny-btn" style="max-width:200px; margin-top:30px;" onclick="closeLevelUp()">متابعة المسيرة ⚔️</button>
+    </div>
 
     <div id="exam-fullscreen-mode">
         <div class="exam-top-bar">
@@ -349,6 +368,11 @@
             <input type="text" id="reg-user" class="auth-input" placeholder="اسم المستخدم (إنجليزي)">
             <input type="password" id="reg-pass" class="auth-input" placeholder="كلمة المرور">
             <input type="text" id="reg-school" class="auth-input" placeholder="اسم المدرسة">
+            
+            <select id="reg-grade" class="auth-input" style="color: #fff; background: rgba(0,0,0,0.5);">
+                <option value="">-- جاري تحميل الصفوف الدراسية... --</option>
+            </select>
+
             <button class="nav-btn active shiny-btn" onclick="handleRegister()">تسجيل واعتلاء العرش</button>
             <p style="margin-top:20px; font-size:0.8rem;">لديك حساب؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold);">سجل دخولك</a></p>
         </div>
@@ -362,6 +386,8 @@
         <p>إمبراطورية الرياضيات</p>
         <button class="nav-btn active shiny-btn" onclick="location.reload()">🏠 الرئيسية</button>
         <button class="nav-btn shiny-btn" onclick="loadLeaderboard()">🏆 قائمة العمالقة</button>
+        <button class="nav-btn shiny-btn" onclick="openTrophyRoom()">🏅 خزانة الأوسمة</button>
+        <button class="nav-btn shiny-btn" onclick="openSupport()">💬 الدعم الفني</button>
         <button class="nav-btn shiny-btn" onclick="openEditProfile()">⚙️ ملفي الشخصي</button>
         <button class="nav-btn shiny-btn" id="sound-btn" onclick="toggleSound()">🔊 الصوت: مفعل</button>
         <div style="flex: 1;"></div>
@@ -380,6 +406,18 @@
             </div>
         </header>
 
+        <div id="daily-quests" class="tilt-card" style="margin-bottom: 30px; border-color: #28a745; background: rgba(40, 167, 69, 0.05); display: none;">
+            <h3 style="color: #28a745; font-family: 'Amiri'; margin: 0 0 15px 0;">🎯 المهمة اليومية للإمبراطور الصغير</h3>
+            <div id="quest-content" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+                <div>
+                    <span id="quest-text" style="font-weight: bold; font-size: 1.1rem;">جاري تحميل مهمتك القتالية...</span>
+                    <br>
+                    <span id="quest-reward" style="color: var(--gold); font-size: 0.9rem;">المكافأة: 50 XP 💎</span>
+                </div>
+                <button id="claim-reward-btn" class="nav-btn active shiny-btn" style="max-width: 150px;" onclick="claimQuestXP()">استلام الجائزة 🏆</button>
+            </div>
+        </div>
+
         <div id="exam-notification" class="tilt-card alert-box" style="display:none;">
             <h3 style="color:#ffeb3b; margin:0 0 10px 0; font-family:'Amiri'; font-size:1.8rem;">🔔 إشعار ملكي هام!</h3>
             <div id="exam-notification-text" style="font-size:1.2rem; font-weight:bold; line-height: 1.6; margin-bottom:20px;"></div>
@@ -389,17 +427,14 @@
         <div class="selection-row">
             <div class="tilt-card">
                 <label>📍 المرحلة الدراسية</label>
-                <select id="grade" onchange="fetchUnits()">
-                    <option value="">-- اختر الصف --</option>
-                    <option value="6">الصف السادس</option>
+                <select id="grade" onchange="onGradeSelect()">
+                    <option value="">-- جاري التحميل... --</option>
                 </select>
             </div>
             <div class="tilt-card">
                 <label>📅 الفصل الدراسي</label>
-                <select id="term" onchange="fetchUnits()">
+                <select id="term" onchange="onTermSelect()">
                     <option value="">-- اختر الفصل --</option>
-                    <option value="1">الفصل الأول</option>
-                    <option value="2">الفصل الثاني</option>
                 </select>
             </div>
             <div class="tilt-card" id="unit-container" style="display:none; border: 2px solid var(--gold);">
@@ -431,15 +466,173 @@
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
-    const API_URL = ""; 
+    const API_URL = window.location.origin; 
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
 
     let isExamMode = false;
     let examTimerInterval;
     let scheduledExamData = null;
     let currentExamPointsPerQ = 100;
+    
+    let globalCurriculum = []; 
+    let activeUnits = [];
 
-    // --- الدوال المساعدة ---
+    const podiumSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3'); 
+    const applauseSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
+
+    // --- وظيفة ديوان الدعم الملكي ---
+    function openSupport() {
+        if(isExamMode) { alert("لا يمكن فتح الدعم الفني أثناء الاختبار!"); return; }
+        toggleLoader(true);
+        
+        let html = `
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter: drop-shadow(0 0 10px #d4af37);">💬 ديوان الدعم الملكي</h1>
+                <p style="opacity:0.8; font-size:1.1rem;">نحن هنا لخدمتكم يا أبطال إمبراطورية الرياضيات</p>
+            </div>
+
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap:25px; max-width:1000px; margin:0 auto;">
+                
+                <div class="tilt-card shiny-btn" style="text-align:center; padding:35px; border-color:#25D366; background:rgba(37, 211, 102, 0.05); cursor:pointer;" onclick="window.open('https://wa.me/96878537653', '_blank')">
+                    // ابحث عن هذا السطر في دالة openSupport وقم بتحديثه
+<div class="tilt-card shiny-btn" style="..." 
+     onclick="window.open('https://api.whatsapp.com/send?phone=96878537653', '_blank')">
+                    <h3 style="color:#25D366; font-family:'Amiri'; font-size:1.8rem;">تواصل عبر واتساب</h3>
+                    <p style="font-size:0.9rem; opacity:0.7;">للحصول على رد سريع ومباشر من الأستاذ رشدي سيد.</p>
+                    <div style="margin-top:20px; font-weight:bold; color:#fff; background:#25D366; padding:12px; border-radius:10px;">إرسال رسالة الآن 📱</div>
+                </div>
+
+                <div class="tilt-card" style="padding:30px; background:rgba(255,255,255,0.02); text-align:center;">
+                    <h3 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem; margin-bottom:20px;">البريد الإلكتروني 📜</h3>
+                    <p style="font-size:1.1rem; color:#fff; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">
+                        mathempire22@gmail.com
+                    </p>
+                    <p style="font-size:0.8rem; opacity:0.6; margin-bottom:20px;">أرسل لنا استفسارك وسنرد عليك خلال 24 ساعة.</p>
+                    <button class="nav-btn active shiny-btn" onclick="window.location.href='mailto:mathempire22@gmail.com'">🚀 أرسل رسالة بريدية</button>
+                </div>
+
+            </div>
+
+            <div style="text-align:center; margin-top:50px;">
+                <p style="opacity:0.5; font-size:0.8rem;">إمبراطورية الأستاذ رشدي سيد - التميز الرياضي 2026</p>
+                <button class="nav-btn" style="max-width:200px; margin:20px auto;" onclick="location.reload()">🏠 عودة للمملكة</button>
+            </div>
+        `;
+
+        setTimeout(() => {
+            toggleLoader(false);
+            document.getElementById('content-area').innerHTML = html;
+            initTiltEffect();
+        }, 400);
+    }
+
+    // --- وظائف المهمات اليومية (المحدثة لمنع الغش) ---
+    const dailyQuests = [
+        { text: "حل اختبار واحد اليوم بنجاح", goal: 1 },
+        { text: "احصل على لقب 'فارس الرياضيات' أو أعلى", goal: 1 },
+        { text: "جمع أكثر من 100 XP في جلسة واحدة", goal: 100 }
+    ];
+
+    function loadDailyQuest() {
+        if(!currentUser) return;
+        
+        // التحقق من تاريخ آخر استلام محفوظ في المتصفح
+        const today = new Date().toDateString();
+        const lastClaimDate = localStorage.getItem(`quest_claimed_${currentUser.username}`);
+
+        // إذا استلم الجائزة اليوم، لا يظهر الصندوق نهائياً
+        if (lastClaimDate === today) {
+            document.getElementById('daily-quests').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('daily-quests').style.display = 'block';
+        const dayOfMonth = new Date().getDate();
+        const quest = dailyQuests[dayOfMonth % dailyQuests.length];
+        document.getElementById('quest-text').innerText = quest.text;
+    }
+
+    function claimQuestXP() {
+        if(!currentUser) return;
+
+        const today = new Date().toDateString();
+        const lastClaimDate = localStorage.getItem(`quest_claimed_${currentUser.username}`);
+
+        // حماية إضافية ضد الضغط المتكرر
+        if (lastClaimDate === today) {
+            alert("لقد استلمت جائزتك لهذا اليوم بالفعل!");
+            document.getElementById('daily-quests').style.display = 'none';
+            return;
+        }
+
+        // تحديث النقاط وحفظ تاريخ الاستلام
+        updateStudentXP(50);
+        localStorage.setItem(`quest_claimed_${currentUser.username}`, today);
+        
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        alert("مبروك! تمت إضافة 50 XP لمهمتك اليومية. عد غداً لمهمة جديدة!");
+        
+        document.getElementById('daily-quests').style.display = 'none';
+        renderProfileDashboard(); // تحديث اللوحة فوراً لرؤية النقاط الجديدة
+    }
+
+    // --- وظائف ارتقاء المستوى ---
+    function triggerLevelUp(rankName) {
+        const overlay = document.getElementById('level-up-overlay');
+        document.getElementById('new-rank-name').innerText = `لقد أصبحت الآن: ${rankName}`;
+        overlay.style.display = 'flex';
+        confetti({ particleCount: 200, spread: 70, origin: { y: 0.6 } });
+        playSound(winSound);
+    }
+
+    function closeLevelUp() {
+        document.getElementById('level-up-overlay').style.display = 'none';
+    }
+
+    // --- خزانة الأوسمة ---
+    function openTrophyRoom() {
+        if(isExamMode) return;
+        toggleLoader(true);
+        const xp = currentUser.xp || 0;
+        const badges = [
+            { id: 'rocket', name: 'المنطلق الصاروخي', icon: '🚀', req: 100, desc: 'يُمنح لمن يتجاوز حاجز الـ 100 نقطة.' },
+            { id: 'shield', name: 'درع المثابرة', icon: '🛡️', req: 1000, desc: 'يُمنح للأبطال الصامدين فوق 1000 نقطة.' },
+            { id: 'diamond', name: 'العقل الماسي', icon: '💎', req: 3000, desc: 'وسام الذكاء الخارق لمن جمع 3000 نقطة.' },
+            { id: 'fire', name: 'الأسطورة الملتهبة', icon: '🔥', req: 5000, desc: 'أعلى وسام إمبراطوري للعمالقة فقط.' }
+        ];
+
+        let html = `
+            <div style="text-align:center; margin-bottom:40px;">
+                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3rem;">🏅 خزانة الأوسمة الملكية</h1>
+                <p style="opacity:0.7;">أوسمتك هي تاريخ بطولاتك في مملكة الرياضيات</p>
+            </div>
+            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:20px;">
+                ${badges.map(b => {
+                    const isLocked = xp < b.req;
+                    return `
+                        <div class="tilt-card" style="text-align:center; padding:30px; filter: ${isLocked ? 'grayscale(1) opacity(0.5)' : 'none'}; border-color: ${isLocked ? 'var(--border)' : 'var(--gold)'};">
+                            <div style="font-size:4rem; margin-bottom:15px; filter: ${isLocked ? 'blur(2px)' : 'drop-shadow(0 0 10px var(--gold))'}">
+                                ${isLocked ? '🔒' : b.icon}
+                            </div>
+                            <h3 style="color:var(--gold); margin-bottom:10px;">${b.name}</h3>
+                            <p style="font-size:0.8rem; margin-bottom:15px;">${b.desc}</p>
+                            ${isLocked ? `<span style="font-size:0.7rem; color:#ff5e5e;">تحتاج ${b.req - xp} XP إضافية</span>` : `<span style="color:#4caf50; font-weight:bold;">✅ تم الحصول عليه</span>`}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+            <div style="text-align:center; margin-top:40px;">
+                <button class="nav-btn shiny-btn active" style="max-width:200px; margin:0 auto;" onclick="location.reload()">🏠 عودة للرئيسية</button>
+            </div>
+        `;
+
+        setTimeout(() => {
+            toggleLoader(false);
+            document.getElementById('content-area').innerHTML = html;
+            initTiltEffect();
+        }, 500);
+    }
+
     function updateAllStudentsList(userObj) {
         let allStudents = JSON.parse(localStorage.getItem('allMathHeroes')) || [];
         const index = allStudents.findIndex(s => s.username === userObj.username);
@@ -455,25 +648,28 @@
         updateAllStudentsList(currentUser);
     }
 
-    // --- مصفوفة الأبطال الخارقين والأنيمي المحدثة ---
     const avatars = [
-        "https://img.icons8.com/fluency/96/goku.png",          // غوكو (Dragon Ball)
-        "https://img.icons8.com/fluency/96/naruto.png",        // ناروتو (Naruto)
-        "https://img.icons8.com/color/96/sailor-moon.png",     // سيلور مون
-        "https://img.icons8.com/color/96/spiderman-head.png",  // سبايدرمان
-        "https://img.icons8.com/color/96/wonder-woman.png",    // وندر وومان
-        "https://img.icons8.com/color/96/batman.png",          // باتمان
-        "https://img.icons8.com/color/96/captain-america.png", // كابتن أمريكا
-        "https://img.icons8.com/color/96/super-girl.png"       // سوبر جيرل
+        "/static/avatars/king.jpg",       
+        "/static/avatars/queen.jpg",      
+        "/static/avatars/archer_m.jpg",   
+        "/static/avatars/archer_f.jpg",   
+        "/static/avatars/warrior_m.jpg",  
+        "/static/avatars/warrior_f.jpg",  
+        "/static/avatars/lion.jpg",       
+        "/static/avatars/tiger.jpg"       
     ];
     let selectedAvatarUrl = avatars[0];
 
     function populateAvatarGrid(elementId, initialUrl) {
         const grid = document.getElementById(elementId);
         grid.innerHTML = "";
-        avatars.forEach(url => {
+        avatars.forEach((url, index) => {
             const img = document.createElement('img');
             img.src = url;
+            img.onerror = function() { 
+                this.onerror = null; 
+                this.src = `https://ui-avatars.com/api/?name=Hero+${index+1}&background=d4af37&color=000&rounded=true&bold=true`; 
+            };
             img.className = "avatar-option";
             if(url === initialUrl) img.classList.add('avatar-selected');
             img.onclick = () => {
@@ -484,7 +680,90 @@
             grid.appendChild(img);
         });
     }
-    populateAvatarGrid('avatar-selector', avatars[0]);
+
+    async function loadGlobalCurriculum() {
+        try {
+            const res = await fetch(`${API_URL}/api/curriculum/structure`);
+            if(!res.ok) throw new Error("Network Error");
+            let data = await res.json();
+            if (!Array.isArray(data)) {
+                globalCurriculum = Object.keys(data).map(k => {
+                    return typeof data[k] === 'object' ? data[k] : { name: k, semesters: [] };
+                });
+            } else { globalCurriculum = data; }
+            if(globalCurriculum.length === 0) return;
+            const regGradeSelect = document.getElementById('reg-grade');
+            if (regGradeSelect) {
+                regGradeSelect.innerHTML = '<option value="">-- اختر صفك الدراسي --</option>';
+                globalCurriculum.forEach((g, idx) => {
+                    const val = g.id || g.name || `grade_${idx}`;
+                    regGradeSelect.innerHTML += `<option value="${val}">${g.name || 'صف غير مسمى'}</option>`;
+                });
+            }
+            const mainGradeSelect = document.getElementById('grade');
+            if (mainGradeSelect) {
+                mainGradeSelect.innerHTML = '<option value="">-- اختر المرحلة الدراسية --</option>';
+                globalCurriculum.forEach((g, index) => {
+                    mainGradeSelect.innerHTML += `<option value="${index}">${g.name || 'صف غير مسمى'}</option>`;
+                });
+            }
+        } catch(e) { console.error("لم يتم العثور على المناهج", e); }
+    }
+
+    function onGradeSelect() {
+        const gradeIdx = document.getElementById('grade').value;
+        const termSelect = document.getElementById('term');
+        termSelect.innerHTML = '<option value="">-- اختر الفصل --</option>';
+        document.getElementById('unit-container').style.display = 'none';
+        document.getElementById('content-area').innerHTML = `<div style="text-align:center; padding-top:80px; opacity:0.3;"><div style="font-size:4rem;">✨</div><h2>اختر الفصل الدراسي من الأعلى</h2></div>`;
+        if(gradeIdx !== "") {
+            const semesters = globalCurriculum[gradeIdx]?.semesters || [];
+            semesters.forEach((s, i) => { termSelect.innerHTML += `<option value="${i}">${s.name || 'فصل غير مسمى'}</option>`; });
+        }
+    }
+
+    function onTermSelect() {
+        const gradeIdx = document.getElementById('grade').value;
+        const termIdx = document.getElementById('term').value;
+        const unitSelect = document.getElementById('unit-select');
+        unitSelect.innerHTML = '<option value="">-- اختر الوحدة --</option>';
+        if(gradeIdx !== "" && termIdx !== "") {
+            const units = globalCurriculum[gradeIdx]?.semesters?.[termIdx]?.units;
+            activeUnits = units || []; 
+            if(activeUnits.length > 0) {
+                activeUnits.forEach((u, i) => { unitSelect.innerHTML += `<option value="${i}">${u.name || 'وحدة غير مسماة'}</option>`; });
+                document.getElementById('unit-container').style.display = "block";
+            } else { document.getElementById('unit-container').style.display = "none"; }
+        } else { document.getElementById('unit-container').style.display = 'none'; }
+    }
+
+    function renderLessons() {
+        if(isExamMode) return;
+        const unitIdx = document.getElementById('unit-select').value; 
+        if(unitIdx === "") return;
+        const unit = activeUnits[unitIdx];
+        if(!unit.lessons || unit.lessons.length === 0) {
+            document.getElementById('content-area').innerHTML = `<h2 style="text-align:center; color:var(--gold);">لا توجد دروس حالياً في هذه الوحدة.</h2>`;
+            return;
+        }
+        const html = unit.lessons.map(l => {
+            const lessonName = typeof l === 'object' ? l.name : l;
+            return `<div class="lesson-item tilt-card" onclick="prepareChoice('${lessonName}')"><span>📘 ${lessonName}</span><span style="color:var(--gold); font-size:0.8rem;">اختر المسار ←</span></div>`
+        }).join('');
+        document.getElementById('content-area').innerHTML = `<h2 style="color:var(--gold); font-family:'Amiri'; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:25px;">${unit.name || 'وحدة'}</h2><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">${html}</div>`;
+        initTiltEffect();
+    }
+
+    window.onload = () => { 
+        populateAvatarGrid('avatar-selector', avatars[0]);
+        loadGlobalCurriculum(); 
+        if (currentUser) { 
+            document.getElementById('auth-overlay').style.display = 'none'; 
+            renderProfileDashboard(); 
+            checkUpcomingExams(); 
+            loadDailyQuest();
+        } 
+    };
 
     function openEditProfile() {
         if(!currentUser) { alert("يرجى تسجيل الدخول أولاً لتعديل ملفك"); return; }
@@ -504,13 +783,9 @@
         currentUser.full_name = newName; currentUser.school_name = newSchool; currentUser.avatar_url = selectedAvatarUrl;
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
         updateAllStudentsList(currentUser);
-        const fd = new FormData();
-        fd.append('student_id', currentUser.id); fd.append('full_name', newName); fd.append('school_name', newSchool); fd.append('avatar_url', selectedAvatarUrl);
-        try { await fetch(`${API_URL}/api/student/update`, { method:'POST', body:fd }); } catch(e){}
-        setTimeout(() => { toggleLoader(false); document.getElementById('edit-overlay').style.display = 'none'; renderProfileDashboard(); alert("✨ تم تحديث بيانات البطل بنجاح!"); }, 1000);
+        setTimeout(() => { toggleLoader(false); document.getElementById('edit-overlay').style.display = 'none'; renderProfileDashboard(); alert("✨ تم تحديث بيانات البطل بنجاح!"); }, 500);
     }
 
-    // --- مؤثرات جزيئات الذهب اللامعة ---
     document.addEventListener('mousemove', function(e) {
         if(Math.random() < 0.7) return; 
         const particle = document.createElement('div');
@@ -535,13 +810,21 @@
     initTiltEffect();
 
     function updateRank(xp) {
-        let title = "مستكشف جديد"; let width = "10%";
+        let title = "مستكشف جديد"; 
+        let width = "10%";
+        const oldTitle = document.getElementById('rank-title') ? document.getElementById('rank-title').innerText : "";
+
         if (xp >= 3000) { title = "👑 سلطان الأرقام"; width = "100%"; }
         else if (xp >= 1500) { title = "🧙‍♂️ الوزير الحكيم"; width = "75%"; }
         else if (xp >= 500) { title = "⚔️ فارس الرياضيات"; width = "50%"; }
         else if (xp >= 100) { title = "🛡️ جندي شجاع"; width = "25%"; }
-        document.getElementById('rank-title').innerText = title;
-        document.getElementById('xp-count').innerText = xp + " XP";
+
+        if (oldTitle !== "" && title !== oldTitle && oldTitle !== "مستكشف جديد") {
+            triggerLevelUp(title);
+        }
+
+        if(document.getElementById('rank-title')) document.getElementById('rank-title').innerText = title;
+        if(document.getElementById('xp-count')) document.getElementById('xp-count').innerText = xp + " XP";
         return width;
     }
 
@@ -563,7 +846,7 @@
         const xp = currentUser.xp || 0; const progressWidth = updateRank(xp); const userAvatar = currentUser.avatar_url || avatars[0];
         const html = `
             <div class="profile-dashboard tilt-card">
-                <img src="${userAvatar}" class="profile-avatar-large" alt="صورة البطل">
+                <img src="${userAvatar}" class="profile-avatar-large" alt="صورة البطل" onerror="this.src='https://ui-avatars.com/api/?name=Hero&background=d4af37&color=000&rounded=true&bold=true'">
                 <h2 style="color:var(--gold); font-family:'Amiri'; font-size:2.5rem; margin-bottom:5px;">${currentUser.full_name}</h2>
                 <div style="font-size:1.2rem; opacity:0.8;">${document.getElementById('rank-title').innerText}</div>
                 <div class="stats-grid">
@@ -576,7 +859,7 @@
                     <div class="level-bar-bg"><div class="level-bar-fill" style="width:${progressWidth}"></div></div>
                 </div>
             </div>
-            <div style="text-align:center; margin-top:40px; opacity:0.6;"><p>👇 اختر الوحدة الدراسية من القائمة العلوية للبدء 👇</p></div>`;
+            <div style="text-align:center; margin-top:40px; opacity:0.6;"><p>👇 اختر المنهج من القائمة العلوية للبدء 👇</p></div>`;
         document.getElementById('content-area').innerHTML = html;
         initTiltEffect();
     }
@@ -595,8 +878,6 @@
         } catch(e) { console.log("لا توجد اختبارات"); }
     }
 
-    window.onload = () => { if (currentUser) { document.getElementById('auth-overlay').style.display = 'none'; renderProfileDashboard(); checkUpcomingExams(); } };
-
     function toggleAuth() {
         const login = document.getElementById('login-form'); const reg = document.getElementById('register-form');
         login.style.display = login.style.display==='none' ? 'block':'none'; reg.style.display = reg.style.display==='none' ? 'block':'none';
@@ -614,12 +895,15 @@
     }
 
     async function handleRegister() {
-        const name = document.getElementById('reg-name').value; const user = document.getElementById('reg-user').value;
-        const pass = document.getElementById('reg-pass').value; const school = document.getElementById('reg-school').value;
-        if(!name || !user || !pass || !school) { alert("يرجى ملء جميع البيانات"); return; }
+        const name = document.getElementById('reg-name').value; 
+        const user = document.getElementById('reg-user').value;
+        const pass = document.getElementById('reg-pass').value; 
+        const school = document.getElementById('reg-school').value;
+        const gradeSelected = document.getElementById('reg-grade').value; 
+        if(!name || !user || !pass || !school || !gradeSelected) { alert("يرجى ملء جميع البيانات واختيار الصف الدراسي!"); return; }
         toggleLoader(true);
-        const fd = new FormData(); fd.append('full_name', name); fd.append('username', user); fd.append('password', pass);
-        fd.append('school_name', school); fd.append('avatar_url', selectedAvatarUrl); fd.append('grade', '6'); 
+        const fd = new FormData(); 
+        fd.append('full_name', name); fd.append('username', user); fd.append('password', pass); fd.append('grade', gradeSelected); 
         try {
             const res = await fetch(`${API_URL}/api/student/register`, { method:'POST', body:fd });
             toggleLoader(false);
@@ -632,7 +916,6 @@
 
     function logout() { if(isExamMode) { alert("لا يمكنك الهروب!"); return; } localStorage.removeItem('mathHero'); window.location.reload(); }
 
-    // --- منطق الصوت والتحفيز ---
     const correctSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
     const wrongSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3');
     const winSound = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
@@ -642,31 +925,6 @@
 
     let correctCount=0; let challengeQs=[]; let currentQIndex=0; let currentLesson=""; let selectedLessonForChoice=""; let answersStatus = [];
 
-    const curriculumData = { "6_2": { "units": [ { "name": "الوحدة الأولى: القياس (17-19)", "lessons": ["17-1 قياس الكتلة والسعة (1)", "17-2 قياس الكتلة والسعة (2)", "18-1 تحويل الوقت", "18-2 المناطق الزمنية (1)", "19-1 حساب المساحة والمحيط"] }, { "name": "الوحدة الثانية: معالجة البيانات (20-22)", "lessons": ["20-1 الجداول والرسومات البيانية", "20-2 المخططات الدائرية", "21-1 المتوسط الإحصائي", "21-2 استخدام الإحصاء", "22-1 لغة الاحتمال"] }, { "name": "الوحدة الثالثة: العدد (23-29)", "lessons": ["23-1 نظام الأعداد (2)", "23-2 تاريخ الأعداد (2)", "24-1 الجمع والطرح (1)", "24-2 الضرب والقسمة", "25-1 الجمع والطرح (2)", "26-1 قوانين الحساب", "26-2 الكسور والقسمة", "27-1 الكسور", "28-1 النسب المئوية", "29-1 النسبة والتناسب"] }, { "name": "الوحدة الرابعة: الهندسة (33-35)", "lessons": ["33-1 المنشورات رباعية الأضلاع", "33-2 متعدد الأوجه المنتظم", "34-1 تصنيف الأشكال", "35-1 رسم وقياس الزوايا"] } ] } };
-    let activeUnits=[];
-
-    async function fetchUnits() {
-        const grade = document.getElementById('grade').value; const term = document.getElementById('term').value;
-        if(grade && term) {
-            toggleLoader(true);
-            setTimeout(() => {
-                const key = `${grade}_${term}`; activeUnits = curriculumData[key] ? curriculumData[key].units : [];
-                let options = '<option value="">-- اختر الوحدة --</option>';
-                if(activeUnits.length > 0) { activeUnits.forEach((u,i) => options+=`<option value="${i}">${u.name}</option>`); document.getElementById('unit-container').style.display="block"; }
-                document.getElementById('unit-select').innerHTML = options; toggleLoader(false);
-            }, 600);
-        }
-    }
-
-    function renderLessons() {
-        if(isExamMode) return;
-        const idx = document.getElementById('unit-select').value; if(idx==="") return;
-        const unit = activeUnits[idx];
-        const html = unit.lessons.map(l => `<div class="lesson-item tilt-card" onclick="prepareChoice('${l}')"><span>📘 ${l}</span><span style="color:var(--gold); font-size:0.8rem;">اختر المسار ←</span></div>`).join('');
-        document.getElementById('content-area').innerHTML = `<h2 style="color:var(--gold); font-family:'Amiri'; border-bottom:1px solid var(--border); padding-bottom:15px; margin-bottom:25px;">${unit.name}</h2><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">${html}</div>`;
-        initTiltEffect();
-    }
-
     function prepareChoice(lesson) {
         if(isExamMode) return; selectedLessonForChoice = lesson;
         document.getElementById('target-lesson-name').innerText = "درس: " + lesson;
@@ -675,11 +933,12 @@
 
     async function openSummary() {
         try {
-            const safeLessonName = encodeURIComponent(selectedLessonForChoice);
-            const res = await fetch(`${API_URL}/api/student/summaries/${safeLessonName}`);
+            const res = await fetch(`${API_URL}/api/admin/summaries_list`);
             const data = await res.json();
-            if(data.pdf_url) { window.open(`${API_URL}/${data.pdf_url}`, '_blank'); } else { alert("⚠️ لم يقم الأستاذ رشدي برفع ملخص لهذا الدرس."); }
-        } catch(e) { alert("خطأ في الاتصال بالسيرفر."); }
+            const lessonSummary = data.find(s => s.lesson === selectedLessonForChoice);
+            if(lessonSummary && lessonSummary.pdf_url) { window.open(`${lessonSummary.pdf_url}`, '_blank'); } 
+            else { alert("⚠️ لم يقم الأستاذ رشدي برفع ملخص لهذا الدرس بعد."); }
+        } catch(e) { alert("خطأ في الاتصال بالسيرفر. تأكد من تشغيل المحرك!"); }
     }
 
     function proceedToChallenge() {
@@ -724,14 +983,12 @@
             const allQs = await res.json();
             const targetLessonsArray = lessonStr.split(',').map(l => l.trim());
             let filteredQs = allQs.filter(q => targetLessonsArray.includes(q.lesson));
-            
             if(isExamMode && scheduledExamData) {
                 if(scheduledExamData.target_q_type && scheduledExamData.target_q_type !== 'all') { filteredQs = filteredQs.filter(q => q.q_type === scheduledExamData.target_q_type); }
                 filteredQs = filteredQs.sort(() => Math.random() - 0.5);
                 const numQs = parseInt(scheduledExamData.num_questions) || 10;
                 challengeQs = filteredQs.slice(0, numQs);
             } else { challengeQs = filteredQs; }
-            
             answersStatus = new Array(challengeQs.length).fill(null); currentQIndex = 0; toggleLoader(false);
             if(challengeQs.length > 0) { if(isExamMode && scheduledExamData) { startTimer(scheduledExamData.duration); } renderCurrentQuestion(); } 
             else { let msg = isExamMode ? "لا توجد أسئلة كافية." : "لا توجد أسئلة لهذا الدرس حالياً."; targetArea.innerHTML = `<div style="text-align:center;"><h2>${msg}</h2><button class="nav-btn shiny-btn" onclick="exitExamMode()">عودة</button></div>`; if(isExamMode) clearInterval(examTimerInterval); }
@@ -758,28 +1015,21 @@
         const progressBar = renderProgressBar();
         let headerHtml = `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--gold); padding-bottom:15px; margin-bottom:25px;">`;
         if(isExamMode) { headerHtml += `<h2 style="color:var(--gold);">السؤال ${currentQIndex + 1} من ${challengeQs.length}</h2>`; } 
-        else { headerHtml += `<h2 style="color:var(--gold);">تحدي: ${currentLesson}</h2><button onclick="renderLessons()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:5px 15px; border-radius:8px;" class="no-print">❌ انسحاب</button>`; }
+        else { headerHtml += `<h2 style="color:var(--gold);">تحدي: ${currentLesson}</h2><button onclick="document.getElementById('unit-select').dispatchEvent(new Event('change'))" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:5px 15px; border-radius:8px;" class="no-print">❌ انسحاب</button>`; }
         headerHtml += `</div>`;
-
         let html = `${progressBar}${headerHtml}<div>`;
-        if(q.image_url) html+=`<div style="text-align:center;"><img src="${API_URL}/${q.image_url}" class="question-image"></div>`;
+        if(q.image_url) html+=`<div style="text-align:center;"><img src="${q.image_url}" class="question-image"></div>`;
         html+=`<p style="font-size:1.3rem; margin-bottom:25px;">${q.question}</p><div id="options-area"></div><div id="feedback" style="text-align:center; margin-top:25px; font-weight:bold; font-size:1.2rem;"></div></div>`;
         area.innerHTML = html;
-        
         const optArea = document.getElementById('options-area');
         if(q.q_type === 'short') {
             optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input" placeholder="اكتب إجابتك هنا..."><button class="nav-btn active shiny-btn" onclick="submitShortAnswer('${q.answer}')">إرسال الإجابة ✅</button>`;
             document.getElementById('short-answer-input').focus();
         } 
         else if (q.q_type === 'true_false') {
-            optArea.innerHTML = `
-                <button class="quiz-btn shiny-btn" onclick="checkAnswer('صواب', '${q.answer}')">صواب ✅</button>
-                <button class="quiz-btn shiny-btn" onclick="checkAnswer('خطأ', '${q.answer}')">خطأ ❌</button>
-            `;
+            optArea.innerHTML = `<button class="quiz-btn shiny-btn" onclick="checkAnswer('صواب', '${q.answer}')">صواب ✅</button><button class="quiz-btn shiny-btn" onclick="checkAnswer('خطأ', '${q.answer}')">خطأ ❌</button>`;
         } 
-        else {
-            q.options.split(',').forEach(opt => { optArea.innerHTML += `<button class="quiz-btn shiny-btn" onclick="checkAnswer('${opt.trim()}', '${q.answer}')">${opt.trim()}</button>`; });
-        }
+        else { q.options.split(',').forEach(opt => { optArea.innerHTML += `<button class="quiz-btn shiny-btn" onclick="checkAnswer('${opt.trim()}', '${q.answer}')">${opt.trim()}</button>`; }); }
     }
 
     function submitShortAnswer(correct) {
@@ -818,25 +1068,101 @@
     function exitExamMode() { if(isExamMode) { isExamMode = false; document.getElementById('exam-fullscreen-mode').style.display = 'none'; try { if (document.exitFullscreen) document.exitFullscreen(); } catch(e) {} } location.reload(); }
 
     async function sendResultToBackend() {
-        const fd = new FormData(); fd.append('student_id', currentUser.id); fd.append('student_name', currentUser.full_name); fd.append('lesson', currentLesson); fd.append('score', correctCount); fd.append('total', challengeQs.length);
+        const fd = new FormData(); fd.append('student_id', currentUser.id || 1); fd.append('student_name', currentUser.full_name); fd.append('lesson', currentLesson); fd.append('score', correctCount); fd.append('total', challengeQs.length);
         try { await fetch(`${API_URL}/api/student/results`, { method:'POST', body:fd }); } catch(e){}
     }
 
     function showCertificateInNewWindow() {
         const certWindow = window.open('', '_blank', 'width=900,height=750');
         const nameToUse = currentUser ? currentUser.full_name : "بطل الرياضيات";
-        certWindow.document.write(`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الوثيقة الملكية</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Amiri:wght@700&display=swap" rel="stylesheet"><style>body { margin:0; padding:20px; display:flex; justify-content:center; align-items:center; background:#1a1a2e; font-family:'Cairo'; height:100vh; } .cert { width:800px; padding:40px; border:15px double #d4af37; background:#fff; text-align:center; color:#3d2b1f; box-shadow:0 0 50px rgba(0,0,0,0.8); } h1 { font-family:'Amiri'; font-size:3rem; color:#8a6219; margin:10px 0; } .name { font-size:2.8rem; font-family:'Amiri'; border-bottom:3px double #8a6219; display:inline-block; padding:0 30px; margin:15px 0; color:#040d21; } .btn-print { padding:12px 40px; background:linear-gradient(45deg, #bf953f, #fcf6ba); color:#000; cursor:pointer; font-family:'Cairo'; font-weight:900; border-radius:12px; border:none; margin-bottom:20px; } @media print { .btn-print { display:none !important; } body { background:white; } }</style></head><body><div style="text-align:center; width:100%;"><button class="btn-print" onclick="window.print()">طباعة الوثيقة الملكية 🖨️</button><div class="cert"><h1>شهادة إنجاز إمبراطورية</h1><p style="font-size:1.5rem; margin:5px 0;">تشهد إمبراطورية الرياضيات الملكية بأن البطل:</p><div class="name">${nameToUse}</div><p style="font-size:1.4rem; margin:10px 0;">قد اجتاز بنجاح وتفوق التحدي في:</p><h2 style="color:#8a6219; font-family:'Amiri'; font-size:2rem; margin:10px 0;">${currentLesson}</h2><p style="font-size:1.8rem; color:#b38728; font-weight:900;">بدرجة استحقاق: ${correctCount} من ${challengeQs.length}</p></div></div></body></html>`);
+        certWindow.document.write(`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الوثيقة الملكية</title><link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700&family=Amiri:wght@700&display=swap" rel="stylesheet"><style>body { margin:0; padding:20px; display:flex; justify-content:center; align-items:center; background:#1a1a2e; font-family:'Cairo'; height:100vh; } .cert { width:800px; padding:40px; border:15px double #d4af37; background:#fff; text-align:center; color:#3d2b1f; box-shadow:0 0 50px rgba(0,0,0,0.8); } h1 { font-family:'Amiri'; font-size:3rem; color:#8a6219; margin:10px 0; } .name { font-size:2.8rem; font-family:'Amiri'; border-bottom:3 double #8a6219; display:inline-block; padding:0 30px; margin:15px 0; color:#040d21; } .btn-print { padding:12px 40px; background:linear-gradient(45deg, #bf953f, #fcf6ba); color:#000; cursor:pointer; font-family:'Cairo'; font-weight:900; border-radius:12px; border:none; margin-bottom:20px; } @media print { .btn-print { display:none !important; } body { background:white; } }</style></head><body><div style="text-align:center; width:100%;"><button class="btn-print" onclick="window.print()">طباعة الوثيقة الملكية 🖨️</button><div class="cert"><h1>شهادة إنجاز إمبراطورية</h1><p style="font-size:1.5rem; margin:5px 0;">تشهد إمبراطورية الرياضيات الملكية بأن البطل:</p><div class="name">${nameToUse}</div><p style="font-size:1.4rem; margin:10px 0;">قد اجتاز بنجاح وتفوق التحدي في:</p><h2 style="color:#8a6219; font-family:'Amiri'; font-size:2rem; margin:10px 0;">${currentLesson}</h2><p style="font-size:1.8rem; color:#b38728; font-weight:900;">بدرجة استحقاق: ${correctCount} من ${challengeQs.length}</p></div></div></body></html>`);
     }
 
     async function loadLeaderboard() {
-        if(isExamMode) { alert("ركز في الاختبار يا بطل!"); return; }
+        if(isExamMode) return;
         toggleLoader(true);
+        playSound(podiumSound);
+        setTimeout(() => playSound(applauseSound), 1000);
         try {
-            const res = await fetch(`${API_URL}/api/leaderboard`); const winners = await res.json(); toggleLoader(false);
-            let html = `<h2 style="color:var(--gold); text-align:center; font-family:'Amiri'; font-size:2.5rem;">🏆 قائمة العمالقة</h2>`;
-            winners.forEach((w,i) => { html += `<div class="lesson-item tilt-card"><span><b>${i+1}-</b> ${w.student_name}</span> <span>${w.total_points || 0} ⭐</span></div>`; });
-            document.getElementById('content-area').innerHTML = html + `<button class="nav-btn shiny-btn" onclick="location.reload()">عودة للرئيسية</button>`; initTiltEffect();
-        } catch(e) { toggleLoader(false); alert("خطأ في الاتصال بالسيرفر"); }
+            const res = await fetch(`${API_URL}/api/leaderboard`);
+            const winners = await res.json();
+            toggleLoader(false);
+            let html = `
+                <div style="text-align:center; margin-bottom:30px;">
+                    <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter: drop-shadow(0 0 10px #d4af37);">🏆 لوحة العمالقة الأسبوعية</h1>
+                    <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; font-size:1.2rem; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
+                </div>
+                <div style="display:flex; justify-content:center; align-items:flex-end; gap:20px; margin-bottom:60px; flex-wrap:wrap;">
+                    ${winners[1] ? renderPodiumHero(winners[1], 2) : ''}
+                    ${winners[0] ? renderPodiumHero(winners[0], 1) : ''}
+                    ${winners[2] ? renderPodiumHero(winners[2], 3) : ''}
+                </div>
+                <div style="max-width:800px; margin:0 auto;">
+                    ${winners.slice(3).map((w, i) => `
+                        <div class="lesson-item tilt-card" style="display:flex; justify-content:space-between; align-items:center;">
+                            <div style="display:flex; align-items:center; gap:15px;">
+                                <span style="opacity:0.4; font-weight:900;">#${i + 4}</span>
+                                <img src="${w.avatar_url || '/static/avatars/king.jpg'}" style="width:45px; height:45px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                                <div>
+                                    <div style="font-weight:bold;">${w.student_name}</div>
+                                    <div style="display:flex; gap:5px; margin-top:3px;">
+                                        ${generateBadges(w.total_points)}
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="color:var(--gold); font-weight:bold; font-size:1.2rem;">${w.total_points} ⭐</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="text-align:center; margin-top:40px;">
+                    <button class="nav-btn shiny-btn active" style="max-width:250px; margin:0 auto;" onclick="location.reload()">🏠 عودة لعرش الإمبراطورية</button>
+                </div>
+            `;
+            document.getElementById('content-area').innerHTML = html;
+            startResetTimer();
+            initTiltEffect();
+        } catch(e) { toggleLoader(false); alert("فشل استدعاء العمالقة!"); }
+    }
+
+    function renderPodiumHero(hero, rank) {
+        const sizes = rank === 1 ? {w:200, h:100, f:3, c:'var(--gold)'} : rank === 2 ? {w:160, h:80, f:2, c:'#C0C0C0'} : {w:140, h:70, f:1.8, c:'#CD7F32'};
+        const scale = rank === 1 ? 'scale(1.1)' : 'scale(1)';
+        return `
+            <div class="tilt-card shiny-btn" style="width:${sizes.w}px; padding:20px; border-color:${sizes.c}; background:rgba(255,255,255,0.05); transform:${scale}; z-index:${4-rank}; text-align:center;">
+                <div style="font-size:${sizes.f}rem;">${rank === 1 ? '👑' : rank === 2 ? '🥈' : '🥉'}</div>
+                <img src="${hero.avatar_url || '/static/avatars/king.jpg'}" style="width:${sizes.h}px; height:${sizes.h}px; border-radius:50%; border:4px solid ${sizes.c}; margin:10px 0; object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                <div style="font-weight:900; color:${sizes.c}; font-size:1.1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hero.student_name}</div>
+                <div style="font-size:1.4rem; color:#fff; font-weight:bold;">${hero.total_points} ⭐</div>
+                <div style="margin-top:5px;">${generateBadges(hero.total_points)}</div>
+            </div>
+        `;
+    }
+
+    function generateBadges(xp) {
+        let badges = '';
+        if(xp > 100) badges += '<span class="achievement-badge" style="background:#4caf50;" title="وسام الانطلاقة 🚀">🚀</span>';
+        if(xp > 1000) badges += '<span class="achievement-badge" style="background:#2196f3;" title="وسام المثابرة 🛡️">🛡️</span>';
+        if(xp > 3000) badges += '<span class="achievement-badge" style="background:#9c27b0;" title="وسام العقل الماسي 💎">💎</span>';
+        if(xp > 5000) badges += '<span class="achievement-badge" style="background:#ff9800; animation:pulse 1s infinite;" title="وسام الأسطورة 🔥">🔥</span>';
+        return badges;
+    }
+
+    function startResetTimer() {
+        const resetDay = 0;
+        setInterval(() => {
+            const now = new Date();
+            const resultDate = new Date();
+            resultDate.setDate(now.getDate() + (resetDay + 7 - now.getDay()) % 7);
+            resultDate.setHours(23, 59, 59, 999);
+            if (now > resultDate) resultDate.setDate(resultDate.getDate() + 7);
+            const diff = resultDate - now;
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+            const mins = Math.floor((diff / (1000 * 60)) % 60);
+            const secs = Math.floor((diff / 1000) % 60);
+            const timerEl = document.getElementById('reset-timer');
+            if(timerEl) timerEl.innerText = `⏳ ينتهي الموسم خلال: ${days}ي ${hours}س ${mins}د ${secs}ث`;
+        }, 1000);
     }
 </script>
 </body>

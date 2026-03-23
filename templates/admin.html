@@ -13,6 +13,7 @@
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(212, 175, 55, 0.3);
             --red: #ff5e5e;
+            --blue: #3498db;
         }
 
         body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; overflow-x: hidden; }
@@ -69,10 +70,19 @@
             background: rgba(13, 27, 58, 0.8); color: #fff; border: 1px solid var(--gold); 
             font-family: 'Cairo'; box-sizing: border-box; font-size: 1rem; transition: 0.3s;
         }
-        input:focus { outline: none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); background: #162a52; }
+        input:focus, select:focus { outline: none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); background: #162a52; }
+
+        /* الشبكة المتسلسلة (Cascade Grid) */
+        .cascade-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 15px; background: rgba(0,0,0,0.4); padding: 20px; border-radius: 20px;
+            border: 1px solid rgba(212, 175, 55, 0.2); margin-top: 15px;
+        }
+        .cascade-grid label { margin-top: 0; font-size: 0.95rem; }
+        .cascade-grid select { margin-top: 5px; padding: 10px; font-size: 0.9rem; }
 
         /* شجرة المنهج المتطورة */
-        .curriculum-container { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 30px; }
+        .curriculum-container { display: grid; grid-template-columns: 1fr; gap: 30px; }
         .curriculum-tree { 
             background: rgba(0,0,0,0.5); padding: 25px; border-radius: 25px; 
             border: 1px solid var(--border); max-height: 650px; overflow-y: auto;
@@ -82,6 +92,9 @@
         .semester-node { margin-right: 25px; margin-top: 8px; border-right: 2px dashed var(--gold); padding-right: 15px; color: #fff; }
         .unit-node { margin-right: 35px; color: #bbb; font-size: 0.95rem; margin-top: 5px; }
         .lesson-node { margin-right: 45px; color: var(--gold); font-size: 0.9rem; font-weight: bold; }
+        
+        .edit-icon { color: var(--blue); cursor: pointer; margin-right: 10px; transition: 0.2s; font-size: 0.9rem;}
+        .edit-icon:hover { transform: scale(1.2); color: #fff; }
 
         /* الأزرار الملكية */
         .btn-gold { 
@@ -101,6 +114,7 @@
         th { background: rgba(212, 175, 55, 0.2); color: var(--gold); padding: 20px; text-align: right; border-bottom: 2px solid var(--gold); }
         td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
         tr:hover { background: rgba(255,255,255,0.02); }
+        .group-header td { background: rgba(212, 175, 55, 0.1); color: var(--gold); font-weight: bold; padding: 15px 20px; font-size: 1.1rem; }
 
         /* الإحصائيات */
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-top: 20px; }
@@ -110,16 +124,17 @@
         }
         .stat-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--gold-grad); }
         .stat-number { font-size: 3rem; color: var(--gold); font-weight: 900; font-family: 'Amiri'; margin: 10px 0; }
-        
-        .multi-select-container {
-            width: 100%; max-height: 250px; overflow-y: auto; margin-top: 10px;
-            background: #0d1b3a; border: 1px solid var(--gold); border-radius: 15px; padding: 15px; box-sizing: border-box;
-        }
 
         .home-btn { 
             margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; 
             border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-decoration: none;
             display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: bold;
+        }
+        
+        .lesson-chip {
+            background: var(--gold-grad); color: #000; padding: 8px 15px; border-radius: 20px;
+            font-weight: bold; display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem;
+            box-shadow: 0 4px 10px rgba(212,175,55,0.3);
         }
     </style>
 </head>
@@ -184,31 +199,49 @@
 
             <section id="curriculum" class="section active">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-layer-group"></i> بناء هيكل المنهج الدراسي</h2>
-                    <div class="curriculum-container">
-                        <div class="forms-area">
-                            <div class="card" style="background: rgba(255,255,255,0.02); padding: 25px;">
-                                <h3>➕ إضافة لبنة جديدة</h3>
-                                <label>نوع العنصر</label>
-                                <select id="curr-type" onchange="toggleCurrInputs()">
-                                    <option value="grade">صف دراسي</option>
-                                    <option value="semester">فصل دراسي</option>
-                                    <option value="unit">وحدة دراسية</option>
-                                    <option value="lesson">درس تعليمي</option>
-                                </select>
+                    <h2 style="color:var(--gold);"><i class="fas fa-layer-group"></i> بناء وتخطيط ديوان المنهج</h2>
+                    
+                    <div class="card" style="background: rgba(255,255,255,0.02); padding: 25px; margin-bottom: 30px;">
+                        <h3>➕ إضافة لبنة جديدة للهيكل</h3>
+                        
+                        <div><label>نوع العنصر المراد إضافته</label>
+                            <select id="curr-type" onchange="toggleCurrAddInputs()">
+                                <option value="grade">صف دراسي</option>
+                                <option value="semester">فصل دراسي</option>
+                                <option value="unit">وحدة دراسية</option>
+                                <option value="lesson">درس تعليمي</option>
+                            </select>
+                        </div>
 
-                                <div id="parent-selection-area" style="display:none;">
-                                    <label id="parent-label">اختر الأب</label>
-                                    <select id="curr-parent-id"></select>
-                                </div>
-
-                                <label>الاسم الملكي للعنصر</label>
-                                <input type="text" id="curr-name" placeholder="مثلاً: الصف السادس أو الوحدة الأولى">
-                                <button class="btn-gold" onclick="saveCurriculumItem()"><i class="fas fa-plus"></i> إيداع في الهيكل</button>
+                        <div class="cascade-grid" id="cascade-add-area" style="display:none; margin-top:15px;">
+                            <div id="add-grade-box" style="display:none;">
+                                <label>الصف التابع له</label>
+                                <select id="add-grade-sel" onchange="updateAddSemesters()"></select>
+                            </div>
+                            <div id="add-term-box" style="display:none;">
+                                <label>الفصل التابع له</label>
+                                <select id="add-term-sel" onchange="updateAddUnits()"></select>
+                            </div>
+                            <div id="add-unit-box" style="display:none;">
+                                <label>الوحدة التابعة لها</label>
+                                <select id="add-unit-sel"></select>
                             </div>
                         </div>
-                        <div class="curriculum-tree" id="curriculum-tree-display">جاري جلب هيكل الإمبراطورية...</div>
+
+                        <div style="margin-top:15px;">
+                            <label>الاسم الملكي للعنصر (مثال: الوحدة الأولى)</label>
+                            <input type="text" id="curr-name" placeholder="اكتب الاسم هنا...">
+                        </div>
+                        <button class="btn-gold" style="margin-top: 15px;" onclick="saveSmartCurriculumItem()"><i class="fas fa-plus"></i> إيداع في الهيكل</button>
                     </div>
+
+                    <h3 style="color:var(--gold); margin-top: 40px;"><i class="fas fa-eye"></i> استعراض وتعديل الهيكل</h3>
+                    <label>🔍 عرض المنهج للصف:</label>
+                    <select id="curr-filter-grade" onchange="renderCurriculumTree()" style="margin-bottom: 20px;">
+                        <option value="all">عرض جميع الصفوف</option>
+                    </select>
+
+                    <div class="curriculum-tree" id="curriculum-tree-display">جاري جلب هيكل الإمبراطورية...</div>
                 </div>
             </section>
 
@@ -234,17 +267,13 @@
                 <div class="card">
                     <h2 style="color:var(--gold);" id="form-title"><i class="fas fa-plus-circle"></i> صياغة تحدي ملكي جديد</h2>
                     <input type="hidden" id="edit-id"> 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
-                        <div>
-                            <label>📖 اختيار الدرس (من المنهج)</label>
-                            <select id="q-lesson-select" class="dynamic-lesson-select">
-                                <option value="">-- اختر الدرس --</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label>🖼️ صورة السؤال (اختياري)</label>
-                            <input type="file" id="q-image" accept="image/*">
-                        </div>
+                    
+                    <label>📖 تحديد المسار (الدرس)</label>
+                    <div class="cascade-grid">
+                        <div><label>📍 الصف</label><select id="q-grade" onchange="updateSemesters('q')"></select></div>
+                        <div><label>📅 الفصل</label><select id="q-term" onchange="updateUnits('q')"></select></div>
+                        <div><label>📦 الوحدة</label><select id="q-unit" onchange="updateLessons('q')"></select></div>
+                        <div><label>📖 الدرس المستهدف</label><select id="q-lesson"></select></div>
                     </div>
 
                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-top:20px;">
@@ -257,26 +286,38 @@
                             </select>
                         </div>
                         <div>
-                            <label>✅ الإجابة الصحيحة</label>
-                            <input type="text" id="q-answer">
+                            <label>🖼️ صورة السؤال (اختياري)</label>
+                            <input type="file" id="q-image" accept="image/*">
                         </div>
                     </div>
 
+                    <div style="margin-top:20px;">
+                        <label>✅ الإجابة الصحيحة</label>
+                        <input type="text" id="q-answer" placeholder="الناتج النهائي الصحيح">
+                    </div>
+
                     <label>📝 نص السؤال</label>
-                    <textarea id="q-text" rows="4" placeholder="اكتب السؤال هنا..."></textarea>
+                    <textarea id="q-text" rows="4" placeholder="اكتب منطوق السؤال هنا..."></textarea>
                     
                     <div id="options-container">
-                        <label>🔘 الخيارات (افصل بفاصلة ,)</label>
+                        <label>🔘 الخيارات المتاحة للطلاب (افصل بفاصلة ,)</label>
                         <input type="text" id="q-options" placeholder="مثال: لتر , ملليلتر , سم">
                     </div>
 
-                    <button class="btn-gold" id="save-btn" onclick="saveSmartQuestion()"><i class="fas fa-save"></i> حفظ في الخزنة</button>
+                    <button class="btn-gold" id="save-btn" onclick="saveSmartQuestion()"><i class="fas fa-save"></i> حفظ التحدي في الخزنة</button>
+                    <button class="btn-action" style="background:transparent; border:1px solid var(--red); color:var(--red); width:100%; padding:15px; margin-top:10px; display:none;" id="cancel-edit-btn" onclick="cancelEdit()">إلغاء التعديل</button>
                 </div>
 
                 <div class="card">
-                    <h3>📂 إدارة بنك الأسئلة</h3>
+                    <h3 style="color:var(--gold);">📂 إدارة بنك الأسئلة</h3>
+                    
+                    <label>🔍 عرض التحديات الخاصة بدرس محدد:</label>
+                    <select id="q-filter-lesson-view" onchange="loadQuestions()" style="margin-bottom: 20px;">
+                        <option value="all">-- عرض جميع التحديات (الكل) --</option>
+                    </select>
+
                     <table>
-                        <thead><tr><th>السؤال</th><th>الدرس</th><th>الصورة</th><th>إجراء</th></tr></thead>
+                        <thead><tr><th>السؤال / التحدي</th><th>النوع</th><th>مرفق</th><th>إجراءات ملكية</th></tr></thead>
                         <tbody id="questions-table-body"></tbody>
                     </table>
                 </div>
@@ -285,22 +326,26 @@
             <section id="scrolls" class="section">
                 <div class="card">
                     <h2 style="color:var(--gold);"><i class="fas fa-file-pdf"></i> إيداع لفافة (PDF)</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
-                        <div>
-                            <label>📍 اختيار الدرس</label>
-                            <select id="pdf-lesson-select" class="dynamic-lesson-select"></select>
-                        </div>
-                        <div>
-                            <label>📂 ملف الملخص</label>
-                            <input type="file" id="pdf-file-input" accept=".pdf">
-                        </div>
+                    
+                    <label>📍 تحديد مسار اللفافة (الدرس)</label>
+                    <div class="cascade-grid">
+                        <div><label>الصف</label><select id="pdf-grade" onchange="updateSemesters('pdf')"></select></div>
+                        <div><label>الفصل</label><select id="pdf-term" onchange="updateUnits('pdf')"></select></div>
+                        <div><label>الوحدة</label><select id="pdf-unit" onchange="updateLessons('pdf')"></select></div>
+                        <div><label>الدرس</label><select id="pdf-lesson"></select></div>
                     </div>
+
+                    <div style="margin-top:20px;">
+                        <label>📂 ملف الملخص</label>
+                        <input type="file" id="pdf-file-input" accept="application/pdf, .pdf">
+                    </div>
+                    
                     <button class="btn-gold" onclick="uploadSmartPDF()"><i class="fas fa-upload"></i> رفع للمكتبة الملكية</button>
                 </div>
                 <div class="card">
                     <h3>📂 اللفائف المودعة</h3>
                     <table id="pdfs-table">
-                        <thead><tr><th>الدرس</th><th>المعاينة</th><th>إجراء</th></tr></thead>
+                        <thead><tr><th>الدرس المرتبط</th><th>المعاينة</th><th>إجراء</th></tr></thead>
                         <tbody id="pdfs-table-body"></tbody>
                     </table>
                 </div>
@@ -309,22 +354,46 @@
             <section id="exams" class="section">
                 <div class="card">
                     <h2 style="color:var(--gold);"><i class="fas fa-bullhorn"></i> جدولة ملحمة (اختبار)</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
+                    
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:25px; margin-bottom: 25px;">
                         <div><label>📌 عنوان الاختبار</label><input type="text" id="exam-title"></div>
                         <div><label>📅 التاريخ</label><input type="date" id="exam-date"></div>
                         <div><label>⏰ الوقت</label><input type="time" id="exam-time"></div>
                         <div><label>⏱️ المدة (دقيقة)</label><input type="number" id="exam-duration" value="30"></div>
-                        <div style="grid-column: span 2;">
-                            <label>📖 الدروس المستهدفة</label>
-                            <div class="multi-select-container" id="exam-lesson-container">جاري تحميل الدروس...</div>
+                        
+                        <div><label>🔢 عدد الأسئلة</label><input type="number" id="exam-num-q" value="10" min="1"></div>
+                        <div>
+                            <label>🎯 نوع التحديات المستهدفة</label>
+                            <select id="exam-q-type">
+                                <option value="all">الكل (عشوائي من جميع الأنواع)</option>
+                                <option value="choice">اختيار من متعدد فقط 🔘</option>
+                                <option value="true_false">صواب أم خطأ فقط ✅/❌</option>
+                                <option value="short">إكمال / إجابة قصيرة فقط ✍️</option>
+                            </select>
                         </div>
                     </div>
-                    <button class="btn-gold" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إرسال إشعار للرعية</button>
+                    
+                    <div class="card" style="background: rgba(0,0,0,0.3); padding: 20px;">
+                        <label>📖 اختيار الدروس المستهدفة (يمكنك إضافة أكثر من درس)</label>
+                        <div class="cascade-grid" style="margin-bottom: 15px;">
+                            <div><label>الصف</label><select id="exam-grade" onchange="updateSemesters('exam')"></select></div>
+                            <div><label>الفصل</label><select id="exam-term" onchange="updateUnits('exam')"></select></div>
+                            <div><label>الوحدة</label><select id="exam-unit" onchange="updateLessons('exam')"></select></div>
+                            <div><label>الدرس</label><select id="exam-lesson"></select></div>
+                        </div>
+                        <button class="btn-action" style="background:var(--gold); color:#000; padding:10px 20px; font-size:1rem;" onclick="addLessonToExam()">إضافة الدرس المستهدف ➕</button>
+                        
+                        <div id="exam-selected-lessons-container" style="margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; min-height: 40px;">
+                            <span style="opacity: 0.5;">لم يتم تحديد دروس بعد...</span>
+                        </div>
+                    </div>
+
+                    <button class="btn-gold" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إطلاق الإشعار للرعية</button>
                 </div>
                 <div class="card">
                     <h3>🔔 الاختبارات القادمة</h3>
                     <table>
-                        <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس</th><th>إجراء</th></tr></thead>
+                        <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس المستهدفة</th><th>إجراء</th></tr></thead>
                         <tbody id="exams-table-body"></tbody>
                     </table>
                 </div>
@@ -341,12 +410,11 @@
     </div>
 
 <script>
-    // الرابط التلقائي حسب الاستضافة
     const API_URL = window.location.origin; 
     let fullCurriculum = [];
     let allQuestions = [];
+    let selectedExamLessons = [];
 
-    // --- نظام الدخول والحماية ---
     async function authFetch(endpoint, options = {}) {
         const token = localStorage.getItem('adminToken');
         if (!token) return logout();
@@ -363,7 +431,6 @@
         const fd = new FormData();
         fd.append('username', 'admin');
         fd.append('password', pass);
-
         const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd });
         if (res.ok) {
             const data = await res.json();
@@ -388,7 +455,6 @@
         document.querySelector(`[onclick="showSection('${id}')"]`).classList.add('active');
     }
 
-    // --- تحميل البيانات المركزية ---
     async function loadAllData() {
         await loadCurriculum();
         await loadDashboard();
@@ -397,38 +463,131 @@
         loadScheduledExams();
     }
 
-    // --- إدارة المنهج الدراسي الديناميكي ---
+    // --- إدارة المنهج (تعديلات العرض والفلترة) ---
     async function loadCurriculum() {
         const res = await fetch(`${API_URL}/api/curriculum/structure`);
         if(res.ok) {
             fullCurriculum = await res.json();
+            initCascades(); 
+            populateCurriculumFilters(); 
             renderCurriculumTree();
-            populateLessonDropdowns();
-            renderExamLessonCheckboxes();
-            toggleCurrInputs();
+            toggleCurrAddInputs();
+        }
+    }
+
+    function populateCurriculumFilters() {
+        const currFilter = document.getElementById('curr-filter-grade');
+        const qFilter = document.getElementById('q-filter-lesson-view');
+        
+        currFilter.innerHTML = '<option value="all">عرض جميع الصفوف</option>';
+        qFilter.innerHTML = '<option value="all">-- عرض جميع التحديات (الكل) --</option>';
+
+        fullCurriculum.forEach(g => {
+            currFilter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(l => {
+                qFilter.innerHTML += `<option value="${l.name}">${l.name}</option>`;
+            })));
+        });
+    }
+
+    // --- دوال القوائم المتسلسلة لإضافة المنهج ---
+    function toggleCurrAddInputs() {
+        const type = document.getElementById('curr-type').value;
+        const cascadeArea = document.getElementById('cascade-add-area');
+        const gBox = document.getElementById('add-grade-box');
+        const tBox = document.getElementById('add-term-box');
+        const uBox = document.getElementById('add-unit-box');
+
+        const gSel = document.getElementById('add-grade-sel');
+        gSel.innerHTML = '<option value="">-- اختر الصف --</option>';
+        fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${g.name}</option>`);
+
+        if (type === 'grade') {
+            cascadeArea.style.display = 'none';
+        } else {
+            cascadeArea.style.display = 'grid';
+            gBox.style.display = 'block';
+            tBox.style.display = (type === 'unit' || type === 'lesson') ? 'block' : 'none';
+            uBox.style.display = (type === 'lesson') ? 'block' : 'none';
+        }
+    }
+
+    function updateAddSemesters() {
+        const gIdx = document.getElementById('add-grade-sel').value;
+        const sel = document.getElementById('add-term-sel');
+        sel.innerHTML = '<option value="">-- اختر الفصل --</option>';
+        if (gIdx !== "") fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
+    }
+
+    function updateAddUnits() {
+        const gIdx = document.getElementById('add-grade-sel').value;
+        const sIdx = document.getElementById('add-term-sel').value;
+        const sel = document.getElementById('add-unit-sel');
+        sel.innerHTML = '<option value="">-- اختر الوحدة --</option>';
+        if (sIdx !== "") fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
+    }
+
+    async function saveSmartCurriculumItem() {
+        const type = document.getElementById('curr-type').value;
+        const name = document.getElementById('curr-name').value;
+        if(!name) return alert("⚠️ يرجى كتابة اسم العنصر!");
+
+        const fd = new FormData(); fd.append('name', name);
+        let endpoint = `/api/admin/curriculum/${type}s`;
+        
+        try {
+            if(type === 'semester') {
+                const gIdx = document.getElementById('add-grade-sel').value;
+                fd.append('grade_id', fullCurriculum[gIdx].id);
+            } else if(type === 'unit') {
+                const gIdx = document.getElementById('add-grade-sel').value;
+                const sIdx = document.getElementById('add-term-sel').value;
+                fd.append('semester_id', fullCurriculum[gIdx].semesters[sIdx].id);
+            } else if(type === 'lesson') {
+                const gIdx = document.getElementById('add-grade-sel').value;
+                const sIdx = document.getElementById('add-term-sel').value;
+                const uIdx = document.getElementById('add-unit-sel').value;
+                fd.append('unit_id', fullCurriculum[gIdx].semesters[sIdx].units[uIdx].id);
+            }
+        } catch(e) { return alert("⚠️ يرجى التأكد من اختيار جميع القوائم المتسلسلة بشكل صحيح!"); }
+
+        const res = await authFetch(endpoint, { method: 'POST', body: fd });
+        if(res && res.ok) {
+            alert("✅ تم إضافة اللبنة للهيكل بنجاح!");
+            document.getElementById('curr-name').value = '';
+            loadCurriculum();
         }
     }
 
     function renderCurriculumTree() {
         const tree = document.getElementById('curriculum-tree-display');
-        if(fullCurriculum.length === 0) {
-            tree.innerHTML = "<p style='text-align:center;'>لا يوجد هيكل حالياً. ابدأ بإضافة صف دراسي.</p>";
-            return;
-        }
+        const filterVal = document.getElementById('curr-filter-grade').value;
+        if(fullCurriculum.length === 0) { tree.innerHTML = "<p style='text-align:center;'>لا يوجد هيكل حالياً. ابدأ بإضافة صف دراسي.</p>"; return; }
+        let gradesToRender = fullCurriculum;
+        if (filterVal !== "all") gradesToRender = fullCurriculum.filter(g => g.id == filterVal);
 
-        tree.innerHTML = fullCurriculum.map(grade => `
+        tree.innerHTML = gradesToRender.map(grade => `
             <div class="node-box grade-node">
-                <strong>📍 ${grade.name}</strong>
+                <strong>📍 ${grade.name}</strong> 
+                <i class="fas fa-edit edit-icon" onclick="editCurrNode('grade', ${grade.id}, '${grade.name}')" title="تعديل"></i>
+                <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('grade', ${grade.id}, '${grade.name}')" title="حذف"></i>
                 <div class="semester-list">
                     ${grade.semesters.map(sem => `
-                        <div class="semester-node">
-                            📅 ${sem.name}
+                        <div class="semester-node">📅 ${sem.name}
+                            <i class="fas fa-edit edit-icon" onclick="editCurrNode('semester', ${sem.id}, '${sem.name}')"></i>
+                            <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('semester', ${sem.id}, '${sem.name}')" title="حذف"></i>
                             <div class="unit-list">
                                 ${sem.units.map(unit => `
-                                    <div class="unit-node">
-                                        📦 ${unit.name}
+                                    <div class="unit-node">📦 ${unit.name}
+                                        <i class="fas fa-edit edit-icon" onclick="editCurrNode('unit', ${unit.id}, '${unit.name}')"></i>
+                                        <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('unit', ${unit.id}, '${unit.name}')" title="حذف"></i>
                                         <div class="lesson-list">
-                                            ${unit.lessons.map(ls => `<div class="lesson-node">📖 ${ls.name}</div>`).join('')}
+                                            ${unit.lessons.map(ls => `
+                                                <div class="lesson-node">📖 ${ls.name}
+                                                    <i class="fas fa-edit edit-icon" onclick="editCurrNode('lesson', ${ls.id}, '${ls.name}')"></i>
+                                                    <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('lesson', ${ls.id}, '${ls.name}')" title="حذف"></i>
+                                                </div>
+                                            `).join('')}
                                         </div>
                                     </div>
                                 `).join('')}
@@ -440,87 +599,105 @@
         `).join('');
     }
 
-    function toggleCurrInputs() {
-        const type = document.getElementById('curr-type').value;
-        const parentArea = document.getElementById('parent-selection-area');
-        const parentSelect = document.getElementById('curr-parent-id');
-        const label = document.getElementById('parent-label');
+    async function editCurrNode(type, id, oldName) {
+        const newName = prompt(`تعديل الملكي لـ (${oldName}):`, oldName);
+        if (!newName || newName === oldName) return;
 
-        if(type === 'grade') {
-            parentArea.style.display = 'none';
+        const fd = new FormData();
+        fd.append('name', newName);
+        
+        const res = await authFetch(`/api/admin/curriculum/${type}s/${id}`, { method: 'PUT', body: fd });
+        if(res && res.ok) {
+            alert("✅ تم تحديث الاسم الإمبراطوري بنجاح!");
+            loadCurriculum(); 
         } else {
-            parentArea.style.display = 'block';
-            parentSelect.innerHTML = '';
-            if(type === 'semester') {
-                label.innerText = "اختر الصف الدراسي:";
-                fullCurriculum.forEach(g => parentSelect.innerHTML += `<option value="${g.id}">${g.name}</option>`);
-            } else if(type === 'unit') {
-                label.innerText = "اختر الفصل الدراسي:";
-                fullCurriculum.forEach(g => g.semesters.forEach(s => parentSelect.innerHTML += `<option value="${s.id}">${g.name} - ${s.name}</option>`));
-            } else if(type === 'lesson') {
-                label.innerText = "اختر الوحدة الدراسية:";
-                fullCurriculum.forEach(g => g.semesters.forEach(s => s.units.forEach(u => parentSelect.innerHTML += `<option value="${u.id}">${s.name} -> ${u.name}</option>`)));
+            alert("⚠️ عذراً، تأكد من دعم السيرفر لخاصية تعديل المنهج.");
+        }
+    }
+
+    async function deleteCurrNode(type, id, name) {
+        if(confirm(`⚠️ تحذير ملكي: هل أنت متأكد من حذف (${name})؟\nسيؤدي هذا إلى حذف كل ما يتفرع منه!`)) {
+            const res = await authFetch(`/api/admin/curriculum/${type}s/${id}`, { method: 'DELETE' });
+            if(res && res.ok) {
+                alert("🗑️ تم الحذف بنجاح!");
+                loadCurriculum();
+            } else {
+                alert("⚠️ حدث خطأ أثناء الحذف. تأكد من أن السيرفر يدعم مسار الحذف.");
             }
         }
     }
 
-    async function saveCurriculumItem() {
-        const type = document.getElementById('curr-type').value;
-        const name = document.getElementById('curr-name').value;
-        const parentId = document.getElementById('curr-parent-id').value;
+    // --- نظام القوائم المتسلسلة (Cascade Dropdowns) ---
+    function initCascades() {
+        populateGradeDropdown('q');
+        populateGradeDropdown('pdf');
+        populateGradeDropdown('exam');
+    }
 
-        if(!name) return alert("⚠️ يرجى كتابة اسم العنصر!");
+    function resetDropdowns(prefix, parts) {
+        parts.forEach(p => {
+            const el = document.getElementById(`${prefix}-${p}`);
+            if (el) el.innerHTML = '<option value="">-- اختر --</option>';
+        });
+    }
 
-        const fd = new FormData();
-        fd.append('name', name);
-        let endpoint = `/api/admin/curriculum/${type}s`;
-        
-        if(type === 'semester') fd.append('grade_id', parentId);
-        if(type === 'unit') fd.append('semester_id', parentId);
-        if(type === 'lesson') fd.append('unit_id', parentId);
+    function populateGradeDropdown(prefix) {
+        const sel = document.getElementById(`${prefix}-grade`);
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- اختر الصف --</option>';
+        fullCurriculum.forEach((g, i) => sel.innerHTML += `<option value="${i}">${g.name}</option>`);
+        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
+    }
 
-        const res = await authFetch(endpoint, { method: 'POST', body: fd });
-        if(res && res.ok) {
-            alert("✅ تم تحديث الهيكل بنجاح!");
-            document.getElementById('curr-name').value = '';
-            loadCurriculum();
+    function updateSemesters(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sel = document.getElementById(`${prefix}-term`);
+        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
+        if (gIdx === "") return;
+        fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
+    }
+
+    function updateUnits(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sIdx = document.getElementById(`${prefix}-term`).value;
+        const sel = document.getElementById(`${prefix}-unit`);
+        resetDropdowns(prefix, ['unit', 'lesson']);
+        if (sIdx === "") return;
+        fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
+    }
+
+    function updateLessons(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sIdx = document.getElementById(`${prefix}-term`).value;
+        const uIdx = document.getElementById(`${prefix}-unit`).value;
+        const sel = document.getElementById(`${prefix}-lesson`);
+        resetDropdowns(prefix, ['lesson']);
+        if (uIdx === "") return;
+        fullCurriculum[gIdx].semesters[sIdx].units[uIdx].lessons.forEach((l) => sel.innerHTML += `<option value="${l.name}">${l.name}</option>`);
+    }
+
+    function autoSelectCascade(prefix, lessonName) {
+        for (let g = 0; g < fullCurriculum.length; g++) {
+            for (let s = 0; s < fullCurriculum[g].semesters.length; s++) {
+                for (let u = 0; u < fullCurriculum[g].semesters[s].units.length; u++) {
+                    for (let l = 0; l < fullCurriculum[g].semesters[s].units[u].lessons.length; l++) {
+                        if (fullCurriculum[g].semesters[s].units[u].lessons[l].name === lessonName) {
+                            document.getElementById(`${prefix}-grade`).value = g;
+                            updateSemesters(prefix);
+                            document.getElementById(`${prefix}-term`).value = s;
+                            updateUnits(prefix);
+                            document.getElementById(`${prefix}-unit`).value = u;
+                            updateLessons(prefix);
+                            document.getElementById(`${prefix}-lesson`).value = lessonName;
+                            return;
+                        }
+                    }
+                }
+            }
         }
     }
 
-    function populateLessonDropdowns() {
-        const selects = document.querySelectorAll('.dynamic-lesson-select');
-        selects.forEach(sel => {
-            sel.innerHTML = '<option value="">-- اختر الدرس من المنهج --</option>';
-            fullCurriculum.forEach(g => {
-                const group = document.createElement('optgroup');
-                group.label = g.name;
-                g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(ls => {
-                    const opt = document.createElement('option');
-                    opt.value = ls.name;
-                    opt.textContent = `${u.name} | ${ls.name}`;
-                    group.appendChild(opt);
-                })));
-                sel.appendChild(group);
-            });
-        });
-    }
-
-    function renderExamLessonCheckboxes() {
-        const container = document.getElementById('exam-lesson-container');
-        container.innerHTML = '';
-        fullCurriculum.forEach(g => {
-            container.innerHTML += `<div style="color:var(--gold); font-weight:bold; margin-top:10px;">📍 ${g.name}</div>`;
-            g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(ls => {
-                container.innerHTML += `
-                    <label class="multi-select-lesson">
-                        <input type="checkbox" value="${ls.name}" class="exam-lesson-cb"> ${u.name} ⬅️ ${ls.name}
-                    </label>
-                `;
-            })));
-        });
-    }
-
-    // --- بنك الأسئلة والنتائج ---
+    // --- بنك الأسئلة والطلاب ---
     async function loadDashboard() {
         const res = await fetch(`${API_URL}/api/leaderboard`);
         if(res.ok) {
@@ -530,7 +707,6 @@
                 document.getElementById('stat-top-student').innerText = data[0].student_name;
                 document.getElementById('stat-top-xp').innerText = `${data[0].total_points} XP`;
             }
-            // ملء جدول الطلاب (تبسيطاً سنستخدم بيانات المتصدرين)
             const tbody = document.getElementById('students-table-body');
             tbody.innerHTML = data.map(s => `
                 <tr>
@@ -538,18 +714,100 @@
                     <td>الصف السادس</td>
                     <td>${s.total_points}</td>
                     <td>نشط الآن</td>
-                    <td><button class="btn-action" style="background:var(--gold)">تقرير</button></td>
+                    <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${s.student_name}')">تقرير</button></td>
                 </tr>
             `).join('');
         }
     }
 
+    function viewStudentReport(studentName) {
+        alert(`سيتم إطلاق نظام تقارير الأداء التفصيلي للبطل (${studentName}) قريباً في التحديث الملكي القادم!`);
+    }
+
+    async function loadQuestions() {
+        const res = await fetch(`${API_URL}/api/admin/questions`);
+        if(res.ok) {
+            allQuestions = await res.json();
+            document.getElementById('stat-total-q').innerText = allQuestions.length;
+            
+            const filterVal = document.getElementById('q-filter-lesson-view').value;
+            let filteredQuestions = allQuestions;
+            if (filterVal !== "all") {
+                filteredQuestions = allQuestions.filter(q => q.lesson === filterVal);
+            }
+            
+            const grouped = filteredQuestions.reduce((acc, q) => {
+                acc[q.lesson] = acc[q.lesson] || [];
+                acc[q.lesson].push(q);
+                return acc;
+            }, {});
+
+            let htmlStr = '';
+            for (const [lessonName, qs] of Object.entries(grouped)) {
+                htmlStr += `<tr class="group-header"><td colspan="4">📖 وحدة الدرس: ${lessonName}</td></tr>`;
+                qs.forEach(q => {
+                    htmlStr += `
+                    <tr>
+                        <td style="padding-right: 30px;">${q.question.substring(0,50)}...</td>
+                        <td>${q.q_type === 'choice' ? 'اختياري' : q.q_type === 'short' ? 'إجابة قصيرة' : 'صواب/خطأ'}</td>
+                        <td>${q.image_url ? '🖼️ نعم' : 'لا يوجد'}</td>
+                        <td>
+                            <button class="btn-action" style="background:var(--gold); color:#000; margin-left:5px;" onclick="editQuestion(${q.id})">تعديل ✏️</button>
+                            <button class="btn-action btn-del" onclick="deleteQuestion(${q.id})">حذف 🗑️</button>
+                        </td>
+                    </tr>`;
+                });
+            }
+            if(Object.keys(grouped).length === 0) htmlStr = "<tr><td colspan='4' style='text-align:center;'>لا توجد تحديات محفوظة لهذا الدرس.</td></tr>";
+            document.getElementById('questions-table-body').innerHTML = htmlStr;
+        }
+    }
+
+    function editQuestion(id) {
+        const q = allQuestions.find(x => x.id === id);
+        if (!q) return;
+        
+        document.getElementById('edit-id').value = q.id;
+        autoSelectCascade('q', q.lesson);
+        
+        document.getElementById('q-type').value = q.q_type;
+        toggleOptions();
+        
+        document.getElementById('q-answer').value = q.answer;
+        document.getElementById('q-text').value = q.question;
+        if(q.options) document.getElementById('q-options').value = q.options;
+        
+        const btn = document.getElementById('save-btn');
+        btn.innerHTML = "<i class='fas fa-edit'></i> تحديث التحدي الملكي";
+        btn.style.background = "linear-gradient(45deg, #4caf50, #81c784)";
+        document.getElementById('cancel-edit-btn').style.display = "block";
+        document.getElementById('form-title').innerText = "تعديل التحدي الملكي 🛠️";
+        
+        document.getElementById('bank').scrollIntoView({behavior: 'smooth'});
+    }
+
+    function cancelEdit() {
+        document.getElementById('edit-id').value = '';
+        document.getElementById('q-text').value = '';
+        document.getElementById('q-answer').value = '';
+        document.getElementById('q-options').value = '';
+        
+        const btn = document.getElementById('save-btn');
+        btn.innerHTML = "<i class='fas fa-save'></i> حفظ التحدي في الخزنة";
+        btn.style.background = "var(--gold-grad)";
+        document.getElementById('cancel-edit-btn').style.display = "none";
+        document.getElementById('form-title').innerText = "صياغة تحدي ملكي جديد";
+        resetDropdowns('q', ['term', 'unit', 'lesson']);
+        document.getElementById('q-grade').value = "";
+    }
+
     async function saveSmartQuestion() {
-        const lesson = document.querySelector('#bank #q-lesson-select').value;
-        if(!lesson) return alert("⚠️ اختر الدرس أولاً!");
+        const editId = document.getElementById('edit-id').value;
+        const lesson = document.getElementById('q-lesson').value;
+        if(!lesson) return alert("⚠️ يرجى تحديد مسار الدرس بالكامل!");
 
         const fd = new FormData();
-        fd.append('grade', '6');
+        fd.append('grade', '6'); 
         fd.append('lesson', lesson);
         fd.append('subject', 'الرياضيات');
         fd.append('q_type', document.getElementById('q-type').value);
@@ -560,28 +818,19 @@
         const img = document.getElementById('q-image').files[0];
         if(img) fd.append('image', img);
 
-        const res = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
-        if(res && res.ok) {
-            alert("✨ تم الحفظ في الخزنة بنجاح!");
-            loadQuestions();
-            document.getElementById('q-text').value = '';
-            document.getElementById('q-answer').value = '';
+        let endpoint = '/api/admin/questions';
+        let method = 'POST';
+        
+        if(editId) {
+            endpoint = `/api/admin/questions/${editId}`;
+            method = 'PUT'; 
         }
-    }
 
-    async function loadQuestions() {
-        const res = await fetch(`${API_URL}/api/admin/questions`);
-        if(res.ok) {
-            allQuestions = await res.json();
-            document.getElementById('stat-total-q').innerText = allQuestions.length;
-            document.getElementById('questions-table-body').innerHTML = allQuestions.map(q => `
-                <tr>
-                    <td>${q.question.substring(0,40)}...</td>
-                    <td>${q.lesson}</td>
-                    <td>${q.image_url ? '🖼️' : '📄'}</td>
-                    <td><button class="btn-action btn-del" onclick="deleteQuestion(${q.id})">حذف</button></td>
-                </tr>
-            `).join('');
+        const res = await authFetch(endpoint, { method: method, body: fd });
+        if(res && res.ok) {
+            alert(editId ? "✨ تم التحديث بنجاح!" : "✨ تم الحفظ في الخزنة بنجاح!");
+            cancelEdit(); 
+            loadQuestions();
         }
     }
 
@@ -592,25 +841,56 @@
         }
     }
 
-    // --- جدولة الاختبارات ---
+    function addLessonToExam() {
+        const lesson = document.getElementById('exam-lesson').value;
+        if(!lesson) return alert("اختر الدرس أولاً من القوائم المتسلسلة!");
+        if(!selectedExamLessons.includes(lesson)) {
+            selectedExamLessons.push(lesson);
+            renderSelectedExamLessons();
+        }
+    }
+
+    function removeLessonFromExam(lesson) {
+        selectedExamLessons = selectedExamLessons.filter(l => l !== lesson);
+        renderSelectedExamLessons();
+    }
+
+    function renderSelectedExamLessons() {
+        const container = document.getElementById('exam-selected-lessons-container');
+        if(selectedExamLessons.length === 0) {
+            container.innerHTML = '<span style="opacity: 0.5;">لم يتم تحديد دروس بعد...</span>';
+            return;
+        }
+        container.innerHTML = selectedExamLessons.map(l => `
+            <div class="lesson-chip">
+                ${l} <span style="cursor:pointer; color:#000; font-size:1.2rem; line-height:1;" onclick="removeLessonFromExam('${l}')">×</span>
+            </div>
+        `).join('');
+    }
+
     async function scheduleExam() {
-        const selected = Array.from(document.querySelectorAll('.exam-lesson-cb:checked')).map(cb => cb.value);
-        if(selected.length === 0) return alert("⚠️ اختر درساً واحداً على الأقل!");
+        if(selectedExamLessons.length === 0) return alert("⚠️ أضف درساً واحداً على الأقل للملحمة!");
+        const title = document.getElementById('exam-title').value;
+        if(!title) return alert("⚠️ يرجى كتابة عنوان للاختبار!");
 
         const fd = new FormData();
-        fd.append('title', document.getElementById('exam-title').value);
+        fd.append('title', title);
         fd.append('exam_date', document.getElementById('exam-date').value);
         fd.append('exam_time', document.getElementById('exam-time').value);
-        fd.append('target_lesson', selected.join(','));
+        fd.append('target_lesson', selectedExamLessons.join(',')); 
         fd.append('duration', document.getElementById('exam-duration').value);
         fd.append('exam_type', 'ملحمة أسبوعية');
-        fd.append('num_questions', 10);
-        fd.append('points_per_q', 10);
-        fd.append('target_q_type', 'all');
+        
+        fd.append('num_questions', document.getElementById('exam-num-q').value);
+        fd.append('target_q_type', document.getElementById('exam-q-type').value);
+        fd.append('points_per_q', 10); 
 
         const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
         if(res && res.ok) {
             alert("🔔 تم إطلاق الملحمة بنجاح!");
+            selectedExamLessons = []; 
+            renderSelectedExamLessons();
+            document.getElementById('exam-title').value = '';
             loadScheduledExams();
         }
     }
@@ -621,36 +901,45 @@
             const data = await res.json();
             document.getElementById('exams-table-body').innerHTML = data.map(e => `
                 <tr>
-                    <td>${e.title}</td>
+                    <td><strong>${e.title}</strong></td>
                     <td>${e.exam_date} | ${e.exam_time}</td>
-                    <td><small>${e.target_lesson.substring(0,30)}...</small></td>
-                    <td><button class="btn-action btn-del" onclick="deleteExam(${e.id})">إلغاء</button></td>
+                    <td><small style="opacity:0.8;">${e.target_lesson}</small></td>
+                    <td><button class="btn-action btn-del" onclick="deleteExam(${e.id})">إلغاء الملحمة</button></td>
                 </tr>
             `).join('');
         }
     }
 
     async function deleteExam(id) {
-        if(confirm("إلغاء الاختبار؟")) {
+        if(confirm("هل أنت متأكد من إلغاء هذه الملحمة؟")) {
             await authFetch(`/api/admin/exams/${id}`, { method: 'DELETE' });
             loadScheduledExams();
         }
     }
 
-    // --- لفائف المعرفة (PDF) ---
     async function uploadSmartPDF() {
-        const lesson = document.getElementById('pdf-lesson-select').value;
-        const file = document.getElementById('pdf-file-input').files[0];
-        if(!lesson || !file) return alert("⚠️ اختر الدرس وأرفق الملف!");
+        const lesson = document.getElementById('pdf-lesson').value;
+        const fileInput = document.getElementById('pdf-file-input');
+        
+        if(!lesson) return alert("⚠️ يرجى اختيار الدرس أولاً من القوائم (الصف > الفصل > الوحدة > الدرس)!");
+        if(fileInput.files.length === 0) return alert("⚠️ يرجى إرفاق ملف الـ PDF قبل الرفع!");
 
+        const file = fileInput.files[0];
         const fd = new FormData();
         fd.append('lesson', lesson);
         fd.append('pdf', file);
         
-        const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
-        if(res && res.ok) {
-            alert("📜 تم إيداع اللفافة بنجاح!");
-            loadPDFs();
+        try {
+            const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
+            if(res && res.ok) {
+                alert("📜 تم إيداع اللفافة بنجاح في المكتبة الملكية!");
+                fileInput.value = ""; 
+                loadPDFs();
+            } else {
+                alert("⚠️ حدث خطأ أثناء الرفع! تأكد من أن السيرفر يقبل الملفات ويستجيب بشكل صحيح.");
+            }
+        } catch (e) {
+            alert("⚠️ لا يمكن الاتصال بالمكتبة السحابية. يرجى التحقق من اتصال السيرفر.");
         }
     }
 
@@ -660,16 +949,16 @@
             const data = await res.json();
             document.getElementById('pdfs-table-body').innerHTML = data.map(pdf => `
                 <tr>
-                    <td>${pdf.lesson}</td>
-                    <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold);">معاينة 👁️</a></td>
-                    <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حذف</button></td>
+                    <td><strong>${pdf.lesson}</strong></td>
+                    <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold;">معاينة 👁️</a></td>
+                    <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حرق اللفافة (حذف) 🔥</button></td>
                 </tr>
             `).join('');
         }
     }
 
     async function deletePDF(lesson) {
-        if(confirm("حذف اللفافة؟")) {
+        if(confirm("هل تريد حرق هذه اللفافة نهائياً؟")) {
             await authFetch(`/api/admin/summaries/${encodeURIComponent(lesson)}`, { method: 'DELETE' });
             loadPDFs();
         }
