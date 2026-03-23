@@ -103,12 +103,16 @@ async def read_teachers(request: Request):
     return templates.TemplateResponse(request=request, name="teachers.html")
 
 @app.get("/manifest.json")
-async def get_manifest(): return FileResponse("manifest.json")
+async def get_manifest(): 
+    if os.path.exists("manifest.json"): return FileResponse("manifest.json")
+    raise HTTPException(status_code=404)
 
 @app.get("/favicon.ico")
 async def get_favicon(): 
     path = os.path.join(BASE_DIR, "static", "teacher.jpg")
-    return FileResponse(path)
+    if os.path.exists(path):
+        return FileResponse(path)
+    return {"message": "No favicon found"}
 
 # ==========================================
 # --- 4. نظام الدخول والطلاب ---
@@ -138,7 +142,9 @@ async def register_student(
 async def login_student(username: str = Form(...), password: str = Form(...)):
     res = supabase.table("students").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
-        return {"status": "success", "user": res.data[0]}
+        user = res.data[0]
+        user.pop('password', None) # حماية إضافية: عدم إرسال الباسورد للمتصفح
+        return {"status": "success", "user": user}
     raise HTTPException(status_code=401, detail="بيانات الدخول غير صحيحة")
 
 @app.post("/api/student/update")
@@ -244,6 +250,22 @@ async def upload_summary(lesson: str=Form(...), pdf: UploadFile=File(...), admin
 async def get_summaries():
     res = supabase.table("summaries").select("*").execute()
     return res.data if res.data else []
+
+# --> مسار حذف الملخص للمعلم (تمت إضافته) <--
+@app.delete("/api/admin/summaries/{lesson:path}")
+async def delete_summary(lesson: str, admin=Depends(get_current_admin)):
+    lesson_dec = unquote(lesson)
+    supabase.table("summaries").delete().eq("lesson", lesson_dec).execute()
+    return {"status": "success"}
+
+# --> مسار جلب الملخص للطالب (تمت إضافته) <--
+@app.get("/api/student/summaries/{lesson:path}")
+async def get_student_summary(lesson: str):
+    lesson_dec = unquote(lesson)
+    res = supabase.table("summaries").select("pdf_url").eq("lesson", lesson_dec).execute()
+    if res.data:
+        return {"pdf_url": res.data[0]["pdf_url"]}
+    return {"pdf_url": None}
 
 @app.post("/api/student/results")
 async def save_result(student_id: int=Form(...), student_name: str=Form(...), lesson: str=Form(...), score: int=Form(...), total: int=Form(...)):

@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <link rel="manifest" href="manifest.json">
-    <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>بوابة إمبراطورية الرياضيات | أ. رشدي سيد</title>
+    <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -20,7 +19,7 @@
             margin: 0; font-family: 'Cairo', sans-serif;
             background: radial-gradient(circle at center, #1a1a2e 0%, #040d21 100%);
             color: #fff; min-height: 100vh; display: flex; flex-direction: column;
-            justify-content: center; align-items: center; overflow: hidden;
+            justify-content: center; align-items: center; overflow-x: hidden;
         }
 
         .main-gate {
@@ -38,15 +37,17 @@
 
         .gate-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 30px; width: 100%; max-width: 1000px; margin: 0 auto;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 30px; width: 100%; max-width: 1200px; margin: 0 auto;
         }
 
+        /* تحويل البطاقات إلى روابط <a> لإمكانية وصول أفضل */
         .gate-card {
             background: var(--glass); border: 2px solid var(--border);
-            border-radius: 30px; padding: 40px; cursor: pointer;
+            border-radius: 30px; padding: 40px 20px; cursor: pointer;
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             position: relative; overflow: hidden; backdrop-filter: blur(15px);
+            text-decoration: none; color: white; display: block;
         }
 
         .gate-card:hover {
@@ -54,9 +55,13 @@
             box-shadow: 0 20px 50px rgba(212, 175, 55, 0.2);
         }
 
-        .gate-card i { font-size: 5rem; display: block; margin-bottom: 20px; filter: drop-shadow(0 0 10px rgba(212,175,55,0.3)); }
-        .gate-card h2 { margin: 0; font-family: 'Amiri'; font-size: 2.2rem; color: var(--gold); }
-        .gate-card p { opacity: 0.7; margin-top: 10px; font-size: 1rem; }
+        .gate-icon { 
+            font-size: 4.5rem; display: block; margin-bottom: 20px; 
+            filter: drop-shadow(0 0 10px rgba(212,175,55,0.3)); 
+        }
+        
+        .gate-card h2 { margin: 0; font-family: 'Amiri'; font-size: 2rem; color: var(--gold); }
+        .gate-card p { opacity: 0.7; margin-top: 10px; font-size: 1rem; line-height: 1.5; }
 
         .gate-card::before {
             content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
@@ -73,23 +78,29 @@
         <div class="welcome-text">أهلاً بك في البوابة الملكية.. اختر مسارك بعناية</div>
 
         <div class="gate-grid">
-            <div class="gate-card" onclick="window.location.href='/student'">
-                <div style="font-size: 5rem;">⚔️</div>
+            <a href="/student" class="gate-card">
+                <span class="gate-icon">⚔️</span>
                 <h2>بطل الإمبراطورية</h2>
                 <p>دخول الطلاب لخوض التحديات واستلام الأوسمة</p>
-            </div>
+            </a>
 
-            <div class="gate-card" onclick="window.location.href='/parent'">
-                <div style="font-size: 5rem;">🛡️</div>
+            <a href="/parent" class="gate-card">
+                <span class="gate-icon">🛡️</span>
                 <h2>ديوان أولياء الأمور</h2>
                 <p>متابعة تقارير الأبطال ومراقبة الإنجازات</p>
-            </div>
+            </a>
 
-            <div class="gate-card" onclick="window.location.href='/admin'">
-                <div style="font-size: 5rem;">👑</div>
+            <a href="/teachers" class="gate-card">
+                <span class="gate-icon">📜</span>
+                <h2>غرفة المعلمين</h2>
+                <p>تبادل الخبرات وتحميل المصادر التعليمية</p>
+            </a>
+
+            <a href="/admin" class="gate-card">
+                <span class="gate-icon">👑</span>
                 <h2>عرش الإمبراطور</h2>
                 <p>خاص بالأستاذ رشدي سيد (إدارة المنصة)</p>
-            </div>
+            </a>
         </div>
     </div>
 </body>

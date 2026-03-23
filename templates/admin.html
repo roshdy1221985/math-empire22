@@ -309,7 +309,7 @@
     </div>
 
 <script>
-    const API_URL = ""; // Relative path to use the same host
+    const API_URL = ""; 
     let allQuestions = [];
 
     const lessonsMap = {
@@ -418,9 +418,12 @@
 
     async function saveSmartQuestion() {
         const editId = document.getElementById('edit-id').value;
+        const lesson = document.getElementById('q-lesson').value;
+        if(!lesson) { alert("⚠️ الرجاء اختيار الوحدة والدرس أولاً!"); return; }
+
         const fd = new FormData();
         fd.append('grade', '6');
-        fd.append('lesson', document.getElementById('q-lesson').value);
+        fd.append('lesson', lesson);
         fd.append('subject', 'الرياضيات');
         fd.append('q_type', document.getElementById('q-type').value);
         fd.append('question', document.getElementById('q-text').value);
@@ -479,6 +482,7 @@
         document.getElementById('q-text').value = "";
         document.getElementById('q-answer').value = "";
         document.getElementById('q-options').value = "";
+        document.getElementById('q-image').value = "";
         document.getElementById('form-title').innerText = "🔨 إضافة تحدي ملكي جديد";
         document.getElementById('save-btn').innerText = "حفظ في الخزنة 💾";
         document.getElementById('cancel-btn').style.display = "none";
@@ -502,7 +506,6 @@
     }
 
     async function scheduleExam() {
-        // --- هنا الإضافة المهمة: التحقق قبل الإرسال ---
         const selected = Array.from(document.querySelectorAll('.exam-lesson-cb:checked')).map(cb => cb.value);
         const title = document.getElementById('exam-title').value;
         const date = document.getElementById('exam-date').value;
@@ -516,7 +519,6 @@
             alert("⚠️ يجب اختيار درس واحد على الأقل للاختبار!");
             return;
         }
-        // ----------------------------------------------
 
         const fd = new FormData();
         fd.append('title', title);
@@ -530,7 +532,11 @@
         fd.append('target_q_type', document.getElementById('exam-target-q-type').value);
 
         const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
-        if(res && res.ok) { alert("🔔 تم إرسال الإشعار بنجاح!"); loadScheduledExams(); }
+        if(res && res.ok) { 
+            alert("🔔 تم إرسال الإشعار بنجاح للمنصة!"); 
+            loadScheduledExams(); 
+            document.getElementById('exam-title').value = "";
+        }
     }
 
     async function loadScheduledExams() {
@@ -542,15 +548,17 @@
                     <td>${e.title}</td>
                     <td>${e.exam_date} | ${e.exam_time}</td>
                     <td><small>${e.target_lesson.substring(0,30)}...</small></td>
-                    <td><button onclick="deleteExam(${e.id})" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px;">إلغاء</button></td>
+                    <td><button onclick="deleteExam(${e.id})" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px; cursor:pointer;">إلغاء</button></td>
                 </tr>
             `).join('');
         }
     }
 
     async function deleteExam(id) {
-        await authFetch(`/api/admin/exams/${id}`, { method: 'DELETE' });
-        loadScheduledExams();
+        if(confirm("هل أنت متأكد من إلغاء هذا الاختبار؟")) {
+            await authFetch(`/api/admin/exams/${id}`, { method: 'DELETE' });
+            loadScheduledExams();
+        }
     }
 
     async function loadPDFs() {
@@ -561,22 +569,37 @@
                 <tr>
                     <td>${pdf.lesson}</td>
                     <td><a href="${API_URL}/${pdf.pdf_url}" target="_blank" style="color:var(--gold);">معاينة 👁️</a></td>
-                    <td><button onclick="deletePDF('${pdf.lesson}')" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px;">حذف</button></td>
+                    <td><button onclick="deletePDF('${pdf.lesson}')" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px; cursor:pointer;">حذف</button></td>
                 </tr>
             `).join('');
         }
     }
 
     async function uploadSmartPDF() {
+        const lesson = document.getElementById('pdf-lesson-select').value;
+        const file = document.getElementById('pdf-file-input').files[0];
+        
+        // الحماية من الانهيار إذا لم يتم اختيار ملف
+        if(!lesson || !file) {
+            alert("⚠️ يرجى اختيار الدرس وإرفاق ملف الـ PDF أولاً!");
+            return;
+        }
+
         const fd = new FormData();
-        fd.append('lesson', document.getElementById('pdf-lesson-select').value);
-        fd.append('pdf', document.getElementById('pdf-file-input').files[0]);
+        fd.append('lesson', lesson);
+        fd.append('pdf', file);
+        
         const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
-        if(res && res.ok) { alert("📜 تم إيداع اللفافة!"); loadPDFs(); }
+        if(res && res.ok) { 
+            alert("📜 تم إيداع اللفافة بنجاح في سجلات الإمبراطورية!"); 
+            loadPDFs(); 
+            document.getElementById('pdf-lesson-select').value = "";
+            document.getElementById('pdf-file-input').value = "";
+        }
     }
 
     async function deletePDF(lesson) {
-        if(confirm("حذف الملخص؟")) {
+        if(confirm("هل أنت متأكد من حذف هذا الملخص؟")) {
             await authFetch(`/api/admin/summaries/${encodeURIComponent(lesson)}`, { method: 'DELETE' });
             loadPDFs();
         }
