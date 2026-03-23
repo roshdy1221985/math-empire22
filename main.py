@@ -1,5 +1,4 @@
 import os
-import shutil
 import uuid
 from datetime import datetime, timedelta
 from typing import Optional, List
@@ -10,7 +9,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, JSONResponse
-from pydantic import BaseModel
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
@@ -24,7 +22,7 @@ SECRET_KEY = "ROYAL_MATH_968_OMAN"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480 
 
-# بيانات السحاب الصحيحة 100%
+# بيانات السحاب الخاصة بك
 SUPABASE_URL = "https://xlgttngreiuihutjrlev.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw"
 
@@ -45,7 +43,6 @@ def create_access_token(data: dict):
 # ==========================================
 app = FastAPI()
 
-# إضافة معالج أخطاء عالمي لإظهار السبب الحقيقي للأعطال بدلاً من 500 الصامتة
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     return JSONResponse(
@@ -56,15 +53,13 @@ async def global_exception_handler(request: Request, exc: Exception):
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"])
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-for folder in ["uploads", "static", "templates"]:
+for folder in ["static", "templates"]:
     path = os.path.join(BASE_DIR, folder)
     if not os.path.exists(path): os.makedirs(path)
 
 templates = Jinja2Templates(directory="templates")
-app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
-# دالة حماية المسارات (Admin Only)
 async def get_current_admin(request: Request):
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
@@ -78,41 +73,32 @@ async def get_current_admin(request: Request):
         raise HTTPException(status_code=401, detail="جلسة العمل غير صالحة")
 
 # ==========================================
-# --- 3. مسارات العرض (تصحيح الـ TypeError) ---
+# --- 3. مسارات العرض (HTML) ---
 # ==========================================
-
-# مسار يدعم HEAD ليرضى حراس Render ويمنع الـ Timeout
 @app.api_route("/", methods=["GET", "HEAD"])
-async def read_root(request: Request): 
-    return templates.TemplateResponse(request=request, name="index.html")
+async def read_root(request: Request): return templates.TemplateResponse(request=request, name="index.html")
 
 @app.get("/admin")
-async def read_admin(request: Request): 
-    return templates.TemplateResponse(request=request, name="admin.html")
+async def read_admin(request: Request): return templates.TemplateResponse(request=request, name="admin.html")
 
 @app.get("/student")
-async def read_student(request: Request): 
-    return templates.TemplateResponse(request=request, name="student.html")
+async def read_student(request: Request): return templates.TemplateResponse(request=request, name="student.html")
 
 @app.get("/parent")
-async def read_parent(request: Request): 
-    return templates.TemplateResponse(request=request, name="parent.html")
+async def read_parent(request: Request): return templates.TemplateResponse(request=request, name="parent.html")
 
 @app.get("/teachers")
-async def read_teachers(request: Request): 
-    return templates.TemplateResponse(request=request, name="teachers.html")
+async def read_teachers(request: Request): return templates.TemplateResponse(request=request, name="teachers.html")
 
 @app.get("/manifest.json")
-async def get_manifest(): 
+async def get_manifest():
     if os.path.exists("manifest.json"): return FileResponse("manifest.json")
     raise HTTPException(status_code=404)
 
 @app.get("/favicon.ico")
-async def get_favicon(): 
+async def get_favicon():
     path = os.path.join(BASE_DIR, "static", "teacher.jpg")
-    if os.path.exists(path):
-        return FileResponse(path)
-    return {"message": "No favicon found"}
+    return FileResponse(path) if os.path.exists(path) else {"message": "No favicon"}
 
 # ==========================================
 # --- 4. نظام الدخول والطلاب ---
@@ -122,30 +108,23 @@ async def admin_login(username: str = Form(...), password: str = Form(...)):
     if username == "admin" and password == "Roshdy@2026":
         token = create_access_token(data={"sub": username})
         return {"access_token": token, "token_type": "bearer"}
-    raise HTTPException(status_code=401, detail="بيانات دخول المعلم غير صحيحة")
+    raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
 
 @app.post("/api/student/register")
-async def register_student(
-    full_name: str = Form(...), username: str = Form(...), 
-    password: str = Form(...), grade: str = Form(...)
-):
+async def register_student(full_name: str=Form(...), username: str=Form(...), password: str=Form(...), grade: str=Form(...)):
     existing = supabase.table("students").select("username").eq("username", username).execute()
-    if existing.data: raise HTTPException(status_code=400, detail="اسم المستخدم موجود مسبقاً")
-    
-    supabase.table("students").insert({
-        "full_name": full_name, "username": username, 
-        "password": hash_password(password), "grade": grade
-    }).execute()
-    return {"status": "success", "message": "تم انضمام البطل لجيش الرياضيات"}
+    if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود")
+    supabase.table("students").insert({"full_name": full_name, "username": username, "password": hash_password(password), "grade": grade}).execute()
+    return {"status": "success"}
 
 @app.post("/api/student/login")
 async def login_student(username: str = Form(...), password: str = Form(...)):
     res = supabase.table("students").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         user = res.data[0]
-        user.pop('password', None) # حماية إضافية: عدم إرسال الباسورد للمتصفح
+        user.pop('password', None)
         return {"status": "success", "user": user}
-    raise HTTPException(status_code=401, detail="بيانات الدخول غير صحيحة")
+    raise HTTPException(status_code=401, detail="بيانات خاطئة")
 
 @app.post("/api/student/update")
 async def update_student(student_id: int=Form(...), full_name: str=Form(...), school_name: str=Form(None), avatar_url: str=Form(None)):
@@ -153,14 +132,15 @@ async def update_student(student_id: int=Form(...), full_name: str=Form(...), sc
     return {"status": "success"}
 
 # ==========================================
-# --- 5. ديوان المعلمين والمصادر ---
+# --- 5. ديوان المعلمين (تخزين سحابي دائم) ---
 # ==========================================
 @app.post("/api/admin/teacher-resources")
 async def upload_resource(title: str=Form(...), category: str=Form(...), file: UploadFile=File(...), admin=Depends(get_current_admin)):
-    file_path = f"uploads/res_{uuid.uuid4().hex}{os.path.splitext(file.filename)[1]}"
-    with open(os.path.join(BASE_DIR, file_path), "wb") as buffer: 
-        shutil.copyfileobj(file.file, buffer)
-    supabase.table("teacher_resources").insert({"title": title, "category": category, "file_url": file_path}).execute()
+    file_name = f"res_{uuid.uuid4().hex}{os.path.splitext(file.filename)[1]}"
+    content = await file.read()
+    supabase.storage.from_("resources").upload(path=file_name, file=content, file_options={"content-type": file.content_type})
+    file_url = supabase.storage.from_("resources").get_public_url(file_name)
+    supabase.table("teacher_resources").insert({"title": title, "category": category, "file_url": file_url}).execute()
     return {"status": "success"}
 
 @app.get("/api/teacher-resources")
@@ -174,7 +154,7 @@ async def delete_resource(res_id: int, admin=Depends(get_current_admin)):
     return {"status": "success"}
 
 # ==========================================
-# --- 6. بنك الأسئلة والامتحانات ---
+# --- 6. بنك الأسئلة والامتحانات (سحابي) ---
 # ==========================================
 @app.post("/api/admin/questions")
 async def add_question(
@@ -182,14 +162,16 @@ async def add_question(
     q_type: str=Form(...), question: str=Form(...), options: str=Form(""), 
     answer: str=Form(...), image: UploadFile=File(None), admin=Depends(get_current_admin)
 ):
-    img_path = ""
+    img_url = ""
     if image:
-        img_path = f"uploads/img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
-        with open(os.path.join(BASE_DIR, img_path), "wb") as buffer: shutil.copyfileobj(image.file, buffer)
+        img_name = f"q_img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
+        content = await image.read()
+        supabase.storage.from_("resources").upload(path=img_name, file=content, file_options={"content-type": image.content_type})
+        img_url = supabase.storage.from_("resources").get_public_url(img_name)
     
     supabase.table("questions").insert({
         "grade": grade, "lesson": lesson, "subject": subject, "q_type": q_type, 
-        "question": question, "options": options, "answer": answer, "image_url": img_path
+        "question": question, "options": options, "answer": answer, "image_url": img_url
     }).execute()
     return {"status": "success"}
 
@@ -201,9 +183,10 @@ async def edit_question(
 ):
     update_data = {"grade": grade, "lesson": lesson, "subject": subject, "q_type": q_type, "question": question, "options": options, "answer": answer}
     if image:
-        img_path = f"uploads/img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
-        with open(os.path.join(BASE_DIR, img_path), "wb") as buffer: shutil.copyfileobj(image.file, buffer)
-        update_data["image_url"] = img_path
+        img_name = f"q_img_{uuid.uuid4().hex}{os.path.splitext(image.filename)[1]}"
+        content = await image.read()
+        supabase.storage.from_("resources").upload(path=img_name, file=content, file_options={"content-type": image.content_type})
+        update_data["image_url"] = supabase.storage.from_("resources").get_public_url(img_name)
     supabase.table("questions").update(update_data).eq("id", q_id).execute()
     return {"status": "success"}
 
@@ -237,13 +220,15 @@ async def get_upcoming():
     return res.data if res.data else []
 
 # ==========================================
-# --- 7. الملخصات والنتائج ---
+# --- 7. الملخصات والنتائج والبحث ---
 # ==========================================
 @app.post("/api/admin/summaries")
 async def upload_summary(lesson: str=Form(...), pdf: UploadFile=File(...), admin=Depends(get_current_admin)):
-    pdf_path = f"uploads/summary_{uuid.uuid4().hex}{os.path.splitext(pdf.filename)[1]}"
-    with open(os.path.join(BASE_DIR, pdf_path), "wb") as buffer: shutil.copyfileobj(pdf.file, buffer)
-    supabase.table("summaries").upsert({"lesson": lesson, "pdf_url": pdf_path}, on_conflict="lesson").execute()
+    file_name = f"sum_{uuid.uuid4().hex}.pdf"
+    content = await pdf.read()
+    supabase.storage.from_("resources").upload(path=file_name, file=content, file_options={"content-type": "application/pdf"})
+    pdf_url = supabase.storage.from_("resources").get_public_url(file_name)
+    supabase.table("summaries").upsert({"lesson": lesson, "pdf_url": pdf_url}, on_conflict="lesson").execute()
     return {"status": "success"}
 
 @app.get("/api/admin/summaries_list")
@@ -251,21 +236,15 @@ async def get_summaries():
     res = supabase.table("summaries").select("*").execute()
     return res.data if res.data else []
 
-# --> مسار حذف الملخص للمعلم (تمت إضافته) <--
 @app.delete("/api/admin/summaries/{lesson:path}")
 async def delete_summary(lesson: str, admin=Depends(get_current_admin)):
-    lesson_dec = unquote(lesson)
-    supabase.table("summaries").delete().eq("lesson", lesson_dec).execute()
+    supabase.table("summaries").delete().eq("lesson", unquote(lesson)).execute()
     return {"status": "success"}
 
-# --> مسار جلب الملخص للطالب (تمت إضافته) <--
 @app.get("/api/student/summaries/{lesson:path}")
 async def get_student_summary(lesson: str):
-    lesson_dec = unquote(lesson)
-    res = supabase.table("summaries").select("pdf_url").eq("lesson", lesson_dec).execute()
-    if res.data:
-        return {"pdf_url": res.data[0]["pdf_url"]}
-    return {"pdf_url": None}
+    res = supabase.table("summaries").select("pdf_url").eq("lesson", unquote(lesson)).execute()
+    return {"pdf_url": res.data[0]["pdf_url"]} if res.data else {"pdf_url": None}
 
 @app.post("/api/student/results")
 async def save_result(student_id: int=Form(...), student_name: str=Form(...), lesson: str=Form(...), score: int=Form(...), total: int=Form(...)):
@@ -282,8 +261,7 @@ async def get_lb():
 
 @app.get("/api/parent/search/{name:path}")
 async def parent_search(name: str):
-    name_dec = unquote(name)
-    st = supabase.table("students").select("id, full_name, grade").ilike("full_name", f"%{name_dec}%").execute()
+    st = supabase.table("students").select("id, full_name, grade").ilike("full_name", f"%{unquote(name)}%").execute()
     if not st.data: return {"found": False}
     student = st.data[0]
     history = supabase.table("results").select("*").eq("student_id", student["id"]).order("timestamp", desc=True).execute().data
@@ -295,5 +273,5 @@ async def parent_search(name: str):
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 10000))
-    print(f"🚀 إمبراطورية الرياضيات الملكية تفتح أبوابها السحابية على بورت {port}...")
+    print(f"🚀 إمبراطورية الرياضيات الملكية تنطلق سحابياً على بورت {port}...")
     uvicorn.run(app, host="0.0.0.0", port=port)
