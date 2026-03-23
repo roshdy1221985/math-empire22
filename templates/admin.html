@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
         :root {
             --gold: #d4af37;
@@ -11,142 +12,217 @@
             --bg: #040d21;
             --glass: rgba(255, 255, 255, 0.05);
             --border: rgba(212, 175, 55, 0.3);
+            --red: #ff5e5e;
         }
 
         body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; overflow-x: hidden; }
 
-        /* شاشة الدخول */
+        /* شاشة الدخول الفاخرة */
         #login-overlay {
             position: fixed; inset: 0; background: radial-gradient(circle, #1a1a2e, #000);
             display: flex; justify-content: center; align-items: center; z-index: 9999;
         }
         .login-box {
-            background: var(--glass); padding: 40px; border-radius: 30px; border: 1px solid var(--gold);
-            text-align: center; width: 350px; backdrop-filter: blur(15px);
+            background: var(--glass); padding: 50px; border-radius: 40px; border: 2px solid var(--gold);
+            text-align: center; width: 400px; backdrop-filter: blur(20px); box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
         }
 
-        /* الهيكل الرئيسي */
+        /* الهيكل الإمبراطوري الرئيسي */
         #admin-panel { display: none; min-height: 100vh; display: flex; }
+        
+        /* الشريط الجانبي */
         .sidebar { 
-            width: 280px; background: #000; border-left: 1px solid var(--border); 
+            width: 300px; background: #000; border-left: 2px solid var(--border); 
             padding: 40px 20px; position: sticky; top: 0; height: 100vh; display: flex; flex-direction: column;
         }
         
         .nav-link {
-            padding: 15px 20px; margin-bottom: 10px; border-radius: 12px; cursor: pointer;
-            transition: 0.3s; display: flex; align-items: center; gap: 12px; color: rgba(255,255,255,0.7);
+            padding: 18px 25px; margin-bottom: 12px; border-radius: 15px; cursor: pointer;
+            transition: 0.4s cubic-bezier(0.4, 0, 0.2, 1); display: flex; align-items: center; gap: 15px; 
+            color: rgba(255,255,255,0.6); font-weight: 600;
         }
-        .nav-link:hover, .nav-link.active { background: var(--glass); color: var(--gold); border-right: 5px solid var(--gold); }
+        .nav-link i { font-size: 1.2rem; transition: 0.3s; }
+        .nav-link:hover, .nav-link.active { 
+            background: var(--glass); color: var(--gold); 
+            border-right: 6px solid var(--gold); transform: translateX(-10px);
+        }
+        .nav-link.active i { transform: scale(1.2); color: var(--gold); }
 
-        .main-content { flex: 1; padding: 40px; overflow-y: auto; }
+        /* المحتوى الرئيسي */
+        .main-content { flex: 1; padding: 50px; overflow-y: auto; background: url('https://www.transparenttextures.com/patterns/dark-matter.png'); }
         .section { display: none; }
-        .section.active { display: block; animation: fadeIn 0.5s ease; }
+        .section.active { display: block; animation: slideIn 0.6s ease-out; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
-        .card { background: var(--glass); padding: 30px; border-radius: 25px; border: 1px solid var(--border); margin-bottom: 25px; }
-        label { color: var(--gold); font-weight: bold; display: block; margin-top: 15px; }
+        /* البطاقات والجداول */
+        .card { 
+            background: var(--glass); padding: 35px; border-radius: 30px; 
+            border: 1px solid var(--border); margin-bottom: 30px; backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        
+        label { color: var(--gold); font-weight: 900; display: block; margin-top: 20px; font-size: 1.1rem; }
+        
         input, select, textarea { 
-            width: 100%; padding: 12px; margin-top: 8px; border-radius: 10px; 
-            background: #0d1b3a; color: #fff; border: 1px solid var(--gold); font-family: 'Cairo'; box-sizing: border-box;
+            width: 100%; padding: 15px; margin-top: 10px; border-radius: 12px; 
+            background: rgba(13, 27, 58, 0.8); color: #fff; border: 1px solid var(--gold); 
+            font-family: 'Cairo'; box-sizing: border-box; font-size: 1rem; transition: 0.3s;
         }
+        input:focus { outline: none; box-shadow: 0 0 15px rgba(212, 175, 55, 0.3); background: #162a52; }
 
-        .multi-select-container {
-            width: 100%; max-height: 200px; overflow-y: auto; margin-top: 8px;
-            background: #0d1b3a; border: 1px solid var(--gold); border-radius: 10px; padding: 10px; box-sizing: border-box;
+        /* شجرة المنهج المتطورة */
+        .curriculum-container { display: grid; grid-template-columns: 1.2fr 1.8fr; gap: 30px; }
+        .curriculum-tree { 
+            background: rgba(0,0,0,0.5); padding: 25px; border-radius: 25px; 
+            border: 1px solid var(--border); max-height: 650px; overflow-y: auto;
         }
-        .multi-select-unit { color: var(--gold); font-weight: bold; margin-top: 10px; border-bottom: 1px solid var(--border); padding-bottom: 5px; }
-        .multi-select-lesson { display: flex; align-items: center; gap: 10px; padding: 5px 10px; cursor: pointer; transition: 0.2s; }
-        .multi-select-lesson:hover { background: rgba(212,175,55,0.1); border-radius: 5px; }
-        .multi-select-lesson input { width: auto; margin: 0; cursor: pointer; }
-        
+        .node-box { margin-bottom: 15px; transition: 0.3s; }
+        .grade-node { background: rgba(212, 175, 55, 0.15); padding: 15px; border-radius: 12px; border-right: 5px solid var(--gold); }
+        .semester-node { margin-right: 25px; margin-top: 8px; border-right: 2px dashed var(--gold); padding-right: 15px; color: #fff; }
+        .unit-node { margin-right: 35px; color: #bbb; font-size: 0.95rem; margin-top: 5px; }
+        .lesson-node { margin-right: 45px; color: var(--gold); font-size: 0.9rem; font-weight: bold; }
+
+        /* الأزرار الملكية */
         .btn-gold { 
-            background: var(--gold-grad); color: #000; border: none; padding: 15px; 
-            border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; font-size: 1.1rem; margin-top: 25px;
+            background: var(--gold-grad); color: #000; border: none; padding: 18px; 
+            border-radius: 15px; font-weight: 900; cursor: pointer; width: 100%; font-size: 1.2rem; 
+            margin-top: 30px; display: flex; align-items: center; justify-content: center; gap: 12px;
+            transition: 0.3s; box-shadow: 0 5px 20px rgba(179, 135, 40, 0.4);
         }
+        .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(179, 135, 40, 0.6); }
+        
+        .btn-action { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        .btn-del { background: var(--red); color: #fff; }
+        .btn-del:hover { background: #ff3b3b; }
 
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: rgba(0,0,0,0.2); }
-        th { background: rgba(212,175,55,0.1); color: var(--gold); padding: 15px; text-align: right; border-bottom: 1px solid var(--gold); }
-        td { padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        /* الجداول */
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; background: rgba(0,0,0,0.3); border-radius: 20px; overflow: hidden; }
+        th { background: rgba(212, 175, 55, 0.2); color: var(--gold); padding: 20px; text-align: right; border-bottom: 2px solid var(--gold); }
+        td { padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        tr:hover { background: rgba(255,255,255,0.02); }
+
+        /* الإحصائيات */
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 25px; margin-top: 20px; }
+        .stat-box { 
+            background: rgba(0,0,0,0.5); padding: 30px; border-radius: 25px; 
+            border: 1px solid var(--border); text-align: center; position: relative; overflow: hidden;
+        }
+        .stat-box::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 5px; background: var(--gold-grad); }
+        .stat-number { font-size: 3rem; color: var(--gold); font-weight: 900; font-family: 'Amiri'; margin: 10px 0; }
+        
+        .multi-select-container {
+            width: 100%; max-height: 250px; overflow-y: auto; margin-top: 10px;
+            background: #0d1b3a; border: 1px solid var(--gold); border-radius: 15px; padding: 15px; box-sizing: border-box;
+        }
 
         .home-btn { 
             margin-top: auto; background: rgba(255,255,255,0.05); color: #fff; 
-            border: 1px solid var(--border); padding: 12px; border-radius: 10px; text-decoration: none;
-            display: flex; align-items: center; justify-content: center; gap: 10px; font-weight: bold;
+            border: 1px solid var(--border); padding: 15px; border-radius: 12px; text-decoration: none;
+            display: flex; align-items: center; justify-content: center; gap: 12px; font-weight: bold;
         }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 15px; }
-        .stat-box { background: rgba(0,0,0,0.4); padding: 25px; border-radius: 20px; border: 1px solid var(--border); text-align: center; }
-        .stat-box div:first-child { color: rgba(255,255,255,0.8); font-size: 1.1rem; margin-bottom: 10px; }
-        .stat-number { font-size: 2.5rem; color: var(--gold); font-weight: 900; font-family: 'Amiri'; }
     </style>
 </head>
 <body>
 
     <div id="login-overlay">
         <div class="login-box">
-            <h2 style="color:var(--gold); font-family:'Amiri';">خزنة الأستاذ رشدي</h2>
-            <p>أدخل كلمة المرور السرية للمعلم</p>
-            <input type="password" id="pass-input" placeholder="كلمة المرور">
-            <button class="btn-gold" id="login-btn" onclick="checkLogin()">دخول الإمبراطورية 🗝️</button>
+            <h2 style="color:var(--gold); font-family:'Amiri'; font-size: 2.5rem; margin-bottom: 10px;">ديوان المعلم</h2>
+            <p style="color: rgba(255,255,255,0.7);">مرحباً بك يا أستاذ رشدي.. أدخل مفتاح الإمبراطورية</p>
+            <input type="password" id="pass-input" placeholder="كلمة المرور الملكية">
+            <button class="btn-gold" id="login-btn" onclick="checkLogin()">فتح أبواب القلعة 🗝️</button>
         </div>
     </div>
 
     <div id="admin-panel">
         <aside class="sidebar">
             <div style="text-align:center; margin-bottom:40px;">
-                <h2 style="color:var(--gold); font-family:'Amiri'; margin:0;">لوحة التحكم</h2>
-                <small>مدرسة الشيخ سعيد بن أحمد</small>
+                <h2 style="color:var(--gold); font-family:'Amiri'; margin:0; font-size: 2rem;">إمبراطورية الرياضيات</h2>
+                <small style="color: var(--gold); opacity: 0.6; letter-spacing: 1px;">Sultanate of Oman | 2026</small>
             </div>
             
-            <div class="nav-link" onclick="showSection('dash')">📊 الإحصائيات العامة</div>
-            <div class="nav-link" onclick="showSection('students')">🛡️ مراقبة الرعية</div>
-            <div class="nav-link" onclick="showSection('scrolls')">📜 لفائف المعرفة (PDF)</div>
-            <div class="nav-link active" onclick="showSection('bank')">📚 بنك الأسئلة الملكي</div>
-            <div class="nav-link" onclick="showSection('exams')">⏳ جدولة الاختبارات</div>
-            <div class="nav-link" onclick="showSection('reports')">📑 التقارير الشهرية</div>
+            <nav>
+                <div class="nav-link" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
+                <div class="nav-link active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
+                <div class="nav-link" onclick="showSection('students')"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
+                <div class="nav-link" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
+                <div class="nav-link" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
+                <div class="nav-link" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
+                <div class="nav-link" onclick="showSection('reports')"><i class="fas fa-file-alt"></i> السجلات والتقارير</div>
+            </nav>
 
-            <div class="nav-link" onclick="logout()" style="color:#ff5e5e; margin-top:20px; font-weight: bold;">🚪 خروج المعلم</div>
-            <a href="/" class="home-btn">🏠 العودة للمنصة الرئيسية</a>
+            <div class="nav-link" onclick="logout()" style="color:var(--red); margin-top:20px;"><i class="fas fa-power-off"></i> خروج المعلم</div>
+            <a href="/student" class="home-btn"><i class="fas fa-university"></i> ساحة الطلاب</a>
         </aside>
 
         <main class="main-content">
-            <header>
-                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:2.5rem; margin:0;">أهلاً بك، أستاذ رشدي سيد</h1>
+            <header style="margin-bottom: 40px;">
+                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; margin:0;">أهلاً بك يا أستاذ رشدي سيد</h1>
+                <p style="color: rgba(255,255,255,0.5); font-size: 1.1rem;"><i class="far fa-calendar-alt"></i> <span id="current-date"></span></p>
             </header>
 
             <section id="dash" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold); margin-top: 0;">👁️ نظرة عامة على الإمبراطورية</h2>
+                    <h2 style="color:var(--gold);"><i class="fas fa-chart-line"></i> الحالة العامة للإمبراطورية</h2>
                     <div class="stats-grid">
                         <div class="stat-box">
                             <div>👥 إجمالي الرعية (الطلاب)</div>
                             <div class="stat-number" id="stat-total-students">0</div>
                         </div>
                         <div class="stat-box" style="border-color: var(--gold); background: rgba(212,175,55,0.05);">
-                            <div>👑 سلطان الأرقام الحالي</div>
-                            <div class="stat-number" id="stat-top-student" style="font-size:1.8rem;">لا يوجد</div>
-                            <div id="stat-top-xp" style="color: var(--gold); font-size: 1rem; margin-top: 5px;">0 XP</div>
+                            <div>🏆 بطل الأرقام الحالي</div>
+                            <div class="stat-number" id="stat-top-student" style="font-size:1.8rem;">---</div>
+                            <div id="stat-top-xp" style="color: var(--gold); font-weight: bold;">0 XP</div>
                         </div>
                         <div class="stat-box">
-                            <div>⭐ متوسط الأداء الدراسي</div>
-                            <div class="stat-number" id="stat-avg-xp">0</div>
+                            <div>💎 مخزون التحديات (الأسئلة)</div>
+                            <div class="stat-number" id="stat-total-q">0</div>
                         </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="curriculum" class="section active">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-layer-group"></i> بناء هيكل المنهج الدراسي</h2>
+                    <div class="curriculum-container">
+                        <div class="forms-area">
+                            <div class="card" style="background: rgba(255,255,255,0.02); padding: 25px;">
+                                <h3>➕ إضافة لبنة جديدة</h3>
+                                <label>نوع العنصر</label>
+                                <select id="curr-type" onchange="toggleCurrInputs()">
+                                    <option value="grade">صف دراسي</option>
+                                    <option value="semester">فصل دراسي</option>
+                                    <option value="unit">وحدة دراسية</option>
+                                    <option value="lesson">درس تعليمي</option>
+                                </select>
+
+                                <div id="parent-selection-area" style="display:none;">
+                                    <label id="parent-label">اختر الأب</label>
+                                    <select id="curr-parent-id"></select>
+                                </div>
+
+                                <label>الاسم الملكي للعنصر</label>
+                                <input type="text" id="curr-name" placeholder="مثلاً: الصف السادس أو الوحدة الأولى">
+                                <button class="btn-gold" onclick="saveCurriculumItem()"><i class="fas fa-plus"></i> إيداع في الهيكل</button>
+                            </div>
+                        </div>
+                        <div class="curriculum-tree" id="curriculum-tree-display">جاري جلب هيكل الإمبراطورية...</div>
                     </div>
                 </div>
             </section>
 
             <section id="students" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold); margin-top: 0;">🛡️ سجل الأبطال (بيانات حية من السيرفر)</h2>
+                    <h2 style="color:var(--gold);"><i class="fas fa-users-cog"></i> مراقبة الأداء الطلابي</h2>
                     <table>
                         <thead>
                             <tr>
                                 <th>البطل</th>
                                 <th>الصف</th>
-                                <th>عدد الاختبارات</th>
-                                <th>متوسط الدرجة</th>
+                                <th>نقطة إمبراطورية (XP)</th>
                                 <th>آخر نشاط</th>
+                                <th>الإجراء</th>
                             </tr>
                         </thead>
                         <tbody id="students-table-body"></tbody>
@@ -154,85 +230,26 @@
                 </div>
             </section>
 
-            <section id="scrolls" class="section">
+            <section id="bank" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold);">📜 إيداع لفافة معرفة جديدة (PDF)</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                        <div>
-                            <label>📍 الدرس المستهدف</label>
-                            <select id="pdf-lesson-select">
-                                <option value="">-- اختر الدرس --</option>
-                                <optgroup label="الوحدة الأولى: القياس">
-                                    <option value="17-1 قياس الكتلة والسعة (1)">17-1 قياس الكتلة والسعة (1)</option>
-                                    <option value="17-2 قياس الكتلة والسعة (2)">17-2 قياس الكتلة والسعة (2)</option>
-                                    <option value="18-1 تحويل الوقت">18-1 تحويل الوقت</option>
-                                    <option value="18-2 المناطق الزمنية (1)">18-2 المناطق الزمنية (1)</option>
-                                    <option value="19-1 حساب المساحة والمحيط">19-1 حساب المساحة والمحيط</option>
-                                </optgroup>
-                                <optgroup label="الوحدة الثانية: معالجة البيانات">
-                                    <option value="20-1 الجداول والرسومات البيانية">20-1 الجداول والرسومات البيانية</option>
-                                    <option value="20-2 المخططات الدائرية">20-2 المخططات الدائرية</option>
-                                    <option value="21-1 المتوسط الإحصائي">21-1 المتوسط الإحصائي</option>
-                                    <option value="21-2 استخدام الإحصاء">21-2 استخدام الإحصاء</option>
-                                    <option value="22-1 لغة الاحتمال">22-1 لغة الاحتمال</option>
-                                </optgroup>
-                                <optgroup label="الوحدة الثالثة: العدد">
-                                    <option value="23-1 نظام الأعداد (2)">23-1 نظام الأعداد (2)</option>
-                                    <option value="23-2 تاريخ الأعداد (2)">23-2 تاريخ الأعداد (2)</option>
-                                    <option value="24-1 الجمع والطرح (1)">24-1 الجمع والطرح (1)</option>
-                                    <option value="24-2 الضرب والقسمة">24-2 الضرب والقسمة</option>
-                                    <option value="25-1 الجمع والطرح (2)">25-1 الجمع والطرح (2)</option>
-                                    <option value="26-1 قوانين الحساب">26-1 قوانين الحساب</option>
-                                    <option value="26-2 الكسور والقسمة">26-2 الكسور والقسمة</option>
-                                    <option value="27-1 الكسور">27-1 الكسور</option>
-                                    <option value="28-1 النسب المئوية">28-1 النسب المئوية</option>
-                                    <option value="29-1 النسبة والتناسب">29-1 النسبة والتناسب</option>
-                                </optgroup>
-                            </select>
-                        </div>
-                        <div>
-                            <label>📂 ملف الملخص (PDF)</label>
-                            <input type="file" id="pdf-file-input" accept=".pdf">
-                        </div>
-                    </div>
-                    <button class="btn-gold" onclick="uploadSmartPDF()">إيداع في سجلات الخلود 💾</button>
-                    <div id="pdf-status" style="text-align:center; margin-top:10px; font-weight:bold;"></div>
-                </div>
-                <div class="card">
-                    <h3>📂 اللفائف المودعة حالياً في الخزنة</h3>
-                    <table>
-                        <thead>
-                            <tr><th>الدرس</th><th>معاينة</th><th>إجراء</th></tr>
-                        </thead>
-                        <tbody id="pdfs-table-body"></tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="bank" class="section active">
-                <div class="card">
-                    <h2 style="color:var(--gold);" id="form-title">🔨 إضافة تحدي ملكي جديد</h2>
+                    <h2 style="color:var(--gold);" id="form-title"><i class="fas fa-plus-circle"></i> صياغة تحدي ملكي جديد</h2>
                     <input type="hidden" id="edit-id"> 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
                         <div>
-                            <label>📍 الوحدة الدراسية</label>
-                            <select id="q-unit" onchange="updateLessons()">
-                                <option value="">-- اختر الوحدة --</option>
-                                <option value="الوحدة الأولى: القياس (17-19)">الوحدة الأولى: القياس (17-19)</option>
-                                <option value="الوحدة الثانية: معالجة البيانات (20-22)">الوحدة الثانية: معالجة البيانات (20-22)</option>
-                                <option value="الوحدة الثالثة: العدد (23-29)">الوحدة الثالثة: العدد (23-29)</option>
-                                <option value="الوحدة الرابعة: الهندسة (33-35)">الوحدة الرابعة: الهندسة (33-35)</option>
+                            <label>📖 اختيار الدرس (من المنهج)</label>
+                            <select id="q-lesson-select" class="dynamic-lesson-select">
+                                <option value="">-- اختر الدرس --</option>
                             </select>
                         </div>
                         <div>
-                            <label>📖 الدرس</label>
-                            <select id="q-lesson"><option value="">اختر الوحدة أولاً</option></select>
+                            <label>🖼️ صورة السؤال (اختياري)</label>
+                            <input type="file" id="q-image" accept="image/*">
                         </div>
                     </div>
 
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:15px;">
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px; margin-top:20px;">
                         <div>
-                            <label>🎖️ نوع السؤال</label>
+                            <label>🎖️ نوع التحدي</label>
                             <select id="q-type" onchange="toggleOptions()">
                                 <option value="choice">اختيار من متعدد 🔘</option>
                                 <option value="true_false">صواب أو خطأ ✅/❌</option>
@@ -240,29 +257,24 @@
                             </select>
                         </div>
                         <div>
-                            <label>🖼️ صورة السؤال</label>
-                            <input type="file" id="q-image" accept="image/*">
+                            <label>✅ الإجابة الصحيحة</label>
+                            <input type="text" id="q-answer">
                         </div>
                     </div>
 
                     <label>📝 نص السؤال</label>
-                    <textarea id="q-text" rows="3"></textarea>
+                    <textarea id="q-text" rows="4" placeholder="اكتب السؤال هنا..."></textarea>
                     
                     <div id="options-container">
-                        <label>🔘 الخيارات (افصل بينها بفاصلة , )</label>
-                        <input type="text" id="q-options" placeholder="مثال: لتر , ملليلتر , جرام">
+                        <label>🔘 الخيارات (افصل بفاصلة ,)</label>
+                        <input type="text" id="q-options" placeholder="مثال: لتر , ملليلتر , سم">
                     </div>
 
-                    <label>✅ الإجابة الصحيحة</label>
-                    <input type="text" id="q-answer">
-
-                    <button class="btn-gold" id="save-btn" onclick="saveSmartQuestion()">حفظ في الخزنة الملكية 💾</button>
-                    <button id="cancel-btn" style="display:none; margin-top:10px; background:#444; color:white; border:none; padding:10px; border-radius:10px; width:100%; cursor:pointer;" onclick="resetForm()">إلغاء التعديل</button>
-                    <div id="status-msg" style="text-align:center; margin-top:10px; font-weight:bold;"></div>
+                    <button class="btn-gold" id="save-btn" onclick="saveSmartQuestion()"><i class="fas fa-save"></i> حفظ في الخزنة</button>
                 </div>
 
                 <div class="card">
-                    <h3>📂 معاينة وإدارة الأسئلة الحالية</h3>
+                    <h3>📂 إدارة بنك الأسئلة</h3>
                     <table>
                         <thead><tr><th>السؤال</th><th>الدرس</th><th>الصورة</th><th>إجراء</th></tr></thead>
                         <tbody id="questions-table-body"></tbody>
@@ -270,30 +282,49 @@
                 </div>
             </section>
 
-            <section id="exams" class="section">
+            <section id="scrolls" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold); margin-top:0;">⏳ جدولة اختبار ملكي</h2>
-                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
-                        <div><label>📌 عنوان الاختبار</label><input type="text" id="exam-title"></div>
-                        <div><label>🎖️ النوع</label><select id="exam-type"><option value="أسبوعي">أسبوعي</option><option value="شهري">شهري</option></select></div>
-                        <div><label>📅 التاريخ</label><input type="date" id="exam-date"></div>
-                        <div><label>⏰ الوقت</label><input type="time" id="exam-time"></div>
-                        <div><label>⏱️ المدة (دقائق)</label><input type="number" id="exam-duration" value="15"></div>
-                        <div><label>🔢 عدد الأسئلة</label><input type="number" id="exam-num-q" value="10"></div>
-                        <div><label>⭐ درجة السؤال</label><input type="number" id="exam-points-q" value="10"></div>
-                        <div><label>🎯 نوع الأسئلة</label><select id="exam-target-q-type"><option value="all">الكل</option><option value="choice">اختيار فقط</option></select></div>
-                        <div style="grid-column: span 2;">
-                            <label>📖 الدروس المستهدفة (اختر المتعدد)</label>
-                            <div class="multi-select-container" id="exam-lesson-container"></div>
+                    <h2 style="color:var(--gold);"><i class="fas fa-file-pdf"></i> إيداع لفافة (PDF)</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
+                        <div>
+                            <label>📍 اختيار الدرس</label>
+                            <select id="pdf-lesson-select" class="dynamic-lesson-select"></select>
+                        </div>
+                        <div>
+                            <label>📂 ملف الملخص</label>
+                            <input type="file" id="pdf-file-input" accept=".pdf">
                         </div>
                     </div>
-                    <button class="btn-gold" onclick="scheduleExam()">إطلاق الإشعار الملكي 🔔</button>
-                    <div id="exam-status" style="margin-top:10px; font-weight:bold; text-align:center;"></div>
+                    <button class="btn-gold" onclick="uploadSmartPDF()"><i class="fas fa-upload"></i> رفع للمكتبة الملكية</button>
                 </div>
                 <div class="card">
-                    <h3>🔔 الاختبارات المجدولة حالياً</h3>
+                    <h3>📂 اللفائف المودعة</h3>
+                    <table id="pdfs-table">
+                        <thead><tr><th>الدرس</th><th>المعاينة</th><th>إجراء</th></tr></thead>
+                        <tbody id="pdfs-table-body"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section id="exams" class="section">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-bullhorn"></i> جدولة ملحمة (اختبار)</h2>
+                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:25px;">
+                        <div><label>📌 عنوان الاختبار</label><input type="text" id="exam-title"></div>
+                        <div><label>📅 التاريخ</label><input type="date" id="exam-date"></div>
+                        <div><label>⏰ الوقت</label><input type="time" id="exam-time"></div>
+                        <div><label>⏱️ المدة (دقيقة)</label><input type="number" id="exam-duration" value="30"></div>
+                        <div style="grid-column: span 2;">
+                            <label>📖 الدروس المستهدفة</label>
+                            <div class="multi-select-container" id="exam-lesson-container">جاري تحميل الدروس...</div>
+                        </div>
+                    </div>
+                    <button class="btn-gold" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إرسال إشعار للرعية</button>
+                </div>
+                <div class="card">
+                    <h3>🔔 الاختبارات القادمة</h3>
                     <table>
-                        <thead><tr><th>الاختبار</th><th>الموعد</th><th>الدروس</th><th>إجراء</th></tr></thead>
+                        <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس</th><th>إجراء</th></tr></thead>
                         <tbody id="exams-table-body"></tbody>
                     </table>
                 </div>
@@ -301,24 +332,21 @@
 
             <section id="reports" class="section">
                 <div class="card">
-                    <h2>📑 التقارير والطباعة</h2>
-                    <button class="btn-gold" onclick="window.print()">طباعة التقرير الحالي 🖨️</button>
+                    <h2 style="color:var(--gold);"><i class="fas fa-print"></i> التقارير والطباعة</h2>
+                    <p>يمكنك طباعة تقرير شامل عن أداء الإمبراطورية والطلاب لهذا الشهر.</p>
+                    <button class="btn-gold" onclick="window.print()"><i class="fas fa-file-pdf"></i> استخراج تقرير ملكي (PDF)</button>
                 </div>
             </section>
         </main>
     </div>
 
 <script>
-    const API_URL = ""; 
+    // الرابط التلقائي حسب الاستضافة
+    const API_URL = window.location.origin; 
+    let fullCurriculum = [];
     let allQuestions = [];
 
-    const lessonsMap = {
-        "الوحدة الأولى: القياس (17-19)": ["17-1 قياس الكتلة والسعة (1)", "17-2 قياس الكتلة والسعة (2)", "18-1 تحويل الوقت", "18-2 المناطق الزمنية (1)", "19-1 حساب المساحة والمحيط"],
-        "الوحدة الثانية: معالجة البيانات (20-22)": ["20-1 الجداول والرسومات البيانية", "20-2 المخططات الدائرية", "21-1 المتوسط الإحصائي", "21-2 استخدام الإحصاء", "22-1 لغة الاحتمال"],
-        "الوحدة الثالثة: العدد (23-29)": ["23-1 نظام الأعداد (2)", "23-2 تاريخ الأعداد (2)", "24-1 الجمع والطرح (1)", "24-2 الضرب والقسمة", "25-1 الجمع والطرح (2)", "26-1 قوانين الحساب", "26-2 الكسور والقسمة", "27-1 الكسور", "28-1 النسب المئوية", "29-1 النسبة والتناسب"],
-        "الوحدة الرابعة: الهندسة (33-35)": ["33-1 المنشورات رباعية الأضلاع", "33-2 متعدد الأوجه المنتظم", "34-1 تصنيف الأشكال", "35-1 رسم وقياس الزوايا"]
-    };
-
+    // --- نظام الدخول والحماية ---
     async function authFetch(endpoint, options = {}) {
         const token = localStorage.getItem('adminToken');
         if (!token) return logout();
@@ -327,99 +355,198 @@
             const res = await fetch(`${API_URL}${endpoint}`, options);
             if (res.status === 401) logout();
             return res;
-        } catch (e) {
-            console.error("Connection Error:", e);
-            return null;
-        }
+        } catch (e) { console.error("API Error:", e); return null; }
     }
 
     async function checkLogin() {
         const pass = document.getElementById('pass-input').value;
-        const btn = document.getElementById('login-btn');
-        btn.innerText = "جاري فتح الخزنة...";
-
         const fd = new FormData();
         fd.append('username', 'admin');
         fd.append('password', pass);
 
-        try {
-            const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd });
-            if (res.ok) {
-                const data = await res.json();
-                localStorage.setItem('adminToken', data.access_token);
-                enterEmpire();
-            } else { alert("⚠️ كلمة مرور خاطئة!"); }
-        } catch (e) { alert("⚠️ السيرفر غير متصل."); }
-        finally { btn.innerText = "دخول الإمبراطورية 🗝️"; }
+        const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd });
+        if (res.ok) {
+            const data = await res.json();
+            localStorage.setItem('adminToken', data.access_token);
+            enterEmpire();
+        } else { alert("❌ عذراً.. مفتاح الدخول خاطئ!"); }
     }
 
     function enterEmpire() {
         document.getElementById('login-overlay').style.display = 'none';
         document.getElementById('admin-panel').style.display = 'flex';
-        renderExamLessonCheckboxes();
-        showSection('dash');
+        document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-OM', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        loadAllData();
     }
 
-    function logout() {
-        localStorage.removeItem('adminToken');
-        window.location.reload();
-    }
+    function logout() { localStorage.removeItem('adminToken'); window.location.reload(); }
 
     function showSection(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        
-        const links = document.querySelectorAll('.nav-link');
-        links.forEach(link => { if(link.getAttribute('onclick').includes(id)) link.classList.add('active'); });
-
-        if (id === 'dash' || id === 'students') loadDashboardData();
-        if (id === 'bank') loadQuestions();
-        if (id === 'scrolls') loadPDFs();
-        if (id === 'exams') loadScheduledExams();
+        document.querySelector(`[onclick="showSection('${id}')"]`).classList.add('active');
     }
 
-    async function loadDashboardData() {
-        const res = await authFetch('/api/admin/stats');
-        if (res && res.ok) {
-            const stats = await res.json();
-            document.getElementById('stat-total-students').innerText = stats.length;
-            
-            if (stats.length > 0) {
-                const top = stats.sort((a,b) => (b.avg_score||0) - (a.avg_score||0))[0];
-                document.getElementById('stat-top-student').innerText = top.full_name;
-                document.getElementById('stat-top-xp').innerText = `${top.tests_count} اختبارات`;
-            }
+    // --- تحميل البيانات المركزية ---
+    async function loadAllData() {
+        await loadCurriculum();
+        await loadDashboard();
+        loadQuestions();
+        loadPDFs();
+        loadScheduledExams();
+    }
 
+    // --- إدارة المنهج الدراسي الديناميكي ---
+    async function loadCurriculum() {
+        const res = await fetch(`${API_URL}/api/curriculum/structure`);
+        if(res.ok) {
+            fullCurriculum = await res.json();
+            renderCurriculumTree();
+            populateLessonDropdowns();
+            renderExamLessonCheckboxes();
+            toggleCurrInputs();
+        }
+    }
+
+    function renderCurriculumTree() {
+        const tree = document.getElementById('curriculum-tree-display');
+        if(fullCurriculum.length === 0) {
+            tree.innerHTML = "<p style='text-align:center;'>لا يوجد هيكل حالياً. ابدأ بإضافة صف دراسي.</p>";
+            return;
+        }
+
+        tree.innerHTML = fullCurriculum.map(grade => `
+            <div class="node-box grade-node">
+                <strong>📍 ${grade.name}</strong>
+                <div class="semester-list">
+                    ${grade.semesters.map(sem => `
+                        <div class="semester-node">
+                            📅 ${sem.name}
+                            <div class="unit-list">
+                                ${sem.units.map(unit => `
+                                    <div class="unit-node">
+                                        📦 ${unit.name}
+                                        <div class="lesson-list">
+                                            ${unit.lessons.map(ls => `<div class="lesson-node">📖 ${ls.name}</div>`).join('')}
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function toggleCurrInputs() {
+        const type = document.getElementById('curr-type').value;
+        const parentArea = document.getElementById('parent-selection-area');
+        const parentSelect = document.getElementById('curr-parent-id');
+        const label = document.getElementById('parent-label');
+
+        if(type === 'grade') {
+            parentArea.style.display = 'none';
+        } else {
+            parentArea.style.display = 'block';
+            parentSelect.innerHTML = '';
+            if(type === 'semester') {
+                label.innerText = "اختر الصف الدراسي:";
+                fullCurriculum.forEach(g => parentSelect.innerHTML += `<option value="${g.id}">${g.name}</option>`);
+            } else if(type === 'unit') {
+                label.innerText = "اختر الفصل الدراسي:";
+                fullCurriculum.forEach(g => g.semesters.forEach(s => parentSelect.innerHTML += `<option value="${s.id}">${g.name} - ${s.name}</option>`));
+            } else if(type === 'lesson') {
+                label.innerText = "اختر الوحدة الدراسية:";
+                fullCurriculum.forEach(g => g.semesters.forEach(s => s.units.forEach(u => parentSelect.innerHTML += `<option value="${u.id}">${s.name} -> ${u.name}</option>`)));
+            }
+        }
+    }
+
+    async function saveCurriculumItem() {
+        const type = document.getElementById('curr-type').value;
+        const name = document.getElementById('curr-name').value;
+        const parentId = document.getElementById('curr-parent-id').value;
+
+        if(!name) return alert("⚠️ يرجى كتابة اسم العنصر!");
+
+        const fd = new FormData();
+        fd.append('name', name);
+        let endpoint = `/api/admin/curriculum/${type}s`;
+        
+        if(type === 'semester') fd.append('grade_id', parentId);
+        if(type === 'unit') fd.append('semester_id', parentId);
+        if(type === 'lesson') fd.append('unit_id', parentId);
+
+        const res = await authFetch(endpoint, { method: 'POST', body: fd });
+        if(res && res.ok) {
+            alert("✅ تم تحديث الهيكل بنجاح!");
+            document.getElementById('curr-name').value = '';
+            loadCurriculum();
+        }
+    }
+
+    function populateLessonDropdowns() {
+        const selects = document.querySelectorAll('.dynamic-lesson-select');
+        selects.forEach(sel => {
+            sel.innerHTML = '<option value="">-- اختر الدرس من المنهج --</option>';
+            fullCurriculum.forEach(g => {
+                const group = document.createElement('optgroup');
+                group.label = g.name;
+                g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(ls => {
+                    const opt = document.createElement('option');
+                    opt.value = ls.name;
+                    opt.textContent = `${u.name} | ${ls.name}`;
+                    group.appendChild(opt);
+                })));
+                sel.appendChild(group);
+            });
+        });
+    }
+
+    function renderExamLessonCheckboxes() {
+        const container = document.getElementById('exam-lesson-container');
+        container.innerHTML = '';
+        fullCurriculum.forEach(g => {
+            container.innerHTML += `<div style="color:var(--gold); font-weight:bold; margin-top:10px;">📍 ${g.name}</div>`;
+            g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(ls => {
+                container.innerHTML += `
+                    <label class="multi-select-lesson">
+                        <input type="checkbox" value="${ls.name}" class="exam-lesson-cb"> ${u.name} ⬅️ ${ls.name}
+                    </label>
+                `;
+            })));
+        });
+    }
+
+    // --- بنك الأسئلة والنتائج ---
+    async function loadDashboard() {
+        const res = await fetch(`${API_URL}/api/leaderboard`);
+        if(res.ok) {
+            const data = await res.json();
+            document.getElementById('stat-total-students').innerText = data.length;
+            if(data.length > 0) {
+                document.getElementById('stat-top-student').innerText = data[0].student_name;
+                document.getElementById('stat-top-xp').innerText = `${data[0].total_points} XP`;
+            }
+            // ملء جدول الطلاب (تبسيطاً سنستخدم بيانات المتصدرين)
             const tbody = document.getElementById('students-table-body');
-            tbody.innerHTML = stats.map(s => `
+            tbody.innerHTML = data.map(s => `
                 <tr>
-                    <td style="color:var(--gold); font-weight:bold;">${s.full_name}</td>
-                    <td>${s.grade}</td>
-                    <td>${s.tests_count}</td>
-                    <td>${s.avg_score ? s.avg_score.toFixed(1) : 0}%</td>
-                    <td>${s.last_activity || '---'}</td>
+                    <td><strong>${s.student_name}</strong></td>
+                    <td>الصف السادس</td>
+                    <td>${s.total_points}</td>
+                    <td>نشط الآن</td>
+                    <td><button class="btn-action" style="background:var(--gold)">تقرير</button></td>
                 </tr>
             `).join('');
         }
     }
 
-    function updateLessons() {
-        const unit = document.getElementById('q-unit').value;
-        const sel = document.getElementById('q-lesson');
-        sel.innerHTML = '<option value="">-- اختر الدرس --</option>';
-        if(unit && lessonsMap[unit]) lessonsMap[unit].forEach(l => sel.innerHTML += `<option value="${l}">${l}</option>`);
-    }
-
-    function toggleOptions() {
-        const type = document.getElementById('q-type').value;
-        document.getElementById('options-container').style.display = (type === 'choice') ? 'block' : 'none';
-    }
-
     async function saveSmartQuestion() {
-        const editId = document.getElementById('edit-id').value;
-        const lesson = document.getElementById('q-lesson').value;
-        if(!lesson) { alert("⚠️ الرجاء اختيار الوحدة والدرس أولاً!"); return; }
+        const lesson = document.querySelector('#bank #q-lesson-select').value;
+        if(!lesson) return alert("⚠️ اختر الدرس أولاً!");
 
         const fd = new FormData();
         fd.append('grade', '6');
@@ -429,113 +556,62 @@
         fd.append('question', document.getElementById('q-text').value);
         fd.append('answer', document.getElementById('q-answer').value);
         fd.append('options', document.getElementById('q-options').value);
+        
         const img = document.getElementById('q-image').files[0];
         if(img) fd.append('image', img);
 
-        const url = editId ? `/api/admin/questions/${editId}` : `/api/admin/questions`;
-        const method = editId ? 'PUT' : 'POST';
-
-        const res = await authFetch(url, { method: method, body: fd });
-        if (res && res.ok) {
-            alert("✨ تم الحفظ بنجاح!");
-            resetForm();
+        const res = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
+        if(res && res.ok) {
+            alert("✨ تم الحفظ في الخزنة بنجاح!");
             loadQuestions();
+            document.getElementById('q-text').value = '';
+            document.getElementById('q-answer').value = '';
         }
     }
 
     async function loadQuestions() {
-        const res = await authFetch('/api/admin/questions');
-        if (res && res.ok) {
+        const res = await fetch(`${API_URL}/api/admin/questions`);
+        if(res.ok) {
             allQuestions = await res.json();
-            const tbody = document.getElementById('questions-table-body');
-            tbody.innerHTML = allQuestions.map(q => `
+            document.getElementById('stat-total-q').innerText = allQuestions.length;
+            document.getElementById('questions-table-body').innerHTML = allQuestions.map(q => `
                 <tr>
                     <td>${q.question.substring(0,40)}...</td>
                     <td>${q.lesson}</td>
                     <td>${q.image_url ? '🖼️' : '📄'}</td>
-                    <td>
-                        <button onclick="editQuestion(${q.id})" style="background:var(--gold); border:none; padding:5px; border-radius:5px; cursor:pointer;">✏️</button>
-                        <button onclick="deleteQuestion(${q.id})" style="background:#ff5e5e; border:none; padding:5px; border-radius:5px; cursor:pointer; color:white;">🗑️</button>
-                    </td>
+                    <td><button class="btn-action btn-del" onclick="deleteQuestion(${q.id})">حذف</button></td>
                 </tr>
             `).join('');
         }
     }
 
-    function editQuestion(id) {
-        const q = allQuestions.find(item => item.id === id);
-        if(!q) return;
-        document.getElementById('edit-id').value = q.id;
-        document.getElementById('q-text').value = q.question;
-        document.getElementById('q-answer').value = q.answer;
-        document.getElementById('q-options').value = q.options;
-        document.getElementById('q-type').value = q.q_type;
-        document.getElementById('form-title').innerText = "✏️ تعديل التحدي الملكي";
-        document.getElementById('save-btn').innerText = "تحديث البيانات ✨";
-        document.getElementById('cancel-btn').style.display = "block";
-        toggleOptions();
-        window.scrollTo(0, 0);
-    }
-
-    function resetForm() {
-        document.getElementById('edit-id').value = "";
-        document.getElementById('q-text').value = "";
-        document.getElementById('q-answer').value = "";
-        document.getElementById('q-options').value = "";
-        document.getElementById('q-image').value = "";
-        document.getElementById('form-title').innerText = "🔨 إضافة تحدي ملكي جديد";
-        document.getElementById('save-btn').innerText = "حفظ في الخزنة 💾";
-        document.getElementById('cancel-btn').style.display = "none";
-    }
-
     async function deleteQuestion(id) {
-        if(confirm("حذف السؤال نهائياً؟")) {
+        if(confirm("هل تريد حذف هذا التحدي نهائياً؟")) {
             await authFetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
             loadQuestions();
         }
     }
 
-    function renderExamLessonCheckboxes() {
-        const container = document.getElementById('exam-lesson-container');
-        let html = '';
-        for(let unit in lessonsMap) {
-            html += `<div class="multi-select-unit">${unit}</div>`;
-            lessonsMap[unit].forEach(l => html += `<label class="multi-select-lesson"><input type="checkbox" value="${l}" class="exam-lesson-cb"> ${l}</label>`);
-        }
-        container.innerHTML = html;
-    }
-
+    // --- جدولة الاختبارات ---
     async function scheduleExam() {
         const selected = Array.from(document.querySelectorAll('.exam-lesson-cb:checked')).map(cb => cb.value);
-        const title = document.getElementById('exam-title').value;
-        const date = document.getElementById('exam-date').value;
-        const time = document.getElementById('exam-time').value;
-
-        if(!title || !date || !time) {
-            alert("⚠️ يرجى تعبئة عنوان الاختبار والتاريخ والوقت!");
-            return;
-        }
-        if(selected.length === 0) {
-            alert("⚠️ يجب اختيار درس واحد على الأقل للاختبار!");
-            return;
-        }
+        if(selected.length === 0) return alert("⚠️ اختر درساً واحداً على الأقل!");
 
         const fd = new FormData();
-        fd.append('title', title);
-        fd.append('exam_type', document.getElementById('exam-type').value);
-        fd.append('exam_date', date);
-        fd.append('exam_time', time);
+        fd.append('title', document.getElementById('exam-title').value);
+        fd.append('exam_date', document.getElementById('exam-date').value);
+        fd.append('exam_time', document.getElementById('exam-time').value);
         fd.append('target_lesson', selected.join(','));
         fd.append('duration', document.getElementById('exam-duration').value);
-        fd.append('num_questions', document.getElementById('exam-num-q').value);
-        fd.append('points_per_q', document.getElementById('exam-points-q').value);
-        fd.append('target_q_type', document.getElementById('exam-target-q-type').value);
+        fd.append('exam_type', 'ملحمة أسبوعية');
+        fd.append('num_questions', 10);
+        fd.append('points_per_q', 10);
+        fd.append('target_q_type', 'all');
 
         const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
-        if(res && res.ok) { 
-            alert("🔔 تم إرسال الإشعار بنجاح للمنصة!"); 
-            loadScheduledExams(); 
-            document.getElementById('exam-title').value = "";
+        if(res && res.ok) {
+            alert("🔔 تم إطلاق الملحمة بنجاح!");
+            loadScheduledExams();
         }
     }
 
@@ -548,16 +624,33 @@
                     <td>${e.title}</td>
                     <td>${e.exam_date} | ${e.exam_time}</td>
                     <td><small>${e.target_lesson.substring(0,30)}...</small></td>
-                    <td><button onclick="deleteExam(${e.id})" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px; cursor:pointer;">إلغاء</button></td>
+                    <td><button class="btn-action btn-del" onclick="deleteExam(${e.id})">إلغاء</button></td>
                 </tr>
             `).join('');
         }
     }
 
     async function deleteExam(id) {
-        if(confirm("هل أنت متأكد من إلغاء هذا الاختبار؟")) {
+        if(confirm("إلغاء الاختبار؟")) {
             await authFetch(`/api/admin/exams/${id}`, { method: 'DELETE' });
             loadScheduledExams();
+        }
+    }
+
+    // --- لفائف المعرفة (PDF) ---
+    async function uploadSmartPDF() {
+        const lesson = document.getElementById('pdf-lesson-select').value;
+        const file = document.getElementById('pdf-file-input').files[0];
+        if(!lesson || !file) return alert("⚠️ اختر الدرس وأرفق الملف!");
+
+        const fd = new FormData();
+        fd.append('lesson', lesson);
+        fd.append('pdf', file);
+        
+        const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
+        if(res && res.ok) {
+            alert("📜 تم إيداع اللفافة بنجاح!");
+            loadPDFs();
         }
     }
 
@@ -568,41 +661,23 @@
             document.getElementById('pdfs-table-body').innerHTML = data.map(pdf => `
                 <tr>
                     <td>${pdf.lesson}</td>
-                    <td><a href="${API_URL}/${pdf.pdf_url}" target="_blank" style="color:var(--gold);">معاينة 👁️</a></td>
-                    <td><button onclick="deletePDF('${pdf.lesson}')" style="background:#ff5e5e; color:white; border:none; border-radius:5px; padding:5px; cursor:pointer;">حذف</button></td>
+                    <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold);">معاينة 👁️</a></td>
+                    <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حذف</button></td>
                 </tr>
             `).join('');
         }
     }
 
-    async function uploadSmartPDF() {
-        const lesson = document.getElementById('pdf-lesson-select').value;
-        const file = document.getElementById('pdf-file-input').files[0];
-        
-        // الحماية من الانهيار إذا لم يتم اختيار ملف
-        if(!lesson || !file) {
-            alert("⚠️ يرجى اختيار الدرس وإرفاق ملف الـ PDF أولاً!");
-            return;
-        }
-
-        const fd = new FormData();
-        fd.append('lesson', lesson);
-        fd.append('pdf', file);
-        
-        const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
-        if(res && res.ok) { 
-            alert("📜 تم إيداع اللفافة بنجاح في سجلات الإمبراطورية!"); 
-            loadPDFs(); 
-            document.getElementById('pdf-lesson-select').value = "";
-            document.getElementById('pdf-file-input').value = "";
-        }
-    }
-
     async function deletePDF(lesson) {
-        if(confirm("هل أنت متأكد من حذف هذا الملخص؟")) {
+        if(confirm("حذف اللفافة؟")) {
             await authFetch(`/api/admin/summaries/${encodeURIComponent(lesson)}`, { method: 'DELETE' });
             loadPDFs();
         }
+    }
+
+    function toggleOptions() {
+        const type = document.getElementById('q-type').value;
+        document.getElementById('options-container').style.display = (type === 'choice') ? 'block' : 'none';
     }
 
     window.onload = () => { if(localStorage.getItem('adminToken')) enterEmpire(); };

@@ -22,7 +22,6 @@ SECRET_KEY = "ROYAL_MATH_968_OMAN"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480 
 
-# بيانات السحاب الخاصة بك
 SUPABASE_URL = "https://xlgttngreiuihutjrlev.supabase.co"
 SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw"
 
@@ -132,7 +131,32 @@ async def update_student(student_id: int=Form(...), full_name: str=Form(...), sc
     return {"status": "success"}
 
 # ==========================================
-# --- 5. ديوان المعلمين (تخزين سحابي دائم) ---
+# --- 5. إدارة المنهج الدراسي (النظام الديناميكي) ---
+# ==========================================
+
+@app.post("/api/admin/curriculum/grades")
+async def add_grade(name: str = Form(...), admin=Depends(get_current_admin)):
+    return supabase.table("grades").insert({"name": name}).execute()
+
+@app.post("/api/admin/curriculum/semesters")
+async def add_semester(grade_id: int = Form(...), name: str = Form(...), admin=Depends(get_current_admin)):
+    return supabase.table("semesters").insert({"grade_id": grade_id, "name": name}).execute()
+
+@app.post("/api/admin/curriculum/units")
+async def add_unit(semester_id: int = Form(...), name: str = Form(...), admin=Depends(get_current_admin)):
+    return supabase.table("units").insert({"semester_id": semester_id, "name": name}).execute()
+
+@app.post("/api/admin/curriculum/lessons")
+async def add_lesson(unit_id: int = Form(...), name: str = Form(...), admin=Depends(get_current_admin)):
+    return supabase.table("lessons").insert({"unit_id": unit_id, "name": name}).execute()
+
+@app.get("/api/curriculum/structure")
+async def get_full_structure():
+    res = supabase.table("grades").select("*, semesters(*, units(*, lessons(*)))").execute()
+    return res.data
+
+# ==========================================
+# --- 6. ديوان المعلمين (تخزين سحابي دائم) ---
 # ==========================================
 @app.post("/api/admin/teacher-resources")
 async def upload_resource(title: str=Form(...), category: str=Form(...), file: UploadFile=File(...), admin=Depends(get_current_admin)):
@@ -154,7 +178,7 @@ async def delete_resource(res_id: int, admin=Depends(get_current_admin)):
     return {"status": "success"}
 
 # ==========================================
-# --- 6. بنك الأسئلة والامتحانات (سحابي) ---
+# --- 7. بنك الأسئلة والامتحانات (سحابي) ---
 # ==========================================
 @app.post("/api/admin/questions")
 async def add_question(
@@ -220,7 +244,7 @@ async def get_upcoming():
     return res.data if res.data else []
 
 # ==========================================
-# --- 7. الملخصات والنتائج والبحث ---
+# --- 8. الملخصات والنتائج والبحث ---
 # ==========================================
 @app.post("/api/admin/summaries")
 async def upload_summary(lesson: str=Form(...), pdf: UploadFile=File(...), admin=Depends(get_current_admin)):
@@ -268,7 +292,7 @@ async def parent_search(name: str):
     return {"found": True, "student": student, "history": history or []}
 
 # ==========================================
-# --- 8. التشغيل النهائي ---
+# --- 9. التشغيل النهائي ---
 # ==========================================
 if __name__ == "__main__":
     import uvicorn
