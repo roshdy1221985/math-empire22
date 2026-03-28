@@ -321,8 +321,12 @@ async def add_resource(
     
     content = await file.read()
     
-    # رفع الملف بالتشفير الجديد الآمن
-    supabase.storage.from_("resources").upload(path=file_name, file=content)
+    # رفع الملف بالتشفير الجديد الآمن مع تحديد نوع الملف (content-type)
+    supabase.storage.from_("resources").upload(
+        path=file_name, 
+        file=content,
+        file_options={"content-type": file.content_type}
+    )
     file_url = supabase.storage.from_("resources").get_public_url(file_name)
     
     # حفظ البيانات بالاسم العربي في الجدول ليستعرضه المعلم بشكل جميل

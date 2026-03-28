@@ -76,14 +76,18 @@
 
         .file-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 5px var(--gold)); }
 
-        .download-btn {
-            background: var(--gold-grad); color: #000; border: none;
-            padding: 12px 20px; border-radius: 10px; font-weight: 900;
-            cursor: pointer; margin-top: 15px; width: 100%; transition: 0.3s;
-            text-transform: uppercase;
+        .btn-group { display: flex; gap: 10px; margin-top: 15px; }
+        
+        .action-btn {
+            flex: 1; padding: 10px 15px; border-radius: 10px; font-weight: 900; cursor: pointer;
+            text-decoration: none; display: inline-block; box-sizing: border-box; text-align: center;
+            transition: 0.3s; color: #000; font-family: 'Cairo'; font-size: 0.95rem;
         }
-
-        .download-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--gold); }
+        .btn-preview { background: var(--gold-grad); border: none; }
+        .btn-preview:hover { transform: scale(1.05); box-shadow: 0 0 15px var(--gold); }
+        
+        .btn-download { background: #2ecc71; border: none; }
+        .btn-download:hover { transform: scale(1.05); box-shadow: 0 0 15px #2ecc71; }
 
         .auth-input {
             width:100%; padding:14px; border-radius:10px; border:1px solid var(--gold); 
@@ -130,7 +134,7 @@
             <p style="opacity: 0.7; margin-bottom: 30px;">مرحباً بك في مجمع خبراء الرياضيات</p>
             <input type="text" id="user-login" class="auth-input" placeholder="اسم المستخدم">
             <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور">
-            <button class="download-btn" onclick="handleLogin()">دخول ملكي</button>
+            <button class="action-btn btn-preview" style="width:100%;" onclick="handleLogin()">دخول ملكي</button>
             <p style="font-size: 0.9rem; margin-top: 20px;">معلم جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold); cursor:pointer; text-decoration: underline;">سجل بياناتك هنا</span></p>
         </div>
 
@@ -140,7 +144,7 @@
             <input type="text" id="reg-school" class="auth-input" placeholder="اسم المدرسة">
             <input type="text" id="reg-user" class="auth-input" placeholder="اختر اسم مستخدم">
             <input type="password" id="reg-pass" class="auth-input" placeholder="كلمة المرور">
-            <button class="download-btn" onclick="handleRegister()">اعتماد البيانات</button>
+            <button class="action-btn btn-preview" style="width:100%;" onclick="handleRegister()">اعتماد البيانات</button>
             <p style="font-size: 0.9rem; margin-top: 20px;"><span onclick="toggleAuth(false)" style="color:var(--gold); cursor:pointer;">العودة للدخول</span></p>
         </div>
     </div>
@@ -153,6 +157,7 @@
         <div id="menu-guides" class="nav-item" onclick="setCategory('guides', this)">👨‍🏫 أدلة المعلم</div>
         <div id="menu-bulletins" class="nav-item" onclick="setCategory('bulletins', this)">📜 نشرات فنية</div>
         <div id="menu-software" class="nav-item" onclick="setCategory('software', this)">💻 برمجيات ذكية</div>
+        <div id="menu-planning" class="nav-item" onclick="setCategory('planning', this)">📅 المخططات والمناوبات</div>
         
         <div style="flex:1;"></div>
         <button onclick="logout()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:12px; border-radius:10px; cursor:pointer; margin-bottom:15px; font-family:'Cairo'; font-weight: bold;">🚪 مغادرة الديوان</button>
@@ -219,6 +224,7 @@
             sessionStorage.setItem('teacherAccess', 'true');
             setTimeout(() => {
                 document.getElementById('access-overlay').style.display = 'none';
+                loadCurriculumForTeachers();
             }, 600);
         }
 
@@ -230,6 +236,21 @@
         function logout() {
             sessionStorage.clear();
             location.reload();
+        }
+
+        // تم الإبقاء على الدالة كما هي في الكود المرجعي
+        async function loadCurriculumForTeachers() {
+            try {
+                const res = await fetch(`${API_URL}/api/curriculum/structure`);
+                if(res.ok) {
+                    const fullCurriculum = await res.json();
+                    const gradeSel = document.getElementById('grade-select');
+                    gradeSel.innerHTML = '<option value="">-- اختر الصف الدراسي --</option>';
+                    fullCurriculum.forEach(g => {
+                        gradeSel.innerHTML += `<option value="${g.name}">${g.name}</option>`;
+                    });
+                }
+            } catch(e) { console.error(e); }
         }
 
         function onSelectionChange() {
@@ -247,6 +268,7 @@
         }
 
         function setCategory(cat, el) {
+            if(!el.classList.contains('enabled')) return;
             selectedCategory = cat;
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             el.classList.add('active');
@@ -263,7 +285,7 @@
             grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">جاري استدعاء الموارد الملكية من السحاب...</p>';
 
             try {
-                const response = await fetch(`${API_URL}/api/resources?grade=${grade}&semester=${sem}&category=${selectedCategory}`);
+                const response = await fetch(`${API_URL}/api/resources?grade=${encodeURIComponent(grade)}&semester=${sem}&category=${selectedCategory}`);
                 const data = await response.json();
                 renderResources(data);
             } catch (e) {
@@ -283,18 +305,23 @@
             resources.forEach(res => {
                 const card = document.createElement('div');
                 card.className = 'resource-card';
+                
+                // تم التعديل هنا لفصل الزر إلى زرين: معاينة وتحميل
                 card.innerHTML = `
                     <div class="file-icon">${getIcon(res.category)}</div>
                     <h3 style="margin:5px 0; color:var(--gold);">${res.title}</h3>
                     <p style="opacity:0.8; font-size:0.9rem; margin:10px 0;">${res.description || 'موارد تعليمية معتمدة'}</p>
-                    <button class="download-btn" onclick="window.open('${res.file_url}')">فتح المورد 📖</button>
+                    <div class="btn-group">
+                        <a href="${res.file_url}" target="_blank" class="action-btn btn-preview" title="معاينة الملف">معاينة 👁️</a>
+                        <a href="${res.file_url}?download=" class="action-btn btn-download" title="تحميل الملف">تحميل ⬇️</a>
+                    </div>
                 `;
                 grid.appendChild(card);
             });
         }
 
         function getIcon(cat) {
-            const icons = { books: '📕', notes: '📝', guides: '👨‍🏫', bulletins: '📜', software: '💻' };
+            const icons = { books: '📕', notes: '📝', guides: '👨‍🏫', bulletins: '📜', software: '💻', planning: '📅' };
             return icons[cat] || '📄';
         }
 
@@ -337,6 +364,7 @@
             animate();
             if (sessionStorage.getItem('teacherAccess') === 'true') {
                 document.getElementById('access-overlay').style.display = 'none';
+                loadCurriculumForTeachers();
             }
         };
         window.onresize = initParticles;
