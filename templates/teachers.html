@@ -21,7 +21,6 @@
             color: #fff; min-height: 100vh; display: flex; overflow-x: hidden;
         }
 
-        /* القائمة الجانبية للمكتبة */
         .sidebar {
             width: 280px; background: rgba(0,0,0,0.8);
             backdrop-filter: blur(20px); border-left: 1px solid var(--border);
@@ -32,8 +31,10 @@
         .nav-item {
             padding: 15px; margin-bottom: 10px; border-radius: 12px;
             cursor: pointer; transition: 0.3s; display: flex; align-items: center; gap: 10px;
-            border: 1px solid transparent;
+            border: 1px solid transparent; opacity: 0.5; pointer-events: none;
         }
+
+        .nav-item.enabled { opacity: 1; pointer-events: auto; }
 
         .nav-item:hover, .nav-item.active {
             background: var(--glass); border-color: var(--gold); color: var(--gold);
@@ -47,7 +48,6 @@
             text-align: center; position: relative;
         }
 
-        /* نظام الأرفف (Cards) */
         .resources-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
             gap: 25px;
@@ -60,7 +60,6 @@
         }
 
         .resource-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(212,175,55,0.2); }
-        
         .file-icon { font-size: 3.5rem; margin-bottom: 15px; }
 
         .download-btn {
@@ -68,156 +67,217 @@
             padding: 10px 20px; border-radius: 8px; font-weight: bold;
             cursor: pointer; margin-top: 15px; width: 100%; transition: 0.3s;
         }
-        .download-btn:hover { filter: brightness(1.2); transform: scale(1.05); }
 
-        /* حماية القسم بكود سري */
+        .auth-input {
+            width:100%; padding:12px; border-radius:8px; border:1px solid var(--gold); 
+            background:#000; color:#fff; text-align:center; margin-bottom:15px; font-family:'Cairo';
+            box-sizing: border-box;
+        }
+
         #access-overlay {
             position: fixed; inset: 0; background: var(--primary);
             z-index: 10000; display: flex; justify-content: center; align-items: center;
         }
+
         .access-box {
             background: var(--glass); padding: 40px; border-radius: 25px;
-            border: 2px solid var(--gold); text-align: center; width: 320px;
+            border: 2px solid var(--gold); text-align: center; width: 380px;
             backdrop-filter: blur(15px); box-shadow: 0 0 30px rgba(0,0,0,0.8);
+        }
+
+        .selection-panel {
+            display: flex; gap: 15px; justify-content: center; margin-bottom: 30px;
+        }
+
+        select.royal-select {
+            background: #000; color: var(--gold); border: 1px solid var(--gold);
+            padding: 10px; border-radius: 8px; font-family: 'Cairo'; width: 220px;
+        }
+
+        /* تنسيق الـ optgroup ليكون واضحاً وجميلاً */
+        select.royal-select optgroup {
+            background: #1a1a2e;
+            color: #fff;
+            font-style: normal;
+            font-weight: bold;
         }
 
         @media screen and (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; border-left: none; border-bottom: 1px solid var(--border); padding: 20px; }
-            .main-content { padding: 20px; }
+            .sidebar { width: 100%; height: auto; position: static; border-left: none; }
         }
     </style>
 </head>
 <body>
 
     <div id="access-overlay">
-        <div class="access-box">
+        <div id="login-form" class="access-box">
             <h2 style="font-family:'Amiri'; color:var(--gold);">دخول الديوان 🗝️</h2>
-            <p>يرجى إدخال رمز التحقق الخاص بالمعلمين</p>
-            <input type="password" id="teacher-code" style="width:100%; padding:12px; border-radius:8px; border:1px solid var(--gold); background:#000; color:#fff; text-align:center; margin-bottom:20px; font-family:'Cairo';" placeholder="أدخل الرمز هنا...">
-            <button class="download-btn" onclick="checkCode()">فتح الخزنة</button>
+            <input type="text" id="user-login" class="auth-input" placeholder="اسم المستخدم">
+            <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور">
+            <button class="download-btn" onclick="handleLogin()">دخول</button>
+            <p style="font-size: 0.8rem; margin-top: 15px;">بطل جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold); cursor:pointer; text-decoration: underline;">سجل بياناتك هنا</span></p>
+        </div>
+
+        <div id="register-form" class="access-box" style="display:none;">
+            <h2 style="font-family:'Amiri'; color:var(--gold);">تسجيل معلم جديد 📜</h2>
+            <input type="text" id="reg-name" class="auth-input" placeholder="الاسم الكامل">
+            <input type="text" id="reg-school" class="auth-input" placeholder="اسم المدرسة">
+            <input type="text" id="reg-user" class="auth-input" placeholder="اختر اسم مستخدم">
+            <input type="password" id="reg-pass" class="auth-input" placeholder="كلمة المرور">
+            <button class="download-btn" onclick="handleRegister()">اعتماد البيانات</button>
+            <p style="font-size: 0.8rem; margin-top: 15px;"><span onclick="toggleAuth(false)" style="color:var(--gold); cursor:pointer;">العودة للدخول</span></p>
         </div>
     </div>
 
     <aside class="sidebar">
-        <h2 style="font-family:'Amiri'; color:var(--gold); text-align:center;">ديوان المعلمين</h2>
-        <div class="nav-item active" onclick="filter('all')">🏛️ الكل</div>
-        <div class="nav-item" onclick="filter('books')">📖 كتب المنهج</div>
-        <div class="nav-item" onclick="filter('guides')">👨‍🏫 أدلة المعلم</div>
-        <div class="nav-item" onclick="filter('bulletins')">📜 النشرات التعليمية</div>
-        <div class="nav-item" onclick="filter('exams')">📝 بنك الاختبارات</div>
-        <div style="flex:1; min-height: 50px;"></div>
-        <button onclick="lockVault()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:10px; border-radius:8px; cursor:pointer; margin-bottom:15px; font-family:'Cairo'; font-weight:bold;">🚪 إغلاق الخزنة</button>
-        <a href="/" style="text-decoration:none; color:#fff; opacity:0.6; text-align:center; font-weight:bold;">🏠 العودة للبوابة</a>
+        <h2 style="font-family:'Amiri'; color:var(--gold); text-align:center;">نوع المحتوى</h2>
+        <div id="menu-all" class="nav-item enabled active" onclick="setCategory('all', this)">🏛️ الكل</div>
+        <div id="menu-books" class="nav-item" onclick="setCategory('books', this)">📖 كتب وزارية</div>
+        <div id="menu-notes" class="nav-item" onclick="setCategory('notes', this)">📝 مذكرات تعليمية</div>
+        <div id="menu-guides" class="nav-item" onclick="setCategory('guides', this)">👨‍🏫 أدلة المعلم</div>
+        <div id="menu-bulletins" class="nav-item" onclick="setCategory('bulletins', this)">📜 نشرات تعليمية</div>
+        <div id="menu-software" class="nav-item" onclick="setCategory('software', this)">💻 برمجيات تعليمية</div>
+        
+        <div style="flex:1;"></div>
+        <button onclick="logout()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:10px; border-radius:8px; cursor:pointer; margin-bottom:15px; font-family:'Cairo';">🚪 خروج</button>
+        <a href="/" style="text-decoration:none; color:#fff; opacity:0.6; text-align:center;">🏠 الصفحة الرئيسية</a>
     </aside>
 
     <main class="main-content">
         <div class="header-box">
-            <h1 style="font-family:'Amiri'; color:var(--gold); margin:0;">مستودع الموارد الرقمية</h1>
-            <p>وزارة التربية والتعليم - سلطنة عُمان - 2026</p>
+            <h1 style="font-family:'Amiri'; color:var(--gold); margin:0;">ديوان موارد المعلمين</h1>
+            <p>سلطنة عُمان - نظام الإدارة الرقمي 2026</p>
+        </div>
+
+        <div class="selection-panel">
+            <select id="grade-select" class="royal-select" onchange="onSelectionChange()">
+                <option value="">-- اختر الصف الدراسي --</option>
+                <optgroup label="الحلقة الثانية">
+                    <option value="5">الصف الخامس</option>
+                    <option value="6">الصف السادس</option>
+                    <option value="7">الصف السابع</option>
+                    <option value="8">الصف الثامن</option>
+                    <option value="9">الصف التاسع</option>
+                    <option value="10">الصف العاشر</option>
+                </optgroup>
+                <optgroup label="التعليم ما بعد الأساسي">
+                    <option value="11-basic">الحادي عشر (أساسي)</option>
+                    <option value="11-adv">الحادي عشر (متقدم)</option>
+                    <option value="12-basic">الثاني عشر (أساسي)</option>
+                    <option value="12-adv">الثاني عشر (متقدم)</option>
+                </optgroup>
+            </select>
+            
+            <select id="semester-select" class="royal-select" onchange="onSelectionChange()">
+                <option value="">-- اختر الفصل الدراسي --</option>
+                <option value="1">الفصل الأول</option>
+                <option value="2">الفصل الثاني</option>
+            </select>
         </div>
 
         <div class="resources-grid" id="resources-grid">
-            <div class="resource-card" data-type="books">
-                <div class="file-icon">📕</div>
-                <h3 style="margin:5px 0;">كتاب الطالب - ج2</h3>
-                <small style="opacity:0.6;">الصف السادس</small>
-                <button class="download-btn" onclick="window.open('#')">تحميل PDF</button>
-            </div>
-            
-            <div class="resource-card" data-type="guides">
-                <div class="file-icon">📘</div>
-                <h3 style="margin:5px 0;">دليل المعلم</h3>
-                <small style="opacity:0.6;">كامبردج - النسخة المطورة</small>
-                <button class="download-btn" onclick="window.open('#')">فتح الدليل</button>
+            <div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 50px;">
+                <h3>يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3>
             </div>
         </div>
     </main>
 
-    <script src="/static/staticjs/scripts.js"></script>
     <script>
-        const API_URL = ""; 
-        let dynamicResources = [];
+        const API_URL = window.location.origin;
+        let selectedCategory = 'all';
 
-        // التحقق من الرمز عند تحميل الصفحة
-        window.onload = () => {
-            if(sessionStorage.getItem('teacherVaultAccess') === "true") {
-                document.getElementById('access-overlay').style.display = 'none';
-                fetchResources(); // جلب الملفات من السيرفر
-            }
-        };
-
-        function checkCode() {
-            const code = document.getElementById('teacher-code').value;
-            if(code === "MOE2026") { // الكود السري
-                sessionStorage.setItem('teacherVaultAccess', "true");
-                document.getElementById('access-overlay').style.display = 'none';
-                fetchResources();
-            } else {
-                alert("الرمز غير صحيح.. الديوان مخصص للمعلمين فقط.");
-                document.getElementById('teacher-code').value = "";
-            }
+        function toggleAuth(isReg) {
+            document.getElementById('login-form').style.display = isReg ? 'none' : 'block';
+            document.getElementById('register-form').style.display = isReg ? 'block' : 'none';
         }
 
-        function lockVault() {
-            sessionStorage.removeItem('teacherVaultAccess');
+        function handleLogin() {
+            sessionStorage.setItem('teacherAccess', 'true');
+            document.getElementById('access-overlay').style.display = 'none';
+        }
+
+        function handleRegister() {
+            alert("تم تسجيل بياناتك بنجاح! يمكنك الدخول الآن.");
+            toggleAuth(false);
+        }
+
+        function logout() {
+            sessionStorage.clear();
             location.reload();
         }
 
-        // جلب الملفات المرفوعة من السيرفر (لوحة الإدارة)
-        async function fetchResources() {
-            try {
-                const res = await fetch(`${API_URL}/api/teacher-resources`);
-                if(res.ok) {
-                    dynamicResources = await res.json();
-                    renderDynamicResources();
-                }
-            } catch(e) { console.log("لا يمكن الاتصال بالسيرفر حالياً."); }
-        }
+        function onSelectionChange() {
+            const grade = document.getElementById('grade-select').value;
+            const sem = document.getElementById('semester-select').value;
+            const items = document.querySelectorAll('.nav-item');
 
-        // دمج الملفات الثابتة مع الملفات القادمة من السيرفر وعرضها
-        function renderDynamicResources() {
-            const grid = document.getElementById('resources-grid');
-            
-            let html = '';
-            dynamicResources.forEach(res => {
-                let icon = '📄';
-                if(res.category === 'books') icon = '📕';
-                if(res.category === 'guides') icon = '📘';
-                if(res.category === 'bulletins') icon = '📜';
-                if(res.category === 'exams') icon = '📝';
-
-                html += `
-                <div class="resource-card" data-type="${res.category}">
-                    <div class="file-icon">${icon}</div>
-                    <h3 style="margin:5px 0;">${res.title}</h3>
-                    <small style="opacity:0.6;">مرفوع حديثاً</small>
-                    <button class="download-btn" onclick="window.open('${API_URL}/${res.file_url}')">تحميل الملف</button>
-                </div>`;
-            });
-
-            // الاحتفاظ بالبطاقات الثابتة في حالة عدم وجود ملفات جديدة
-            if(html !== '') {
-                // إضافة الملفات الجديدة إلى الشبكة
-                grid.innerHTML += html;
+            if (grade && sem) {
+                items.forEach(item => item.classList.add('enabled'));
+                fetchResources();
+            } else {
+                items.forEach(item => item.classList.remove('enabled'));
+                document.getElementById('resources-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 50px;"><h3>يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3></div>';
             }
         }
 
-        function filter(type) {
-            // تحديث البطاقات
-            const cards = document.querySelectorAll('.resource-card');
-            cards.forEach(card => {
-                if(type === 'all' || card.dataset.type === type) {
-                    card.style.display = 'block';
-                } else {
-                    card.style.display = 'none';
-                }
-            });
-
-            // تحديث الحالة النشطة في القائمة الجانبية (بما في ذلك الحدث)
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+        function setCategory(cat, el) {
+            selectedCategory = cat;
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            el.classList.add('active');
+            fetchResources();
         }
+
+        async function fetchResources() {
+            const grade = document.getElementById('grade-select').value;
+            const sem = document.getElementById('semester-select').value;
+            const grid = document.getElementById('resources-grid');
+
+            if (!grade || !sem) return;
+
+            grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">جاري استدعاء الموارد الملكية...</p>';
+
+            try {
+                const response = await fetch(`${API_URL}/api/resources?grade=${grade}&semester=${sem}&category=${selectedCategory}`);
+                const data = await response.json();
+                renderResources(data);
+            } catch (e) {
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#ff5e5e;">لا توجد موارد مرفوعة حالياً أو السيرفر غير متصل.</p>';
+            }
+        }
+
+        function renderResources(resources) {
+            const grid = document.getElementById('resources-grid');
+            grid.innerHTML = '';
+
+            if (resources.length === 0) {
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; opacity:0.6;">لا توجد ملفات مرفوعة لهذا التصنيف حالياً.</div>';
+                return;
+            }
+
+            resources.forEach(res => {
+                const card = document.createElement('div');
+                card.className = 'resource-card';
+                card.innerHTML = `
+                    <div class="file-icon">${getIcon(res.category)}</div>
+                    <h3 style="margin:5px 0;">${res.title}</h3>
+                    <small style="opacity:0.7;">${res.description || 'موارد إضافية'}</small>
+                    <button class="download-btn" onclick="window.open('${res.file_url}')">فتح / تحميل</button>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function getIcon(cat) {
+            const icons = { books: '📕', notes: '📝', guides: '👨‍🏫', bulletins: '📜', software: '💻' };
+            return icons[cat] || '📄';
+        }
+
+        window.onload = () => {
+            if (sessionStorage.getItem('teacherAccess') === 'true') {
+                document.getElementById('access-overlay').style.display = 'none';
+            }
+        };
     </script>
 </body>
 </html>

@@ -14,6 +14,7 @@
             --border: rgba(212, 175, 55, 0.3);
             --red: #ff5e5e;
             --blue: #3498db;
+            --green: #2ecc71;
         }
 
         body { margin: 0; font-family: 'Cairo', sans-serif; background: var(--bg); color: #fff; overflow-x: hidden; }
@@ -104,10 +105,13 @@
             transition: 0.3s; box-shadow: 0 5px 20px rgba(179, 135, 40, 0.4);
         }
         .btn-gold:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(179, 135, 40, 0.6); }
+        .btn-gold:disabled { opacity: 0.6; cursor: not-allowed; }
         
         .btn-action { padding: 6px 12px; border-radius: 8px; border: none; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-del { background: var(--red); color: #fff; }
         .btn-del:hover { background: #ff3b3b; }
+        .btn-copy { background: var(--blue); color: #fff; }
+        .btn-xp { background: var(--green); color: #000; }
 
         /* الجداول */
         table { width: 100%; border-collapse: collapse; margin-top: 25px; background: rgba(0,0,0,0.3); border-radius: 20px; overflow: hidden; }
@@ -136,9 +140,28 @@
             font-weight: bold; display: inline-flex; align-items: center; gap: 10px; font-size: 0.9rem;
             box-shadow: 0 4px 10px rgba(212,175,55,0.3);
         }
+
+        /* نافذة التقارير Modal */
+        #report-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
+            z-index: 10001; justify-content: center; align-items: center; padding: 20px;
+        }
+        .modal-content {
+            background: var(--bg); border: 2px solid var(--gold); border-radius: 30px;
+            width: 90%; max-width: 900px; padding: 40px; position: relative; max-height: 85vh; overflow-y: auto;
+            box-shadow: 0 0 50px rgba(212,175,55,0.3);
+        }
     </style>
 </head>
 <body>
+
+    <div id="report-modal">
+        <div class="modal-content">
+            <h2 style="color:var(--gold); font-family:'Amiri'; border-bottom: 1px solid var(--gold); padding-bottom: 10px;" id="report-title">تقرير إنجازات البطل</h2>
+            <div id="report-body" style="margin-top: 20px;">جاري استخراج السجلات من الأرشيف الملكي...</div>
+            <button class="btn-gold" style="margin-top: 30px;" onclick="closeReportModal()">إغلاق التقرير</button>
+        </div>
+    </div>
 
     <div id="login-overlay">
         <div class="login-box">
@@ -163,7 +186,7 @@
                 <div class="nav-link" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                 <div class="nav-link" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
-                <div class="nav-link" onclick="showSection('reports')"><i class="fas fa-file-alt"></i> السجلات والتقارير</div>
+                <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
 
             <div class="nav-link" onclick="logout()" style="color:var(--red); margin-top:20px;"><i class="fas fa-power-off"></i> خروج المعلم</div>
@@ -232,7 +255,7 @@
                             <label>الاسم الملكي للعنصر (مثال: الوحدة الأولى)</label>
                             <input type="text" id="curr-name" placeholder="اكتب الاسم هنا...">
                         </div>
-                        <button class="btn-gold" style="margin-top: 15px;" onclick="saveSmartCurriculumItem()"><i class="fas fa-plus"></i> إيداع في الهيكل</button>
+                        <button class="btn-gold" id="btn-save-curr" style="margin-top: 15px;" onclick="saveSmartCurriculumItem()"><i class="fas fa-plus"></i> إيداع في الهيكل</button>
                     </div>
 
                     <h3 style="color:var(--gold); margin-top: 40px;"><i class="fas fa-eye"></i> استعراض وتعديل الهيكل</h3>
@@ -247,14 +270,14 @@
 
             <section id="students" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-users-cog"></i> مراقبة الأداء الطلابي</h2>
+                    <h2 style="color:var(--gold);"><i class="fas fa-users-cog"></i> سجل الأبطال والمنح الملكية</h2>
                     <table>
                         <thead>
                             <tr>
                                 <th>البطل</th>
                                 <th>الصف</th>
-                                <th>نقطة إمبراطورية (XP)</th>
-                                <th>آخر نشاط</th>
+                                <th>نقطة (XP)</th>
+                                <th>منحة ملكية</th>
                                 <th>الإجراء</th>
                             </tr>
                         </thead>
@@ -340,7 +363,7 @@
                         <input type="file" id="pdf-file-input" accept="application/pdf, .pdf">
                     </div>
                     
-                    <button class="btn-gold" onclick="uploadSmartPDF()"><i class="fas fa-upload"></i> رفع للمكتبة الملكية</button>
+                    <button class="btn-gold" id="btn-upload-pdf" onclick="uploadSmartPDF()"><i class="fas fa-upload"></i> رفع للمكتبة الملكية</button>
                 </div>
                 <div class="card">
                     <h3>📂 اللفائف المودعة</h3>
@@ -388,7 +411,7 @@
                         </div>
                     </div>
 
-                    <button class="btn-gold" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إطلاق الإشعار للرعية</button>
+                    <button class="btn-gold" id="btn-schedule-exam" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إطلاق الإشعار للرعية</button>
                 </div>
                 <div class="card">
                     <h3>🔔 الاختبارات القادمة</h3>
@@ -396,6 +419,17 @@
                         <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس المستهدفة</th><th>إجراء</th></tr></thead>
                         <tbody id="exams-table-body"></tbody>
                     </table>
+                </div>
+            </section>
+
+            <section id="personal-settings" class="section">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-user-shield"></i> الديوان الشخصي (الإعدادات الملكية)</h2>
+                    <div style="max-width: 500px; margin-top: 20px;">
+                        <label>تغيير مفتاح الدخول (كلمة المرور)</label>
+                        <input type="password" id="new-admin-pass" placeholder="كلمة المرور الجديدة">
+                        <button class="btn-gold" onclick="updateAdminPassword()">تحديث المفتاح الملكي 🗝️</button>
+                    </div>
                 </div>
             </section>
 
@@ -451,8 +485,10 @@
     function showSection(id) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
         document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        document.querySelector(`[onclick="showSection('${id}')"]`).classList.add('active');
+        const target = document.getElementById(id);
+        if (target) target.classList.add('active');
+        const navLink = document.querySelector(`[onclick="showSection('${id}')"]`);
+        if (navLink) navLink.classList.add('active');
     }
 
     async function loadAllData() {
@@ -463,7 +499,6 @@
         loadScheduledExams();
     }
 
-    // --- إدارة المنهج (تعديلات العرض والفلترة) ---
     async function loadCurriculum() {
         const res = await fetch(`${API_URL}/api/curriculum/structure`);
         if(res.ok) {
@@ -479,18 +514,17 @@
         const currFilter = document.getElementById('curr-filter-grade');
         const qFilter = document.getElementById('q-filter-lesson-view');
         
-        currFilter.innerHTML = '<option value="all">عرض جميع الصفوف</option>';
-        qFilter.innerHTML = '<option value="all">-- عرض جميع التحديات (الكل) --</option>';
+        if(currFilter) currFilter.innerHTML = '<option value="all">عرض جميع الصفوف</option>';
+        if(qFilter) qFilter.innerHTML = '<option value="all">-- عرض جميع التحديات (الكل) --</option>';
 
         fullCurriculum.forEach(g => {
-            currFilter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
+            if(currFilter) currFilter.innerHTML += `<option value="${g.id}">${g.name}</option>`;
             g.semesters.forEach(s => s.units.forEach(u => u.lessons.forEach(l => {
-                qFilter.innerHTML += `<option value="${l.name}">${l.name}</option>`;
+                if(qFilter) qFilter.innerHTML += `<option value="${l.name}">${l.name}</option>`;
             })));
         });
     }
 
-    // --- دوال القوائم المتسلسلة لإضافة المنهج ---
     function toggleCurrAddInputs() {
         const type = document.getElementById('curr-type').value;
         const cascadeArea = document.getElementById('cascade-add-area');
@@ -499,38 +533,46 @@
         const uBox = document.getElementById('add-unit-box');
 
         const gSel = document.getElementById('add-grade-sel');
-        gSel.innerHTML = '<option value="">-- اختر الصف --</option>';
-        fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${g.name}</option>`);
+        if(gSel) {
+            gSel.innerHTML = '<option value="">-- اختر الصف --</option>';
+            fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${g.name}</option>`);
+        }
 
         if (type === 'grade') {
-            cascadeArea.style.display = 'none';
+            if(cascadeArea) cascadeArea.style.display = 'none';
         } else {
-            cascadeArea.style.display = 'grid';
-            gBox.style.display = 'block';
-            tBox.style.display = (type === 'unit' || type === 'lesson') ? 'block' : 'none';
-            uBox.style.display = (type === 'lesson') ? 'block' : 'none';
+            if(cascadeArea) cascadeArea.style.display = 'grid';
+            if(gBox) gBox.style.display = 'block';
+            if(tBox) tBox.style.display = (type === 'unit' || type === 'lesson') ? 'block' : 'none';
+            if(uBox) uBox.style.display = (type === 'lesson') ? 'block' : 'none';
         }
     }
 
     function updateAddSemesters() {
         const gIdx = document.getElementById('add-grade-sel').value;
         const sel = document.getElementById('add-term-sel');
+        if(!sel) return;
         sel.innerHTML = '<option value="">-- اختر الفصل --</option>';
-        if (gIdx !== "") fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
+        if (gIdx !== "" && fullCurriculum[gIdx]) fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
     }
 
     function updateAddUnits() {
         const gIdx = document.getElementById('add-grade-sel').value;
         const sIdx = document.getElementById('add-term-sel').value;
         const sel = document.getElementById('add-unit-sel');
+        if(!sel) return;
         sel.innerHTML = '<option value="">-- اختر الوحدة --</option>';
-        if (sIdx !== "") fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
+        if (sIdx !== "" && fullCurriculum[gIdx].semesters[sIdx]) fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
     }
 
     async function saveSmartCurriculumItem() {
         const type = document.getElementById('curr-type').value;
         const name = document.getElementById('curr-name').value;
+        const btn = document.getElementById('btn-save-curr');
         if(!name) return alert("⚠️ يرجى كتابة اسم العنصر!");
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإيداع...';
 
         const fd = new FormData(); fd.append('name', name);
         let endpoint = `/api/admin/curriculum/${type}s`;
@@ -549,19 +591,25 @@
                 const uIdx = document.getElementById('add-unit-sel').value;
                 fd.append('unit_id', fullCurriculum[gIdx].semesters[sIdx].units[uIdx].id);
             }
-        } catch(e) { return alert("⚠️ يرجى التأكد من اختيار جميع القوائم المتسلسلة بشكل صحيح!"); }
-
-        const res = await authFetch(endpoint, { method: 'POST', body: fd });
-        if(res && res.ok) {
-            alert("✅ تم إضافة اللبنة للهيكل بنجاح!");
-            document.getElementById('curr-name').value = '';
-            loadCurriculum();
+            
+            const res = await authFetch(endpoint, { method: 'POST', body: fd });
+            if(res && res.ok) {
+                alert("✅ تم إضافة اللبنة للهيكل بنجاح!");
+                document.getElementById('curr-name').value = '';
+                await loadCurriculum();
+            }
+        } catch(e) { 
+            alert("⚠️ يرجى التأكد من اختيار جميع القوائم المتسلسلة بشكل صحيح!"); 
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus"></i> إيداع في الهيكل';
         }
     }
 
     function renderCurriculumTree() {
         const tree = document.getElementById('curriculum-tree-display');
         const filterVal = document.getElementById('curr-filter-grade').value;
+        if(!tree) return;
         if(fullCurriculum.length === 0) { tree.innerHTML = "<p style='text-align:center;'>لا يوجد هيكل حالياً. ابدأ بإضافة صف دراسي.</p>"; return; }
         let gradesToRender = fullCurriculum;
         if (filterVal !== "all") gradesToRender = fullCurriculum.filter(g => g.id == filterVal);
@@ -627,7 +675,6 @@
         }
     }
 
-    // --- نظام القوائم المتسلسلة (Cascade Dropdowns) ---
     function initCascades() {
         populateGradeDropdown('q');
         populateGradeDropdown('pdf');
@@ -652,8 +699,9 @@
     function updateSemesters(prefix) {
         const gIdx = document.getElementById(`${prefix}-grade`).value;
         const sel = document.getElementById(`${prefix}-term`);
+        if(!sel) return;
         resetDropdowns(prefix, ['term', 'unit', 'lesson']);
-        if (gIdx === "") return;
+        if (gIdx === "" || !fullCurriculum[gIdx]) return;
         fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
     }
 
@@ -661,8 +709,9 @@
         const gIdx = document.getElementById(`${prefix}-grade`).value;
         const sIdx = document.getElementById(`${prefix}-term`).value;
         const sel = document.getElementById(`${prefix}-unit`);
+        if(!sel) return;
         resetDropdowns(prefix, ['unit', 'lesson']);
-        if (sIdx === "") return;
+        if (sIdx === "" || !fullCurriculum[gIdx].semesters[sIdx]) return;
         fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
     }
 
@@ -671,8 +720,9 @@
         const sIdx = document.getElementById(`${prefix}-term`).value;
         const uIdx = document.getElementById(`${prefix}-unit`).value;
         const sel = document.getElementById(`${prefix}-lesson`);
+        if(!sel) return;
         resetDropdowns(prefix, ['lesson']);
-        if (uIdx === "") return;
+        if (uIdx === "" || !fullCurriculum[gIdx].semesters[sIdx].units[uIdx]) return;
         fullCurriculum[gIdx].semesters[sIdx].units[uIdx].lessons.forEach((l) => sel.innerHTML += `<option value="${l.name}">${l.name}</option>`);
     }
 
@@ -682,13 +732,17 @@
                 for (let u = 0; u < fullCurriculum[g].semesters[s].units.length; u++) {
                     for (let l = 0; l < fullCurriculum[g].semesters[s].units[u].lessons.length; l++) {
                         if (fullCurriculum[g].semesters[s].units[u].lessons[l].name === lessonName) {
-                            document.getElementById(`${prefix}-grade`).value = g;
+                            const gEl = document.getElementById(`${prefix}-grade`);
+                            if(gEl) gEl.value = g;
                             updateSemesters(prefix);
-                            document.getElementById(`${prefix}-term`).value = s;
+                            const tEl = document.getElementById(`${prefix}-term`);
+                            if(tEl) tEl.value = s;
                             updateUnits(prefix);
-                            document.getElementById(`${prefix}-unit`).value = u;
+                            const uEl = document.getElementById(`${prefix}-unit`);
+                            if(uEl) uEl.value = u;
                             updateLessons(prefix);
-                            document.getElementById(`${prefix}-lesson`).value = lessonName;
+                            const lEl = document.getElementById(`${prefix}-lesson`);
+                            if(lEl) lEl.value = lessonName;
                             return;
                         }
                     }
@@ -702,40 +756,129 @@
         const res = await fetch(`${API_URL}/api/leaderboard`);
         if(res.ok) {
             const data = await res.json();
-            document.getElementById('stat-total-students').innerText = data.length;
+            const totalStudentsEl = document.getElementById('stat-total-students');
+            const topStudentEl = document.getElementById('stat-top-student');
+            const topXpEl = document.getElementById('stat-top-xp');
+            
+            if(totalStudentsEl) totalStudentsEl.innerText = data.length;
             if(data.length > 0) {
-                document.getElementById('stat-top-student').innerText = data[0].student_name;
-                document.getElementById('stat-top-xp').innerText = `${data[0].total_points} XP`;
+                if(topStudentEl) topStudentEl.innerText = data[0].student_name;
+                if(topXpEl) topXpEl.innerText = `${data[0].total_points} XP`;
             }
             const tbody = document.getElementById('students-table-body');
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td><strong>${s.student_name}</strong></td>
-                    <td>الصف السادس</td>
-                    <td>${s.total_points}</td>
-                    <td>نشط الآن</td>
-                    <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${s.student_name}')">تقرير</button></td>
-                </tr>
-            `).join('');
+            if(tbody) {
+                tbody.innerHTML = data.map(s => `
+                    <tr>
+                        <td><strong>${s.student_name}</strong></td>
+                        <td>الصف السادس</td>
+                        <td>${s.total_points}</td>
+                        <td>
+                            <button class="btn-action btn-xp" onclick="giveRoyalGrant('${s.student_name}')">
+                                <i class="fas fa-medal"></i> +50 XP
+                            </button>
+                        </td>
+                        <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${s.student_name}')">تقرير</button></td>
+                    </tr>
+                `).join('');
+            }
         }
     }
 
-    function viewStudentReport(studentName) {
-        alert(`سيتم إطلاق نظام تقارير الأداء التفصيلي للبطل (${studentName}) قريباً في التحديث الملكي القادم!`);
+    async function giveRoyalGrant(studentName) {
+        if(!confirm(`هل تريد منح البطل (${studentName}) منحة ملكية قدرها 50 XP؟`)) return;
+        
+        const fd = new FormData();
+        fd.append('student_name', studentName);
+        fd.append('points', 50);
+
+        try {
+            const res = await authFetch('/api/admin/grant_xp', { method: 'POST', body: fd });
+            if(res && res.ok) {
+                alert(`✨ تم منح الـ XP بنجاح للبطل ${studentName}`);
+                await loadDashboard();
+            } else {
+                alert("⚠️ تأكد من إعداد مسار المنح في السيرفر.");
+            }
+        } catch(e) {
+            alert("❌ خطأ في الاتصال بالديوان.");
+        }
+    }
+
+    // --- نظام التقارير المحدث ---
+    async function viewStudentReport(name) {
+        const modal = document.getElementById('report-modal');
+        const body = document.getElementById('report-body');
+        const title = document.getElementById('report-title');
+        
+        if(!modal || !body) return;
+        
+        title.innerText = `سجل بطولات البطل: ${name}`;
+        modal.style.display = 'flex';
+        body.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br>جاري فتح الأرشيف الملكي...</div>';
+
+        try {
+            const res = await fetch(`${API_URL}/api/parent/search/${encodeURIComponent(name)}`);
+            const data = await res.json();
+            
+            if(data.found && data.history && data.history.length > 0) {
+                let html = `<table style="width:100%; border-radius:15px; overflow:hidden;">
+                    <thead style="background:rgba(212,175,55,0.1);">
+                        <tr><th>المهمة / الدرس</th><th>الدرجة</th><th>التوقيت</th></tr>
+                    </thead>
+                    <tbody>`;
+                
+                data.history.forEach(h => {
+                    html += `<tr>
+                        <td><strong>${h.lesson}</strong></td>
+                        <td style="color:var(--green); font-weight:bold;">${h.score} / ${h.total}</td>
+                        <td><small>${new Date(h.timestamp).toLocaleString('ar-OM')}</small></td>
+                    </tr>`;
+                });
+                
+                html += `</tbody></table>`;
+                body.innerHTML = html;
+            } else {
+                body.innerHTML = '<div style="text-align:center; padding:30px;">⚠️ لم يتم العثور على سجلات سابقة لهذا البطل.</div>';
+            }
+        } catch(e) {
+            body.innerHTML = '<div style="text-align:center; color:var(--red); padding:30px;">❌ فشل الاتصال بالأرشيف. يرجى المحاولة لاحقاً.</div>';
+        }
+    }
+
+    function closeReportModal() {
+        document.getElementById('report-modal').style.display = 'none';
+    }
+
+    // --- تحديث كلمة المرور ---
+    async function updateAdminPassword() {
+        const newPass = document.getElementById('new-admin-pass').value;
+        if(!newPass || newPass.length < 6) return alert("⚠️ يرجى كتابة كلمة مرور قوية (6 أحرف على الأقل)!");
+        
+        const fd = new FormData();
+        fd.append('new_password', newPass);
+
+        const res = await authFetch('/api/admin/update_password', { method: 'POST', body: fd });
+        if(res && res.ok) {
+            alert("✨ تم تحديث المفتاح الملكي بنجاح! سيتم تطبيق التغيير في المرة القادمة.");
+            document.getElementById('new-admin-pass').value = '';
+        } else {
+            alert("❌ حدث خطأ أثناء التحديث.");
+        }
     }
 
     async function loadQuestions() {
         const res = await fetch(`${API_URL}/api/admin/questions`);
         if(res.ok) {
             allQuestions = await res.json();
-            document.getElementById('stat-total-q').innerText = allQuestions.length;
+            const totalQEl = document.getElementById('stat-total-q');
+            if(totalQEl) totalQEl.innerText = allQuestions.length;
             
             const filterVal = document.getElementById('q-filter-lesson-view').value;
             let filteredQuestions = allQuestions;
             if (filterVal !== "all") {
                 filteredQuestions = allQuestions.filter(q => q.lesson === filterVal);
             }
-            
+          
             const grouped = filteredQuestions.reduce((acc, q) => {
                 acc[q.lesson] = acc[q.lesson] || [];
                 acc[q.lesson].push(q);
@@ -758,8 +901,11 @@
                     </tr>`;
                 });
             }
-            if(Object.keys(grouped).length === 0) htmlStr = "<tr><td colspan='4' style='text-align:center;'>لا توجد تحديات محفوظة لهذا الدرس.</td></tr>";
-            document.getElementById('questions-table-body').innerHTML = htmlStr;
+            const qTableBody = document.getElementById('questions-table-body');
+            if(qTableBody) {
+                if(Object.keys(grouped).length === 0) htmlStr = "<tr><td colspan='4' style='text-align:center;'>لا توجد تحديات محفوظة لهذا الدرس.</td></tr>";
+                qTableBody.innerHTML = htmlStr;
+            }
         }
     }
 
@@ -783,7 +929,8 @@
         document.getElementById('cancel-edit-btn').style.display = "block";
         document.getElementById('form-title').innerText = "تعديل التحدي الملكي 🛠️";
         
-        document.getElementById('bank').scrollIntoView({behavior: 'smooth'});
+        const bankSection = document.getElementById('bank');
+        if(bankSection) bankSection.scrollIntoView({behavior: 'smooth'});
     }
 
     function cancelEdit() {
@@ -804,7 +951,12 @@
     async function saveSmartQuestion() {
         const editId = document.getElementById('edit-id').value;
         const lesson = document.getElementById('q-lesson').value;
+        const btn = document.getElementById('save-btn');
         if(!lesson) return alert("⚠️ يرجى تحديد مسار الدرس بالكامل!");
+
+        btn.disabled = true;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
         const fd = new FormData();
         fd.append('grade', '6'); 
@@ -826,25 +978,30 @@
             method = 'PUT'; 
         }
 
-        const res = await authFetch(endpoint, { method: method, body: fd });
-        if(res && res.ok) {
-            alert(editId ? "✨ تم التحديث بنجاح!" : "✨ تم الحفظ في الخزنة بنجاح!");
-            cancelEdit(); 
-            loadQuestions();
+        try {
+            const res = await authFetch(endpoint, { method: method, body: fd });
+            if(res && res.ok) {
+                alert(editId ? "✨ تم التحديث بنجاح!" : "✨ تم الحفظ في الخزنة بنجاح!");
+                cancelEdit(); 
+                await loadQuestions();
+            }
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalHtml;
         }
     }
 
     async function deleteQuestion(id) {
         if(confirm("هل تريد حذف هذا التحدي نهائياً؟")) {
             await authFetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
-            loadQuestions();
+            await loadQuestions();
         }
     }
 
     function addLessonToExam() {
         const lesson = document.getElementById('exam-lesson').value;
-        if(!lesson) return alert("اختر الدرس أولاً من القوائم المتسلسلة!");
-        if(!selectedExamLessons.includes(lesson)) {
+        if(!lesson) alert("اختر الدرس أولاً من القوائم المتسلسلة!");
+        else if(!selectedExamLessons.includes(lesson)) {
             selectedExamLessons.push(lesson);
             renderSelectedExamLessons();
         }
@@ -857,6 +1014,7 @@
 
     function renderSelectedExamLessons() {
         const container = document.getElementById('exam-selected-lessons-container');
+        if(!container) return;
         if(selectedExamLessons.length === 0) {
             container.innerHTML = '<span style="opacity: 0.5;">لم يتم تحديد دروس بعد...</span>';
             return;
@@ -871,7 +1029,11 @@
     async function scheduleExam() {
         if(selectedExamLessons.length === 0) return alert("⚠️ أضف درساً واحداً على الأقل للملحمة!");
         const title = document.getElementById('exam-title').value;
+        const btn = document.getElementById('btn-schedule-exam');
         if(!title) return alert("⚠️ يرجى كتابة عنوان للاختبار!");
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الجدولة...';
 
         const fd = new FormData();
         fd.append('title', title);
@@ -885,13 +1047,18 @@
         fd.append('target_q_type', document.getElementById('exam-q-type').value);
         fd.append('points_per_q', 10); 
 
-        const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
-        if(res && res.ok) {
-            alert("🔔 تم إطلاق الملحمة بنجاح!");
-            selectedExamLessons = []; 
-            renderSelectedExamLessons();
-            document.getElementById('exam-title').value = '';
-            loadScheduledExams();
+        try {
+            const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
+            if(res && res.ok) {
+                alert("🔔 تم إطلاق الملحمة بنجاح!");
+                selectedExamLessons = []; 
+                renderSelectedExamLessons();
+                document.getElementById('exam-title').value = '';
+                await loadScheduledExams();
+            }
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> إطلاق الإشعار للرعية';
         }
     }
 
@@ -899,30 +1066,48 @@
         const res = await fetch(`${API_URL}/api/exams/upcoming`);
         if(res.ok) {
             const data = await res.json();
-            document.getElementById('exams-table-body').innerHTML = data.map(e => `
-                <tr>
-                    <td><strong>${e.title}</strong></td>
-                    <td>${e.exam_date} | ${e.exam_time}</td>
-                    <td><small style="opacity:0.8;">${e.target_lesson}</small></td>
-                    <td><button class="btn-action btn-del" onclick="deleteExam(${e.id})">إلغاء الملحمة</button></td>
-                </tr>
-            `).join('');
+            const tableBody = document.getElementById('exams-table-body');
+            if(tableBody) {
+                tableBody.innerHTML = data.map(e => `
+                    <tr>
+                        <td><strong>${e.title}</strong></td>
+                        <td>${e.exam_date} | ${e.exam_time}</td>
+                        <td>
+                            <button class="btn-action btn-copy" onclick="copyExamLink()">
+                                <i class="fas fa-copy"></i> نسخ الرابط
+                            </button>
+                        </td>
+                        <td><button class="btn-action btn-del" onclick="deleteExam(${e.id})">إلغاء الملحمة</button></td>
+                    </tr>
+                `).join('');
+            }
         }
+    }
+
+    function copyExamLink() {
+        const studentUrl = window.location.origin + "/student";
+        navigator.clipboard.writeText(studentUrl).then(() => {
+            alert("📋 تم نسخ رابط ساحة الطلاب بنجاح! يمكنك إرساله عبر واتساب الآن.");
+        });
     }
 
     async function deleteExam(id) {
         if(confirm("هل أنت متأكد من إلغاء هذه الملحمة؟")) {
             await authFetch(`/api/admin/exams/${id}`, { method: 'DELETE' });
-            loadScheduledExams();
+            await loadScheduledExams();
         }
     }
 
     async function uploadSmartPDF() {
         const lesson = document.getElementById('pdf-lesson').value;
         const fileInput = document.getElementById('pdf-file-input');
+        const btn = document.getElementById('btn-upload-pdf');
         
         if(!lesson) return alert("⚠️ يرجى اختيار الدرس أولاً من القوائم (الصف > الفصل > الوحدة > الدرس)!");
         if(fileInput.files.length === 0) return alert("⚠️ يرجى إرفاق ملف الـ PDF قبل الرفع!");
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
 
         const file = fileInput.files[0];
         const fd = new FormData();
@@ -934,12 +1119,15 @@
             if(res && res.ok) {
                 alert("📜 تم إيداع اللفافة بنجاح في المكتبة الملكية!");
                 fileInput.value = ""; 
-                loadPDFs();
+                await loadPDFs();
             } else {
                 alert("⚠️ حدث خطأ أثناء الرفع! تأكد من أن السيرفر يقبل الملفات ويستجيب بشكل صحيح.");
             }
         } catch (e) {
             alert("⚠️ لا يمكن الاتصال بالمكتبة السحابية. يرجى التحقق من اتصال السيرفر.");
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-upload"></i> رفع للمكتبة الملكية';
         }
     }
 
@@ -947,26 +1135,30 @@
         const res = await fetch(`${API_URL}/api/admin/summaries_list`);
         if(res.ok) {
             const data = await res.json();
-            document.getElementById('pdfs-table-body').innerHTML = data.map(pdf => `
-                <tr>
-                    <td><strong>${pdf.lesson}</strong></td>
-                    <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold;">معاينة 👁️</a></td>
-                    <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حرق اللفافة (حذف) 🔥</button></td>
-                </tr>
-            `).join('');
+            const tableBody = document.getElementById('pdfs-table-body');
+            if(tableBody) {
+                tableBody.innerHTML = data.map(pdf => `
+                    <tr>
+                        <td><strong>${pdf.lesson}</strong></td>
+                        <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold;">معاينة 👁️</a></td>
+                        <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حرق اللفافة (حذف) 🔥</button></td>
+                    </tr>
+                `).join('');
+            }
         }
     }
 
     async function deletePDF(lesson) {
         if(confirm("هل تريد حرق هذه اللفافة نهائياً؟")) {
             await authFetch(`/api/admin/summaries/${encodeURIComponent(lesson)}`, { method: 'DELETE' });
-            loadPDFs();
+            await loadPDFs();
         }
     }
 
     function toggleOptions() {
         const type = document.getElementById('q-type').value;
-        document.getElementById('options-container').style.display = (type === 'choice') ? 'block' : 'none';
+        const container = document.getElementById('options-container');
+        if(container) container.style.display = (type === 'choice') ? 'block' : 'none';
     }
 
     window.onload = () => { if(localStorage.getItem('adminToken')) enterEmpire(); };
