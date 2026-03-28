@@ -216,21 +216,63 @@
             const user = document.getElementById('user-login').value;
             const pass = document.getElementById('pass-login').value;
             
-            if(!user || !pass) return alert("يرجى ملء البيانات");
+            if(!user || !pass) return alert("⚠️ يرجى كتابة اسم المستخدم وكلمة المرور!");
 
-            const sound = document.getElementById('door-sfx');
-            if(sound) sound.play();
+            const fd = new FormData();
+            fd.append('username', user);
+            fd.append('password', pass);
 
-            sessionStorage.setItem('teacherAccess', 'true');
-            setTimeout(() => {
-                document.getElementById('access-overlay').style.display = 'none';
-                loadCurriculumForTeachers();
-            }, 600);
+            try {
+                const res = await fetch(`${API_URL}/api/teacher/login`, {
+                    method: 'POST',
+                    body: fd
+                });
+
+                if(res.ok) {
+                    const sound = document.getElementById('door-sfx');
+                    if(sound) sound.play();
+
+                    sessionStorage.setItem('teacherAccess', 'true');
+                    setTimeout(() => {
+                        document.getElementById('access-overlay').style.display = 'none';
+                        loadCurriculumForTeachers();
+                    }, 600);
+                } else {
+                    alert("❌ بيانات الدخول خاطئة! غير مصرح لك بدخول الديوان.");
+                }
+            } catch(e) {
+                alert("⚠️ لا يمكن الاتصال بالسحاب للتحقق من البيانات.");
+            }
         }
 
-        function handleRegister() {
-            alert("تم إرسال بياناتك للأستاذ رشدي للاعتماد! يمكنك الدخول الآن.");
-            toggleAuth(false);
+        async function handleRegister() {
+            const name = document.getElementById('reg-name').value;
+            const school = document.getElementById('reg-school').value;
+            const user = document.getElementById('reg-user').value;
+            const pass = document.getElementById('reg-pass').value;
+
+            if(!name || !school || !user || !pass) return alert("⚠️ يرجى ملء جميع البيانات لإتمام التسجيل.");
+
+            const fd = new FormData();
+            fd.append('full_name', name);
+            fd.append('username', user);
+            fd.append('password', pass);
+            
+            try {
+                const res = await fetch(`${API_URL}/api/teacher/register`, { 
+                    method: 'POST', 
+                    body: fd 
+                });
+                
+                if(res.ok) {
+                    alert("✨ تم تسجيل المعلم بنجاح! يمكنك العودة لشاشة الدخول واستخدام بياناتك الجديدة.");
+                    toggleAuth(false);
+                } else {
+                    alert("⚠️ اسم المستخدم هذا موجود مسبقاً، يرجى اختيار اسم آخر.");
+                }
+            } catch(e) {
+                alert("❌ خطأ في الاتصال بقاعدة البيانات السحابية.");
+            }
         }
 
         function logout() {
@@ -238,7 +280,6 @@
             location.reload();
         }
 
-        // تم الإبقاء على الدالة كما هي في الكود المرجعي
         async function loadCurriculumForTeachers() {
             try {
                 const res = await fetch(`${API_URL}/api/curriculum/structure`);
@@ -306,7 +347,6 @@
                 const card = document.createElement('div');
                 card.className = 'resource-card';
                 
-                // تم التعديل هنا لفصل الزر إلى زرين: معاينة وتحميل
                 card.innerHTML = `
                     <div class="file-icon">${getIcon(res.category)}</div>
                     <h3 style="margin:5px 0; color:var(--gold);">${res.title}</h3>
@@ -325,7 +365,6 @@
             return icons[cat] || '📄';
         }
 
-        // إعداد الجزيئات (Galaxy Twinkle)
         const canvas = document.getElementById('particles-js');
         const ctx = canvas.getContext('2d');
         let particles = [];

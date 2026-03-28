@@ -113,11 +113,23 @@ async def admin_login(username: str = Form(...), password: str = Form(...)):
         return {"access_token": token, "token_type": "bearer"}
     raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
 
+@app.post("/api/teacher/register")
+async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...)):
+    existing = supabase.table("teachers").select("username").eq("username", username).execute()
+    if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود مسبقاً")
+    supabase.table("teachers").insert({
+        "full_name": full_name, 
+        "username": username, 
+        "password": hash_password(password)
+    }).execute()
+    return {"status": "success"}
+
 @app.post("/api/teacher/login")
 async def teacher_login(username: str = Form(...), password: str = Form(...)):
     res = supabase.table("teachers").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         return {"status": "success", "user": res.data[0]}
+    # الحفاظ على الحساب الافتراضي كخيار طوارئ
     if username == "teacher" and password == "Oman2026":
         return {"status": "success", "user": {"full_name": "معلم رياضيات"}}
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
@@ -314,14 +326,11 @@ async def add_resource(
     category: str=Form(...), description: str=Form(""), 
     file: UploadFile=File(...), admin=Depends(get_current_admin)
 ):
-    # الحل الجذري: أخذ امتداد الملف فقط (.pdf) وربطه برقم سري (UUID) 
-    # لتجنب مشاكل الحروف العربية في قاعدة بيانات التخزين السحابي
     file_extension = os.path.splitext(file.filename)[1]
     file_name = f"res_{uuid.uuid4().hex}{file_extension}"
     
     content = await file.read()
     
-    # رفع الملف بالتشفير الجديد الآمن مع تحديد نوع الملف (content-type)
     supabase.storage.from_("resources").upload(
         path=file_name, 
         file=content,
@@ -329,7 +338,6 @@ async def add_resource(
     )
     file_url = supabase.storage.from_("resources").get_public_url(file_name)
     
-    # حفظ البيانات بالاسم العربي في الجدول ليستعرضه المعلم بشكل جميل
     supabase.table("teacher_resources").insert({
         "title": title, "grade": grade, "semester": semester, 
         "category": category, "description": description, "file_url": file_url
