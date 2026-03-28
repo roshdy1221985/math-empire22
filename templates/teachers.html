@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ديوان المعلمين | إمبراطورية الرياضيات</title>
-    <link href="/static/staticcss/styles.css" rel="stylesheet"> 
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -19,13 +18,21 @@
             margin: 0; font-family: 'Cairo', sans-serif;
             background: radial-gradient(circle at center, #1a1a2e 0%, #040d21 100%);
             color: #fff; min-height: 100vh; display: flex; overflow-x: hidden;
+            position: relative;
+        }
+
+        /* تأثير الجزيئات (Galaxy Twinkle) */
+        #particles-js {
+            position: absolute; width: 100%; height: 100%;
+            top: 0; left: 0; z-index: 0; pointer-events: none;
         }
 
         .sidebar {
-            width: 280px; background: rgba(0,0,0,0.8);
+            width: 280px; background: rgba(0,0,0,0.85);
             backdrop-filter: blur(20px); border-left: 1px solid var(--border);
             padding: 40px 20px; display: flex; flex-direction: column;
             position: sticky; top: 0; height: 100vh; box-sizing: border-box;
+            z-index: 10;
         }
 
         .nav-item {
@@ -38,14 +45,15 @@
 
         .nav-item:hover, .nav-item.active {
             background: var(--glass); border-color: var(--gold); color: var(--gold);
+            transform: scale(1.05);
         }
 
-        .main-content { flex: 1; padding: 40px; }
+        .main-content { flex: 1; padding: 40px; position: relative; z-index: 1; }
 
         .header-box {
             background: var(--glass); padding: 30px; border-radius: 25px;
             border: 1px solid var(--border); margin-bottom: 40px;
-            text-align: center; position: relative;
+            text-align: center; backdrop-filter: blur(10px);
         }
 
         .resources-grid {
@@ -56,22 +64,31 @@
         .resource-card {
             background: var(--glass); border: 1px solid var(--border);
             border-radius: 20px; padding: 25px; text-align: center;
-            transition: 0.3s; position: relative; overflow: hidden;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; overflow: hidden; backdrop-filter: blur(5px);
         }
 
-        .resource-card:hover { transform: translateY(-10px); border-color: var(--gold); box-shadow: 0 10px 20px rgba(212,175,55,0.2); }
-        .file-icon { font-size: 3.5rem; margin-bottom: 15px; }
+        .resource-card:hover { 
+            transform: translateY(-12px); 
+            border-color: var(--gold); 
+            box-shadow: 0 15px 30px rgba(212,175,55,0.25); 
+        }
+
+        .file-icon { font-size: 3.5rem; margin-bottom: 15px; filter: drop-shadow(0 0 5px var(--gold)); }
 
         .download-btn {
             background: var(--gold-grad); color: #000; border: none;
-            padding: 10px 20px; border-radius: 8px; font-weight: bold;
+            padding: 12px 20px; border-radius: 10px; font-weight: 900;
             cursor: pointer; margin-top: 15px; width: 100%; transition: 0.3s;
+            text-transform: uppercase;
         }
 
+        .download-btn:hover { transform: scale(1.02); box-shadow: 0 0 15px var(--gold); }
+
         .auth-input {
-            width:100%; padding:12px; border-radius:8px; border:1px solid var(--gold); 
-            background:#000; color:#fff; text-align:center; margin-bottom:15px; font-family:'Cairo';
-            box-sizing: border-box;
+            width:100%; padding:14px; border-radius:10px; border:1px solid var(--gold); 
+            background: rgba(0,0,0,0.6); color:#fff; text-align:center; margin-bottom:15px; 
+            font-family:'Cairo'; box-sizing: border-box; font-size: 1rem;
         }
 
         #access-overlay {
@@ -80,9 +97,9 @@
         }
 
         .access-box {
-            background: var(--glass); padding: 40px; border-radius: 25px;
-            border: 2px solid var(--gold); text-align: center; width: 380px;
-            backdrop-filter: blur(15px); box-shadow: 0 0 30px rgba(0,0,0,0.8);
+            background: rgba(4, 13, 33, 0.8); padding: 50px 40px; border-radius: 30px;
+            border: 2px solid var(--gold); text-align: center; width: 400px;
+            backdrop-filter: blur(25px); box-shadow: 0 0 50px rgba(0,0,0,0.9);
         }
 
         .selection-panel {
@@ -91,63 +108,61 @@
 
         select.royal-select {
             background: #000; color: var(--gold); border: 1px solid var(--gold);
-            padding: 10px; border-radius: 8px; font-family: 'Cairo'; width: 220px;
-        }
-
-        /* تنسيق الـ optgroup ليكون واضحاً وجميلاً */
-        select.royal-select optgroup {
-            background: #1a1a2e;
-            color: #fff;
-            font-style: normal;
-            font-weight: bold;
+            padding: 12px; border-radius: 10px; font-family: 'Cairo'; width: 240px;
+            cursor: pointer; font-weight: bold;
         }
 
         @media screen and (max-width: 768px) {
             body { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; position: static; border-left: none; }
+            .sidebar { width: 100%; height: auto; position: static; border-left: none; border-bottom: 1px solid var(--border); }
         }
     </style>
 </head>
 <body>
 
+    <canvas id="particles-js"></canvas>
+    
+    <audio id="door-sfx" src="/static/door.mp3" preload="auto"></audio>
+
     <div id="access-overlay">
         <div id="login-form" class="access-box">
-            <h2 style="font-family:'Amiri'; color:var(--gold);">دخول الديوان 🗝️</h2>
+            <h2 style="font-family:'Amiri'; color:var(--gold); font-size: 2.5rem; margin-bottom: 10px;">دخول الديوان 🗝️</h2>
+            <p style="opacity: 0.7; margin-bottom: 30px;">مرحباً بك في مجمع خبراء الرياضيات</p>
             <input type="text" id="user-login" class="auth-input" placeholder="اسم المستخدم">
             <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور">
-            <button class="download-btn" onclick="handleLogin()">دخول</button>
-            <p style="font-size: 0.8rem; margin-top: 15px;">بطل جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold); cursor:pointer; text-decoration: underline;">سجل بياناتك هنا</span></p>
+            <button class="download-btn" onclick="handleLogin()">دخول ملكي</button>
+            <p style="font-size: 0.9rem; margin-top: 20px;">معلم جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold); cursor:pointer; text-decoration: underline;">سجل بياناتك هنا</span></p>
         </div>
 
         <div id="register-form" class="access-box" style="display:none;">
-            <h2 style="font-family:'Amiri'; color:var(--gold);">تسجيل معلم جديد 📜</h2>
+            <h2 style="font-family:'Amiri'; color:var(--gold); font-size: 2.2rem;">تسجيل معلم جديد 📜</h2>
             <input type="text" id="reg-name" class="auth-input" placeholder="الاسم الكامل">
             <input type="text" id="reg-school" class="auth-input" placeholder="اسم المدرسة">
             <input type="text" id="reg-user" class="auth-input" placeholder="اختر اسم مستخدم">
             <input type="password" id="reg-pass" class="auth-input" placeholder="كلمة المرور">
             <button class="download-btn" onclick="handleRegister()">اعتماد البيانات</button>
-            <p style="font-size: 0.8rem; margin-top: 15px;"><span onclick="toggleAuth(false)" style="color:var(--gold); cursor:pointer;">العودة للدخول</span></p>
+            <p style="font-size: 0.9rem; margin-top: 20px;"><span onclick="toggleAuth(false)" style="color:var(--gold); cursor:pointer;">العودة للدخول</span></p>
         </div>
     </div>
 
     <aside class="sidebar">
-        <h2 style="font-family:'Amiri'; color:var(--gold); text-align:center;">نوع المحتوى</h2>
-        <div id="menu-all" class="nav-item enabled active" onclick="setCategory('all', this)">🏛️ الكل</div>
+        <h2 style="font-family:'Amiri'; color:var(--gold); text-align:center; font-size: 2rem; margin-bottom: 30px;">نوع المحتوى</h2>
+        <div id="menu-all" class="nav-item enabled active" onclick="setCategory('all', this)">🏛️ كل الموارد</div>
         <div id="menu-books" class="nav-item" onclick="setCategory('books', this)">📖 كتب وزارية</div>
         <div id="menu-notes" class="nav-item" onclick="setCategory('notes', this)">📝 مذكرات تعليمية</div>
         <div id="menu-guides" class="nav-item" onclick="setCategory('guides', this)">👨‍🏫 أدلة المعلم</div>
-        <div id="menu-bulletins" class="nav-item" onclick="setCategory('bulletins', this)">📜 نشرات تعليمية</div>
-        <div id="menu-software" class="nav-item" onclick="setCategory('software', this)">💻 برمجيات تعليمية</div>
+        <div id="menu-bulletins" class="nav-item" onclick="setCategory('bulletins', this)">📜 نشرات فنية</div>
+        <div id="menu-software" class="nav-item" onclick="setCategory('software', this)">💻 برمجيات ذكية</div>
         
         <div style="flex:1;"></div>
-        <button onclick="logout()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:10px; border-radius:8px; cursor:pointer; margin-bottom:15px; font-family:'Cairo';">🚪 خروج</button>
-        <a href="/" style="text-decoration:none; color:#fff; opacity:0.6; text-align:center;">🏠 الصفحة الرئيسية</a>
+        <button onclick="logout()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:12px; border-radius:10px; cursor:pointer; margin-bottom:15px; font-family:'Cairo'; font-weight: bold;">🚪 مغادرة الديوان</button>
+        <a href="/" style="text-decoration:none; color:#fff; opacity:0.6; text-align:center; font-size: 0.9rem;">🏠 العودة للمنصة</a>
     </aside>
 
     <main class="main-content">
         <div class="header-box">
-            <h1 style="font-family:'Amiri'; color:var(--gold); margin:0;">ديوان موارد المعلمين</h1>
-            <p>سلطنة عُمان - نظام الإدارة الرقمي 2026</p>
+            <h1 style="font-family:'Amiri'; color:var(--gold); margin:0; font-size: 3rem;">ديوان موارد المعلمين</h1>
+            <p style="font-size: 1.2rem; letter-spacing: 1px;">سلطنة عُمان - نظام الإدارة الرقمي 2026</p>
         </div>
 
         <div class="selection-panel">
@@ -177,8 +192,8 @@
         </div>
 
         <div class="resources-grid" id="resources-grid">
-            <div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 50px;">
-                <h3>يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3>
+            <div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 100px;">
+                <h3 style="font-size: 1.5rem;">يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3>
             </div>
         </div>
     </main>
@@ -192,13 +207,23 @@
             document.getElementById('register-form').style.display = isReg ? 'block' : 'none';
         }
 
-        function handleLogin() {
+        async function handleLogin() {
+            const user = document.getElementById('user-login').value;
+            const pass = document.getElementById('pass-login').value;
+            
+            if(!user || !pass) return alert("يرجى ملء البيانات");
+
+            const sound = document.getElementById('door-sfx');
+            if(sound) sound.play();
+
             sessionStorage.setItem('teacherAccess', 'true');
-            document.getElementById('access-overlay').style.display = 'none';
+            setTimeout(() => {
+                document.getElementById('access-overlay').style.display = 'none';
+            }, 600);
         }
 
         function handleRegister() {
-            alert("تم تسجيل بياناتك بنجاح! يمكنك الدخول الآن.");
+            alert("تم إرسال بياناتك للأستاذ رشدي للاعتماد! يمكنك الدخول الآن.");
             toggleAuth(false);
         }
 
@@ -217,7 +242,7 @@
                 fetchResources();
             } else {
                 items.forEach(item => item.classList.remove('enabled'));
-                document.getElementById('resources-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 50px;"><h3>يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3></div>';
+                document.getElementById('resources-grid').innerHTML = '<div style="grid-column: 1/-1; text-align: center; opacity: 0.5; padding-top: 100px;"><h3>يرجى اختيار الصف والفصل الدراسي أولاً لتفعيل المحتوى 🗝️</h3></div>';
             }
         }
 
@@ -235,14 +260,14 @@
 
             if (!grade || !sem) return;
 
-            grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">جاري استدعاء الموارد الملكية...</p>';
+            grid.innerHTML = '<p style="grid-column:1/-1; text-align:center;">جاري استدعاء الموارد الملكية من السحاب...</p>';
 
             try {
                 const response = await fetch(`${API_URL}/api/resources?grade=${grade}&semester=${sem}&category=${selectedCategory}`);
                 const data = await response.json();
                 renderResources(data);
             } catch (e) {
-                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#ff5e5e;">لا توجد موارد مرفوعة حالياً أو السيرفر غير متصل.</p>';
+                grid.innerHTML = '<p style="grid-column:1/-1; text-align:center; color:#ff5e5e;">لا توجد موارد مرفوعة لهذا التصنيف حالياً.</p>';
             }
         }
 
@@ -251,7 +276,7 @@
             grid.innerHTML = '';
 
             if (resources.length === 0) {
-                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; opacity:0.6;">لا توجد ملفات مرفوعة لهذا التصنيف حالياً.</div>';
+                grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; opacity:0.6; padding-top:50px;">لا توجد ملفات مرفوعة لهذا التصنيف حالياً.</div>';
                 return;
             }
 
@@ -260,9 +285,9 @@
                 card.className = 'resource-card';
                 card.innerHTML = `
                     <div class="file-icon">${getIcon(res.category)}</div>
-                    <h3 style="margin:5px 0;">${res.title}</h3>
-                    <small style="opacity:0.7;">${res.description || 'موارد إضافية'}</small>
-                    <button class="download-btn" onclick="window.open('${res.file_url}')">فتح / تحميل</button>
+                    <h3 style="margin:5px 0; color:var(--gold);">${res.title}</h3>
+                    <p style="opacity:0.8; font-size:0.9rem; margin:10px 0;">${res.description || 'موارد تعليمية معتمدة'}</p>
+                    <button class="download-btn" onclick="window.open('${res.file_url}')">فتح المورد 📖</button>
                 `;
                 grid.appendChild(card);
             });
@@ -273,11 +298,48 @@
             return icons[cat] || '📄';
         }
 
+        // إعداد الجزيئات (Galaxy Twinkle)
+        const canvas = document.getElementById('particles-js');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initParticles() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for(let i=0; i<80; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 2,
+                    speed: Math.random() * 0.5 + 0.1,
+                    blinkSpeed: Math.random() * 0.002 + 0.001
+                });
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            particles.forEach(p => {
+                p.y -= p.speed;
+                if(p.y < 0) p.y = canvas.height;
+                let opacity = Math.abs(Math.sin(Date.now() * p.blinkSpeed));
+                ctx.fillStyle = `rgba(212, 175, 55, ${opacity * 0.6})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            requestAnimationFrame(animate);
+        }
+
         window.onload = () => {
+            initParticles();
+            animate();
             if (sessionStorage.getItem('teacherAccess') === 'true') {
                 document.getElementById('access-overlay').style.display = 'none';
             }
         };
+        window.onresize = initParticles;
     </script>
 </body>
 </html>

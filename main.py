@@ -34,7 +34,6 @@ def verify_password(plain, hashed): return pwd_context.verify(plain, hashed)
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    # تحديث التوقيت ليتوافق مع المعايير الحديثة وتجنب التنبيهات
     expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
@@ -65,9 +64,7 @@ for folder in ["static", "templates"]:
     path = os.path.join(BASE_DIR, folder)
     if not os.path.exists(path): os.makedirs(path)
 
-templates = Jinja2Templates(directory="templates")
-
-# --- السطر الحاسم لعمل الأصوات والجزيئات (استخدام المسار المطلق لضمان العمل) ---
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 async def get_current_admin(request: Request):
@@ -101,10 +98,10 @@ async def read_parent(request: Request): return templates.TemplateResponse(reque
 async def read_teachers(request: Request): return templates.TemplateResponse(request=request, name="teachers.html")
 
 @app.get("/manifest.json")
-async def get_manifest(): return FileResponse("manifest.json")
+async def get_manifest(): return FileResponse(os.path.join(BASE_DIR, "manifest.json"))
 
 @app.get("/sw.js")
-async def get_sw(): return FileResponse("static/sw.js")
+async def get_sw(): return FileResponse(os.path.join(BASE_DIR, "static", "sw.js"))
 
 # ==========================================
 # --- 4. نظام الدخول (إمبراطور / طالب / معلم) ---
@@ -146,7 +143,6 @@ async def login_student(username: str = Form(...), password: str = Form(...)):
 # ==========================================
 @app.post("/api/admin/grant_xp")
 async def grant_xp(student_name: str = Form(...), points: int = Form(...), admin=Depends(get_current_admin)):
-    # تم إزالة student_id لتجاوز خطأ ForeignKeyConstraint (Violation 23503)
     supabase.table("results").insert({
         "student_name": student_name,
         "lesson": "💎 منحة ملكية تقديرية من الأستاذ رشدي",
@@ -307,21 +303,38 @@ async def get_resources(grade: str, semester: str, category: str = "all"):
     res = query.execute()
     return res.data
 
+@app.get("/api/admin/all_resources")
+async def get_all_resources(admin=Depends(get_current_admin)):
+    res = supabase.table("teacher_resources").select("*").order("id", desc=True).execute()
+    return res.data if res.data else []
+
 @app.post("/api/admin/resources")
 async def add_resource(
     title: str=Form(...), grade: str=Form(...), semester: str=Form(...), 
     category: str=Form(...), description: str=Form(""), 
     file: UploadFile=File(...), admin=Depends(get_current_admin)
 ):
-    file_name = f"res_{uuid.uuid4().hex}_{file.filename}"
+    # الحل الجذري: أخذ امتداد الملف فقط (.pdf) وربطه برقم سري (UUID) 
+    # لتجنب مشاكل الحروف العربية في قاعدة بيانات التخزين السحابي
+    file_extension = os.path.splitext(file.filename)[1]
+    file_name = f"res_{uuid.uuid4().hex}{file_extension}"
+    
     content = await file.read()
+    
+    # رفع الملف بالتشفير الجديد الآمن
     supabase.storage.from_("resources").upload(path=file_name, file=content)
     file_url = supabase.storage.from_("resources").get_public_url(file_name)
     
+    # حفظ البيانات بالاسم العربي في الجدول ليستعرضه المعلم بشكل جميل
     supabase.table("teacher_resources").insert({
         "title": title, "grade": grade, "semester": semester, 
         "category": category, "description": description, "file_url": file_url
     }).execute()
+    return {"status": "success"}
+
+@app.delete("/api/admin/resources/{res_id}")
+async def delete_resource(res_id: int, admin=Depends(get_current_admin)):
+    supabase.table("teacher_resources").delete().eq("id", res_id).execute()
     return {"status": "success"}
 
 @app.post("/api/admin/summaries")
@@ -384,5 +397,4 @@ async def parent_search(name: str):
 # ==========================================
 if __name__ == "__main__":
     import uvicorn
-    # تم تثبيت المنفذ النهائي لضمان عدم حدوث تعارض
     uvicorn.run(app, host="0.0.0.0", port=8001)
