@@ -557,7 +557,6 @@
     let globalCurriculum = []; 
     let activeUnits = [];
 
-    // --- نظام التحكم في الصفحات (SPA View Manager) ---
     function setActiveButton(btnId) {
         document.querySelectorAll('.sidebar .nav-btn').forEach(b => b.classList.remove('active'));
         if(btnId) { const btn = document.getElementById(btnId); if(btn) btn.classList.add('active'); }
@@ -580,7 +579,7 @@
             document.getElementById('main-profile-name').innerText = currentUser.full_name;
             document.getElementById('main-profile-school').innerText = currentUser.school_name || 'غير محدد';
             document.getElementById('dashboard-xp-count').innerText = (currentUser.xp || 0) + " XP";
-            setTimeout(() => { updateRank(currentUser.xp || 0); }, 100); 
+            setTimeout(() => { updateRank(currentUser.xp || 0); }, 50); 
         }
         checkUpcomingExams(); 
     }
@@ -626,7 +625,6 @@
         setTimeout(() => { toggleLoader(false); document.getElementById('other-content-area').innerHTML = html; initTiltEffect(); }, 400);
     }
     
-    // --- ساحة المبارزة המباشرة ---
     let arenaSearchTimeout;
     let battleTimerInterval;
     let arenaQs = [];
@@ -709,7 +707,7 @@
 
     function generateEnemy() {
         const xp = currentUser ? (currentUser.xp || 0) : 0;
-        const enemyNames = ["فارس الظلام", "عقل أينشتاين", "بطل الأرقام", "المقاتل المجهول", "شبح الرياضيات"];
+        const enemyNames = ["فارس الظلام", "عقل أينشتاين", "بطل الأرقام", "المقاتل المجهول", "شبح الرياضيات", "صائد الجوائز"];
         const randName = enemyNames[Math.floor(Math.random() * enemyNames.length)];
         const randXP = Math.max(0, xp + Math.floor(Math.random() * 200 - 100));
         const randAvatar = avatars[Math.floor(Math.random() * avatars.length)];
@@ -734,7 +732,7 @@
         document.getElementById('battle-question-area').innerHTML = `<h3 style="color:var(--gold);">جاري استدعاء 5 أسلحة للمعركة...</h3>`;
         try {
             const res = await fetch(`${API_URL}/api/admin/questions`);
-            if(!res.ok) throw new Error("Backend offline");
+            if(!res.ok) throw new Error("No backend");
             const allQs = await res.json();
             
             if(allQs && allQs.length >= 5) {
@@ -749,7 +747,7 @@
                 throw new Error("Not enough Qs");
             }
         } catch(e) {
-            // محاكاة الساحة في حال السيرفر غير متصل
+            // محاكاة الساحة في حال عدم توفر السيرفر
             arenaQs = [
                 { question: "ما هو ناتج 5 × 6؟", q_type: "mcq", options: "30, 25, 35, 20", answer: "30" },
                 { question: "هل المثلث يحتوي على 3 أضلاع؟", q_type: "true_false", options: "", answer: "صواب" },
@@ -861,6 +859,7 @@
             msg = `ضرباتك: ${myArenaScore} | ضربات الخصم: ${enemyArenaScore}<br><br>حصلت على <span style="color:var(--gold); font-weight:bold;">+${xpChange} XP</span> كترضية لشجاعتك.`;
         }
 
+        // إضافة الحدث الصحيح onclick لزر العودة لكي يعمل ويحفظ النقاط
         document.getElementById('battle-question-area').innerHTML = `
             <div class="tilt-card" style="text-align:center; padding:40px; width:100%; border-color:${color}; box-shadow: 0 0 30px ${color}44;">
                 <h2 style="color:${color}; font-size:3rem; margin-bottom:10px; font-family:'Amiri';">${title}</h2>
@@ -876,11 +875,11 @@
         openHome(); 
     }
 
-    // --- حساب الإشعارات الملكية بشكل مستقل ومستقر ---
+    // --- حساب الإشعارات الملكية بشكل سليم ---
     async function checkUpcomingExams() {
         try {
             const res = await fetch(`${API_URL}/api/exams/upcoming`);
-            if(!res.ok) throw new Error("لا يوجد اتصال");
+            if(!res.ok) throw new Error("لا يوجد اتصال بالخادم");
             const exams = await res.json();
             
             if(exams.length > 0) {
@@ -888,19 +887,17 @@
                 const notifBox = document.getElementById('exam-notification');
                 document.getElementById('exam-notification-text').innerHTML = `تجهّز يا بطل! لديك <b style="color:white; background:#ff5e5e; padding:3px 8px; border-radius:5px;">${scheduledExamData.title} (${scheduledExamData.exam_type})</b><br><br>المدة: <span style="color:#ffeb3b;">${scheduledExamData.duration} دقيقة</span> | الأسئلة: ${scheduledExamData.num_questions}`;
                 notifBox.style.display = 'block'; 
-                notifBox.style.marginBottom = '30px'; // لعدم الالتصاق
                 document.getElementById('start-exam-btn').style.display = 'block';
             } else { 
                 document.getElementById('exam-notification').style.display = 'none'; 
                 scheduledExamData = null; 
             }
         } catch(e) { 
-            // عرض إشعار تجريبي في حال السيرفر كان مغلقاً لضمان عمل الواجهة
+            // إشعار تجريبي لضمان عمل الواجهة إذا كان السيرفر معطلاً
             scheduledExamData = { title: "اختبار ملحمي تجريبي", exam_type: "تجريبي", duration: 15, num_questions: 5, target_lesson: "مراجعة شاملة" };
             const notifBox = document.getElementById('exam-notification');
             document.getElementById('exam-notification-text').innerHTML = `تجهّز يا بطل! لديك <b style="color:white; background:#ff5e5e; padding:3px 8px; border-radius:5px;">${scheduledExamData.title} (${scheduledExamData.exam_type})</b><br><br>المدة: <span style="color:#ffeb3b;">${scheduledExamData.duration} دقيقة</span> | الأسئلة: ${scheduledExamData.num_questions}`;
             notifBox.style.display = 'block'; 
-            notifBox.style.marginBottom = '30px'; 
             document.getElementById('start-exam-btn').style.display = 'block';
         }
     }
@@ -916,7 +913,7 @@
         let certHtml = "";
         let buttonsHtml = "";
         
-        // تقييم الإنجاز بناءً على 85% كما أردت في الصورة
+        // التحقق من أن الطالب اجتاز 85% ليعرض زر الشهادة
         if (percentage >= 85) {
             certHtml = `
             <div style="margin: 20px 0; padding: 20px; border: 2px solid var(--gold); border-radius: 15px; background: rgba(212, 175, 55, 0.1);">
@@ -942,10 +939,13 @@
             </div>`;
         }
 
+        // استخدام اسم الطالب بدلاً من currentUser.full_name لتفادي أخطاء null إذا لم يسجل الدخول
+        let heroName = currentUser ? currentUser.full_name : "ضيف";
+
         let finalHtml = `<div style="text-align:center; padding:30px;">
             ${titleHtml}
             <div style="display:flex; justify-content:center; margin-bottom:20px;">${renderProgressBar()}</div>
-            <p style="font-size:1.5rem; font-weight:bold; color:#fff;">البطل: ${currentUser.full_name}</p>
+            <p style="font-size:1.5rem; font-weight:bold; color:#fff;">البطل: ${heroName}</p>
             <p style="font-size:1.3rem; color:#fff;">إجابات صحيحة: <span style="color:#2ecc71; font-weight:bold; font-size:1.5rem;">${correctCount}</span> من ${challengeQs.length}</p>
             <p style="font-size:1.5rem; color:var(--gold); font-weight:bold;">النقاط المكتسبة: +${pointsEarned} XP ⭐</p>
             ${certHtml}
@@ -962,14 +962,17 @@
         openHome();
     }
 
-    async function sendResultToBackend() { const fd = new FormData(); fd.append('student_id', currentUser.id || 1); fd.append('student_name', currentUser.full_name); fd.append('lesson', currentLesson); fd.append('score', correctCount); fd.append('total', challengeQs.length); try { await fetch(`${API_URL}/api/student/results`, { method:'POST', body:fd }); } catch(e){} }
+    async function sendResultToBackend() { 
+        if(!currentUser) return; // حماية
+        const fd = new FormData(); fd.append('student_id', currentUser.id || 1); fd.append('student_name', currentUser.full_name); fd.append('lesson', currentLesson); fd.append('score', correctCount); fd.append('total', challengeQs.length); try { await fetch(`${API_URL}/api/student/results`, { method:'POST', body:fd }); } catch(e){} 
+    }
 
     function showCertificateInNewWindow() {
-        const certWindow = window.open('', '_blank', 'width=900,height=750'); const nameToUse = currentUser ? currentUser.full_name : "بطل الرياضيات";
+        const nameToUse = currentUser ? currentUser.full_name : "بطل الرياضيات";
+        const certWindow = window.open('', '_blank', 'width=900,height=750'); 
         certWindow.document.write(`<html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>الوثيقة الملكية</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@700&family=Amiri:wght@700&display=swap" rel="stylesheet"><style>body { margin:0; padding:20px; display:flex; justify-content:center; align-items:center; background:#1a1a2e; font-family:'Tajawal'; height:100vh; } .cert { width:800px; padding:40px; border:15px double #d4af37; background:#fff; text-align:center; color:#3d2b1f; box-shadow:0 0 50px rgba(0,0,0,0.8); } h1 { font-family:'Amiri'; font-size:3rem; color:#8a6219; margin:10px 0; } .name { font-size:2.8rem; font-family:'Amiri'; border-bottom:3px double #8a6219; display:inline-block; padding:0 30px; margin:15px 0; color:#040d21; } .btn-print { padding:12px 40px; background:linear-gradient(45deg, #bf953f, #fcf6ba); color:#000; cursor:pointer; font-family:'Tajawal'; font-weight:900; border-radius:12px; border:none; margin-bottom:20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); } .btn-print:hover { transform: scale(1.05); } @media print { .btn-print { display:none !important; } body { background:white; } }</style></head><body><div style="text-align:center; width:100%;"><button class="btn-print" onclick="window.print()">🖨️ طباعة الوثيقة الملكية</button><div class="cert"><h1>شهادة إنجاز إمبراطورية</h1><p style="font-size:1.5rem; margin:5px 0;">تشهد إمبراطورية الرياضيات الملكية بأن البطل:</p><div class="name">${nameToUse}</div><p style="font-size:1.4rem; margin:10px 0;">قد اجتاز بنجاح وتفوق التحدي في:</p><h2 style="color:#8a6219; font-family:'Amiri'; font-size:2rem; margin:10px 0;">${currentLesson}</h2><p style="font-size:1.8rem; color:#b38728; font-weight:900;">بدرجة استحقاق: ${correctCount} من ${challengeQs.length}</p></div></div></body></html>`);
     }
 
-    // --- تحديث ديناميكية وحركة شريط الخبرة ---
     function animateXP(start, end) {
         const xpEls = document.querySelectorAll('#xp-count, #dashboard-xp-count');
         if(xpEls.length === 0) return;
@@ -1014,7 +1017,6 @@
 
         if (oldTitle !== "" && title !== oldTitle && oldTitle !== "مستكشف جديد") { triggerLevelUp(title); }
         
-        // تطبيق التعديلات على جميع العناصر في الشاشة
         document.querySelectorAll('#rank-title, #main-profile-rank').forEach(el => el.innerText = title);
         
         let widthStr = widthValue.toFixed(1) + "%";
@@ -1210,7 +1212,15 @@
         initStars(); populateAvatarGrid('avatar-selector', avatars[0]); loadGlobalCurriculum(); 
         if (currentUser) { 
             document.getElementById('auth-overlay').style.display = 'none'; 
+            
+            // تهيئة البطاقة الأصلية
+            document.getElementById('main-profile-avatar').src = currentUser.avatar_url || avatars[0];
+            document.getElementById('main-profile-name').innerText = currentUser.full_name;
+            document.getElementById('main-profile-school').innerText = currentUser.school_name || 'غير محدد';
+            
             openHome(); 
+            updateRank(currentUser.xp || 0); 
+            checkInviteLink(); 
         } 
     };
 
