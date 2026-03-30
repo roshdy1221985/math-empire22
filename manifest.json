@@ -8,13 +8,13 @@
   "theme_color": "#d4af37",
   "icons": [
     {
-      "src": "static/teacher.jpg",
+      "src": "static/logo.jpg",
       "sizes": "192x192",
       "type": "image/jpg",
       "purpose": "any maskable"
     },
     {
-      "src": "static/teacher.jpg",
+      "src": "static/logo.jpg",
       "sizes": "512x512",
       "type": "image/jpg"
     }

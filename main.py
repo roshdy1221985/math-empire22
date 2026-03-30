@@ -1,10 +1,11 @@
 import os
 import uuid
+import random
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from urllib.parse import unquote
 
-from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Depends, status
+from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Depends, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -129,7 +130,6 @@ async def teacher_login(username: str = Form(...), password: str = Form(...)):
     res = supabase.table("teachers").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         return {"status": "success", "user": res.data[0]}
-    # الحفاظ على الحساب الافتراضي كخيار طوارئ
     if username == "teacher" and password == "Oman2026":
         return {"status": "success", "user": {"full_name": "معلم رياضيات"}}
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
@@ -404,8 +404,115 @@ async def parent_search(name: str):
     history = supabase.table("results").select("*").eq("student_id", student["id"]).order("timestamp", desc=True).execute().data
     return {"found": True, "student": student, "history": history or []}
 
+
 # ==========================================
-# --- 10. تشغيل المحرك المركزي ---
+# --- 10. نظام ساحة المبارزة المباشرة (WebSockets) ---
+# ==========================================
+class ArenaConnectionManager:
+    def __init__(self):
+        # طابور الانتظار مخصص حسب الصف الدراسي: {"الصف السادس": [{"ws": socket, "name": "أحمد"}], ...}
+        self.waiting_players = {}
+        # حفظ الغرف النشطة لتبادل النقاط: {"room_id": {"p1": p1, "p2": p2}}
+        self.active_rooms = {}
+
+    async def connect(self, websocket: WebSocket, student_name: str, grade: str):
+        await websocket.accept()
+        
+        # إنشاء الطابور الخاص بالصف إذا لم يكن موجوداً
+        if grade not in self.waiting_players:
+            self.waiting_players[grade] = []
+            
+        self.waiting_players[grade].append({"ws": websocket, "name": student_name})
+        await self.matchmake(grade)
+
+    async def matchmake(self, grade: str):
+        queue = self.waiting_players[grade]
+        # إذا توفر طالبان من نفس الصف، يتم إنشاء الغرفة وبدء المعركة
+        if len(queue) >= 2:
+            p1 = queue.pop(0)
+            p2 = queue.pop(0)
+            
+            room_id = f"room_{uuid.uuid4().hex[:8]}"
+            
+            # جلب أسئلة مخصصة لصف الطالبين من السحاب
+            res = supabase.table("questions").select("*").eq("grade", grade).execute()
+            all_qs = res.data if res.data else []
+            
+            # اختيار 5 أسئلة عشوائياً (أو أقل إذا لم يتوفر)
+            if len(all_qs) >= 5:
+                match_qs = random.sample(all_qs, 5)
+            else:
+                match_qs = all_qs 
+                
+            self.active_rooms[room_id] = {"p1": p1, "p2": p2}
+            
+            # إرسال إشارة بدء المعركة مع نفس الأسئلة لكلا الطالبين في نفس اللحظة
+            try:
+                await p1["ws"].send_json({
+                    "type": "match_found", 
+                    "opponent": p2["name"], 
+                    "room_id": room_id,
+                    "questions": match_qs
+                })
+                await p2["ws"].send_json({
+                    "type": "match_found", 
+                    "opponent": p1["name"], 
+                    "room_id": room_id,
+                    "questions": match_qs
+                })
+            except Exception as e:
+                print(f"Error starting match: {e}")
+
+    async def broadcast_score(self, room_id: str, sender_name: str, new_score: int):
+        room = self.active_rooms.get(room_id)
+        if room:
+            target = room["p2"] if room["p1"]["name"] == sender_name else room["p1"]
+            try:
+                await target["ws"].send_json({
+                    "type": "score_update", 
+                    "opponent_score": new_score
+                })
+            except Exception as e:
+                print(f"Error broadcasting score: {e}")
+
+    async def disconnect(self, websocket: WebSocket, grade: str):
+        # إزالة الطالب من طابور الانتظار إذا انسحب
+        if grade in self.waiting_players:
+            self.waiting_players[grade] = [p for p in self.waiting_players[grade] if p["ws"] != websocket]
+        
+        # إذا انسحب الطالب أثناء المعركة النشطة
+        for room_id, room in list(self.active_rooms.items()):
+            if room["p1"]["ws"] == websocket or room["p2"]["ws"] == websocket:
+                target = room["p2"] if room["p1"]["ws"] == websocket else room["p1"]
+                try:
+                    await target["ws"].send_json({"type": "opponent_disconnected"})
+                except:
+                    pass
+                del self.active_rooms[room_id]
+                break
+
+arena_manager = ArenaConnectionManager()
+
+@app.websocket("/api/arena/ws/{student_name}/{grade}")
+async def arena_websocket(websocket: WebSocket, student_name: str, grade: str):
+    # نقوم بفك تشفير الأسماء والصفوف التي قد تحتوي على مسافات
+    clean_name = unquote(student_name)
+    clean_grade = unquote(grade)
+    
+    await arena_manager.connect(websocket, clean_name, clean_grade)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "score_update":
+                room_id = data.get("room_id")
+                new_score = data.get("score")
+                await arena_manager.broadcast_score(room_id, clean_name, new_score)
+    except WebSocketDisconnect:
+        await arena_manager.disconnect(websocket, clean_grade)
+
+
+# ==========================================
+# --- 11. تشغيل المحرك المركزي ---
 # ==========================================
 if __name__ == "__main__":
     import uvicorn
