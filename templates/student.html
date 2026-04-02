@@ -1416,14 +1416,34 @@
         initTiltEffect();
     }
 
+    // ── دالة موحدة لاستخراج رقم الصف من أي صيغة ──
+    const _GRADE_MAP_AR_TO_NUM = {
+        'الأول':'1','الثاني':'2','الثالث':'3','الرابع':'4','الخامس':'5','السادس':'6',
+        'السابع':'7','الثامن':'8','التاسع':'9','العاشر':'10','الحادي عشر':'11','الثاني عشر':'12'
+    };
+    function normalizeGradeNum(grade) {
+        if (!grade) return '';
+        const s = String(grade).trim();
+        // إذا كان رقماً مباشرة
+        if (/^\d+$/.test(s)) return s;
+        // إذا كان "الصف X" بالعربية
+        const m = s.match(/الصف\s+(.+)/);
+        if (m) return _GRADE_MAP_AR_TO_NUM[m[1].trim()] || m[1].trim();
+        return s;
+    }
+
     function findGradeIndex(grade) {
         if (!grade || globalCurriculum.length === 0) return -1;
-        // Match by numeric value in name
+        const gradeNum = normalizeGradeNum(grade);
         for (let i = 0; i < globalCurriculum.length; i++) {
             const g = globalCurriculum[i];
+            // مطابقة نصية مباشرة أولاً
+            if ((g.name || '').trim() === String(grade).trim()) return i;
+            // مطابقة برقم مستخرج من اسم الصف
             const match = (g.name || '').match(/\d+/);
-            if (match && match[0] == String(grade)) return i;
-            if (String(i) == String(grade)) return i;
+            if (match && match[0] === gradeNum) return i;
+            // مطابقة بالفهرس
+            if (String(i) === gradeNum) return i;
         }
         return -1;
     }
@@ -1680,8 +1700,12 @@
 
     function generateEnemy() {
         const allHeroes  = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
-        const classmates = allHeroes.filter(h => h.username !== currentUser?.username && h.grade == currentUser?.grade);
-        const pool       = classmates.length > 0 ? classmates : allHeroes.filter(h => h.username !== currentUser?.username);
+        const userGradeNum = normalizeGradeNum(currentUser?.grade);
+        const classmates = allHeroes.filter(h =>
+            h.username !== currentUser?.username &&
+            normalizeGradeNum(h.grade) === userGradeNum
+        );
+        const pool = classmates.length > 0 ? classmates : allHeroes.filter(h => h.username !== currentUser?.username);
         if (pool.length > 0) {
             const hero = pool[Math.floor(Math.random() * pool.length)];
             return { name: hero.full_name, xp: hero.xp || 0, avatar: hero.avatar_url || avatars[0] };
@@ -1711,8 +1735,14 @@
             const res   = await fetch(`${API_URL}/api/admin/questions`);
             if (!res.ok) throw new Error('offline');
             const allQs = await res.json();
-            let gradeQs = allQs.filter(q => q.grade == currentUser?.grade);
-            let pool    = gradeQs.length >= 5 ? gradeQs : allQs;
+            const userGradeNum = normalizeGradeNum(currentUser?.grade);
+            let gradeQs = allQs.filter(q => normalizeGradeNum(q.grade) === userGradeNum);
+            let pool    = gradeQs.length >= 5 ? gradeQs : allQs.filter(q => {
+                // fallback: أسئلة بدون حقل صف أو من نفس الصف
+                return !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum;
+            });
+            // fallback أخير: كل الأسئلة المتاحة
+            if (pool.length < 5) pool = allQs;
             if (pool.length >= 5) {
                 arenaQs            = knuthShuffle(pool).slice(0, 5);
                 currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
@@ -1944,7 +1974,16 @@
             if (!res.ok) throw new Error('Server error');
             const allQs = await res.json();
             const targets = lessonStr.split(',').map(l => l.trim());
-            let filtered = allQs.filter(q => targets.includes(q.lesson));
+            const userGradeNum = normalizeGradeNum(currentUser?.grade);
+            let filtered = allQs.filter(q => {
+                const lessonMatch = targets.includes(q.lesson);
+                if (!lessonMatch) return false;
+                // فلترة بالصف إذا كان الحقل موجوداً في السؤال
+                if (q.grade !== undefined && q.grade !== null && q.grade !== '') {
+                    return normalizeGradeNum(q.grade) === userGradeNum;
+                }
+                return true;
+            });
 
             if (isExamMode && scheduledExamData) {
                 if (scheduledExamData.target_q_type && scheduledExamData.target_q_type !== 'all')
@@ -2107,6 +2146,20 @@
             await sendResultToBackend();
             // تحديث تقدم خريطة الطريق
             markLessonDone(challengeState.lesson, challengeState.correct, challengeState.qs.length);
+            // ── حفظ السجل التاريخي لصفحة ولي الأمر ──
+            if (currentUser) {
+                if (!currentUser.history) currentUser.history = [];
+                currentUser.history.push({
+                    lesson: challengeState.lesson,
+                    score: challengeState.correct,
+                    total: challengeState.qs.length,
+                    timestamp: new Date().toISOString()
+                });
+                // الاحتفاظ بآخر 100 نتيجة فقط
+                if (currentUser.history.length > 100) currentUser.history = currentUser.history.slice(-100);
+                localStorage.setItem('mathHero', JSON.stringify(currentUser));
+                updateAllStudentsList(currentUser);
+            }
         }
 
         const percentage = challengeState.qs.length > 0
@@ -2156,12 +2209,30 @@
     function markLessonDone(lessonName, correct, total) {
         if (!currentUser) return;
         const pct = total > 0 ? (correct / total) * 100 : 0;
-        if (pct >= 50) { // يُفتح الدرس التالي إذا اجتاز 50%
+        if (pct >= 50) {
             const progressKey = 'roadmap_' + currentUser.username;
             const progress = JSON.parse(localStorage.getItem(progressKey) || '{}');
             progress[lessonName] = 'done';
             localStorage.setItem(progressKey, JSON.stringify(progress));
         }
+        // ── بناء roadmap منظّم متوافق مع صفحة ولي الأمر ──
+        if (!currentUser.roadmap) currentUser.roadmap = [];
+        if (!currentUser._roadmapDoneLessons) currentUser._roadmapDoneLessons = [];
+        // استخلاص اسم الوحدة: أول جزء قبل ":" أو اسم الدرس ذاته
+        const unitName = lessonName.includes(':')
+            ? lessonName.split(':')[0].trim()
+            : (lessonName.includes(' - ') ? lessonName.split(' - ')[0].trim() : lessonName);
+        const unitIdx  = currentUser.roadmap.findIndex(r => r.unit === unitName);
+        const alreadyCounted = currentUser._roadmapDoneLessons.includes(lessonName);
+        if (unitIdx !== -1) {
+            currentUser.roadmap[unitIdx].total = Math.max(currentUser.roadmap[unitIdx].total, currentUser.roadmap[unitIdx].done + (alreadyCounted ? 0 : 1));
+            if (pct >= 50 && !alreadyCounted) currentUser.roadmap[unitIdx].done = (currentUser.roadmap[unitIdx].done || 0) + 1;
+        } else {
+            currentUser.roadmap.push({ unit: unitName, done: pct >= 50 ? 1 : 0, total: 1 });
+        }
+        if (pct >= 50 && !alreadyCounted) currentUser._roadmapDoneLessons.push(lessonName);
+        localStorage.setItem('mathHero', JSON.stringify(currentUser));
+        updateAllStudentsList(currentUser);
     }
 
     function exitExamMode() {
@@ -2449,6 +2520,13 @@
                 const u = data.user;
                 if (!u.parentCode) u.parentCode = generateParentCode(u.username);
                 if (!u.clanId)    u.clanId     = assignClan(u.username).id;
+                // تطبيع الصف — يحول الرقم إلى نص عربي مرة واحدة فقط
+                const _gMap = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
+                const _rawGrade = String(u.grade || '').trim();
+                if (/^\d+$/.test(_rawGrade) && _gMap[_rawGrade]) u.grade = _gMap[_rawGrade];
+                if (!u.history)              u.history = [];
+                if (!u.roadmap)              u.roadmap = [];
+                if (!u._roadmapDoneLessons)  u._roadmapDoneLessons = [];
                 localStorage.setItem('mathHero', JSON.stringify(u));
                 updateAllStudentsList(u);
                 location.reload();
@@ -2492,6 +2570,9 @@
                     parentCode: parentCode,
                     clanId: clan.id,
                     mistakes: [],
+                    history: [],
+                    roadmap: [],
+                    _roadmapDoneLessons: [],
                     avatarFrame: null
                 };
                 updateAllStudentsList(newUser);
@@ -2588,8 +2669,8 @@
             if (regGrade) {
                 regGrade.innerHTML = '<option value="">-- اختر صفك الدراسي --</option>';
                 globalCurriculum.forEach((g, idx) => {
-                    const val = g.name?.match(/\d+/)?.[0] ?? idx;
-                    regGrade.innerHTML += `<option value="${val}">${g.name || 'صف ' + (idx+1)}</option>`;
+                    const displayName = g.name || 'صف ' + (idx+1);
+                    regGrade.innerHTML += `<option value="${displayName}">${displayName}</option>`;
                 });
             }
         } catch (e) { console.warn('لم يتم تحميل المناهج:', e); }
@@ -2736,6 +2817,15 @@
                 currentUser.mistakes = [];
                 localStorage.setItem('mathHero', JSON.stringify(currentUser));
             }
+            // ── ضمان وجود الحقول المطلوبة لصفحة ولي الأمر ──
+            let _needsSave = false;
+            if (!currentUser.history)             { currentUser.history = [];               _needsSave = true; }
+            if (!currentUser.roadmap)             { currentUser.roadmap = [];               _needsSave = true; }
+            if (!currentUser._roadmapDoneLessons) { currentUser._roadmapDoneLessons = [];   _needsSave = true; }
+            const _gMapInit = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
+            const _rawGradeInit = String(currentUser.grade || '').trim();
+            if (/^\d+$/.test(_rawGradeInit) && _gMapInit[_rawGradeInit]) { currentUser.grade = _gMapInit[_rawGradeInit]; _needsSave = true; }
+            if (_needsSave) { localStorage.setItem('mathHero', JSON.stringify(currentUser)); updateAllStudentsList(currentUser); }
             openHome();
         }
     };

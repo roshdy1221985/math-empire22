@@ -5,6 +5,7 @@
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         :root {
             --gold: #d4af37;
@@ -137,6 +138,68 @@
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.9);
             z-index: 10001; justify-content: center; align-items: center; padding: 20px;
         }
+        /* ── Import Excel Modal ─────────────────────────────────── */
+        #import-modal {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.92);
+            z-index: 10002; justify-content: center; align-items: center; padding: 20px;
+            backdrop-filter: blur(8px);
+            /* display يُتحكم فيه حصراً عبر JS بـ flex / none */
+        }
+        .import-modal-content {
+            background: linear-gradient(135deg, #040d21 0%, #071633 100%);
+            border: 2px solid var(--gold); border-radius: 28px;
+            width: 95%; max-width: 1000px; padding: 35px; position: relative;
+            max-height: 90vh; overflow-y: auto;
+            box-shadow: 0 0 60px rgba(212,175,55,0.25), inset 0 1px 0 rgba(212,175,55,0.1);
+            animation: modalPop 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        @keyframes modalPop { from { opacity:0; transform:scale(0.9) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
+        .import-card {
+            background: linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(4,13,33,0.95) 100%);
+            border: 1.5px solid rgba(212,175,55,0.4); border-radius: 22px;
+            padding: 30px; margin-bottom: 25px; position: relative; overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+        .import-card::before {
+            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            background: var(--gold-grad);
+        }
+        .import-card-title {
+            font-family: 'Amiri'; font-size: 1.5rem; color: var(--gold);
+            margin-bottom: 20px; display:flex; align-items:center; gap:12px;
+        }
+        .btn-import {
+            background: var(--gold-grad); color: #000; border: none; padding: 14px 28px;
+            border-radius: 12px; font-weight: 900; cursor: pointer; font-size: 1rem;
+            font-family: 'Cairo'; transition: 0.3s; display:inline-flex; align-items:center; gap:10px;
+            box-shadow: 0 4px 15px rgba(179,135,40,0.35);
+        }
+        .btn-import:hover { transform:translateY(-3px); box-shadow:0 8px 25px rgba(179,135,40,0.55); }
+        .btn-import:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+        .btn-import-outline {
+            background: transparent; color: var(--gold); border: 2px solid var(--gold);
+            padding: 13px 26px; border-radius: 12px; font-weight: 900; cursor: pointer;
+            font-size: 1rem; font-family: 'Cairo'; transition: 0.3s;
+            display:inline-flex; align-items:center; gap:10px;
+        }
+        .btn-import-outline:hover { background: rgba(212,175,55,0.1); transform:translateY(-2px); }
+        .import-preview-table { width:100%; border-collapse:collapse; margin-top:15px; font-size:0.9rem; }
+        .import-preview-table th {
+            background:rgba(212,175,55,0.15); color:var(--gold); padding:12px;
+            text-align:right; border-bottom:2px solid var(--gold); position:sticky; top:0;
+        }
+        .import-preview-table td { padding:12px; border-bottom:1px solid rgba(255,255,255,0.06); }
+        .import-preview-table tr.row-error td { background:rgba(255,80,80,0.12); }
+        .import-preview-table tr.row-ok:hover td { background:rgba(212,175,55,0.04); }
+        .row-badge { padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:bold; }
+        .badge-ok { background:rgba(46,204,113,0.2); color:#2ecc71; }
+        .badge-err { background:rgba(255,94,94,0.2); color:#ff5e5e; }
+        .import-progress-wrap { background:rgba(0,0,0,0.5); border-radius:20px; overflow:hidden; height:22px; margin:15px 0; border:1px solid var(--border); }
+        .import-progress-bar { height:100%; background:var(--gold-grad); border-radius:20px; transition:width 0.4s ease; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold; color:#000; min-width:40px; }
+        .import-stats { display:flex; gap:15px; flex-wrap:wrap; margin-top:15px; }
+        .import-stat { background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:12px; padding:12px 20px; flex:1; min-width:120px; text-align:center; }
+        .import-stat .num { font-size:1.8rem; color:var(--gold); font-family:'Amiri'; font-weight:bold; }
+        .import-stat .lbl { font-size:0.8rem; color:rgba(255,255,255,0.6); margin-top:4px; }
         .modal-content {
             background: var(--bg); border: 2px solid var(--gold); border-radius: 25px;
             width: 90%; max-width: 800px; padding: 30px; position: relative; max-height: 85vh; overflow-y: auto;
@@ -148,6 +211,53 @@
 
     <canvas id="particles-js"></canvas>
     <audio id="sword-sfx" src="/static/sword.mp3" preload="auto"></audio>
+
+    <!-- ══════════════════════════════════════════════════════════
+         بوابة الاستيراد الملكية — Import Excel Modal
+    ══════════════════════════════════════════════════════════ -->
+    <div id="import-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10002; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(8px);">
+        <div class="import-modal-content">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; border-bottom:1px solid rgba(212,175,55,0.3); padding-bottom:20px;">
+                <h2 style="color:var(--gold); font-family:'Amiri'; font-size:2rem; margin:0;">
+                    <i class="fas fa-file-excel" style="color:#2ecc71;"></i> بوابة الاستيراد الملكية
+                </h2>
+                <button onclick="closeImportModal()" style="background:rgba(255,94,94,0.15); border:1px solid var(--red); color:var(--red); border-radius:10px; padding:10px 18px; cursor:pointer; font-family:'Cairo'; font-weight:bold; font-size:1rem; transition:0.2s;">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+            <div id="import-preview-area" style="display:none;">
+                <div class="import-stats" id="import-stats-row"></div>
+                <div style="max-height:380px; overflow-y:auto; border-radius:15px; border:1px solid var(--border); margin-top:20px;">
+                    <table class="import-preview-table">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>الصف</th><th>الدرس</th><th>نوع التحدي</th>
+                                <th>نص السؤال</th><th>الإجابة</th><th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody id="import-table-body"></tbody>
+                    </table>
+                </div>
+                <div id="import-progress-section" style="display:none; margin-top:20px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+                        <span style="color:var(--gold); font-weight:bold;"><i class="fas fa-upload"></i> جاري الإيداع في الخزنة...</span>
+                        <span id="import-progress-text" style="color:rgba(255,255,255,0.7);">0 / 0</span>
+                    </div>
+                    <div class="import-progress-wrap">
+                        <div class="import-progress-bar" id="import-progress-bar" style="width:0%;">0%</div>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.5); font-size:0.85rem; text-align:center; margin:8px 0 0;">⚠️ لا تغلق هذه النافذة أثناء عملية الإيداع</p>
+                </div>
+                <button class="btn-import" id="btn-confirm-import" onclick="startBatchUpload()" style="width:100%; margin-top:20px; font-size:1.1rem; padding:18px; justify-content:center; display:flex; align-items:center; gap:10px;">
+                    <i class="fas fa-crown"></i> تأكيد وإيداع التحديات في الخزنة
+                </button>
+            </div>
+            <div id="import-empty-state" style="text-align:center; padding:50px; color:rgba(255,255,255,0.5);">
+                <i class="fas fa-file-excel" style="font-size:4rem; color:rgba(46,204,113,0.25); margin-bottom:15px; display:block;"></i>
+                <p style="font-size:1.1rem;">ارفع ملف Excel لبدء المعاينة الذكية</p>
+            </div>
+        </div>
+    </div>
 
     <div id="report-modal">
         <div class="modal-content">
@@ -399,6 +509,65 @@
                 <!-- ============================================================
                      التعديل #1: Cascade Grid كامل بدلاً من q-filter-lesson-view
                      ============================================================ -->
+                <!-- ══════════════════════════════════════════════════════
+                     بطاقة الاستيراد من Excel — طبقة جديدة مستقلة
+                ══════════════════════════════════════════════════════ -->
+                <div class="import-card">
+                    <!-- Glowing orb decoration -->
+                    <div style="position:absolute; top:-40px; left:-40px; width:150px; height:150px; background:radial-gradient(circle, rgba(46,204,113,0.12) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
+                    <div style="position:absolute; bottom:-40px; right:-40px; width:120px; height:120px; background:radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
+
+                    <div class="import-card-title">
+                        <i class="fas fa-file-excel" style="color:#2ecc71; font-size:1.8rem;"></i>
+                        <div>
+                            <div>بوابة الاستيراد الملكي من Excel</div>
+                            <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); font-family:'Cairo'; font-weight:400; margin-top:4px;">أودِع مئات التحديات دفعة واحدة من ملف مخطوطتك الملكية</div>
+                        </div>
+                    </div>
+
+                    <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-start;">
+                        <!-- Download template button -->
+                        <div style="flex:1; min-width:260px;">
+                            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin:0 0 12px;">
+                                <i class="fas fa-info-circle" style="color:var(--gold);"></i>
+                                الخطوة ١: حمّل القالب المعتمد، أدخل أسئلتك، ثم ارفعه
+                            </p>
+                            <button class="btn-import-outline" onclick="downloadExcelTemplate()">
+                                <i class="fas fa-download"></i>
+                                📄 تحميل القالب المعتمد
+                            </button>
+                            <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; margin:10px 0 0;">
+                                أعمدة القالب: الصف · الدرس · نوع التحدي · نص السؤال · الخيارات · الإجابة الصحيحة
+                            </p>
+                        </div>
+
+                        <!-- Divider -->
+                        <div style="width:1px; background:rgba(212,175,55,0.2); align-self:stretch; min-height:80px;"></div>
+
+                        <!-- Upload button -->
+                        <div style="flex:1; min-width:260px;">
+                            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin:0 0 12px;">
+                                <i class="fas fa-upload" style="color:#2ecc71;"></i>
+                                الخطوة ٢: ارفع المخطوطة للمعاينة الذكية
+                            </p>
+                            <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelFile(this)">
+                            <button class="btn-import" onclick="document.getElementById('excel-file-input').click()">
+                                <i class="fas fa-file-upload"></i>
+                                📤 رفع مخطوطة الأسئلة (Excel)
+                            </button>
+                            <p id="excel-file-name" style="color:rgba(255,255,255,0.4); font-size:0.8rem; margin:10px 0 0;">
+                                يقبل ملفات .xlsx و .xls
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Success notification area -->
+                    <div id="import-success-msg" style="display:none; margin-top:20px; background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.4); border-radius:14px; padding:18px; text-align:center; color:#2ecc71; font-weight:bold; font-size:1rem;">
+                        <i class="fas fa-check-circle" style="font-size:1.5rem; margin-left:10px;"></i>
+                        <span id="import-success-text"></span>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3 style="color:var(--gold);">📂 إدارة بنك الأسئلة</h3>
 
@@ -1487,6 +1656,253 @@
         });
         requestAnimationFrame(animateParticles);
     }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ميزة استيراد Excel — طبقة جديدة مستقلة لا تمس الدوال الموجودة
+    // ══════════════════════════════════════════════════════════════════════════
+
+    let importedRows = []; // يحتفظ بالصفوف الصحيحة للرفع
+
+    /** تحويل نوع التحدي من العربي للإنجليزي */
+    function translateQTypeToEn(arabic) {
+        const map = {
+            'اختياري': 'choice',
+            'اختيار من متعدد': 'choice',
+            'choice': 'choice',
+            'صواب/خطأ': 'true_false',
+            'صواب أو خطأ': 'true_false',
+            'true_false': 'true_false',
+            'إجابة قصيرة': 'short',
+            'short': 'short',
+            'إكمال': 'short'
+        };
+        if (!arabic) return 'choice';
+        const key = String(arabic).trim();
+        return map[key] || 'choice';
+    }
+
+    /** تحقق من صحة صف واحد */
+    function validateImportRow(row) {
+        const errors = [];
+        if (!row['نص السؤال'] || String(row['نص السؤال']).trim() === '')
+            errors.push('نص السؤال مفقود');
+        if (!row['الإجابة الصحيحة'] || String(row['الإجابة الصحيحة']).trim() === '')
+            errors.push('الإجابة الصحيحة مفقودة');
+        return errors;
+    }
+
+    /** تحميل قالب Excel فارغ */
+    function downloadExcelTemplate() {
+        if (typeof XLSX === 'undefined') {
+            alert('⚠️ مكتبة SheetJS غير محملة بعد، انتظر لحظة وأعد المحاولة.');
+            return;
+        }
+        const headers = ['الصف', 'الدرس', 'نوع التحدي', 'نص السؤال', 'الخيارات', 'الإجابة الصحيحة'];
+        const sampleRows = [
+            ['الصف السادس', 'درس الأعداد الصحيحة', 'اختياري', 'ما ناتج 7 × 8 ؟', '56 , 48 , 64 , 72', '56'],
+            ['الصف السادس', 'درس الكسور', 'صواب/خطأ', '½ + ½ = 1 صواب أم خطأ؟', '', 'صواب'],
+            ['الصف السادس', 'درس المساحات', 'إجابة قصيرة', 'أوجد مساحة المربع الذي طول ضلعه 5 سم', '', '25']
+        ];
+        const wb = XLSX.utils.book_new();
+        const wsData = [headers, ...sampleRows];
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        // تنسيق عرض الأعمدة
+        ws['!cols'] = [
+            { wch: 18 }, { wch: 25 }, { wch: 18 },
+            { wch: 45 }, { wch: 35 }, { wch: 20 }
+        ];
+        XLSX.utils.book_append_sheet(wb, ws, 'قالب الأسئلة');
+        XLSX.writeFile(wb, 'قالب_تحديات_إمبراطورية_الرياضيات.xlsx');
+    }
+
+    /** قراءة ملف Excel ومعالجته */
+    function handleExcelFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+
+        document.getElementById('excel-file-name').textContent = '⏳ جاري قراءة المخطوطة...';
+        document.getElementById('import-success-msg').style.display = 'none';
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const wb   = XLSX.read(data, { type: 'array' });
+                const ws   = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+                if (!rows || rows.length === 0) {
+                    document.getElementById('excel-file-name').textContent = '⚠️ الملف فارغ أو لا يحتوي على بيانات';
+                    return;
+                }
+
+                document.getElementById('excel-file-name').textContent =
+                    `✅ تم قراءة: ${file.name} (${rows.length} صف)`;
+
+                renderImportPreview(rows);
+                openImportModal();
+            } catch(err) {
+                console.error(err);
+                document.getElementById('excel-file-name').textContent = '❌ فشل قراءة الملف، تأكد من صيغته';
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    /** بناء جدول المعاينة */
+    function renderImportPreview(rows) {
+        importedRows = [];
+        let validCount = 0, errorCount = 0;
+        let tbodyHtml = '';
+
+        rows.forEach((row, idx) => {
+            const errors  = validateImportRow(row);
+            const isValid = errors.length === 0;
+            if (isValid) {
+                validCount++;
+                importedRows.push(row);
+            } else {
+                errorCount++;
+            }
+
+            const rowClass = isValid ? 'row-ok' : 'row-error';
+            const badge    = isValid
+                ? '<span class="row-badge badge-ok">✓ صحيح</span>'
+                : `<span class="row-badge badge-err">⚠ ${errors.join(' | ')}</span>`;
+
+            const qType  = translateQTypeToEn(row['نوع التحدي']);
+            const typeAr = qType === 'choice' ? 'اختياري 🔘' : qType === 'true_false' ? 'صواب/خطأ ✅' : 'قصيرة ✍️';
+
+            tbodyHtml += `
+            <tr class="${rowClass}">
+                <td style="color:rgba(255,255,255,0.4); font-size:0.8rem;">${idx + 1}</td>
+                <td>${row['الصف'] || '<span style="color:var(--red)">—</span>'}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${row['الدرس'] || ''}">${row['الدرس'] || '<span style="color:var(--red)">—</span>'}</td>
+                <td>${typeAr}</td>
+                <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${String(row['نص السؤال'] || '').replace(/"/g,'&quot;')}">${String(row['نص السؤال'] || '').substring(0, 40) || '<span style="color:var(--red)">مفقود ⚠</span>'}${String(row['نص السؤال'] || '').length > 40 ? '...' : ''}</td>
+                <td style="color:var(--green); font-weight:bold;">${row['الإجابة الصحيحة'] || '<span style="color:var(--red)">مفقودة ⚠</span>'}</td>
+                <td>${badge}</td>
+            </tr>`;
+        });
+
+        document.getElementById('import-table-body').innerHTML = tbodyHtml;
+
+        // إحصائيات
+        document.getElementById('import-stats-row').innerHTML = `
+            <div class="import-stat">
+                <div class="num">${rows.length}</div>
+                <div class="lbl">إجمالي الأسئلة</div>
+            </div>
+            <div class="import-stat" style="border-color:rgba(46,204,113,0.4);">
+                <div class="num" style="color:#2ecc71;">${validCount}</div>
+                <div class="lbl">صالح للإيداع</div>
+            </div>
+            <div class="import-stat" style="border-color:rgba(255,94,94,0.4);">
+                <div class="num" style="color:var(--red);">${errorCount}</div>
+                <div class="lbl">يحتاج مراجعة</div>
+            </div>`;
+
+        // تفعيل/تعطيل زر التأكيد
+        const confirmBtn = document.getElementById('btn-confirm-import');
+        if (validCount === 0) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-ban"></i> لا توجد أسئلة صالحة للإيداع';
+        } else {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `<i class="fas fa-crown"></i> 👑 تأكيد وإيداع ${validCount} تحدياً في الخزنة`;
+        }
+
+        document.getElementById('import-preview-area').style.display = 'block';
+        document.getElementById('import-empty-state').style.display  = 'none';
+        document.getElementById('import-progress-section').style.display = 'none';
+        const barEl = document.getElementById('import-progress-bar');
+        if (barEl) { barEl.style.width = '0%'; barEl.textContent = '0%'; }
+        const txtEl = document.getElementById('import-progress-text');
+        if (txtEl) txtEl.textContent = '0 / 0';
+    }
+
+    /** فتح/إغلاق Modal الاستيراد */
+    function openImportModal() {
+        document.getElementById('import-modal').style.display = 'flex';
+    }
+    function closeImportModal() {
+        document.getElementById('import-modal').style.display = 'none';
+        // إعادة تهيئة كاملة لضمان نظافة المودال في الجلسة التالية
+        const fileInput = document.getElementById('excel-file-input');
+        if (fileInput) fileInput.value = '';
+        document.getElementById('import-preview-area').style.display  = 'none';
+        document.getElementById('import-empty-state').style.display   = 'block';
+        document.getElementById('import-progress-section').style.display = 'none';
+        const bar = document.getElementById('import-progress-bar');
+        if (bar) { bar.style.width = '0%'; bar.textContent = '0%'; }
+        const txt = document.getElementById('import-progress-text');
+        if (txt) txt.textContent = '0 / 0';
+        importedRows = [];
+    }
+
+    /** تنفيذ الرفع الجماعي */
+    async function startBatchUpload() {
+        if (importedRows.length === 0) return;
+
+        const confirmBtn = document.getElementById('btn-confirm-import');
+        const progressSec = document.getElementById('import-progress-section');
+        const progressBar = document.getElementById('import-progress-bar');
+        const progressTxt = document.getElementById('import-progress-text');
+
+        confirmBtn.disabled = true;
+        progressSec.style.display = 'block';
+
+        let success = 0, failed = 0;
+        const total = importedRows.length;
+
+        for (let i = 0; i < importedRows.length; i++) {
+            const row = importedRows[i];
+
+            try {
+                const fd = new FormData();
+                fd.append('grade',    row['الصف'] || '6');
+                fd.append('lesson',   row['الدرس'] || '');
+                fd.append('subject',  'الرياضيات');
+                fd.append('q_type',   translateQTypeToEn(row['نوع التحدي']));
+                fd.append('question', String(row['نص السؤال'] || ''));
+                fd.append('answer',   String(row['الإجابة الصحيحة'] || ''));
+                fd.append('options',  String(row['الخيارات'] || ''));
+
+                const res = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
+                if (res && res.ok) { success++; } else { failed++; }
+            } catch(e) { failed++; }
+
+            // تحديث شريط التقدم بعد اكتمال كل طلب
+            const pct = Math.round(((i + 1) / total) * 100);
+            progressBar.style.width  = pct + '%';
+            progressBar.textContent  = pct + '%';
+            progressTxt.textContent  = `تم إيداع ${i + 1} من ${total} (${failed > 0 ? failed + ' فشل' : 'جميعها ناجحة ✓'})`;
+        }
+
+        // إنهاء
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+        progressTxt.textContent = `اكتمل: ${success} نجح · ${failed} فشل`;
+
+        setTimeout(() => {
+            closeImportModal();
+            // إظهار رسالة النجاح في البطاقة
+            const msg = document.getElementById('import-success-msg');
+            const txt = document.getElementById('import-success-text');
+            if (msg && txt) {
+                txt.textContent = `تم إيداع ${success} تحدياً بنجاح في الخزنة الملكية! 👑`;
+                msg.style.display = 'block';
+                setTimeout(() => { msg.style.display = 'none'; }, 6000);
+            }
+            // تحديث جدول الأسئلة باستخدام الدالة الموجودة أصلاً
+            loadQuestions();
+            importedRows = [];
+        }, 800);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // نهاية ميزة استيراد Excel
+    // ══════════════════════════════════════════════════════════════════════════
 
     window.onload = () => {
         initParticles();
