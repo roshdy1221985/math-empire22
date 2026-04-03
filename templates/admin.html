@@ -2,6 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
@@ -227,6 +228,41 @@
             width: 90%; max-width: 800px; padding: 30px; position: relative; max-height: 85vh; overflow-y: auto;
             box-shadow: 0 0 40px rgba(212,175,55,0.3);
         }
+
+        /* ── Skeleton Loading ────────────────────────────────────── */
+        .skeleton { background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%); background-size: 200% 100%; animation: skeletonPulse 1.5s infinite; border-radius: 8px; }
+        @keyframes skeletonPulse { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+        .skeleton-row { height: 48px; margin-bottom: 8px; border-radius: 10px; }
+        .skeleton-stat { height: 90px; border-radius: 20px; }
+
+        /* ── نظام الإشعارات ──────────────────────────────────────── */
+        #notif-modal { position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10003; display:none; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(10px); }
+        .notif-modal-box { background:linear-gradient(135deg,#040d21,#071633); border:2px solid var(--gold); border-radius:28px; width:95%; max-width:750px; padding:35px; max-height:90vh; overflow-y:auto; animation:modalPop 0.35s cubic-bezier(0.34,1.56,0.64,1); }
+        .notif-type-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:15px 0; }
+        .notif-type-btn { background:rgba(0,0,0,0.4); border:2px solid rgba(212,175,55,0.2); border-radius:14px; padding:15px 10px; text-align:center; cursor:pointer; transition:0.3s; color:rgba(255,255,255,0.7); font-family:'Cairo'; font-size:0.9rem; }
+        .notif-type-btn:hover,.notif-type-btn.selected { border-color:var(--gold); background:rgba(212,175,55,0.1); color:var(--gold); }
+        .notif-type-btn .icon { font-size:2rem; display:block; margin-bottom:8px; }
+        .notif-history-item { background:rgba(0,0,0,0.3); border:1px solid rgba(212,175,55,0.15); border-radius:12px; padding:14px 18px; margin-bottom:10px; display:flex; justify-content:space-between; align-items:center; }
+        .notif-badge { padding:4px 12px; border-radius:8px; font-size:0.75rem; font-weight:bold; }
+        .notif-badge.sent { background:rgba(46,204,113,0.2); color:#2ecc71; }
+        .notif-badge.pending { background:rgba(243,156,18,0.2); color:#f39c12; }
+
+        /* ── استيراد المنهج ──────────────────────────────────────── */
+        #curr-import-modal { position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10004; display:none; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(10px); }
+        .curr-tree-preview { background:rgba(0,0,0,0.5); border:1px solid var(--border); border-radius:15px; padding:20px; max-height:320px; overflow-y:auto; margin:15px 0; font-size:0.9rem; }
+        .curr-tree-preview .g { color:var(--gold); font-weight:bold; margin:8px 0 4px; }
+        .curr-tree-preview .s { color:#7fb3d3; margin-right:15px; margin-top:4px; }
+        .curr-tree-preview .u { color:#bbb; margin-right:30px; font-size:0.85rem; }
+        .curr-tree-preview .l { color:rgba(255,255,255,0.5); margin-right:45px; font-size:0.8rem; }
+        .curr-tree-preview .new-badge { background:rgba(46,204,113,0.2); color:#2ecc71; border-radius:6px; padding:1px 8px; font-size:0.7rem; margin-right:6px; }
+        .curr-tree-preview .dup-badge { background:rgba(243,156,18,0.15); color:#f39c12; border-radius:6px; padding:1px 8px; font-size:0.7rem; margin-right:6px; }
+
+        /* ── حماية النشر العام ───────────────────────────────────── */
+        #session-warning { position:fixed; top:0; left:0; right:0; z-index:99998; background:rgba(255,94,94,0.95); color:#fff; padding:10px 20px; text-align:center; font-weight:bold; font-size:0.9rem; display:none; backdrop-filter:blur(5px); }
+        .rate-limit-overlay { position:fixed; inset:0; background:rgba(4,13,33,0.97); z-index:99999; display:none; flex-direction:column; justify-content:center; align-items:center; gap:20px; }
+        .rate-limit-overlay h2 { color:var(--red); font-family:'Amiri'; font-size:2.5rem; }
+        .rate-limit-overlay p { color:rgba(255,255,255,0.7); max-width:450px; text-align:center; }
+        #activity-timer { color:var(--gold); font-size:1.2rem; font-weight:bold; }
     </style>
 </head>
 <body>
@@ -306,6 +342,179 @@
         </div>
     </div>
 
+    <!-- ── شريط تحذير الجلسة ── -->
+    <div id="session-warning">⚠️ تنبيه: الجلسة ستنتهي خلال <span id="session-countdown">5</span> دقائق من عدم النشاط — انقر في أي مكان للتجديد</div>
+
+    <!-- ── Overlay حماية التلقائية ── -->
+    <div class="rate-limit-overlay" id="rate-limit-overlay">
+        <div style="font-size:4rem;">🛡️</div>
+        <h2>تم تأمين لوحة التحكم</h2>
+        <p>انتهت مهلة الجلسة بسبب عدم النشاط لفترة طويلة. أعد تسجيل الدخول للمتابعة.</p>
+        <button class="btn-gold" style="width:auto; padding:15px 40px;" onclick="window.location.reload()"><i class="fas fa-key"></i> إعادة تسجيل الدخول</button>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         نظام الإشعارات الملكية
+    ══════════════════════════════════════════════════════════ -->
+    <div id="notif-modal">
+        <div class="notif-modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;border-bottom:1px solid rgba(212,175,55,0.25);padding-bottom:20px;">
+                <h2 style="color:var(--gold);font-family:'Amiri';font-size:2rem;margin:0;">
+                    <i class="fas fa-bell" style="color:#f39c12;margin-left:10px;"></i> مرسال الإمبراطورية
+                </h2>
+                <button onclick="closeNotifModal()" style="background:rgba(255,94,94,0.12);border:1px solid rgba(255,94,94,0.4);color:var(--red);border-radius:12px;padding:10px 20px;cursor:pointer;font-family:'Cairo';font-weight:bold;">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+
+            <!-- نموذج إرسال إشعار جديد -->
+            <div class="import-card" style="margin-bottom:25px;">
+                <div class="import-card-title" style="font-size:1.3rem;">
+                    <i class="fas fa-paper-plane" style="color:#3498db;"></i> إرسال إشعار جديد
+                </div>
+
+                <label style="color:var(--gold);font-weight:900;display:block;margin-bottom:8px;">🎯 نوع الإشعار</label>
+                <div class="notif-type-grid">
+                    <div class="notif-type-btn selected" data-type="announcement" onclick="selectNotifType(this,'announcement')">
+                        <span class="icon">📢</span>إعلان عام
+                    </div>
+                    <div class="notif-type-btn" data-type="exam" onclick="selectNotifType(this,'exam')">
+                        <span class="icon">📝</span>تذكير اختبار
+                    </div>
+                    <div class="notif-type-btn" data-type="achievement" onclick="selectNotifType(this,'achievement')">
+                        <span class="icon">🏆</span>تهنئة إنجاز
+                    </div>
+                    <div class="notif-type-btn" data-type="warning" onclick="selectNotifType(this,'warning')">
+                        <span class="icon">⚠️</span>تحذير
+                    </div>
+                    <div class="notif-type-btn" data-type="homework" onclick="selectNotifType(this,'homework')">
+                        <span class="icon">📚</span>واجب منزلي
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:15px;">
+                    <div>
+                        <label>🎓 الصف المستهدف</label>
+                        <select id="notif-grade">
+                            <option value="all">📡 جميع الصفوف</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>⚡ أولوية الإشعار</label>
+                        <select id="notif-priority">
+                            <option value="normal">عادية</option>
+                            <option value="high">عالية 🔴</option>
+                            <option value="urgent">عاجلة 🚨</option>
+                        </select>
+                    </div>
+                </div>
+
+                <label>📌 عنوان الإشعار</label>
+                <input type="text" id="notif-title-input" placeholder="مثال: اختبار الأسبوع القادم في الكسور">
+
+                <label>💬 نص الرسالة</label>
+                <textarea id="notif-body-input" rows="4" placeholder="اكتب تفاصيل الإشعار هنا..."></textarea>
+
+                <div id="notif-preview-box" style="display:none;margin-top:15px;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);border-radius:14px;padding:15px;">
+                    <div style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">📱 معاينة الإشعار</div>
+                    <div id="notif-preview-title" style="font-weight:bold;color:var(--gold);"></div>
+                    <div id="notif-preview-body" style="color:rgba(255,255,255,0.8);margin-top:5px;font-size:0.9rem;"></div>
+                </div>
+
+                <div style="display:flex;gap:12px;margin-top:20px;">
+                    <button class="btn-gold" style="flex:1;" onclick="previewNotif()"><i class="fas fa-eye"></i> معاينة</button>
+                    <button class="btn-import" style="flex:2;" id="btn-send-notif" onclick="sendNotification()">
+                        <i class="fas fa-paper-plane"></i> 📡 إرسال للرعية
+                    </button>
+                </div>
+            </div>
+
+            <!-- سجل الإشعارات السابقة -->
+            <div>
+                <h3 style="color:var(--gold);margin-bottom:15px;"><i class="fas fa-history"></i> سجل المرسلات</h3>
+                <div id="notif-history-list">
+                    <div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);">
+                        <i class="fas fa-bell-slash" style="font-size:2rem;display:block;margin-bottom:10px;"></i>
+                        لا توجد إشعارات مُرسَلة بعد
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════════
+         استيراد المنهج من Excel
+    ══════════════════════════════════════════════════════════ -->
+    <div id="curr-import-modal">
+        <div class="import-modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:25px;border-bottom:1px solid rgba(212,175,55,0.25);padding-bottom:20px;">
+                <h2 style="color:var(--gold);font-family:'Amiri';font-size:2rem;margin:0;">
+                    <i class="fas fa-sitemap" style="color:#3498db;margin-left:10px;"></i> استيراد هيكل المنهج من Excel
+                </h2>
+                <button onclick="closeCurrImportModal()" style="background:rgba(255,94,94,0.12);border:1px solid rgba(255,94,94,0.4);color:var(--red);border-radius:12px;padding:10px 20px;cursor:pointer;font-family:'Cairo';font-weight:bold;">
+                    <i class="fas fa-times"></i> إغلاق
+                </button>
+            </div>
+
+            <!-- خطوتا البوابة -->
+            <div class="import-card" style="margin-bottom:20px;">
+                <div class="import-card-title"><i class="fas fa-file-excel" style="color:#2ecc71;font-size:1.8rem;"></i>
+                    <div><div>بوابة استيراد هيكل الإمبراطورية</div>
+                    <div style="font-size:0.85rem;color:rgba(255,255,255,0.45);font-family:'Cairo';font-weight:400;margin-top:4px;">٤ أعمدة: الصف · الفصل · الوحدة · الدرس — كل صف = درس واحد</div></div>
+                </div>
+                <div style="display:flex;gap:20px;flex-wrap:wrap;">
+                    <div style="flex:1;min-width:240px;background:rgba(0,0,0,0.3);border-radius:16px;padding:20px;border:1px solid rgba(212,175,55,0.15);">
+                        <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin:0 0 12px;"><span class="import-step-badge">١</span> حمّل قالب المنهج</p>
+                        <button class="btn-import-outline" onclick="downloadCurriculumTemplate()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-download"></i> 📄 تحميل قالب المنهج
+                        </button>
+                        <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:5px;">
+                            <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:6px;padding:3px 8px;font-size:0.72rem;color:rgba(255,255,255,0.6);">الصف</span>
+                            <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:6px;padding:3px 8px;font-size:0.72rem;color:rgba(255,255,255,0.6);">الفصل</span>
+                            <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.25);border-radius:6px;padding:3px 8px;font-size:0.72rem;color:rgba(255,255,255,0.6);">الوحدة</span>
+                            <span style="background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);border-radius:6px;padding:3px 8px;font-size:0.72rem;color:#2ecc71;">الدرس ✓</span>
+                        </div>
+                    </div>
+                    <div style="display:flex;align-items:center;"><i class="fas fa-chevron-left" style="color:rgba(212,175,55,0.4);font-size:1.5rem;"></i></div>
+                    <div style="flex:1;min-width:240px;background:rgba(0,0,0,0.3);border-radius:16px;padding:20px;border:1px solid rgba(46,204,113,0.15);">
+                        <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin:0 0 12px;"><span class="import-step-badge">٢</span> ارفع ملف المنهج</p>
+                        <input type="file" id="curr-excel-input" accept=".xlsx,.xls" style="display:none;" onchange="handleCurriculumFile(this)">
+                        <button class="btn-import" onclick="document.getElementById('curr-excel-input').click()" style="width:100%;justify-content:center;">
+                            <i class="fas fa-file-upload"></i> 📤 رفع ملف المنهج
+                        </button>
+                        <p id="curr-file-name" style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin:10px 0 0;">يقبل .xlsx و .xls</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- منطقة المعاينة -->
+            <div id="curr-import-preview" style="display:none;">
+                <div class="import-stats" id="curr-import-stats" style="margin-bottom:15px;"></div>
+                <div class="curr-tree-preview" id="curr-tree-preview-content"></div>
+
+                <div id="curr-import-progress-section" style="display:none;margin-top:20px;">
+                    <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                        <span style="color:var(--gold);font-weight:bold;"><i class="fas fa-sitemap"></i> جاري بناء الهيكل...</span>
+                        <span id="curr-progress-text" style="color:rgba(255,255,255,0.7);">0 / 0</span>
+                    </div>
+                    <div class="import-progress-wrap">
+                        <div class="import-progress-bar" id="curr-progress-bar" style="width:0%;">0%</div>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-align:center;margin:8px 0 0;">⚠️ لا تغلق النافذة أثناء عملية البناء</p>
+                </div>
+
+                <button class="btn-import" id="btn-confirm-curr-import" onclick="startCurriculumImport()" style="width:100%;margin-top:20px;font-size:1.1rem;padding:18px;justify-content:center;display:flex;align-items:center;gap:10px;">
+                    <i class="fas fa-sitemap"></i> 👑 تأكيد وبناء الهيكل الملكي
+                </button>
+            </div>
+
+            <div id="curr-import-empty" style="text-align:center;padding:50px;color:rgba(255,255,255,0.4);">
+                <i class="fas fa-sitemap" style="font-size:4rem;opacity:0.2;display:block;margin-bottom:15px;"></i>
+                <p>ارفع ملف Excel لمعاينة هيكل المنهج قبل الاستيراد</p>
+            </div>
+        </div>
+    </div>
+
     <div id="login-overlay">
         <div class="login-box">
             <h2 style="color:var(--gold); font-family:'Amiri'; font-size: 2.5rem; margin-bottom: 10px;">ديوان المعلم</h2>
@@ -330,6 +539,10 @@
                 <div class="nav-link" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                 <div class="nav-link" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
                 <div class="nav-link" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
+                <div class="nav-link" onclick="openNotifModal()" style="color:#f39c12; position:relative;">
+                    <i class="fas fa-bell"></i> مرسال الإشعارات
+                    <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
+                </div>
                 <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
@@ -345,11 +558,21 @@
             <!-- ==================== DASH ==================== -->
             <section id="dash" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-chart-line"></i> الحالة العامة للإمبراطورية</h2>
-                    <div class="stats-grid">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-chart-line"></i> الحالة العامة للإمبراطورية</h2>
+                        <button class="btn-import" onclick="openNotifModal()" style="padding:10px 20px;font-size:0.9rem;">
+                            <i class="fas fa-bell"></i> إرسال إشعار سريع
+                        </button>
+                    </div>
+                    <div class="stats-grid" id="stats-grid-main">
                         <div class="stat-box">
                             <div>👥 إجمالي الرعية (الطلاب)</div>
                             <div class="stat-number" id="stat-total-students">0</div>
+                        </div>
+                        <div class="stat-box" style="border-color:rgba(52,152,219,0.5);background:rgba(52,152,219,0.05);">
+                            <div>👨‍🏫 المعلمون المسجلون</div>
+                            <div class="stat-number" id="stat-total-teachers" style="color:#3498db;">0</div>
+                            <div id="stat-teachers-detail" style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">جاري التحميل...</div>
                         </div>
                         <div class="stat-box" style="border-color: var(--gold); background: rgba(212,175,55,0.05);">
                             <div>🏆 بطل الأرقام الحالي</div>
@@ -360,6 +583,16 @@
                             <div>💎 مخزون التحديات (الأسئلة)</div>
                             <div class="stat-number" id="stat-total-q">0</div>
                         </div>
+                        <div class="stat-box" style="border-color:rgba(46,204,113,0.4);background:rgba(46,204,113,0.04);">
+                            <div>📚 هيكل المنهج</div>
+                            <div class="stat-number" id="stat-total-lessons" style="color:#2ecc71;">0</div>
+                            <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">درس في المنهج</div>
+                        </div>
+                        <div class="stat-box" style="border-color:rgba(243,156,18,0.4);background:rgba(243,156,18,0.04);">
+                            <div>🔔 إشعارات مُرسَلة</div>
+                            <div class="stat-number" id="stat-total-notifs" style="color:#f39c12;">0</div>
+                            <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">هذا الشهر</div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -367,7 +600,12 @@
             <!-- ==================== CURRICULUM ==================== -->
             <section id="curriculum" class="section active">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-layer-group"></i> بناء وتخطيط ديوان المنهج</h2>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-layer-group"></i> بناء وتخطيط ديوان المنهج</h2>
+                        <button class="btn-import" onclick="openCurrImportModal()" style="padding:12px 22px;">
+                            <i class="fas fa-file-excel" style="color:#2ecc71;"></i> استيراد المنهج من Excel
+                        </button>
+                    </div>
                     
                     <div class="card" style="background: rgba(255,255,255,0.02); padding: 25px; margin-bottom: 30px;">
                         <h3>➕ إضافة لبنة جديدة للهيكل</h3>
@@ -802,16 +1040,8 @@
     }
 
     async function checkLogin() {
-        const pass = document.getElementById('pass-input').value;
-        const fd = new FormData();
-        fd.append('username', 'admin');
-        fd.append('password', pass);
-        const res = await fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd });
-        if (res.ok) {
-            const data = await res.json();
-            localStorage.setItem('adminToken', data.access_token);
-            enterEmpire();
-        } else { showToast('❌ مفتاح الدخول خاطئ!', 'error'); }
+        // alias للـ onclick في الـ HTML — يُحوّل للدالة الآمنة
+        checkLoginSafe();
     }
 
     function enterEmpire() {
@@ -830,19 +1060,6 @@
         if (target) target.classList.add('active');
         const navLink = document.querySelector(`[onclick="showSection('${id}')"]`);
         if (navLink) navLink.classList.add('active');
-    }
-
-    async function loadAllData() {
-        // ① انتظر المنهج أولاً لأنه يُغذّي جميع القوائم المتسلسلة
-        await loadCurriculum();
-        // ② أطلق الباقي معاً بـ Promise.all لأقصى سرعة
-        await Promise.all([
-            loadDashboard(),
-            loadQuestions(),
-            loadPDFs(),
-            loadScheduledExams(),
-            loadAdminResources()
-        ]);
     }
 
     // ─── Resources ──────────────────────────────────────────────────────────────
@@ -954,36 +1171,6 @@
     }
 
     // ============================================================
-    // التعديل #2: populateCurriculumFilters — تُغذِّي qf-grade أيضاً
-    // ============================================================
-    function populateCurriculumFilters() {
-        const resGrade       = document.getElementById('res-grade');
-        const filterResGrade = document.getElementById('filter-res-grade');
-        const currFilter     = document.getElementById('curr-filter-grade');
-        const qfGrade        = document.getElementById('qf-grade');   // ← جديد
-
-        if(resGrade)       resGrade.innerHTML       = '<option value="">-- اختر الصف الدراسي --</option>';
-        if(filterResGrade) filterResGrade.innerHTML = '<option value="">-- عرض جميع الصفوف --</option>';
-        if(currFilter)     currFilter.innerHTML     = '<option value="all">عرض جميع الصفوف</option>';
-        if(qfGrade)        qfGrade.innerHTML        = '<option value="all">-- جميع الصفوف --</option>';
-
-        fullCurriculum.forEach(g => {
-            if(resGrade)       resGrade.innerHTML       += `<option value="${g.name}">${g.name}</option>`;
-            if(filterResGrade) filterResGrade.innerHTML += `<option value="${g.name}">${g.name}</option>`;
-            if(currFilter)     currFilter.innerHTML     += `<option value="${g.id}">${g.name}</option>`;
-            if(qfGrade)        qfGrade.innerHTML        += `<option value="${g.name}">${g.name}</option>`;
-        });
-
-        // إعادة ضبط بقية قوائم فلتر البنك
-        const qfTerm   = document.getElementById('qf-term');
-        const qfUnit   = document.getElementById('qf-unit');
-        const qfLesson = document.getElementById('qf-lesson');
-        if(qfTerm)   qfTerm.innerHTML   = '<option value="all">-- جميع الفصول --</option>';
-        if(qfUnit)   qfUnit.innerHTML   = '<option value="all">-- جميع الوحدات --</option>';
-        if(qfLesson) qfLesson.innerHTML = '<option value="all">-- جميع الدروس --</option>';
-    }
-
-    // ============================================================
     // التعديل #3: دوال الفلترة المتسلسلة لبنك الأسئلة (qf-)
     // ============================================================
 
@@ -1000,16 +1187,11 @@
 
         if (gradeName !== 'all') {
             const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj) {
-                gradeObj.semesters.forEach((s, i) => {
-                    termSel.innerHTML += `<option value="${i}">${s.name}</option>`;
-                });
-            }
+            if (gradeObj) gradeObj.semesters.forEach((s, i) => termSel.innerHTML += `<option value="${i}">${esc(s.name)}</option>`);
         }
         loadQuestions();
     }
 
-    /** يُحدِّث قائمة الوحدات بناءً على الفصل المختار */
     function updateFilterUnits() {
         const gradeName = document.getElementById('qf-grade').value;
         const sIdx      = document.getElementById('qf-term').value;
@@ -1021,16 +1203,12 @@
 
         if (sIdx !== 'all') {
             const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj && gradeObj.semesters[sIdx]) {
-                gradeObj.semesters[sIdx].units.forEach((u, i) => {
-                    unitSel.innerHTML += `<option value="${i}">${u.name}</option>`;
-                });
-            }
+            if (gradeObj?.semesters[sIdx])
+                gradeObj.semesters[sIdx].units.forEach((u, i) => unitSel.innerHTML += `<option value="${i}">${esc(u.name)}</option>`);
         }
         loadQuestions();
     }
 
-    /** يُحدِّث قائمة الدروس بناءً على الوحدة المختارة */
     function updateFilterLessons() {
         const gradeName = document.getElementById('qf-grade').value;
         const sIdx      = document.getElementById('qf-term').value;
@@ -1041,15 +1219,11 @@
 
         if (uIdx !== 'all') {
             const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj && gradeObj.semesters[sIdx] && gradeObj.semesters[sIdx].units[uIdx]) {
-                gradeObj.semesters[sIdx].units[uIdx].lessons.forEach(l => {
-                    lessonSel.innerHTML += `<option value="${l.name}">${l.name}</option>`;
-                });
-            }
+            if (gradeObj?.semesters[sIdx]?.units[uIdx])
+                gradeObj.semesters[sIdx].units[uIdx].lessons.forEach(l => lessonSel.innerHTML += `<option value="${esc(l.name)}">${esc(l.name)}</option>`);
         }
         loadQuestions();
     }
-    // ─── نهاية التعديل #3 ───────────────────────────────────────────────────────
 
     function toggleCurrAddInputs() {
         const type        = document.getElementById('curr-type').value;
@@ -1061,7 +1235,7 @@
 
         if(gSel) {
             gSel.innerHTML = '<option value="">-- اختر الصف --</option>';
-            fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${g.name}</option>`);
+            fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${esc(g.name)}</option>`);
         }
         if (type === 'grade') {
             if(cascadeArea) cascadeArea.style.display = 'none';
@@ -1073,28 +1247,27 @@
         }
     }
 
-    function updateAddSemesters() {
-        const gIdx = document.getElementById('add-grade-sel').value;
-        const sel  = document.getElementById('add-term-sel');
-        if(!sel) return;
-        sel.innerHTML = '<option value="">-- اختر الفصل --</option>';
-        if (gIdx !== "" && fullCurriculum[gIdx])
-            fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
+    function autoSelectCascade(prefix, lessonName) {
+        for (let g = 0; g < fullCurriculum.length; g++) {
+            for (let s = 0; s < fullCurriculum[g].semesters.length; s++) {
+                for (let u = 0; u < fullCurriculum[g].semesters[s].units.length; u++) {
+                    for (let l = 0; l < fullCurriculum[g].semesters[s].units[u].lessons.length; l++) {
+                        if (fullCurriculum[g].semesters[s].units[u].lessons[l].name === lessonName) {
+                            const gEl = document.getElementById(`${prefix}-grade`); if(gEl) gEl.value = g;
+                            updateSemesters(prefix);
+                            const tEl = document.getElementById(`${prefix}-term`);  if(tEl) tEl.value = s;
+                            updateUnits(prefix);
+                            const uEl = document.getElementById(`${prefix}-unit`);  if(uEl) uEl.value = u;
+                            updateLessons(prefix);
+                            const lEl = document.getElementById(`${prefix}-lesson`); if(lEl) lEl.value = lessonName;
+                            return;
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    function updateAddUnits() {
-        const gIdx = document.getElementById('add-grade-sel').value;
-        const sIdx = document.getElementById('add-term-sel').value;
-        const sel  = document.getElementById('add-unit-sel');
-        if(!sel) return;
-        sel.innerHTML = '<option value="">-- اختر الوحدة --</option>';
-        if (sIdx !== "" && fullCurriculum[gIdx] && fullCurriculum[gIdx].semesters[sIdx])
-            fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
-    }
-
-    // ============================================================
-    // التعديل #5: saveSmartCurriculumItem — يحفظ ويُعيد الاختيارات
-    // ============================================================
     async function saveSmartCurriculumItem() {
         const type = document.getElementById('curr-type').value;
         const name = document.getElementById('curr-name').value;
@@ -1245,44 +1418,6 @@
             const el = document.getElementById(`${prefix}-${p}`);
             if (el) el.innerHTML = '<option value="">-- اختر --</option>';
         });
-    }
-
-    function populateGradeDropdown(prefix) {
-        const sel = document.getElementById(`${prefix}-grade`);
-        if(!sel) return;
-        sel.innerHTML = '<option value="">-- اختر الصف --</option>';
-        fullCurriculum.forEach((g, i) => sel.innerHTML += `<option value="${i}">${g.name}</option>`);
-        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
-    }
-
-    function updateSemesters(prefix) {
-        const gIdx = document.getElementById(`${prefix}-grade`).value;
-        const sel  = document.getElementById(`${prefix}-term`);
-        if(!sel) return;
-        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
-        if (gIdx === "" || !fullCurriculum[gIdx]) return;
-        fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${s.name}</option>`);
-    }
-
-    function updateUnits(prefix) {
-        const gIdx = document.getElementById(`${prefix}-grade`).value;
-        const sIdx = document.getElementById(`${prefix}-term`).value;
-        const sel  = document.getElementById(`${prefix}-unit`);
-        if(!sel) return;
-        resetDropdowns(prefix, ['unit', 'lesson']);
-        if (sIdx === "" || !fullCurriculum[gIdx] || !fullCurriculum[gIdx].semesters[sIdx]) return;
-        fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${u.name}</option>`);
-    }
-
-    function updateLessons(prefix) {
-        const gIdx = document.getElementById(`${prefix}-grade`).value;
-        const sIdx = document.getElementById(`${prefix}-term`).value;
-        const uIdx = document.getElementById(`${prefix}-unit`).value;
-        const sel  = document.getElementById(`${prefix}-lesson`);
-        if(!sel) return;
-        resetDropdowns(prefix, ['lesson']);
-        if (uIdx === "" || !fullCurriculum[gIdx] || !fullCurriculum[gIdx].semesters[sIdx] || !fullCurriculum[gIdx].semesters[sIdx].units[uIdx]) return;
-        fullCurriculum[gIdx].semesters[sIdx].units[uIdx].lessons.forEach(l => sel.innerHTML += `<option value="${l.name}">${l.name}</option>`);
     }
 
     function autoSelectCascade(prefix, lessonName) {
@@ -2055,10 +2190,697 @@
     // نهاية ميزة استيراد Excel
     // ══════════════════════════════════════════════════════════════════════════
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ١. نظام حماية النشر العام — Session Guard ██
+    // ══════════════════════════════════════════════════════════════════════════
+    const SESSION_TIMEOUT   = 30 * 60 * 1000; // 30 دقيقة
+    const SESSION_WARNING   = 25 * 60 * 1000; // تحذير بعد 25 دقيقة
+    const MAX_LOGIN_ATTEMPTS = 5;
+    const LOCKOUT_DURATION  = 15 * 60 * 1000; // 15 دقيقة إغلاق
+    let sessionTimer, warningTimer, loginAttempts = 0, lockoutUntil = 0;
+    let notifSentCount = 0;
+
+    // حماية: كشف DevTools عبر فحص حجم النافذة (لا يسبب Illegal return)
+    let _devtoolsOpen = false;
+    const _devCheckInterval = setInterval(() => {
+        const threshold = 160;
+        const widthDiff  = window.outerWidth  - window.innerWidth  > threshold;
+        const heightDiff = window.outerHeight - window.innerHeight > threshold;
+        if ((widthDiff || heightDiff) && !_devtoolsOpen) {
+            _devtoolsOpen = true;
+            // تسجيل التحذير فقط — لا نقطع الجلسة تلقائياً لتجنب false positives
+            console.warn('⚠️ تم رصد فتح أدوات المطور');
+        } else if (!widthDiff && !heightDiff) {
+            _devtoolsOpen = false;
+        }
+    }, 2000);
+
+    // حماية: منع النقر الأيمن في الصفحة
+    document.addEventListener('contextmenu', e => e.preventDefault());
+
+    // حماية: منع اختصارات المطور
+    document.addEventListener('keydown', e => {
+        if ((e.ctrlKey && e.shiftKey && ['I','J','C','U'].includes(e.key.toUpperCase())) ||
+            e.key === 'F12' || (e.ctrlKey && e.key === 'U')) {
+            e.preventDefault();
+            showToast('🛡️ هذا الإجراء غير مسموح به', 'warning');
+        }
+    });
+
+    // حماية: منع نسخ المحتوى
+    document.addEventListener('copy', e => {
+        if (document.getElementById('admin-panel')?.style.display !== 'none') {
+            e.clipboardData?.setData('text', '');
+            e.preventDefault();
+        }
+    });
+
+    function startSessionGuard() {
+        resetSessionTimer();
+        ['click','keydown','mousemove','scroll','touchstart'].forEach(evt =>
+            document.addEventListener(evt, resetSessionTimer, { passive: true }));
+    }
+
+    function resetSessionTimer() {
+        clearTimeout(sessionTimer);
+        clearTimeout(warningTimer);
+        const warning = document.getElementById('session-warning');
+        if (warning) warning.style.display = 'none';
+
+        warningTimer = setTimeout(() => {
+            const w = document.getElementById('session-warning');
+            if (w) { w.style.display = 'block'; startCountdown(5); }
+        }, SESSION_WARNING);
+
+        sessionTimer = setTimeout(() => {
+            const overlay = document.getElementById('rate-limit-overlay');
+            if (overlay) overlay.style.display = 'flex';
+            localStorage.removeItem('adminToken');
+        }, SESSION_TIMEOUT);
+    }
+
+    function startCountdown(mins) {
+        const el = document.getElementById('session-countdown');
+        if (!el) return;
+        let seconds = mins * 60;
+        const t = setInterval(() => {
+            seconds--;
+            el.textContent = seconds > 60 ? Math.ceil(seconds/60) + ' دقائق' : seconds + ' ثانية';
+            if (seconds <= 0) clearInterval(t);
+        }, 1000);
+    }
+
+    // حماية: تسجيل محاولات الدخول الفاشلة
+    function checkLoginSafe() {
+        const now = Date.now();
+        if (now < lockoutUntil) {
+            const rem = Math.ceil((lockoutUntil - now) / 60000);
+            showToast(`🔒 الحساب مقفل. انتظر ${rem} دقيقة`, 'error', 6000);
+            return;
+        }
+        const pass = document.getElementById('pass-input').value.trim();
+        if (!pass) { showToast('أدخل كلمة المرور', 'warning'); return; }
+
+        const btn = document.getElementById('login-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ التحقق...';
+
+        const fd = new FormData();
+        fd.append('username', 'admin');
+        fd.append('password', pass);
+
+        fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd })
+            .then(res => {
+                if (res.ok) {
+                    loginAttempts = 0;
+                    return res.json().then(data => {
+                        localStorage.setItem('adminToken', data.access_token);
+                        enterEmpire();
+                        startSessionGuard();
+                    });
+                } else {
+                    loginAttempts++;
+                    const rem = MAX_LOGIN_ATTEMPTS - loginAttempts;
+                    if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                        lockoutUntil = Date.now() + LOCKOUT_DURATION;
+                        showToast('🔒 تم إغلاق الحساب 15 دقيقة بعد محاولات متكررة', 'error', 8000);
+                    } else {
+                        showToast(`❌ مفتاح خاطئ — تبقّى ${rem} محاولة`, 'error');
+                    }
+                }
+            })
+            .catch(() => showToast('❌ خطأ في الاتصال', 'error'))
+            .finally(() => {
+                btn.disabled = false;
+                btn.innerHTML = 'فتح أبواب القلعة 🗝️';
+            });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ٢. إصلاح esc() في القوائم المنسدلة من fullCurriculum ██
+    // ══════════════════════════════════════════════════════════════════════════
+    function populateCurriculumFilters() {
+        const resGrade       = document.getElementById('res-grade');
+        const filterResGrade = document.getElementById('filter-res-grade');
+        const currFilter     = document.getElementById('curr-filter-grade');
+        const qfGrade        = document.getElementById('qf-grade');
+        const notifGrade     = document.getElementById('notif-grade');
+
+        if(resGrade)       resGrade.innerHTML       = '<option value="">-- اختر الصف الدراسي --</option>';
+        if(filterResGrade) filterResGrade.innerHTML = '<option value="">-- عرض جميع الصفوف --</option>';
+        if(currFilter)     currFilter.innerHTML     = '<option value="all">عرض جميع الصفوف</option>';
+        if(qfGrade)        qfGrade.innerHTML        = '<option value="all">-- جميع الصفوف --</option>';
+        if(notifGrade)     notifGrade.innerHTML     = '<option value="all">📡 جميع الصفوف</option>';
+
+        // ── إحصاء الدروس الكلي ──
+        let totalLessons = 0;
+
+        fullCurriculum.forEach(g => {
+            const gNameEsc = esc(g.name);
+            if(resGrade)       resGrade.innerHTML       += `<option value="${gNameEsc}">${gNameEsc}</option>`;
+            if(filterResGrade) filterResGrade.innerHTML += `<option value="${gNameEsc}">${gNameEsc}</option>`;
+            if(currFilter)     currFilter.innerHTML     += `<option value="${g.id}">${gNameEsc}</option>`;
+            if(qfGrade)        qfGrade.innerHTML        += `<option value="${gNameEsc}">${gNameEsc}</option>`;
+            if(notifGrade)     notifGrade.innerHTML     += `<option value="${gNameEsc}">${gNameEsc}</option>`;
+
+            g.semesters.forEach(s => s.units.forEach(u => { totalLessons += u.lessons.length; }));
+        });
+
+        const totalLessonsEl = document.getElementById('stat-total-lessons');
+        if (totalLessonsEl) totalLessonsEl.innerText = totalLessons;
+
+        const qfTerm   = document.getElementById('qf-term');
+        const qfUnit   = document.getElementById('qf-unit');
+        const qfLesson = document.getElementById('qf-lesson');
+        if(qfTerm)   qfTerm.innerHTML   = '<option value="all">-- جميع الفصول --</option>';
+        if(qfUnit)   qfUnit.innerHTML   = '<option value="all">-- جميع الوحدات --</option>';
+        if(qfLesson) qfLesson.innerHTML = '<option value="all">-- جميع الدروس --</option>';
+    }
+
+    function populateGradeDropdown(prefix) {
+        const sel = document.getElementById(`${prefix}-grade`);
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- اختر الصف --</option>';
+        fullCurriculum.forEach((g, i) => sel.innerHTML += `<option value="${i}">${esc(g.name)}</option>`);
+        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
+    }
+
+    function updateSemesters(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sel  = document.getElementById(`${prefix}-term`);
+        if(!sel) return;
+        resetDropdowns(prefix, ['term', 'unit', 'lesson']);
+        if (gIdx === "" || !fullCurriculum[gIdx]) return;
+        fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${esc(s.name)}</option>`);
+    }
+
+    function updateUnits(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sIdx = document.getElementById(`${prefix}-term`).value;
+        const sel  = document.getElementById(`${prefix}-unit`);
+        if(!sel) return;
+        resetDropdowns(prefix, ['unit', 'lesson']);
+        if (sIdx === "" || !fullCurriculum[gIdx] || !fullCurriculum[gIdx].semesters[sIdx]) return;
+        fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${esc(u.name)}</option>`);
+    }
+
+    function updateLessons(prefix) {
+        const gIdx = document.getElementById(`${prefix}-grade`).value;
+        const sIdx = document.getElementById(`${prefix}-term`).value;
+        const uIdx = document.getElementById(`${prefix}-unit`).value;
+        const sel  = document.getElementById(`${prefix}-lesson`);
+        if(!sel) return;
+        resetDropdowns(prefix, ['lesson']);
+        if (uIdx === "" || !fullCurriculum[gIdx]?.semesters[sIdx]?.units[uIdx]) return;
+        fullCurriculum[gIdx].semesters[sIdx].units[uIdx].lessons.forEach(l => sel.innerHTML += `<option value="${esc(l.name)}">${esc(l.name)}</option>`);
+    }
+
+    function updateAddSemesters() {
+        const gIdx = document.getElementById('add-grade-sel').value;
+        const sel  = document.getElementById('add-term-sel');
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- اختر الفصل --</option>';
+        if (gIdx !== "" && fullCurriculum[gIdx])
+            fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${esc(s.name)}</option>`);
+    }
+
+    function updateAddUnits() {
+        const gIdx = document.getElementById('add-grade-sel').value;
+        const sIdx = document.getElementById('add-term-sel').value;
+        const sel  = document.getElementById('add-unit-sel');
+        if(!sel) return;
+        sel.innerHTML = '<option value="">-- اختر الوحدة --</option>';
+        if (sIdx !== "" && fullCurriculum[gIdx]?.semesters[sIdx])
+            fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${esc(u.name)}</option>`);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ٣. تحميل بيانات المعلمين ██
+    // ══════════════════════════════════════════════════════════════════════════
+    async function loadTeachersStats() {
+        try {
+            const res = await authFetch('/api/admin/teachers');
+            if (!res || !res.ok) {
+                document.getElementById('stat-total-teachers').innerText = '—';
+                document.getElementById('stat-teachers-detail').innerText = 'مسار غير متاح';
+                return;
+            }
+            const data = await res.json();
+            const count = Array.isArray(data) ? data.length : (data.total || data.count || 0);
+            document.getElementById('stat-total-teachers').innerText = count;
+            document.getElementById('stat-teachers-detail').innerText = count > 0 ? `${count} معلم مسجّل` : 'لا يوجد معلمون بعد';
+        } catch(e) {
+            document.getElementById('stat-total-teachers').innerText = '—';
+            document.getElementById('stat-teachers-detail').innerText = 'تحقق من الـ API';
+        }
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ٤. نظام الإشعارات الملكية ██
+    // ══════════════════════════════════════════════════════════════════════════
+    let notifHistory = JSON.parse(localStorage.getItem('notifHistory') || '[]');
+    let selectedNotifType = 'announcement';
+
+    function openNotifModal() {
+        document.getElementById('notif-modal').style.display = 'flex';
+        renderNotifHistory();
+    }
+    function closeNotifModal() {
+        document.getElementById('notif-modal').style.display = 'none';
+        document.getElementById('notif-preview-box').style.display = 'none';
+        document.getElementById('notif-title-input').value = '';
+        document.getElementById('notif-body-input').value = '';
+    }
+
+    function selectNotifType(el, type) {
+        document.querySelectorAll('.notif-type-btn').forEach(b => b.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedNotifType = type;
+    }
+
+    function previewNotif() {
+        const title = document.getElementById('notif-title-input').value.trim();
+        const body  = document.getElementById('notif-body-input').value.trim();
+        if (!title && !body) { showToast('أدخل عنواناً أو نصاً للإشعار', 'warning'); return; }
+        const previewBox   = document.getElementById('notif-preview-box');
+        document.getElementById('notif-preview-title').textContent = title || '(بدون عنوان)';
+        document.getElementById('notif-preview-body').textContent  = body  || '(بدون نص)';
+        previewBox.style.display = 'block';
+    }
+
+    async function sendNotification() {
+        const title    = document.getElementById('notif-title-input').value.trim();
+        const body     = document.getElementById('notif-body-input').value.trim();
+        const grade    = document.getElementById('notif-grade').value;
+        const priority = document.getElementById('notif-priority').value;
+        const btn      = document.getElementById('btn-send-notif');
+
+        if (!title) { showToast('⚠️ أدخل عنوان الإشعار', 'warning'); return; }
+        if (!body)  { showToast('⚠️ أدخل نص الرسالة', 'warning'); return; }
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإرسال...';
+
+        const fd = new FormData();
+        fd.append('title',    title);
+        fd.append('body',     body);
+        fd.append('grade',    grade);
+        fd.append('priority', priority);
+        fd.append('type',     selectedNotifType);
+
+        try {
+            const res = await authFetch('/api/admin/notifications', { method: 'POST', body: fd });
+            const notifEntry = {
+                id: Date.now(),
+                title: esc(title),
+                body:  esc(body),
+                grade: grade === 'all' ? 'جميع الصفوف' : esc(grade),
+                type:  selectedNotifType,
+                priority,
+                sentAt: new Date().toLocaleString('ar-OM'),
+                status: res && res.ok ? 'sent' : 'pending'
+            };
+            notifHistory.unshift(notifEntry);
+            if (notifHistory.length > 50) notifHistory.pop();
+            localStorage.setItem('notifHistory', JSON.stringify(notifHistory));
+            notifSentCount++;
+            const el = document.getElementById('stat-total-notifs');
+            if (el) el.innerText = notifSentCount;
+
+            if (res && res.ok) {
+                showToast(`📡 تم إرسال الإشعار لـ${grade === 'all' ? ' جميع الصفوف' : ' ' + grade}`, 'success', 5000);
+                closeNotifModal();
+            } else {
+                showToast('⚠️ تم تسجيل الإشعار محلياً — تحقق من API السيرفر', 'warning', 6000);
+                renderNotifHistory();
+            }
+        } catch(e) {
+            showToast('❌ فشل الاتصال بالسيرفر', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> 📡 إرسال للرعية';
+        }
+    }
+
+    function renderNotifHistory() {
+        const container = document.getElementById('notif-history-list');
+        if (!container) return;
+        if (!notifHistory.length) {
+            container.innerHTML = `<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.3);"><i class="fas fa-bell-slash" style="font-size:2rem;display:block;margin-bottom:10px;"></i>لا توجد إشعارات مُرسَلة بعد</div>`;
+            return;
+        }
+        const typeIcons = { announcement:'📢', exam:'📝', achievement:'🏆', warning:'⚠️', homework:'📚' };
+        container.innerHTML = notifHistory.slice(0, 15).map(n => `
+            <div class="notif-history-item">
+                <div style="flex:1;">
+                    <div style="font-weight:bold;color:#fff;font-size:0.95rem;">${typeIcons[n.type]||'🔔'} ${n.title}</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:4px;">${n.grade} · ${n.sentAt}</div>
+                </div>
+                <span class="notif-badge ${n.status}">${n.status === 'sent' ? '✓ أُرسل' : '⏳ محلي'}</span>
+            </div>`).join('');
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ٥. استيراد المنهج من Excel ██
+    // ══════════════════════════════════════════════════════════════════════════
+    let parsedCurriculumData = {};
+
+    function openCurrImportModal()  { document.getElementById('curr-import-modal').style.display = 'flex'; }
+    function closeCurrImportModal() {
+        document.getElementById('curr-import-modal').style.display = 'none';
+        const fi = document.getElementById('curr-excel-input');
+        if (fi) fi.value = '';
+        document.getElementById('curr-import-preview').style.display = 'none';
+        document.getElementById('curr-import-empty').style.display   = 'block';
+        document.getElementById('curr-import-progress-section').style.display = 'none';
+        parsedCurriculumData = {};
+    }
+
+    function downloadCurriculumTemplate() {
+        if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة SheetJS لم تُحمَّل بعد', 'warning'); return; }
+        const headers = ['الصف', 'الفصل', 'الوحدة', 'الدرس'];
+        const sampleRows = [
+            ['الصف الخامس', 'الفصل الأول', 'الوحدة الأولى: الأعداد', 'درس الأعداد الطبيعية'],
+            ['الصف الخامس', 'الفصل الأول', 'الوحدة الأولى: الأعداد', 'درس القيمة المنزلية'],
+            ['الصف الخامس', 'الفصل الأول', 'الوحدة الثانية: العمليات', 'درس الجمع والطرح'],
+            ['الصف الخامس', 'الفصل الثاني', 'الوحدة الأولى: الكسور', 'درس الكسور الاعتيادية'],
+            ['الصف السادس', 'الفصل الأول', 'الوحدة الأولى: الأنماط', 'درس الأنماط العددية'],
+        ];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...sampleRows]);
+        ws['!cols'] = [{ wch: 18 }, { wch: 18 }, { wch: 28 }, { wch: 35 }];
+        XLSX.utils.book_append_sheet(wb, ws, 'هيكل المنهج');
+        XLSX.writeFile(wb, 'قالب_هيكل_منهج_إمبراطورية_الرياضيات.xlsx');
+    }
+
+    // ── خريطة مرنة لأسماء الأعمدة (تقبل تنويعات كثيرة) ──────────────────
+    function detectColumnKeys(firstRow) {
+        const keys = Object.keys(firstRow);
+        const find = (...candidates) => {
+            for (const c of candidates) {
+                const found = keys.find(k => k.trim().replace(/\s+/g,'') === c.replace(/\s+/g,''));
+                if (found) return found;
+            }
+            return null;
+        };
+        return {
+            grade:    find('الصف','صف','Grade','grade','الصف الدراسي'),
+            semester: find('الفصل','فصل','الفصلالدراسي','الفصل الدراسي','Semester','semester'),
+            unit:     find('الوحدة','وحدة','الوحدةالدراسية','الوحدة الدراسية','Unit','unit'),
+            lesson:   find('الدرس','درس','اسمالدرس','اسم الدرس','Lesson','lesson'),
+        };
+    }
+
+    function handleCurriculumFile(input) {
+        const file = input.files[0];
+        if (!file) return;
+        document.getElementById('curr-file-name').textContent = '⏳ جاري قراءة الهيكل...';
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const data = new Uint8Array(e.target.result);
+                const wb   = XLSX.read(data, { type: 'array' });
+                const ws   = wb.Sheets[wb.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                if (!rows || rows.length === 0) {
+                    showToast('⚠️ الملف فارغ أو لا يحتوي على بيانات', 'warning'); return;
+                }
+
+                // ── اكتشاف الأعمدة تلقائياً ──
+                const colKeys = detectColumnKeys(rows[0]);
+                if (!colKeys.grade || !colKeys.semester || !colKeys.unit || !colKeys.lesson) {
+                    const found = Object.keys(rows[0]).join(' | ');
+                    showToast(`⚠️ تعذّر اكتشاف الأعمدة. الأعمدة الموجودة: ${found}`, 'warning', 8000);
+                    document.getElementById('curr-file-name').textContent = `❌ أعمدة غير متوافقة: ${found}`;
+                    return;
+                }
+
+                document.getElementById('curr-file-name').textContent = `✅ ${file.name} (${rows.length} صف)`;
+                parseCurriculumRows(rows, colKeys);
+            } catch(err) {
+                console.error(err);
+                showToast('❌ فشل قراءة الملف: ' + err.message, 'error', 6000);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    }
+
+    function parseCurriculumRows(rows, colKeys) {
+        // colKeys: { grade, semester, unit, lesson } — أسماء الأعمدة الفعلية في الملف
+        if (!colKeys) colKeys = { grade:'الصف', semester:'الفصل', unit:'الوحدة', lesson:'الدرس' };
+
+        const tree = {};
+        let totalLessons = 0;
+
+        rows.forEach(row => {
+            const gradeName    = String(row[colKeys.grade]    || '').trim();
+            const semesterName = String(row[colKeys.semester] || '').trim();
+            const unitName     = String(row[colKeys.unit]     || '').trim();
+            const lessonName   = String(row[colKeys.lesson]   || '').trim();
+            if (!gradeName || !semesterName || !unitName || !lessonName) return;
+
+            if (!tree[gradeName]) tree[gradeName] = {};
+            if (!tree[gradeName][semesterName]) tree[gradeName][semesterName] = {};
+            if (!tree[gradeName][semesterName][unitName]) tree[gradeName][semesterName][unitName] = [];
+            if (!tree[gradeName][semesterName][unitName].includes(lessonName)) {
+                tree[gradeName][semesterName][unitName].push(lessonName);
+                totalLessons++;
+            }
+        });
+
+        parsedCurriculumData = tree;
+
+        // ── حساب الإحصائيات الحقيقية (صف + فصل + وحدة + درس) ──
+        let newUnits = 0, newLessons = 0, dupLessons = 0;
+        for (const [g, sems] of Object.entries(tree)) {
+            for (const [s, units] of Object.entries(sems)) {
+                for (const [u, lessons] of Object.entries(units)) {
+                    const gradeObj = fullCurriculum.find(gr => gr.name === g);
+                    const semObj   = gradeObj?.semesters.find(sr => sr.name === s);
+                    const unitObj  = semObj?.units.find(ur => ur.name === u);
+                    if (!unitObj) { newUnits++; newLessons += lessons.length; continue; }
+                    lessons.forEach(l => {
+                        if (unitObj.lessons.some(lr => lr.name === l)) dupLessons++;
+                        else newLessons++;
+                    });
+                }
+            }
+        }
+        const realNewCount = newUnits + newLessons; // كل وحدة جديدة + كل درس جديد
+
+        // بناء معاينة الشجرة
+        let previewHtml = '';
+        for (const [g, sems] of Object.entries(tree)) {
+            previewHtml += `<div class="g">📍 ${esc(g)}</div>`;
+            for (const [s, units] of Object.entries(sems)) {
+                previewHtml += `<div class="s">📅 ${esc(s)}</div>`;
+                for (const [u, lessons] of Object.entries(units)) {
+                    const gradeObj = fullCurriculum.find(gr => gr.name === g);
+                    const semObj   = gradeObj?.semesters.find(sr => sr.name === s);
+                    const unitObj  = semObj?.units.find(ur => ur.name === u);
+                    const unitIsNew = !unitObj;
+                    previewHtml += `<div class="u">📦 ${esc(u)} ${unitIsNew ? '<span class="new-badge">وحدة جديدة</span>' : ''} <span style="color:rgba(255,255,255,0.3);font-size:0.75rem;">(${lessons.length} درس)</span></div>`;
+                    lessons.forEach(l => {
+                        const exists = !unitIsNew && unitObj.lessons.some(lr => lr.name === l);
+                        previewHtml += `<div class="l">📖 ${esc(l)} ${exists ? '<span class="dup-badge">موجود</span>' : '<span class="new-badge">جديد</span>'}</div>`;
+                    });
+                }
+            }
+        }
+        document.getElementById('curr-tree-preview-content').innerHTML = previewHtml || '<p style="color:rgba(255,255,255,0.4);">لا بيانات</p>';
+
+        document.getElementById('curr-import-stats').innerHTML = `
+            <div class="import-stat"><div class="num">${totalLessons}</div><div class="lbl">إجمالي الدروس</div></div>
+            <div class="import-stat" style="border-color:rgba(46,204,113,0.4);"><div class="num" style="color:#2ecc71;">${newLessons}</div><div class="lbl">درس جديد</div></div>
+            <div class="import-stat" style="border-color:rgba(52,152,219,0.4);"><div class="num" style="color:#3498db;">${newUnits}</div><div class="lbl">وحدة جديدة</div></div>
+            <div class="import-stat" style="border-color:rgba(243,156,18,0.4);"><div class="num" style="color:#f39c12;">${dupLessons}</div><div class="lbl">موجود مسبقاً</div></div>`;
+
+        const confirmBtn = document.getElementById('btn-confirm-curr-import');
+        if (realNewCount === 0 && totalLessons === dupLessons) {
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-check-circle"></i> المنهج محدّث بالفعل — لا جديد للإضافة';
+        } else {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `<i class="fas fa-sitemap"></i> 👑 تأكيد وإضافة ${newLessons} درس و${newUnits} وحدة جديدة`;
+        }
+
+        document.getElementById('curr-import-preview').style.display = 'block';
+        document.getElementById('curr-import-empty').style.display   = 'none';
+        document.getElementById('curr-import-progress-section').style.display = 'none';
+    }
+
+    async function startCurriculumImport() {
+        if (!parsedCurriculumData || !Object.keys(parsedCurriculumData).length) return;
+        const progressSec = document.getElementById('curr-import-progress-section');
+        const progressBar = document.getElementById('curr-progress-bar');
+        const progressTxt = document.getElementById('curr-progress-text');
+        const confirmBtn  = document.getElementById('btn-confirm-curr-import');
+
+        confirmBtn.disabled = true;
+        progressSec.style.display = 'block';
+
+        // ── حساب إجمالي العمليات (كل عنصر = خطوة واحدة) ──
+        let done = 0, total = 0, failed = 0, skipped = 0;
+        for (const [, sems] of Object.entries(parsedCurriculumData))
+            for (const [, units] of Object.entries(sems))
+                for (const [, lessons] of Object.entries(units))
+                    total += 3 + lessons.length; // grade + semester + unit + lessons
+
+        const updateProgress = (label) => {
+            done++;
+            const pct = Math.min(Math.round((done / total) * 100), 100);
+            progressBar.style.width = pct + '%';
+            progressBar.textContent = pct + '%';
+            progressTxt.textContent = `${done} / ${total}${label ? ' — ' + label : ''}`;
+        };
+
+        // ── مخزن محلي لتتبع IDs المُنشأة في هذه الجلسة ──
+        // هذا يحل مشكلة الاعتماد على fullCurriculum القديم بعد الإنشاء
+        const localGradeMap   = {}; // gradeName  → gradeId
+        const localSemMap     = {}; // `gradeId|semName` → semId
+        const localUnitMap    = {}; // `semId|unitName`  → unitId
+        const localLessonSet  = new Set(); // `unitId|lessonName`
+
+        // ── تهيئة المخزن من fullCurriculum الحالي ──
+        for (const g of fullCurriculum) {
+            localGradeMap[g.name] = g.id;
+            for (const s of (g.semesters || [])) {
+                localSemMap[`${g.id}|${s.name}`] = s.id;
+                for (const u of (s.units || [])) {
+                    localUnitMap[`${s.id}|${u.name}`] = u.id;
+                    for (const l of (u.lessons || [])) {
+                        localLessonSet.add(`${u.id}|${l.name}`);
+                    }
+                }
+            }
+        }
+
+        // ── الرفع التسلسلي الإجباري: صف → فصل → وحدة → دروس ──
+        for (const [gradeName, sems] of Object.entries(parsedCurriculumData)) {
+
+            // ① الصف
+            let gradeId = localGradeMap[gradeName];
+            if (!gradeId) {
+                const fd = new FormData(); fd.append('name', gradeName);
+                try {
+                    const res = await authFetch('/api/admin/curriculum/grades', { method: 'POST', body: fd });
+                    if (res && res.ok) {
+                        const d = await res.json();
+                        gradeId = d.id || d.grade_id;
+                        if (gradeId) localGradeMap[gradeName] = gradeId;
+                        else { failed++; updateProgress(`فشل: ${gradeName}`); continue; }
+                    } else { failed++; updateProgress(`فشل: ${gradeName}`); continue; }
+                } catch(e) { failed++; updateProgress(`خطأ: ${gradeName}`); continue; }
+            } else { skipped++; }
+            updateProgress(`صف: ${gradeName}`);
+            await new Promise(r => setTimeout(r, 60));
+
+            for (const [semName, units] of Object.entries(sems)) {
+
+                // ② الفصل
+                const semKey = `${gradeId}|${semName}`;
+                let semId = localSemMap[semKey];
+                if (!semId) {
+                    const fd = new FormData(); fd.append('name', semName); fd.append('grade_id', gradeId);
+                    try {
+                        const res = await authFetch('/api/admin/curriculum/semesters', { method: 'POST', body: fd });
+                        if (res && res.ok) {
+                            const d = await res.json();
+                            semId = d.id || d.semester_id;
+                            if (semId) localSemMap[semKey] = semId;
+                            else { failed++; updateProgress(`فشل: ${semName}`); continue; }
+                        } else { failed++; updateProgress(`فشل: ${semName}`); continue; }
+                    } catch(e) { failed++; updateProgress(`خطأ: ${semName}`); continue; }
+                } else { skipped++; }
+                updateProgress(`فصل: ${semName}`);
+                await new Promise(r => setTimeout(r, 60));
+
+                for (const [unitName, lessons] of Object.entries(units)) {
+
+                    // ③ الوحدة
+                    const unitKey = `${semId}|${unitName}`;
+                    let unitId = localUnitMap[unitKey];
+                    if (!unitId) {
+                        const fd = new FormData(); fd.append('name', unitName); fd.append('semester_id', semId);
+                        try {
+                            const res = await authFetch('/api/admin/curriculum/units', { method: 'POST', body: fd });
+                            if (res && res.ok) {
+                                const d = await res.json();
+                                unitId = d.id || d.unit_id;
+                                if (unitId) localUnitMap[unitKey] = unitId;
+                                else { failed++; updateProgress(`فشل: ${unitName}`); continue; }
+                            } else { failed++; updateProgress(`فشل: ${unitName}`); continue; }
+                        } catch(e) { failed++; updateProgress(`خطأ: ${unitName}`); continue; }
+                    } else { skipped++; }
+                    updateProgress(`وحدة: ${unitName}`);
+                    await new Promise(r => setTimeout(r, 60));
+
+                    // ④ الدروس
+                    for (const lessonName of lessons) {
+                        const lessonKey = `${unitId}|${lessonName}`;
+                        if (!localLessonSet.has(lessonKey)) {
+                            const fd = new FormData(); fd.append('name', lessonName); fd.append('unit_id', unitId);
+                            try {
+                                const res = await authFetch('/api/admin/curriculum/lessons', { method: 'POST', body: fd });
+                                if (res && res.ok) {
+                                    localLessonSet.add(lessonKey);
+                                } else { failed++; }
+                            } catch(e) { failed++; }
+                        } else { skipped++; }
+                        updateProgress(`درس: ${lessonName}`);
+                        await new Promise(r => setTimeout(r, 50));
+                    }
+                }
+            }
+        }
+
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+
+        const summary = failed > 0
+            ? `⚠️ اكتمل الاستيراد مع ${failed} عنصر فشل`
+            : `👑 تم بناء هيكل المنهج بنجاح${skipped > 0 ? ` (${skipped} موجود مسبقاً)` : ''}`;
+
+        setTimeout(async () => {
+            closeCurrImportModal();
+            showToast(summary, failed > 0 ? 'warning' : 'success', 7000);
+            await loadCurriculum();
+        }, 800);
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ ٦. loadAllData المحدّث ██
+    // ══════════════════════════════════════════════════════════════════════════
+    async function loadAllData() {
+        await loadCurriculum();
+        await Promise.all([
+            loadDashboard(),
+            loadQuestions(),
+            loadPDFs(),
+            loadScheduledExams(),
+            loadAdminResources(),
+            loadTeachersStats()
+        ]);
+        // تحديث عداد الإشعارات المرسلة من التاريخ المحلي
+        const el = document.getElementById('stat-total-notifs');
+        if (el) el.innerText = notifHistory.length;
+        // Auto-refresh الإحصائيات كل 5 دقائق
+        setInterval(() => { loadDashboard(); loadTeachersStats(); }, 5 * 60 * 1000);
+    }
+
     window.onload = () => {
         initParticles();
         animateParticles();
-        if(localStorage.getItem('adminToken')) enterEmpire();
+        if(localStorage.getItem('adminToken')) {
+            enterEmpire();
+            startSessionGuard();
+        }
+        // ربط زر الدخول بالدالة الآمنة
+        const loginBtn = document.getElementById('login-btn');
+        if (loginBtn) { loginBtn.onclick = checkLoginSafe; }
+        // دعم Enter في حقل كلمة المرور
+        const passInput = document.getElementById('pass-input');
+        if (passInput) { passInput.addEventListener('keydown', e => { if(e.key === 'Enter') checkLoginSafe(); }); }
     };
     window.addEventListener('resize', initParticles);
 </script>
