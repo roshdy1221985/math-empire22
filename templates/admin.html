@@ -30,7 +30,7 @@
             text-align: center; width: 400px; backdrop-filter: blur(20px); box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
         }
 
-        #admin-panel { display: none; min-height: 100vh; display: flex; position: relative; z-index: 1; }
+        #admin-panel { min-height: 100vh; position: relative; z-index: 1; display: flex; }
         
         .sidebar { 
             width: 300px; background: rgba(0,0,0,0.9); border-left: 2px solid var(--border); 
@@ -155,14 +155,32 @@
         }
         @keyframes modalPop { from { opacity:0; transform:scale(0.9) translateY(20px); } to { opacity:1; transform:scale(1) translateY(0); } }
         .import-card {
-            background: linear-gradient(135deg, rgba(212,175,55,0.06) 0%, rgba(4,13,33,0.95) 100%);
-            border: 1.5px solid rgba(212,175,55,0.4); border-radius: 22px;
-            padding: 30px; margin-bottom: 25px; position: relative; overflow: hidden;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            background: linear-gradient(135deg, rgba(212,175,55,0.08) 0%, rgba(7,22,51,0.97) 60%, rgba(4,13,33,0.99) 100%);
+            border: 1.5px solid rgba(212,175,55,0.45); border-radius: 24px;
+            padding: 35px; margin-bottom: 25px; position: relative; overflow: hidden;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px rgba(212,175,55,0.08), inset 0 1px 0 rgba(212,175,55,0.12);
+            transition: box-shadow 0.4s ease, border-color 0.4s ease;
+        }
+        .import-card:hover {
+            border-color: rgba(212,175,55,0.7);
+            box-shadow: 0 12px 50px rgba(0,0,0,0.6), 0 0 30px rgba(212,175,55,0.08), inset 0 1px 0 rgba(212,175,55,0.18);
         }
         .import-card::before {
-            content:''; position:absolute; top:0; left:0; right:0; height:3px;
+            content:''; position:absolute; top:0; left:0; right:0; height:4px;
             background: var(--gold-grad);
+        }
+        .import-card::after {
+            content:'👑'; position:absolute; top:18px; left:25px;
+            font-size: 1.8rem; opacity: 0.12; pointer-events: none;
+            animation: crownPulse 4s ease-in-out infinite;
+        }
+        @keyframes crownPulse { 0%,100%{opacity:0.10;transform:scale(1);} 50%{opacity:0.22;transform:scale(1.1);} }
+        .import-step-badge {
+            display:inline-flex; align-items:center; justify-content:center;
+            width:28px; height:28px; border-radius:50%;
+            background: var(--gold-grad); color:#000; font-weight:900; font-size:0.85rem;
+            margin-left: 8px; flex-shrink:0;
+            box-shadow: 0 2px 8px rgba(212,175,55,0.4);
         }
         .import-card-title {
             font-family: 'Amiri'; font-size: 1.5rem; color: var(--gold);
@@ -190,12 +208,16 @@
         }
         .import-preview-table td { padding:12px; border-bottom:1px solid rgba(255,255,255,0.06); }
         .import-preview-table tr.row-error td { background:rgba(255,80,80,0.12); }
+        .import-preview-table tr.row-warn  td { background:rgba(243,156,18,0.07); }
         .import-preview-table tr.row-ok:hover td { background:rgba(212,175,55,0.04); }
         .row-badge { padding:4px 10px; border-radius:8px; font-size:0.75rem; font-weight:bold; }
-        .badge-ok { background:rgba(46,204,113,0.2); color:#2ecc71; }
-        .badge-err { background:rgba(255,94,94,0.2); color:#ff5e5e; }
-        .import-progress-wrap { background:rgba(0,0,0,0.5); border-radius:20px; overflow:hidden; height:22px; margin:15px 0; border:1px solid var(--border); }
-        .import-progress-bar { height:100%; background:var(--gold-grad); border-radius:20px; transition:width 0.4s ease; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold; color:#000; min-width:40px; }
+        .badge-ok   { background:rgba(46,204,113,0.2);  color:#2ecc71; }
+        .badge-err  { background:rgba(255,94,94,0.2);   color:#ff5e5e; }
+        .badge-warn { background:rgba(243,156,18,0.18); color:#f39c12; border:1px solid rgba(243,156,18,0.3); }
+        .import-progress-wrap { background:rgba(0,0,0,0.5); border-radius:20px; overflow:hidden; height:24px; margin:15px 0; border:1px solid var(--border); }
+        .import-progress-bar { height:100%; background:var(--gold-grad); border-radius:20px; transition:width 0.4s ease; display:flex; align-items:center; justify-content:center; font-size:0.75rem; font-weight:bold; color:#000; min-width:40px; position:relative; overflow:hidden; }
+        .import-progress-bar::after { content:''; position:absolute; top:0; left:-100%; width:60%; height:100%; background:linear-gradient(90deg,transparent,rgba(255,255,255,0.3),transparent); animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { to { left: 200%; } }
         .import-stats { display:flex; gap:15px; flex-wrap:wrap; margin-top:15px; }
         .import-stat { background:rgba(0,0,0,0.4); border:1px solid var(--border); border-radius:12px; padding:12px 20px; flex:1; min-width:120px; text-align:center; }
         .import-stat .num { font-size:1.8rem; color:var(--gold); font-family:'Amiri'; font-weight:bold; }
@@ -209,19 +231,30 @@
 </head>
 <body>
 
+    <!-- ── إخفاء لوحة الإدارة فوراً قبل أي رسم (يمنع الوميض) ── -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var panel = document.getElementById('admin-panel');
+            if (panel) panel.style.display = 'none';
+        });
+    </script>
+
     <canvas id="particles-js"></canvas>
     <audio id="sword-sfx" src="/static/sword.mp3" preload="auto"></audio>
 
     <!-- ══════════════════════════════════════════════════════════
          بوابة الاستيراد الملكية — Import Excel Modal
     ══════════════════════════════════════════════════════════ -->
-    <div id="import-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10002; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(8px);">
+    <div id="import-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); z-index:10002; justify-content:center; align-items:center; padding:20px; backdrop-filter:blur(10px);">
         <div class="import-modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; border-bottom:1px solid rgba(212,175,55,0.3); padding-bottom:20px;">
-                <h2 style="color:var(--gold); font-family:'Amiri'; font-size:2rem; margin:0;">
-                    <i class="fas fa-file-excel" style="color:#2ecc71;"></i> بوابة الاستيراد الملكية
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:25px; border-bottom:1px solid rgba(212,175,55,0.25); padding-bottom:20px;">
+                <h2 style="color:var(--gold); font-family:'Amiri'; font-size:2rem; margin:0; display:flex; align-items:center; gap:12px;">
+                    <span style="background:rgba(46,204,113,0.15); border:1px solid rgba(46,204,113,0.3); border-radius:12px; padding:8px 14px; display:flex; align-items:center; gap:8px;">
+                        <i class="fas fa-file-excel" style="color:#2ecc71; filter:drop-shadow(0 0 6px rgba(46,204,113,0.5));"></i>
+                    </span>
+                    رادار المعاينة الذكية
                 </h2>
-                <button onclick="closeImportModal()" style="background:rgba(255,94,94,0.15); border:1px solid var(--red); color:var(--red); border-radius:10px; padding:10px 18px; cursor:pointer; font-family:'Cairo'; font-weight:bold; font-size:1rem; transition:0.2s;">
+                <button onclick="closeImportModal()" style="background:rgba(255,94,94,0.12); border:1px solid rgba(255,94,94,0.4); color:var(--red); border-radius:12px; padding:10px 20px; cursor:pointer; font-family:'Cairo'; font-weight:bold; font-size:0.95rem; transition:0.2s;" onmouseover="this.style.background='rgba(255,94,94,0.2)'" onmouseout="this.style.background='rgba(255,94,94,0.12)'">
                     <i class="fas fa-times"></i> إغلاق
                 </button>
             </div>
@@ -252,9 +285,15 @@
                     <i class="fas fa-crown"></i> تأكيد وإيداع التحديات في الخزنة
                 </button>
             </div>
-            <div id="import-empty-state" style="text-align:center; padding:50px; color:rgba(255,255,255,0.5);">
-                <i class="fas fa-file-excel" style="font-size:4rem; color:rgba(46,204,113,0.25); margin-bottom:15px; display:block;"></i>
-                <p style="font-size:1.1rem;">ارفع ملف Excel لبدء المعاينة الذكية</p>
+            <div id="import-empty-state" style="text-align:center; padding:60px 30px; color:rgba(255,255,255,0.5);">
+                <div style="position:relative; display:inline-block; margin-bottom:20px;">
+                    <i class="fas fa-file-excel" style="font-size:5rem; color:rgba(46,204,113,0.2); display:block;"></i>
+                    <div style="position:absolute; bottom:-5px; right:-5px; width:30px; height:30px; background:rgba(212,175,55,0.2); border-radius:50%; display:flex; align-items:center; justify-content:center; border:1px solid rgba(212,175,55,0.3);">
+                        <i class="fas fa-arrow-up" style="color:var(--gold); font-size:0.9rem;"></i>
+                    </div>
+                </div>
+                <p style="font-size:1.15rem; margin:0 0 8px;">ارفع ملف Excel لبدء المعاينة الذكية</p>
+                <p style="font-size:0.85rem; color:rgba(255,255,255,0.3);">سيتم تحليل أسئلتك فوراً وعرضها مع رادار الأخطاء 🎯</p>
             </div>
         </div>
     </div>
@@ -290,6 +329,7 @@
                 <div class="nav-link" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                 <div class="nav-link" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
+                <div class="nav-link" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
                 <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
@@ -514,56 +554,64 @@
                 ══════════════════════════════════════════════════════ -->
                 <div class="import-card">
                     <!-- Glowing orb decoration -->
-                    <div style="position:absolute; top:-40px; left:-40px; width:150px; height:150px; background:radial-gradient(circle, rgba(46,204,113,0.12) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
-                    <div style="position:absolute; bottom:-40px; right:-40px; width:120px; height:120px; background:radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
+                    <div style="position:absolute; top:-50px; left:-50px; width:180px; height:180px; background:radial-gradient(circle, rgba(46,204,113,0.1) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
+                    <div style="position:absolute; bottom:-50px; right:-50px; width:150px; height:150px; background:radial-gradient(circle, rgba(212,175,55,0.09) 0%, transparent 70%); border-radius:50%; pointer-events:none;"></div>
+                    <div style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:400px; height:400px; background:radial-gradient(circle, rgba(212,175,55,0.02) 0%, transparent 65%); border-radius:50%; pointer-events:none;"></div>
 
                     <div class="import-card-title">
-                        <i class="fas fa-file-excel" style="color:#2ecc71; font-size:1.8rem;"></i>
+                        <i class="fas fa-file-excel" style="color:#2ecc71; font-size:2rem; filter:drop-shadow(0 0 8px rgba(46,204,113,0.4));"></i>
                         <div>
-                            <div>بوابة الاستيراد الملكي من Excel</div>
-                            <div style="font-size:0.85rem; color:rgba(255,255,255,0.5); font-family:'Cairo'; font-weight:400; margin-top:4px;">أودِع مئات التحديات دفعة واحدة من ملف مخطوطتك الملكية</div>
+                            <div style="background: var(--gold-grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;">بوابة الاستيراد الملكي من Excel</div>
+                            <div style="font-size:0.85rem; color:rgba(255,255,255,0.45); font-family:'Cairo'; font-weight:400; margin-top:5px; -webkit-text-fill-color: rgba(255,255,255,0.45);">أودِع مئات التحديات دفعة واحدة من ملف مخطوطتك الملكية</div>
                         </div>
                     </div>
 
-                    <div style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-start;">
-                        <!-- Download template button -->
-                        <div style="flex:1; min-width:260px;">
-                            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin:0 0 12px;">
-                                <i class="fas fa-info-circle" style="color:var(--gold);"></i>
-                                الخطوة ١: حمّل القالب المعتمد، أدخل أسئلتك، ثم ارفعه
+                    <div style="display:flex; gap:20px; flex-wrap:wrap; align-items:stretch;">
+                        <!-- Download template -->
+                        <div style="flex:1; min-width:260px; background:rgba(0,0,0,0.3); border-radius:16px; padding:22px; border:1px solid rgba(212,175,55,0.15); transition:0.3s;" onmouseover="this.style.borderColor='rgba(212,175,55,0.35)'" onmouseout="this.style.borderColor='rgba(212,175,55,0.15)'">
+                            <p style="color:rgba(255,255,255,0.7); font-size:0.92rem; margin:0 0 14px; display:flex; align-items:center; gap:8px;">
+                                <span class="import-step-badge">١</span>
+                                <span>حمّل القالب المعتمد وأدخل أسئلتك</span>
                             </p>
-                            <button class="btn-import-outline" onclick="downloadExcelTemplate()">
+                            <button class="btn-import-outline" onclick="downloadExcelTemplate()" style="width:100%; justify-content:center;">
                                 <i class="fas fa-download"></i>
                                 📄 تحميل القالب المعتمد
                             </button>
-                            <p style="color:rgba(255,255,255,0.4); font-size:0.8rem; margin:10px 0 0;">
-                                أعمدة القالب: الصف · الدرس · نوع التحدي · نص السؤال · الخيارات · الإجابة الصحيحة
-                            </p>
+                            <div style="margin-top:14px; display:flex; flex-wrap:wrap; gap:6px;">
+                                <span style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:rgba(255,255,255,0.6);">الصف</span>
+                                <span style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:rgba(255,255,255,0.6);">الدرس</span>
+                                <span style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:rgba(255,255,255,0.6);">نوع التحدي</span>
+                                <span style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:rgba(255,255,255,0.6);">نص السؤال</span>
+                                <span style="background:rgba(212,175,55,0.1); border:1px solid rgba(212,175,55,0.25); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:rgba(255,255,255,0.6);">الخيارات</span>
+                                <span style="background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.3); border-radius:8px; padding:4px 10px; font-size:0.75rem; color:#2ecc71; font-weight:bold;">الإجابة الصحيحة ✓</span>
+                            </div>
                         </div>
 
-                        <!-- Divider -->
-                        <div style="width:1px; background:rgba(212,175,55,0.2); align-self:stretch; min-height:80px;"></div>
+                        <!-- Arrow divider -->
+                        <div style="display:flex; align-items:center; justify-content:center; padding:0 5px;">
+                            <i class="fas fa-chevron-left" style="color:rgba(212,175,55,0.4); font-size:1.5rem;"></i>
+                        </div>
 
-                        <!-- Upload button -->
-                        <div style="flex:1; min-width:260px;">
-                            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin:0 0 12px;">
-                                <i class="fas fa-upload" style="color:#2ecc71;"></i>
-                                الخطوة ٢: ارفع المخطوطة للمعاينة الذكية
+                        <!-- Upload file -->
+                        <div style="flex:1; min-width:260px; background:rgba(0,0,0,0.3); border-radius:16px; padding:22px; border:1px solid rgba(46,204,113,0.15); transition:0.3s;" onmouseover="this.style.borderColor='rgba(46,204,113,0.35)'" onmouseout="this.style.borderColor='rgba(46,204,113,0.15)'">
+                            <p style="color:rgba(255,255,255,0.7); font-size:0.92rem; margin:0 0 14px; display:flex; align-items:center; gap:8px;">
+                                <span class="import-step-badge">٢</span>
+                                <span>ارفع المخطوطة للمعاينة الذكية</span>
                             </p>
                             <input type="file" id="excel-file-input" accept=".xlsx,.xls" style="display:none;" onchange="handleExcelFile(this)">
-                            <button class="btn-import" onclick="document.getElementById('excel-file-input').click()">
+                            <button class="btn-import" onclick="document.getElementById('excel-file-input').click()" style="width:100%; justify-content:center;">
                                 <i class="fas fa-file-upload"></i>
                                 📤 رفع مخطوطة الأسئلة (Excel)
                             </button>
-                            <p id="excel-file-name" style="color:rgba(255,255,255,0.4); font-size:0.8rem; margin:10px 0 0;">
-                                يقبل ملفات .xlsx و .xls
+                            <p id="excel-file-name" style="color:rgba(255,255,255,0.4); font-size:0.82rem; margin:12px 0 0; min-height:20px; transition:0.3s;">
+                                <i class="fas fa-info-circle" style="margin-left:4px;"></i> يقبل ملفات .xlsx و .xls
                             </p>
                         </div>
                     </div>
 
                     <!-- Success notification area -->
-                    <div id="import-success-msg" style="display:none; margin-top:20px; background:rgba(46,204,113,0.12); border:1px solid rgba(46,204,113,0.4); border-radius:14px; padding:18px; text-align:center; color:#2ecc71; font-weight:bold; font-size:1rem;">
-                        <i class="fas fa-check-circle" style="font-size:1.5rem; margin-left:10px;"></i>
+                    <div id="import-success-msg" style="display:none; margin-top:22px; background:rgba(46,204,113,0.1); border:1px solid rgba(46,204,113,0.4); border-radius:16px; padding:20px; text-align:center; color:#2ecc71; font-weight:bold; font-size:1rem; animation: slideIn 0.4s ease-out;">
+                        <i class="fas fa-check-circle" style="font-size:1.6rem; margin-left:12px; filter:drop-shadow(0 0 8px rgba(46,204,113,0.5));"></i>
                         <span id="import-success-text"></span>
                     </div>
                 </div>
@@ -704,6 +752,43 @@
     let allQuestions = [];
     let selectedExamLessons = [];
 
+    // ══════════════════════════════════════════════════════════════════════
+    // ── دالة تعقيم XSS: تُستخدم لكل قيمة قادمة من API قبل إدراجها في HTML
+    // ══════════════════════════════════════════════════════════════════════
+    function esc(str) {
+        const d = document.createElement('div');
+        d.textContent = String(str == null ? '' : str);
+        return d.innerHTML;
+    }
+
+    // ── نظام Toast الملكي (بديل alert) ────────────────────────────────────
+    function showToast(msg, type = 'success', duration = 4000) {
+        let container = document.getElementById('toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'toast-container';
+            container.style.cssText = 'position:fixed;bottom:30px;left:30px;z-index:99999;display:flex;flex-direction:column;gap:10px;';
+            document.body.appendChild(container);
+        }
+        const colors = {
+            success: { bg:'rgba(46,204,113,0.15)', border:'rgba(46,204,113,0.5)', icon:'✅', text:'#2ecc71' },
+            error:   { bg:'rgba(255,94,94,0.15)',  border:'rgba(255,94,94,0.5)',  icon:'❌', text:'#ff5e5e' },
+            warning: { bg:'rgba(243,156,18,0.15)', border:'rgba(243,156,18,0.5)', icon:'⚠️', text:'#f39c12' },
+            info:    { bg:'rgba(52,152,219,0.15)', border:'rgba(52,152,219,0.5)', icon:'ℹ️', text:'#3498db'  },
+        };
+        const c = colors[type] || colors.success;
+        const toast = document.createElement('div');
+        toast.style.cssText = `background:${c.bg};border:1px solid ${c.border};color:${c.text};padding:14px 20px;border-radius:14px;font-family:'Cairo';font-weight:700;font-size:0.95rem;backdrop-filter:blur(12px);box-shadow:0 4px 20px rgba(0,0,0,0.4);display:flex;align-items:center;gap:10px;max-width:360px;animation:toastIn 0.35s cubic-bezier(0.34,1.56,0.64,1);`;
+        toast.innerHTML = `<span style="font-size:1.2rem;">${c.icon}</span><span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => { toast.style.opacity='0'; toast.style.transition='opacity 0.4s'; setTimeout(()=>toast.remove(),400); }, duration);
+    }
+
+    // CSS للـ Toast
+    const toastStyle = document.createElement('style');
+    toastStyle.textContent = '@keyframes toastIn{from{opacity:0;transform:translateX(-20px)}to{opacity:1;transform:translateX(0)}}';
+    document.head.appendChild(toastStyle);
+
     // ─── Auth ───────────────────────────────────────────────────────────────────
     async function authFetch(endpoint, options = {}) {
         const token = localStorage.getItem('adminToken');
@@ -726,7 +811,7 @@
             const data = await res.json();
             localStorage.setItem('adminToken', data.access_token);
             enterEmpire();
-        } else { alert("❌ عذراً.. مفتاح الدخول خاطئ!"); }
+        } else { showToast('❌ مفتاح الدخول خاطئ!', 'error'); }
     }
 
     function enterEmpire() {
@@ -748,12 +833,16 @@
     }
 
     async function loadAllData() {
+        // ① انتظر المنهج أولاً لأنه يُغذّي جميع القوائم المتسلسلة
         await loadCurriculum();
-        await loadDashboard();
-        loadQuestions();
-        loadPDFs();
-        loadScheduledExams();
-        loadAdminResources();
+        // ② أطلق الباقي معاً بـ Promise.all لأقصى سرعة
+        await Promise.all([
+            loadDashboard(),
+            loadQuestions(),
+            loadPDFs(),
+            loadScheduledExams(),
+            loadAdminResources()
+        ]);
     }
 
     // ─── Resources ──────────────────────────────────────────────────────────────
@@ -770,11 +859,11 @@
             if(data && data.length > 0) {
                 tbody.innerHTML = data.map(r => `
                     <tr>
-                        <td>${r.title}<a href="${r.file_url}" target="_blank" style="text-decoration:none; margin-right:10px; font-size:1.2rem;" title="معاينة">👁️</a></td>
-                        <td>${translateCategory(r.category)}</td>
+                        <td>${esc(r.title)}<a href="${esc(r.file_url)}" target="_blank" style="text-decoration:none; margin-right:10px; font-size:1.2rem;" title="معاينة">👁️</a></td>
+                        <td>${esc(translateCategory(r.category))}</td>
                         <td>
-                            <button class="btn-action btn-edit" onclick="editRes(${r.id},'${r.title}','${r.category}','${r.grade}','${r.semester}')">📝 تعديل</button>
-                            <button class="btn-action btn-del"  onclick="deleteRes(${r.id},'${r.title}')">🗑️ مسح</button>
+                            <button class="btn-action btn-edit" onclick="editRes(${r.id},'${esc(r.title)}','${esc(r.category)}','${esc(r.grade)}','${esc(r.semester)}')">📝 تعديل</button>
+                            <button class="btn-action btn-del"  onclick="deleteRes(${r.id},'${esc(r.title)}')">🗑️ مسح</button>
                         </td>
                     </tr>`).join('');
             } else {
@@ -792,8 +881,8 @@
         const grade    = document.getElementById('res-grade').value;
         const semester = document.getElementById('res-semester').value;
         const file     = document.getElementById('res-file').files[0];
-        if(!title) return alert("⚠️ يرجى كتابة عنوان المورد!");
-        if(!id && !file) return alert("⚠️ يرجى إرفاق الملف!");
+        if(!title) return void showToast('⚠️ يرجى كتابة عنوان المورد!', 'warning');
+        if(!id && !file) return void showToast('⚠️ يرجى إرفاق الملف!', 'warning');
         const btn = document.getElementById('btn-save-res');
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإيداع...';
         btn.disabled  = true;
@@ -805,11 +894,11 @@
             let res;
             if(id) {
                 res = await authFetch(`/api/admin/resources/${id}`, { method: 'PUT', body: fd });
-                if(!res || !res.ok) alert("ملاحظة: السيرفر لا يدعم التعديل المباشر للموارد.");
+                if(!res || !res.ok) showToast('ملاحظة: السيرفر لا يدعم التعديل المباشر للموارد.', 'info');
             } else {
                 res = await authFetch('/api/admin/resources', { method: 'POST', body: fd });
             }
-            if(res && res.ok) { alert("✨ تم إيداع المورد بنجاح!"); cancelResEdit(); loadAdminResources(); }
+            if(res && res.ok) { showToast("✨ تم إيداع المورد بنجاح!", "success"); cancelResEdit(); loadAdminResources(); }
         } finally {
             btn.innerHTML = '<i class="fas fa-save"></i> إيداع المورد في الديوان 📦';
             btn.disabled  = false;
@@ -842,8 +931,8 @@
             const sound = document.getElementById('sword-sfx');
             if(sound) { sound.currentTime = 0; sound.play(); }
             const res = await authFetch(`/api/admin/resources/${id}`, { method: 'DELETE' });
-            if(res && res.ok) { alert("🗑️ تم البتر بنجاح!"); loadAdminResources(); }
-            else { alert("⚠️ لا يمكن حذف المورد."); }
+            if(res && res.ok) { showToast("🗑️ تم الحذف بنجاح!", "success"); loadAdminResources(); }
+            else { showToast("⚠️ لا يمكن حذف المورد.", "warning"); }
         }
     }
 
@@ -1010,7 +1099,7 @@
         const type = document.getElementById('curr-type').value;
         const name = document.getElementById('curr-name').value;
         const btn  = document.getElementById('btn-save-curr');
-        if(!name) return alert("⚠️ يرجى كتابة اسم العنصر!");
+        if(!name) return void showToast("⚠️ يرجى كتابة اسم العنصر!", "warning");
 
         // ① حفظ الاختيارات الحالية
         const savedType     = type;
@@ -1042,7 +1131,7 @@
 
             const res = await authFetch(endpoint, { method: 'POST', body: fd });
             if(res && res.ok) {
-                alert("✅ تم إضافة اللبنة للهيكل بنجاح!");
+                showToast("✅ تم إضافة اللبنة للهيكل بنجاح!", "success");
                 document.getElementById('curr-name').value = '';
 
                 // ② إعادة تحميل المنهج
@@ -1066,7 +1155,7 @@
                 if(unitEl && savedUnitIdx !== '') unitEl.value = savedUnitIdx;
             }
         } catch(e) {
-            alert("⚠️ يرجى التأكد من اختيار جميع القوائم المتسلسلة بشكل صحيح!");
+            showToast("⚠️ تأكد من اختيار جميع القوائم!", "warning");
         } finally {
             btn.disabled  = false;
             btn.innerHTML = '<i class="fas fa-plus"></i> إيداع في الهيكل';
@@ -1084,33 +1173,40 @@
         let gradesToRender = fullCurriculum;
         if (filterVal !== "all") gradesToRender = fullCurriculum.filter(g => g.id == filterVal);
 
-        tree.innerHTML = gradesToRender.map(grade => `
+        tree.innerHTML = gradesToRender.map(grade => {
+            // حساب عدد الدروس لرسالة الحذف
+            const lessonCount = grade.semesters.reduce((a,s) => a + s.units.reduce((b,u) => b + u.lessons.length, 0), 0);
+            return `
             <div class="node-box grade-node">
-                <strong>📍 ${grade.name}</strong>
-                <i class="fas fa-edit edit-icon" onclick="editCurrNode('grade', ${grade.id}, '${grade.name}')" title="تعديل"></i>
-                <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('grade', ${grade.id}, '${grade.name}')" title="حذف"></i>
+                <strong>📍 ${esc(grade.name)}</strong>
+                <i class="fas fa-edit edit-icon" onclick="editCurrNode('grade', ${grade.id}, '${esc(grade.name)}')" title="تعديل"></i>
+                <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('grade', ${grade.id}, '${esc(grade.name)}', ${lessonCount})" title="حذف"></i>
                 <div class="semester-list">
-                    ${grade.semesters.map(sem => `
-                        <div class="semester-node">📅 ${sem.name}
-                            <i class="fas fa-edit edit-icon" onclick="editCurrNode('semester', ${sem.id}, '${sem.name}')"></i>
-                            <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('semester', ${sem.id}, '${sem.name}')"></i>
+                    ${grade.semesters.map(sem => {
+                        const semLessons = sem.units.reduce((b,u) => b + u.lessons.length, 0);
+                        return `
+                        <div class="semester-node">📅 ${esc(sem.name)}
+                            <i class="fas fa-edit edit-icon" onclick="editCurrNode('semester', ${sem.id}, '${esc(sem.name)}')"></i>
+                            <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('semester', ${sem.id}, '${esc(sem.name)}', ${semLessons})"></i>
                             <div class="unit-list">
                                 ${sem.units.map(unit => `
-                                    <div class="unit-node">📦 ${unit.name}
-                                        <i class="fas fa-edit edit-icon" onclick="editCurrNode('unit', ${unit.id}, '${unit.name}')"></i>
-                                        <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('unit', ${unit.id}, '${unit.name}')"></i>
+                                    <div class="unit-node">📦 ${esc(unit.name)}
+                                        <i class="fas fa-edit edit-icon" onclick="editCurrNode('unit', ${unit.id}, '${esc(unit.name)}')"></i>
+                                        <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('unit', ${unit.id}, '${esc(unit.name)}', ${unit.lessons.length})"></i>
                                         <div class="lesson-list">
                                             ${unit.lessons.map(ls => `
-                                                <div class="lesson-node">📖 ${ls.name}
-                                                    <i class="fas fa-edit edit-icon" onclick="editCurrNode('lesson', ${ls.id}, '${ls.name}')"></i>
-                                                    <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('lesson', ${ls.id}, '${ls.name}')"></i>
+                                                <div class="lesson-node">📖 ${esc(ls.name)}
+                                                    <i class="fas fa-edit edit-icon" onclick="editCurrNode('lesson', ${ls.id}, '${esc(ls.name)}')"></i>
+                                                    <i class="fas fa-trash edit-icon" style="color:var(--red);" onclick="deleteCurrNode('lesson', ${ls.id}, '${esc(ls.name)}', 0)"></i>
                                                 </div>`).join('')}
                                         </div>
                                     </div>`).join('')}
                             </div>
-                        </div>`).join('')}
+                        </div>`;
+                    }).join('')}
                 </div>
-            </div>`).join('');
+            </div>`;
+        }).join('');
     }
 
     async function editCurrNode(type, id, oldName) {
@@ -1119,15 +1215,21 @@
         const fd = new FormData();
         fd.append('name', newName);
         const res = await authFetch(`/api/admin/curriculum/${type}s/${id}`, { method: 'PUT', body: fd });
-        if(res && res.ok) { alert("✅ تم التحديث!"); loadCurriculum(); }
-        else { alert("⚠️ عذراً، تأكد من دعم السيرفر لخاصية تعديل المنهج."); }
+        if(res && res.ok) { showToast("✅ تم التحديث!", "success"); loadCurriculum(); }
+        else { showToast("⚠️ تأكد من دعم السيرفر لتعديل المنهج.", "warning"); }
     }
 
-    async function deleteCurrNode(type, id, name) {
-        if(confirm(`⚠️ هل أنت متأكد من حذف (${name})؟\nسيُحذف كل ما يتفرع منه!`)) {
+    async function deleteCurrNode(type, id, name, childCount) {
+        const typeLabels = { grade:'الصف', semester:'الفصل', unit:'الوحدة', lesson:'الدرس' };
+        const label = typeLabels[type] || type;
+        let warningMsg = `⚠️ هل أنت متأكد من حذف ${label}: "${name}"؟`;
+        if (childCount > 0) {
+            warningMsg += `\n\n📌 سيُحذف معه ${childCount} ${type === 'grade' ? 'درساً ووحداتها وفصولها' : type === 'semester' ? 'درساً ووحداتها' : 'درساً'} بشكل نهائي!`;
+        }
+        if(confirm(warningMsg)) {
             const res = await authFetch(`/api/admin/curriculum/${type}s/${id}`, { method: 'DELETE' });
-            if(res && res.ok) { alert("🗑️ تم الحذف!"); loadCurriculum(); }
-            else { alert("⚠️ حدث خطأ أثناء الحذف."); }
+            if(res && res.ok) { showToast("🗑️ تم الحذف بنجاح!", "success"); loadCurriculum(); }
+            else { showToast("⚠️ حدث خطأ أثناء الحذف.", "error"); }
         }
     }
 
@@ -1221,25 +1323,29 @@
         if(tbody) {
             tbody.innerHTML = data.map(s => `
                 <tr>
-                    <td><strong>${s.student_name}</strong></td>
-                    <td>الصف السادس</td>
-                    <td>${s.total_points}</td>
-                    <td><button class="btn-action btn-xp" onclick="giveRoyalGrant('${s.student_name}')"><i class="fas fa-medal"></i> +50 XP</button></td>
-                    <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${s.student_name}')">تقرير</button></td>
+                    <td><strong>${esc(s.student_name)}</strong></td>
+                    <td>${esc(s.grade || 'غير محدد')}</td>
+                    <td>${esc(s.total_points)}</td>
+                    <td><button class="btn-action btn-xp" onclick="giveRoyalGrant('${esc(s.student_name)}')"><i class="fas fa-medal"></i> منح XP 🏅</button></td>
+                    <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${esc(s.student_name)}')">تقرير 📊</button></td>
                 </tr>`).join('');
         }
     }
 
     async function giveRoyalGrant(studentName) {
-        if(!confirm(`هل تريد منح البطل (${studentName}) منحة ملكية قدرها 50 XP؟`)) return;
+        const xpStr = prompt(`👑 كم نقطة XP تريد منح البطل (${studentName})؟\n(أدخل عدداً بين 1 و 999)`, '50');
+        if (xpStr === null) return; // ضغط إلغاء
+        const xpVal = parseInt(xpStr, 10);
+        if (isNaN(xpVal) || xpVal < 1 || xpVal > 999) { showToast('⚠️ أدخل عدداً صحيحاً بين 1 و 999', 'warning'); return; }
+        if(!confirm(`هل تريد منح البطل (${studentName}) منحة ملكية قدرها ${xpVal} XP؟`)) return;
         const fd = new FormData();
         fd.append('student_name', studentName);
-        fd.append('points', 50);
+        fd.append('points', xpVal);
         try {
             const res = await authFetch('/api/admin/grant_xp', { method: 'POST', body: fd });
-            if(res && res.ok) { alert(`✨ تم منح الـ XP بنجاح للبطل ${studentName}`); await loadDashboard(); }
-            else { alert("⚠️ تأكد من إعداد مسار المنح في السيرفر."); }
-        } catch(e) { alert("❌ خطأ في الاتصال بالديوان."); }
+            if(res && res.ok) { showToast(`✨ تم منح ${xpVal} XP للبطل ${studentName}`, 'success'); await loadDashboard(); }
+            else { showToast('⚠️ تأكد من إعداد مسار المنح في السيرفر.', 'warning'); }
+        } catch(e) { showToast('❌ خطأ في الاتصال بالديوان.', 'error'); }
     }
 
     async function viewStudentReport(name) {
@@ -1249,7 +1355,7 @@
         if(!modal || !body) return;
         title.innerText      = `سجل بطولات البطل: ${name}`;
         modal.style.display  = 'flex';
-        body.innerHTML       = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin fa-2x"></i><br>جاري فتح الأرشيف الملكي...</div>';
+        body.innerHTML       = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin fa-2x" style="color:var(--gold);"></i><br><span style="color:rgba(255,255,255,0.5);margin-top:10px;display:block;">جاري فتح الأرشيف الملكي...</span></div>';
         try {
             const res  = await fetch(`${API_URL}/api/parent/search/${encodeURIComponent(name)}`);
             const data = await res.json();
@@ -1260,8 +1366,8 @@
                     </thead><tbody>`;
                 data.history.forEach(h => {
                     html += `<tr>
-                        <td><strong>${h.lesson}</strong></td>
-                        <td style="color:var(--green); font-weight:bold;">${h.score} / ${h.total}</td>
+                        <td><strong>${esc(h.lesson)}</strong></td>
+                        <td style="color:var(--green); font-weight:bold;">${esc(h.score)} / ${esc(h.total)}</td>
                         <td><small>${new Date(h.timestamp).toLocaleString('ar-OM')}</small></td>
                     </tr>`;
                 });
@@ -1279,20 +1385,21 @@
 
     async function updateAdminPassword() {
         const newPass = document.getElementById('new-admin-pass').value;
-        if(!newPass || newPass.length < 6) return alert("⚠️ يرجى كتابة كلمة مرور قوية (6 أحرف على الأقل)!");
+        if(!newPass || newPass.length < 6) return void showToast("⚠️ يرجى كتابة كلمة مرور قوية (6 أحرف على الأقل)!", "warning");
         const fd = new FormData();
         fd.append('new_password', newPass);
         const res = await authFetch('/api/admin/update_password', { method: 'POST', body: fd });
-        if(res && res.ok) { alert("✨ تم تحديث المفتاح الملكي!"); document.getElementById('new-admin-pass').value = ''; }
-        else { alert("❌ حدث خطأ أثناء التحديث."); }
+        if(res && res.ok) { showToast("✨ تم تحديث المفتاح الملكي!", "success"); document.getElementById('new-admin-pass').value = ''; }
+        else { showToast("❌ حدث خطأ أثناء التحديث.", "error"); }
     }
 
     // ============================================================
     // التعديل #4: loadQuestions — يقرأ من qf-grade/term/unit/lesson
     // ============================================================
     async function loadQuestions() {
-        const res = await fetch(`${API_URL}/api/admin/questions`);
-        if(!res.ok) return;
+        // ── إصلاح: استخدام authFetch بدل fetch المباشر غير المحمي ──
+        const res = await authFetch(`/api/admin/questions`);
+        if(!res || !res.ok) return;
         allQuestions = await res.json();
 
         const totalQEl = document.getElementById('stat-total-q');
@@ -1342,15 +1449,17 @@
 
         let htmlStr = '';
         for (const [lbl, qs] of Object.entries(grouped)) {
-            htmlStr += `<tr class="group-header"><td colspan="4">📖 وحدة الدرس: ${lbl}</td></tr>`;
+            htmlStr += `<tr class="group-header"><td colspan="4">📖 وحدة الدرس: ${esc(lbl)}</td></tr>`;
             qs.forEach(q => {
+                const preview = esc(String(q.question || '').substring(0, 50));
+                const hasMore = String(q.question || '').length > 50 ? '...' : '';
                 htmlStr += `
                 <tr>
-                    <td style="padding-right: 30px;">${q.question.substring(0,50)}...</td>
-                    <td>${q.q_type === 'choice' ? 'اختياري' : q.q_type === 'short' ? 'إجابة قصيرة' : 'صواب/خطأ'}</td>
-                    <td>${q.image_url ? '🖼️ نعم' : 'لا يوجد'}</td>
+                    <td style="padding-right: 30px;">${preview}${hasMore}</td>
+                    <td>${q.q_type === 'choice' ? '🔘 اختياري' : q.q_type === 'short' ? '✍️ إجابة قصيرة' : '✅ صواب/خطأ'}</td>
+                    <td>${q.image_url ? '🖼️ نعم' : '<span style="color:rgba(255,255,255,0.3);">لا</span>'}</td>
                     <td>
-                        <button class="btn-action" style="background:var(--gold); color:#000; margin-left:5px;" onclick="editQuestion(${q.id})">تعديل ✏️</button>
+                        <button class="btn-action btn-edit" style="margin-left:5px;" onclick="editQuestion(${q.id})">تعديل ✏️</button>
                         <button class="btn-action btn-del" onclick="deleteQuestion(${q.id})">حذف 🗑️</button>
                     </td>
                 </tr>`;
@@ -1415,7 +1524,7 @@
         const editId = document.getElementById('edit-id').value;
         const lesson = document.getElementById('q-lesson').value;
         const btn    = document.getElementById('save-btn');
-        if(!lesson) return alert("⚠️ يرجى تحديد مسار الدرس بالكامل!");
+        if(!lesson) return void showToast("⚠️ يرجى تحديد مسار الدرس بالكامل!", "warning");
 
         // ① حفظ قيم فلاتر البنك الحالية
         const savedGrade  = document.getElementById('qf-grade')?.value  ?? 'all';
@@ -1428,7 +1537,12 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
 
         const fd = new FormData();
-        fd.append('grade',    '6');
+        // ── إصلاح: قراءة اسم الصف من الـ Cascade بدل القيمة المُثبّتة ──
+        const qGradeIdx = document.getElementById('q-grade')?.value;
+        const gradeName = (qGradeIdx !== '' && fullCurriculum[qGradeIdx])
+            ? fullCurriculum[qGradeIdx].name
+            : 'غير محدد';
+        fd.append('grade',    gradeName);
         fd.append('lesson',   lesson);
         fd.append('subject',  'الرياضيات');
         fd.append('q_type',   document.getElementById('q-type').value);
@@ -1444,7 +1558,7 @@
         try {
             const res = await authFetch(endpoint, { method, body: fd });
             if(res && res.ok) {
-                alert(editId ? "✨ تم التحديث بنجاح!" : "✨ تم الحفظ في الخزنة بنجاح!");
+                showToast(editId ? "✨ تم التحديث بنجاح!" : "✨ تم الحفظ في الخزنة بنجاح!", "success");
                 cancelEdit(); // يمسح حقول السؤال فقط
 
                 // ② إعادة تحميل الأسئلة
@@ -1489,7 +1603,7 @@
     // ─── Exams ──────────────────────────────────────────────────────────────────
     function addLessonToExam() {
         const lesson = document.getElementById('exam-lesson').value;
-        if(!lesson) alert("اختر الدرس أولاً من القوائم المتسلسلة!");
+        if(!lesson) showToast("اختر الدرس أولاً من القوائم المتسلسلة!", "warning");
         else if(!selectedExamLessons.includes(lesson)) {
             selectedExamLessons.push(lesson);
             renderSelectedExamLessons();
@@ -1515,10 +1629,10 @@
     }
 
     async function scheduleExam() {
-        if(selectedExamLessons.length === 0) return alert("⚠️ أضف درساً واحداً على الأقل للملحمة!");
+        if(selectedExamLessons.length === 0) return void showToast("⚠️ أضف درساً واحداً على الأقل!", "warning");
         const title = document.getElementById('exam-title').value;
         const btn   = document.getElementById('btn-schedule-exam');
-        if(!title) return alert("⚠️ يرجى كتابة عنوان للاختبار!");
+        if(!title) return void showToast("⚠️ يرجى كتابة عنوان للاختبار!", "warning");
         btn.disabled = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الجدولة...';
         const fd = new FormData();
@@ -1534,7 +1648,7 @@
         try {
             const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
             if(res && res.ok) {
-                alert("🔔 تم إطلاق الملحمة بنجاح!");
+                showToast("🔔 تم إطلاق الملحمة بنجاح!", "success");
                 selectedExamLessons = [];
                 renderSelectedExamLessons();
                 document.getElementById('exam-title').value = '';
@@ -1564,7 +1678,7 @@
 
     function copyExamLink() {
         navigator.clipboard.writeText(window.location.origin + "/student").then(() => {
-            alert("📋 تم نسخ رابط ساحة الطلاب بنجاح!");
+            showToast("📋 تم نسخ الرابط بنجاح!", "success");
         });
     }
 
@@ -1580,8 +1694,8 @@
         const lesson    = document.getElementById('pdf-lesson').value;
         const fileInput = document.getElementById('pdf-file-input');
         const btn       = document.getElementById('btn-upload-pdf');
-        if(!lesson) return alert("⚠️ يرجى اختيار الدرس أولاً!");
-        if(fileInput.files.length === 0) return alert("⚠️ يرجى إرفاق ملف الـ PDF!");
+        if(!lesson) return void showToast("⚠️ يرجى اختيار الدرس أولاً!", "warning");
+        if(fileInput.files.length === 0) return void showToast("⚠️ يرجى إرفاق ملف الـ PDF!", "warning");
         btn.disabled  = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
         const fd = new FormData();
@@ -1589,9 +1703,9 @@
         fd.append('pdf', fileInput.files[0]);
         try {
             const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
-            if(res && res.ok) { alert("📜 تم إيداع اللفافة بنجاح!"); fileInput.value = ""; await loadPDFs(); }
-            else { alert("⚠️ حدث خطأ أثناء الرفع!"); }
-        } catch (e) { alert("⚠️ لا يمكن الاتصال بالمكتبة السحابية."); }
+            if(res && res.ok) { showToast("📜 تم إيداع اللفافة بنجاح!", "success"); fileInput.value = ""; await loadPDFs(); }
+            else { showToast("⚠️ حدث خطأ أثناء الرفع!", "error"); }
+        } catch (e) { showToast("⚠️ لا يمكن الاتصال بالمكتبة السحابية.", "error"); }
         finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> رفع للمكتبة الملكية'; }
     }
 
@@ -1681,7 +1795,7 @@
         return map[key] || 'choice';
     }
 
-    /** تحقق من صحة صف واحد */
+    /** تحقق من صحة صف واحد — مع التحقق من تطابق الدرس مع المنهج */
     function validateImportRow(row) {
         const errors = [];
         if (!row['نص السؤال'] || String(row['نص السؤال']).trim() === '')
@@ -1691,10 +1805,20 @@
         return errors;
     }
 
+    /** تحقق من تطابق اسم الدرس مع المنهج المحفوظ (تحذير لا خطأ) */
+    function checkLessonInCurriculum(lessonName) {
+        if (!lessonName || !fullCurriculum.length) return true; // تجاهل إذا لا منهج
+        for (const g of fullCurriculum)
+            for (const s of g.semesters)
+                for (const u of s.units)
+                    if (u.lessons.some(l => l.name === String(lessonName).trim())) return true;
+        return false;
+    }
+
     /** تحميل قالب Excel فارغ */
     function downloadExcelTemplate() {
         if (typeof XLSX === 'undefined') {
-            alert('⚠️ مكتبة SheetJS غير محملة بعد، انتظر لحظة وأعد المحاولة.');
+            showToast('⚠️ مكتبة SheetJS غير محملة، انتظر لحظة.', 'warning');
             return;
         }
         const headers = ['الصف', 'الدرس', 'نوع التحدي', 'نص السؤال', 'الخيارات', 'الإجابة الصحيحة'];
@@ -1752,23 +1876,37 @@
     /** بناء جدول المعاينة */
     function renderImportPreview(rows) {
         importedRows = [];
-        let validCount = 0, errorCount = 0;
+        let validCount = 0, errorCount = 0, warnCount = 0;
         let tbodyHtml = '';
+
+        // تحذير الملف الضخم
+        if (rows.length > 200) {
+            showToast(`⚠️ الملف يحتوي ${rows.length} سؤالاً — سيُرفع على دفعات بتأخير لحماية السيرفر`, 'warning', 6000);
+        }
 
         rows.forEach((row, idx) => {
             const errors  = validateImportRow(row);
             const isValid = errors.length === 0;
+            const lessonOk = checkLessonInCurriculum(row['الدرس']);
+
             if (isValid) {
                 validCount++;
                 importedRows.push(row);
             } else {
                 errorCount++;
             }
+            if (!lessonOk) warnCount++;
 
-            const rowClass = isValid ? 'row-ok' : 'row-error';
-            const badge    = isValid
-                ? '<span class="row-badge badge-ok">✓ صحيح</span>'
-                : `<span class="row-badge badge-err">⚠ ${errors.join(' | ')}</span>`;
+            // تحديد class الصف: خطأ حرج > تحذير درس > صحيح
+            const rowClass = !isValid ? 'row-error' : !lessonOk ? 'row-warn' : 'row-ok';
+            let badge;
+            if (!isValid) {
+                badge = `<span class="row-badge badge-err">⚠ ${errors.join(' | ')}</span>`;
+            } else if (!lessonOk) {
+                badge = `<span class="row-badge badge-warn">⚠️ الدرس غير موجود بالمنهج</span>`;
+            } else {
+                badge = '<span class="row-badge badge-ok">✓ صحيح</span>';
+            }
 
             const qType  = translateQTypeToEn(row['نوع التحدي']);
             const typeAr = qType === 'choice' ? 'اختياري 🔘' : qType === 'true_false' ? 'صواب/خطأ ✅' : 'قصيرة ✍️';
@@ -1776,11 +1914,11 @@
             tbodyHtml += `
             <tr class="${rowClass}">
                 <td style="color:rgba(255,255,255,0.4); font-size:0.8rem;">${idx + 1}</td>
-                <td>${row['الصف'] || '<span style="color:var(--red)">—</span>'}</td>
-                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${row['الدرس'] || ''}">${row['الدرس'] || '<span style="color:var(--red)">—</span>'}</td>
+                <td>${esc(row['الصف']) || '<span style="color:var(--red)">—</span>'}</td>
+                <td style="max-width:120px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(row['الدرس'] || '')}">${esc(row['الدرس']) || '<span style="color:var(--red)">—</span>'}${!lessonOk ? ' <span style="color:#f39c12;font-size:0.7rem;">⚠</span>' : ''}</td>
                 <td>${typeAr}</td>
-                <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${String(row['نص السؤال'] || '').replace(/"/g,'&quot;')}">${String(row['نص السؤال'] || '').substring(0, 40) || '<span style="color:var(--red)">مفقود ⚠</span>'}${String(row['نص السؤال'] || '').length > 40 ? '...' : ''}</td>
-                <td style="color:var(--green); font-weight:bold;">${row['الإجابة الصحيحة'] || '<span style="color:var(--red)">مفقودة ⚠</span>'}</td>
+                <td style="max-width:180px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${esc(String(row['نص السؤال'] || ''))}">${esc(String(row['نص السؤال'] || '').substring(0, 40)) || '<span style="color:var(--red)">مفقود ⚠</span>'}${String(row['نص السؤال'] || '').length > 40 ? '...' : ''}</td>
+                <td style="color:var(--green); font-weight:bold;">${esc(row['الإجابة الصحيحة']) || '<span style="color:var(--red)">مفقودة ⚠</span>'}</td>
                 <td>${badge}</td>
             </tr>`;
         });
@@ -1800,7 +1938,12 @@
             <div class="import-stat" style="border-color:rgba(255,94,94,0.4);">
                 <div class="num" style="color:var(--red);">${errorCount}</div>
                 <div class="lbl">يحتاج مراجعة</div>
-            </div>`;
+            </div>
+            ${warnCount > 0 ? `
+            <div class="import-stat" style="border-color:rgba(243,156,18,0.4);">
+                <div class="num" style="color:#f39c12;">${warnCount}</div>
+                <div class="lbl">دروس غير مرتبطة ⚠️</div>
+            </div>` : ''}`;
 
         // تفعيل/تعطيل زر التأكيد
         const confirmBtn = document.getElementById('btn-confirm-import');
@@ -1844,7 +1987,7 @@
     async function startBatchUpload() {
         if (importedRows.length === 0) return;
 
-        const confirmBtn = document.getElementById('btn-confirm-import');
+        const confirmBtn  = document.getElementById('btn-confirm-import');
         const progressSec = document.getElementById('import-progress-section');
         const progressBar = document.getElementById('import-progress-bar');
         const progressTxt = document.getElementById('import-progress-text');
@@ -1854,13 +1997,15 @@
 
         let success = 0, failed = 0;
         const total = importedRows.length;
+        // تأخير 60ms بين الطلبات (يحمي من rate-limit في Supabase المجاني)
+        const DELAY_MS = total > 100 ? 100 : 60;
 
         for (let i = 0; i < importedRows.length; i++) {
             const row = importedRows[i];
 
             try {
                 const fd = new FormData();
-                fd.append('grade',    row['الصف'] || '6');
+                fd.append('grade',    row['الصف'] || 'غير محدد');
                 fd.append('lesson',   row['الدرس'] || '');
                 fd.append('subject',  'الرياضيات');
                 fd.append('q_type',   translateQTypeToEn(row['نوع التحدي']));
@@ -1871,6 +2016,9 @@
                 const res = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
                 if (res && res.ok) { success++; } else { failed++; }
             } catch(e) { failed++; }
+
+            // ── delay لحماية السيرفر من الإغراق ──
+            await new Promise(r => setTimeout(r, DELAY_MS));
 
             // تحديث شريط التقدم بعد اكتمال كل طلب
             const pct = Math.round(((i + 1) / total) * 100);
@@ -1890,10 +2038,13 @@
             const msg = document.getElementById('import-success-msg');
             const txt = document.getElementById('import-success-text');
             if (msg && txt) {
-                txt.textContent = `تم إيداع ${success} تحدياً بنجاح في الخزنة الملكية! 👑`;
+                txt.textContent = `تم إيداع ${success} تحدياً بنجاح في الخزنة الملكية! 👑${failed > 0 ? ` (${failed} فشل)` : ''}`;
                 msg.style.display = 'block';
-                setTimeout(() => { msg.style.display = 'none'; }, 6000);
+                setTimeout(() => { msg.style.display = 'none'; }, 7000);
             }
+            // Toast إضافي للتأكيد
+            const toastType = failed === 0 ? 'success' : 'warning';
+            showToast(`👑 اكتمل الإيداع: ${success} نجح${failed > 0 ? ` · ${failed} فشل` : ' · جميعها ناجحة!'}`, toastType, 6000);
             // تحديث جدول الأسئلة باستخدام الدالة الموجودة أصلاً
             loadQuestions();
             importedRows = [];
