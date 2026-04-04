@@ -659,6 +659,85 @@
         /* ============================================================
            RESPONSIVE
         ============================================================ */
+        /* ============================================================
+           SUBSCRIPTION & TRIAL SYSTEM
+        ============================================================ */
+        /* شارة الوضع التجريبي / الاشتراك */
+        .sub-badge {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 5px 14px; border-radius: 20px; font-size: 0.8rem;
+            font-weight: 700; margin-top: 6px; letter-spacing: 0.03em;
+        }
+        .sub-badge.trial  { background: rgba(78,203,113,0.15); border: 1px solid #4ecb71; color: #4ecb71; }
+        .sub-badge.active { background: rgba(212,175,55,0.15); border: 1px solid var(--gold); color: var(--gold); }
+        .sub-badge.expired{ background: rgba(224,82,82,0.15); border: 1px solid #e05252; color: #e05252; }
+
+        /* نافذة الاشتراك */
+        #subscription-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.92);
+            z-index: 6000;
+            display: none; justify-content: center; align-items: center;
+            padding: 20px;
+        }
+        .sub-card {
+            background: linear-gradient(145deg, #0c1d3d, #040d21);
+            border: 2px solid var(--gold);
+            border-radius: 28px; padding: 40px 35px;
+            width: 100%; max-width: 560px;
+            text-align: center;
+            box-shadow: 0 0 60px rgba(212,175,55,0.15);
+            position: relative; overflow: hidden;
+        }
+        .sub-card::before {
+            content: '';
+            position: absolute; top: 0; left: 15%; right: 15%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+        .sub-plan {
+            background: rgba(212,175,55,0.06);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 16px; padding: 20px; margin: 10px 0;
+            cursor: pointer; transition: 0.3s;
+            position: relative;
+        }
+        .sub-plan:hover, .sub-plan.selected {
+            background: rgba(212,175,55,0.15);
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+        .sub-plan.popular::after {
+            content: '🔥 الأكثر شيوعاً';
+            position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
+            background: var(--gold); color: #000; font-size: 0.7rem;
+            font-weight: 900; padding: 2px 12px; border-radius: 20px;
+        }
+        .sub-code-input {
+            width: 100%; padding: 14px; border-radius: 12px; text-align: center;
+            border: 2px solid rgba(212,175,55,0.3); background: rgba(0,0,0,0.4);
+            color: #fff; font-family: 'Tajawal'; font-size: 1.1rem; outline: none;
+            letter-spacing: 2px; margin: 10px 0; transition: 0.3s;
+        }
+        .sub-code-input:focus { border-color: var(--gold); box-shadow: 0 0 12px rgba(212,175,55,0.2); }
+
+        /* عداد مبارزات اليوم */
+        .arena-daily-counter {
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(212,175,55,0.25);
+            border-radius: 12px; padding: 8px 16px;
+            font-size: 0.85rem; color: var(--gold);
+            margin-bottom: 12px; position: relative; z-index: 1;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        .arena-dots { display: flex; gap: 6px; }
+        .arena-dot {
+            width: 14px; height: 14px; border-radius: 50%;
+            border: 2px solid rgba(212,175,55,0.4);
+            transition: 0.3s;
+        }
+        .arena-dot.used  { background: rgba(224,82,82,0.6); border-color: #e05252; }
+        .arena-dot.ready { background: var(--gold); border-color: var(--gold); box-shadow: 0 0 6px var(--gold); }
+
         @media screen and (max-width: 900px) {
             .menu-toggle { display: block; }
             body { flex-direction: row !important; }
@@ -716,12 +795,24 @@
         <div class="arena-popup">
             <div class="arena-title-area">
                 <h1 class="arena-title">⚔️ ساحة المبارزة المباشرة ⚔️</h1>
-                <p class="arena-subtitle">تحدى أبطال الإمبراطورية في مبارزات 1v1</p>
+                <p class="arena-subtitle">تحدى أبطال إمبراطوريتنا في مبارزات 1v1</p>
             </div>
             <div class="shield-container">
                 <div class="shield-pulse"></div>
                 <div class="shield-inner">🛡️</div>
             </div>
+
+            <!-- عداد المبارزات اليومية -->
+            <div class="arena-daily-counter" id="arena-daily-counter">
+                <span>مبارزات اليوم:</span>
+                <div class="arena-dots" id="arena-dots">
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
+                </div>
+                <span id="arena-remaining-text">3 متبقية</span>
+            </div>
+
             <div class="arena-status" id="arena-status-text">اختر طريقة القتال:</div>
             <div id="arena-action-buttons" style="display:flex; flex-direction:column; gap:15px; margin-bottom:30px; position:relative; z-index:1;">
                 <button class="nav-btn active shiny-btn" style="background:#2ecc71; border-color:#2ecc71;" onclick="startRandomSearch()">🔍 بحث عن خصم عشوائي</button>
@@ -821,6 +912,73 @@
         </div>
     </div>
 
+    <!-- SUBSCRIPTION OVERLAY -->
+    <div id="subscription-overlay">
+        <div class="sub-card">
+            <div style="font-size:3rem; margin-bottom:5px;">👑</div>
+            <h2 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem; margin:0 0 6px;">الاشتراك الملكي</h2>
+            <p style="color:rgba(255,255,255,0.6); font-size:0.9rem; margin-bottom:24px; line-height:1.6;" id="sub-overlay-desc">
+                للاستمرار في ساحة المبارزة بعد انتهاء الفترة التجريبية
+            </p>
+
+            <!-- خطط الاشتراك -->
+            <div id="sub-plans-section">
+                <div class="sub-plan" onclick="selectSubPlan(this,'monthly',2)" style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="text-align:right;">
+                        <div style="font-weight:900; color:var(--gold); font-size:1rem;">شهري</div>
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">تجديد كل 30 يوماً</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <span style="font-family:'Amiri'; font-size:1.4rem; color:#fff; font-weight:700;">2 ر.ع</span>
+                        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);"> / شهر</span>
+                    </div>
+                </div>
+
+                <div class="sub-plan popular" onclick="selectSubPlan(this,'quarterly',5)" style="display:flex; justify-content:space-between; align-items:center; margin-top:18px;">
+                    <div style="text-align:right;">
+                        <div style="font-weight:900; color:var(--gold); font-size:1rem;">ثلاثة أشهر</div>
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">توفير 17%</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <span style="font-family:'Amiri'; font-size:1.4rem; color:#fff; font-weight:700;">5 ر.ع</span>
+                        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);"> / 3 أشهر</span>
+                    </div>
+                </div>
+
+                <div class="sub-plan" onclick="selectSubPlan(this,'yearly',18)" style="display:flex; justify-content:space-between; align-items:center; margin-top:12px;">
+                    <div style="text-align:right;">
+                        <div style="font-weight:900; color:var(--gold); font-size:1rem;">سنوي</div>
+                        <div style="font-size:0.8rem; color:rgba(255,255,255,0.5);">توفير 25%</div>
+                    </div>
+                    <div style="text-align:left;">
+                        <span style="font-family:'Amiri'; font-size:1.4rem; color:#fff; font-weight:700;">18 ر.ع</span>
+                        <span style="font-size:0.75rem; color:rgba(255,255,255,0.4);"> / سنة</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- قسم كود الاشتراك -->
+            <div style="margin-top:22px; border-top:1px solid rgba(212,175,55,0.15); padding-top:18px;">
+                <p style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:8px;">أو أدخل كود الاشتراك الذي حصلت عليه من الأستاذ:</p>
+                <input type="text" id="sub-code-input" class="sub-code-input"
+                       placeholder="MATH-XXXX-XXXX"
+                       oninput="this.value=this.value.toUpperCase()"
+                       onkeypress="if(event.key==='Enter') activateSubCode()">
+                <button class="nav-btn active shiny-btn" style="margin-top:8px;" onclick="activateSubCode()">
+                    🔑 تفعيل الكود
+                </button>
+            </div>
+
+            <p style="font-size:0.75rem; color:rgba(255,255,255,0.3); margin-top:16px; line-height:1.6;">
+                للاشتراك تواصل مع الأستاذ رشدي سيد عبر واتساب للحصول على كود التفعيل
+            </p>
+
+            <button class="nav-btn" style="background:transparent; border-color:rgba(255,255,255,0.1); color:rgba(255,255,255,0.4); margin-top:10px; font-size:0.85rem;" onclick="closeSubOverlay()">
+                إغلاق
+            </button>
+        </div>
+    </div>
+
     <!-- AUTH OVERLAY -->
     <div id="auth-overlay">
         <div class="auth-card tilt-card" id="login-form">
@@ -868,6 +1026,8 @@
             <span class="btn-icon">⚔️</span>
             <span class="sidebar-label">ساحة المبارزة <span class="nav-vip-badge">VIP</span></span>
         </button>
+        <!-- شارة حالة الاشتراك -->
+        <div id="sub-status-badge" class="sub-badge trial sidebar-label" style="justify-content:center; margin-top:4px;" onclick="openSubOverlay()" title="انقر لإدارة اشتراكك"></div>
         <button class="nav-btn shiny-btn btn-hospital" id="btn-hospital" onclick="openHospital()">
             <span class="btn-icon">🏥</span><span class="sidebar-label">مستشفى الأرقام</span>
         </button>
@@ -1617,6 +1777,151 @@
         }
     }
 
+    /* ================================================================
+       SUBSCRIPTION & TRIAL SYSTEM
+       - تجريبي مجاني حتى 15 سبتمبر 2026
+       - اشتراك شهري بكود يصدره الأستاذ
+    ================================================================ */
+    const TRIAL_END_DATE  = new Date('2026-09-15T23:59:59');
+    const SUB_KEY         = 'mathEmpireSub';
+    const ARENA_DAILY_KEY = 'arenaDaily';
+    const ARENA_MAX_DAILY = 3;
+
+    /* أكواد الاشتراك الصالحة — يضيف الأستاذ أكواداً جديدة هنا
+       months = -1 → اشتراك دائم */
+    const VALID_SUB_CODES = [
+        { code: 'MATH-2026-VIP1',  months: 12, note: 'VIP سنوي 1' },
+        { code: 'MATH-2026-VIP2',  months: 12, note: 'VIP سنوي 2' },
+        { code: 'MATH-2026-VIP3',  months: 12, note: 'VIP سنوي 3' },
+        { code: 'MATH-Q3-2026A',   months:  3, note: 'ربعي أ'     },
+        { code: 'MATH-Q3-2026B',   months:  3, note: 'ربعي ب'     },
+        { code: 'MATH-Q3-2026C',   months:  3, note: 'ربعي ج'     },
+        { code: 'MATH-M1-2026A',   months:  1, note: 'شهري أ'     },
+        { code: 'MATH-M1-2026B',   months:  1, note: 'شهري ب'     },
+        { code: 'MATH-M1-2026C',   months:  1, note: 'شهري ج'     },
+        { code: 'MATH-M1-2026D',   months:  1, note: 'شهري د'     },
+        { code: 'MATH-M1-2026E',   months:  1, note: 'شهري هـ'    },
+        { code: 'MATH-FREE-LIFE1', months: -1, note: 'دائم - مميز'},
+        { code: 'MATH-FREE-LIFE2', months: -1, note: 'دائم - مميز'},
+    ];
+
+    function getSubStatus() {
+        const now = new Date();
+        if (now <= TRIAL_END_DATE)
+            return { type: 'trial', valid: true,
+                     label: '🟢 تجريبي حتى 15/9/2026', expiry: TRIAL_END_DATE };
+        const stored = JSON.parse(localStorage.getItem(SUB_KEY) || 'null');
+        if (stored) {
+            if (stored.months === -1)
+                return { type: 'active', valid: true, label: '👑 اشتراك دائم', expiry: null };
+            const exp = new Date(stored.expiry);
+            if (now <= exp)
+                return { type: 'active', valid: true,
+                         label: `✅ مشترك حتى ${exp.toLocaleDateString('ar-EG')}`, expiry: exp };
+        }
+        return { type: 'expired', valid: false, label: '🔒 انتهت الفترة التجريبية' };
+    }
+
+    function activateSubCode() {
+        const raw = (document.getElementById('sub-code-input')?.value || '').trim().toUpperCase();
+        if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
+        const usedCodes = JSON.parse(localStorage.getItem('usedSubCodes') || '[]');
+        if (usedCodes.includes(raw)) { showToast('❌ هذا الكود مستخدَم مسبقاً!'); return; }
+        const entry = VALID_SUB_CODES.find(c => c.code === raw);
+        if (!entry) { showToast('❌ الكود غير صحيح — تحقق من الأستاذ رشدي'); return; }
+        const now    = new Date();
+        const expiry = entry.months === -1 ? null
+                     : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
+        localStorage.setItem(SUB_KEY, JSON.stringify({
+            code: raw, months: entry.months,
+            expiry: expiry?.toISOString() || null,
+            activated: new Date().toISOString()
+        }));
+        usedCodes.push(raw);
+        localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
+        const msg = entry.months === -1 ? 'تفعيل دائم!'
+                  : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
+        showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
+        updateSubBadge();
+        closeSubOverlay();
+    }
+
+    function selectSubPlan(el, plan, price) {
+        document.querySelectorAll('.sub-plan').forEach(p => p.classList.remove('selected'));
+        el.classList.add('selected');
+        const names = { monthly: 'الشهرية', quarterly: 'الربعية', yearly: 'السنوية' };
+        showToast(`💬 تواصل مع الأستاذ رشدي للحصول على كود الخطة ${names[plan]} (${price} ر.ع)`);
+    }
+
+    function updateSubBadge() {
+        const badge = document.getElementById('sub-status-badge');
+        if (!badge) return;
+        const st = getSubStatus();
+        badge.textContent = st.label;
+        badge.className   = `sub-badge ${st.type} sidebar-label`;
+    }
+
+    function openSubOverlay(msg) {
+        const desc = document.getElementById('sub-overlay-desc');
+        if (desc && msg) desc.textContent = msg;
+        document.getElementById('subscription-overlay').style.display = 'flex';
+    }
+
+    function closeSubOverlay() {
+        document.getElementById('subscription-overlay').style.display = 'none';
+        const inp = document.getElementById('sub-code-input');
+        if (inp) inp.value = '';
+    }
+
+    /* ---------- عداد المبارزات اليومية ---------- */
+    function getArenaDailyData() {
+        const today = new Date().toDateString();
+        const raw   = JSON.parse(localStorage.getItem(ARENA_DAILY_KEY) || '{}');
+        const uid   = currentUser?.username || 'guest';
+        const key   = uid + '_' + today;
+        return { used: raw[key] || 0, key, raw };
+    }
+
+    function incrementArenaDaily() {
+        const { used, key, raw } = getArenaDailyData();
+        raw[key] = used + 1;
+        const keys = Object.keys(raw);
+        if (keys.length > 15) keys.slice(0, keys.length - 5).forEach(k => delete raw[k]);
+        localStorage.setItem(ARENA_DAILY_KEY, JSON.stringify(raw));
+    }
+
+    function updateArenaDailyUI() {
+        const { used }  = getArenaDailyData();
+        const remaining = Math.max(0, ARENA_MAX_DAILY - used);
+        const dots      = document.querySelectorAll('#arena-dots .arena-dot');
+        const text      = document.getElementById('arena-remaining-text');
+        dots.forEach((d, i) => {
+            d.className = 'arena-dot ' + (i < used ? 'used' : 'ready');
+        });
+        if (text) text.textContent = remaining === 0 ? 'استنفدت مبارزاتك!' : `${remaining} متبقية`;
+        return remaining;
+    }
+
+    function checkArenaAccess() {
+        const sub = getSubStatus();
+        if (!sub.valid) {
+            cancelArenaSearch();
+            openSubOverlay('ساحة المبارزة تتطلب اشتراكاً نشطاً. فعّل كودك أو تواصل مع الأستاذ رشدي.');
+            return false;
+        }
+        const remaining = updateArenaDailyUI();
+        if (remaining <= 0) {
+            showToast('⚔️ استنفدت مبارزاتك الثلاث لليوم! عُد غداً.');
+            cancelArenaSearch();
+            return false;
+        }
+        return true;
+    }
+
+    /* ================================================================
+       ARENA FUNCTIONS — المطوّرة
+    ================================================================ */
     function openArenaModal() {
         if (isExamMode) { alert('أنت في اختبار بالفعل!'); return; }
         playSound(document.getElementById('sword-sfx'));
@@ -1624,11 +1929,11 @@
         document.getElementById('arena-invite-area').style.display   = 'none';
         document.getElementById('arena-status-text').textContent     = 'اختر طريقة القتال:';
         renderBattleLog();
+        updateArenaDailyUI();
         document.getElementById('arena-overlay').style.display = 'flex';
         initTiltEffect();
     }
 
-    /* سجل المعارك */
     function getBattleLog() {
         if (!currentUser) return [];
         return JSON.parse(localStorage.getItem('battleLog_' + currentUser.username) || '[]');
@@ -1664,8 +1969,9 @@
     }
 
     function startRandomSearch() {
+        if (!checkArenaAccess()) return;
         document.getElementById('arena-action-buttons').style.display = 'none';
-        document.getElementById('arena-status-text').innerHTML = `<i class="fas fa-search-location fa-spin"></i> جاري البحث عن منافس حقيقي من الصف ${currentUser?.grade || 'الحالي'}...`;
+        document.getElementById('arena-status-text').innerHTML = `<i class="fas fa-search-location fa-spin"></i> جاري البحث عن منافس من ${currentUser?.grade || 'صفك'}...`;
         arenaSearchTimeout = setTimeout(() => {
             document.getElementById('arena-status-text').textContent = 'تم العثور على خصم! استعد...';
             playSound(document.getElementById('door-sfx'));
@@ -1674,6 +1980,7 @@
     }
 
     function createInviteLink() {
+        if (!checkArenaAccess()) return;
         document.getElementById('arena-action-buttons').style.display = 'none';
         document.getElementById('arena-status-text').textContent = 'تم إنشاء الغرفة الملكية الخاصة بك.';
         const roomId   = Math.random().toString(36).substring(2,7).toUpperCase();
@@ -1699,52 +2006,55 @@
     }
 
     function generateEnemy() {
-        const allHeroes  = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+        const allHeroes    = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
         const userGradeNum = normalizeGradeNum(currentUser?.grade);
+        // ── خصم من نفس الصف بالضبط ──
         const classmates = allHeroes.filter(h =>
             h.username !== currentUser?.username &&
             normalizeGradeNum(h.grade) === userGradeNum
         );
-        const pool = classmates.length > 0 ? classmates : allHeroes.filter(h => h.username !== currentUser?.username);
+        const pool = classmates.length > 0 ? classmates
+                   : allHeroes.filter(h => h.username !== currentUser?.username);
         if (pool.length > 0) {
             const hero = pool[Math.floor(Math.random() * pool.length)];
-            return { name: hero.full_name, xp: hero.xp || 0, avatar: hero.avatar_url || avatars[0] };
+            return { name: hero.full_name, xp: hero.xp || 0, avatar: hero.avatar_url || avatars[0], grade: hero.grade };
         }
-        const enemyNames = ['فارس الظلام','عقل أينشتاين','بطل الأرقام','المقاتل المجهول'];
-        return { name: enemyNames[Math.floor(Math.random() * enemyNames.length)], xp: 100, avatar: avatars[2] };
+        const names = ['فارس الظلام','عقل أينشتاين','بطل الأرقام','المقاتل المجهول'];
+        return { name: names[Math.floor(Math.random() * names.length)], xp: 100, avatar: avatars[2], grade: currentUser?.grade };
     }
 
     async function startArenaMatch(isInvitedFriend = false) {
-        document.getElementById('arena-overlay').style.display    = 'none';
+        document.getElementById('arena-overlay').style.display       = 'none';
         document.getElementById('arena-match-overlay').style.display = 'flex';
         isExamMode = true;
         const enemy = isInvitedFriend
-            ? { name: 'صديقك المتحدي', xp: currentUser?.xp || 0, avatar: avatars[1] }
+            ? { name: 'صديقك المتحدي', xp: currentUser?.xp || 0, avatar: avatars[1], grade: currentUser?.grade }
             : generateEnemy();
 
-        document.getElementById('battle-my-avatar').src   = currentUser?.avatar_url || avatars[0];
+        document.getElementById('battle-my-avatar').src          = currentUser?.avatar_url || avatars[0];
         document.getElementById('battle-my-name').textContent    = currentUser?.full_name || 'أنا';
         document.getElementById('battle-my-score').textContent   = 'النقاط: 0/5';
-        document.getElementById('battle-enemy-avatar').src = enemy.avatar;
-        document.getElementById('battle-enemy-name').textContent  = enemy.name;
-        document.getElementById('battle-enemy-score').textContent = 'النقاط: 0/5';
+        document.getElementById('battle-enemy-avatar').src       = enemy.avatar;
+        document.getElementById('battle-enemy-name').textContent = enemy.name;
+        document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/5';
 
-        document.getElementById('battle-question-area').innerHTML = `<h3 style="color:var(--gold);">جاري استدعاء 5 أسلحة من الصف ${currentUser?.grade || 'الحالي'}...</h3>`;
+        const userGradeNum = normalizeGradeNum(currentUser?.grade);
+        document.getElementById('battle-question-area').innerHTML = `<h3 style="color:var(--gold);">جاري استدعاء 5 أسلحة من ${currentUser?.grade || 'صفك'}...</h3>`;
 
         try {
             const res   = await fetch(`${API_URL}/api/admin/questions`);
             if (!res.ok) throw new Error('offline');
             const allQs = await res.json();
-            const userGradeNum = normalizeGradeNum(currentUser?.grade);
-            let gradeQs = allQs.filter(q => normalizeGradeNum(q.grade) === userGradeNum);
-            let pool    = gradeQs.length >= 5 ? gradeQs : allQs.filter(q => {
-                // fallback: أسئلة بدون حقل صف أو من نفس الصف
-                return !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum;
-            });
-            // fallback أخير: كل الأسئلة المتاحة
+            // ── فلترة صارمة بالصف ──
+            let pool = allQs.filter(q => normalizeGradeNum(q.grade) === userGradeNum);
+            // fallback: أسئلة بدون صف محدد
+            if (pool.length < 5)
+                pool = allQs.filter(q => !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum);
+            // fallback أخير
             if (pool.length < 5) pool = allQs;
+
             if (pool.length >= 5) {
-                arenaQs            = knuthShuffle(pool).slice(0, 5);
+                arenaQs = knuthShuffle(pool).slice(0, 5);
                 currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
                 updateArenaScoreBoard();
                 renderArenaQuestion(arenaQs[0]);
@@ -1752,17 +2062,16 @@
             } else throw new Error('not enough');
         } catch {
             arenaQs = [
-                { question:'ما هو ناتج 5 × 6؟', q_type:'mcq', options:'30, 25, 35, 20', answer:'30' },
-                { question:'هل المثلث يحتوي على 3 أضلاع؟', q_type:'true_false', options:'', answer:'صواب' },
-                { question:'ما هو ناتج 100 ÷ 10؟', q_type:'short', options:'', answer:'10' },
-                { question:'مساحة المربع = طول الضلع × نفسه؟', q_type:'true_false', options:'', answer:'صواب' },
-                { question:'ما هو ناتج 12 + 8؟', q_type:'mcq', options:'20, 18, 22, 15', answer:'20' }
+                { question:'ما هو ناتج 5 × 6؟',                    q_type:'mcq',       options:'30,25,35,20', answer:'30'   },
+                { question:'هل المثلث يحتوي على 3 أضلاع؟',          q_type:'true_false', options:'',           answer:'صواب' },
+                { question:'ما هو ناتج 100 ÷ 10؟',                  q_type:'short',     options:'',           answer:'10'   },
+                { question:'مساحة المربع = طول الضلع × نفسه؟',      q_type:'true_false', options:'',           answer:'صواب' },
+                { question:'ما هو ناتج 12 + 8؟',                    q_type:'mcq',       options:'20,18,22,15', answer:'20'   }
             ];
             currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
             updateArenaScoreBoard();
             renderArenaQuestion(arenaQs[0]);
         }
-        // keep enemy reference for battle log
         window._currentEnemy = enemy;
     }
 
@@ -1775,14 +2084,12 @@
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
             <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 5</div>`;
         if (q.image_url) html += `<img src="${q.image_url}" class="question-image" style="max-height:200px;">`;
-        html += `<p class="battle-question">${q.question}</p>`;
+        html += `<p class="battle-question">${q.question}</p>
+            <div style="text-align:left; margin-bottom:15px;">
+                <button class="hint-btn" onclick="useHintArena()">🧙&#8205;♂️ مساعدة الحكيم (50 XP)</button>
+            </div>
+            <div id="arena-options-area" style="display:grid; gap:15px; grid-template-columns:1fr 1fr;">`;
 
-        // زر التلميح في الساحة
-        html += `<div style="text-align:left; margin-bottom:15px;">
-            <button class="hint-btn" onclick="useHintArena()">🧙‍♂️ مساعدة الحكيم (50 XP)</button>
-        </div>`;
-
-        html += `<div id="arena-options-area" style="display:grid; gap:15px; grid-template-columns:1fr 1fr;">`;
         if (q.q_type === 'true_false') {
             html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('صواب','${q.answer}')">صواب ✅</button>
                      <button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('خطأ','${q.answer}')">خطأ ❌</button>`;
@@ -1798,12 +2105,20 @@
         html += `</div></div>`;
         document.getElementById('battle-question-area').innerHTML = html;
 
-        let time = 15;
-        document.getElementById('battle-timer').textContent = '00:15';
+        // ── مؤقت 60 ثانية (دقيقة كاملة) ──
+        let time    = 60;
+        const timerEl = document.getElementById('battle-timer');
+        if (timerEl) timerEl.textContent = '01:00';
         clearInterval(battleTimerInterval);
         battleTimerInterval = setInterval(() => {
             time--;
-            document.getElementById('battle-timer').textContent = '00:' + String(time).padStart(2, '0');
+            const min = Math.floor(time / 60);
+            const sec = String(time % 60).padStart(2, '0');
+            if (timerEl) {
+                timerEl.textContent   = `${String(min).padStart(2,'0')}:${sec}`;
+                timerEl.style.color       = time <= 10 ? '#ff0000' : '#ff5e5e';
+                timerEl.style.borderColor = time <= 10 ? '#ff0000' : '#ff5e5e';
+            }
             if (time <= 0) { clearInterval(battleTimerInterval); submitArenaAnswer(null, q.answer); }
         }, 1000);
     }
@@ -1813,7 +2128,6 @@
         updateStudentXP(-50);
         const q = arenaQs[currentArenaQIndex];
         if (!q) return;
-        // إزالة إجابتين خاطئتين (MCQ) أو تلميح نصي
         if (q.q_type === 'mcq') {
             const btns = document.querySelectorAll('#arena-options-area .quiz-btn');
             let removed = 0;
@@ -1821,8 +2135,8 @@
                 if (removed < 2 && btn.textContent.trim() !== q.answer) { btn.style.opacity = '0.2'; btn.disabled = true; removed++; }
             });
         } else {
-            const area = document.getElementById('arena-options-area');
-            area.insertAdjacentHTML('beforebegin', `<div class="hint-box">💡 تلميح: الإجابة تبدأ بـ "${q.answer.charAt(0)}" وتحتوي على ${q.answer.length} حرف/رقم.</div>`);
+            document.getElementById('arena-options-area').insertAdjacentHTML('beforebegin',
+                `<div class="hint-box">💡 تلميح: الإجابة تبدأ بـ "${q.answer.charAt(0)}" وتحتوي على ${q.answer.length} حرف/رقم.</div>`);
         }
         showToast('🧙‍♂️ تم خصم 50 XP للتلميح الملكي!');
     }
@@ -1854,6 +2168,10 @@
     }
 
     function finishArenaMatch() {
+        // تسجيل المبارزة في العداد اليومي
+        incrementArenaDaily();
+        updateArenaDailyUI();
+
         const enemyName = document.getElementById('battle-enemy-name').textContent;
         let title, xpChange, color, result;
         if (myArenaScore > enemyArenaScore) {
@@ -1871,13 +2189,24 @@
             updateHeroBroadcast(`⚖️ تعادل ملحمي بين ${currentUser?.full_name} و${enemyName}!`);
         }
         saveBattleRecord(enemyName, result, myArenaScore, enemyArenaScore);
+
+        const { used } = getArenaDailyData();
+        const remaining = Math.max(0, ARENA_MAX_DAILY - used);
+        const remMsg = remaining > 0
+            ? `<p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-top:8px;">⚔️ ${remaining} مبارزة متبقية اليوم</p>`
+            : `<p style="color:#ff5e5e;font-size:0.85rem;margin-top:8px;">استنفدت مبارزاتك الثلاث لليوم!</p>`;
+
         const msg = `ضرباتك: ${myArenaScore} | ضربات الخصم: ${enemyArenaScore}<br><br>
-            ${xpChange > 0 ? 'غنائم المعركة: <span style="color:#2ecc71; font-weight:bold;">+' + xpChange + ' XP</span>' : 'فقدت <span style="color:#ff5e5e; font-weight:bold;">' + Math.abs(xpChange) + ' XP</span>'}`;
+            ${xpChange > 0
+                ? 'غنائم المعركة: <span style="color:#2ecc71;font-weight:bold;">+' + xpChange + ' XP</span>'
+                : 'فقدت <span style="color:#ff5e5e;font-weight:bold;">' + Math.abs(xpChange) + ' XP</span>'}`;
+
         document.getElementById('battle-question-area').innerHTML = `
-            <div class="tilt-card" style="text-align:center; padding:40px; width:100%; border-color:${color}; box-shadow:0 0 30px ${color}44;">
-                <h2 style="color:${color}; font-size:3rem; font-family:'Amiri';">${title}</h2>
-                <p style="color:var(--gold); font-size:1.5rem; line-height:1.6; margin-bottom:30px;">${msg}</p>
-                <button class="nav-btn shiny-btn" style="background:linear-gradient(45deg,#bf953f,#fcf6ba); color:#000; max-width:250px; margin:auto; font-size:1.2rem;" onclick="endArenaMatch(${xpChange})">العودة منتصراً ⚔️</button>
+            <div class="tilt-card" style="text-align:center;padding:40px;width:100%;border-color:${color};box-shadow:0 0 30px ${color}44;">
+                <h2 style="color:${color};font-size:3rem;font-family:'Amiri';">${title}</h2>
+                <p style="color:var(--gold);font-size:1.5rem;line-height:1.6;margin-bottom:10px;">${msg}</p>
+                ${remMsg}
+                <button class="nav-btn shiny-btn" style="background:linear-gradient(45deg,#bf953f,#fcf6ba);color:#000;max-width:250px;margin:auto;margin-top:20px;font-size:1.2rem;" onclick="endArenaMatch(${xpChange})">العودة منتصراً ⚔️</button>
             </div>`;
     }
 
@@ -1974,16 +2303,7 @@
             if (!res.ok) throw new Error('Server error');
             const allQs = await res.json();
             const targets = lessonStr.split(',').map(l => l.trim());
-            const userGradeNum = normalizeGradeNum(currentUser?.grade);
-            let filtered = allQs.filter(q => {
-                const lessonMatch = targets.includes(q.lesson);
-                if (!lessonMatch) return false;
-                // فلترة بالصف إذا كان الحقل موجوداً في السؤال
-                if (q.grade !== undefined && q.grade !== null && q.grade !== '') {
-                    return normalizeGradeNum(q.grade) === userGradeNum;
-                }
-                return true;
-            });
+            let filtered = allQs.filter(q => targets.includes(q.lesson));
 
             if (isExamMode && scheduledExamData) {
                 if (scheduledExamData.target_q_type && scheduledExamData.target_q_type !== 'all')
@@ -2218,7 +2538,7 @@
         // ── بناء roadmap منظّم متوافق مع صفحة ولي الأمر ──
         if (!currentUser.roadmap) currentUser.roadmap = [];
         if (!currentUser._roadmapDoneLessons) currentUser._roadmapDoneLessons = [];
-        // استخلاص اسم الوحدة: أول جزء قبل ":" أو اسم الدرس ذاته
+        // استخلاص اسم الوحدة: أول جزء قبل ":" أو " - " أو اسم الدرس ذاته
         const unitName = lessonName.includes(':')
             ? lessonName.split(':')[0].trim()
             : (lessonName.includes(' - ') ? lessonName.split(' - ')[0].trim() : lessonName);
@@ -2563,10 +2883,11 @@
             if (res.ok) {
                 const clan       = assignClan(user);
                 const parentCode = generateParentCode(user);
+                const gradeMap   = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
                 const newUser    = {
                     full_name: name, username: user,
                     school_name: school, avatar_url: selectedAvatarUrl,
-                    xp: 0, grade: grade,
+                    xp: 0, grade: gradeMap[String(grade)] || grade,
                     parentCode: parentCode,
                     clanId: clan.id,
                     mistakes: [],
@@ -2801,6 +3122,7 @@
         populateAvatarGrid('avatar-selector', avatars[0]);
         loadGlobalCurriculum();
         checkInviteLink();
+        updateSubBadge();
 
         if (currentUser) {
             document.getElementById('auth-overlay').style.display = 'none';
@@ -2826,6 +3148,7 @@
             const _rawGradeInit = String(currentUser.grade || '').trim();
             if (/^\d+$/.test(_rawGradeInit) && _gMapInit[_rawGradeInit]) { currentUser.grade = _gMapInit[_rawGradeInit]; _needsSave = true; }
             if (_needsSave) { localStorage.setItem('mathHero', JSON.stringify(currentUser)); updateAllStudentsList(currentUser); }
+            updateSubBadge();
             openHome();
         }
     };

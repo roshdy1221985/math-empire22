@@ -1235,7 +1235,7 @@
 
         if(gSel) {
             gSel.innerHTML = '<option value="">-- اختر الصف --</option>';
-            fullCurriculum.forEach((g, i) => gSel.innerHTML += `<option value="${i}">${esc(g.name)}</option>`);
+            fullCurriculum.forEach(g => gSel.innerHTML += `<option value="${g.id}">${esc(g.name)}</option>`);
         }
         if (type === 'grade') {
             if(cascadeArea) cascadeArea.style.display = 'none';
@@ -1274,11 +1274,11 @@
         const btn  = document.getElementById('btn-save-curr');
         if(!name) return void showToast("⚠️ يرجى كتابة اسم العنصر!", "warning");
 
-        // ① حفظ الاختيارات الحالية
-        const savedType     = type;
-        const savedGradeIdx = document.getElementById('add-grade-sel')?.value ?? '';
-        const savedTermIdx  = document.getElementById('add-term-sel')?.value  ?? '';
-        const savedUnitIdx  = document.getElementById('add-unit-sel')?.value  ?? '';
+        // ① حفظ الاختيارات الحالية (Real IDs الآن)
+        const savedType    = type;
+        const savedGradeId = document.getElementById('add-grade-sel')?.value ?? '';
+        const savedTermId  = document.getElementById('add-term-sel')?.value  ?? '';
+        const savedUnitId  = document.getElementById('add-unit-sel')?.value  ?? '';
 
         btn.disabled  = true;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإيداع...';
@@ -1289,17 +1289,11 @@
 
         try {
             if(type === 'semester') {
-                const gIdx = document.getElementById('add-grade-sel').value;
-                fd.append('grade_id', fullCurriculum[gIdx].id);
+                fd.append('grade_id', document.getElementById('add-grade-sel').value);
             } else if(type === 'unit') {
-                const gIdx = document.getElementById('add-grade-sel').value;
-                const sIdx = document.getElementById('add-term-sel').value;
-                fd.append('semester_id', fullCurriculum[gIdx].semesters[sIdx].id);
+                fd.append('semester_id', document.getElementById('add-term-sel').value);
             } else if(type === 'lesson') {
-                const gIdx = document.getElementById('add-grade-sel').value;
-                const sIdx = document.getElementById('add-term-sel').value;
-                const uIdx = document.getElementById('add-unit-sel').value;
-                fd.append('unit_id', fullCurriculum[gIdx].semesters[sIdx].units[uIdx].id);
+                fd.append('unit_id', document.getElementById('add-unit-sel').value);
             }
 
             const res = await authFetch(endpoint, { method: 'POST', body: fd });
@@ -1310,22 +1304,22 @@
                 // ② إعادة تحميل المنهج
                 await loadCurriculum();
 
-                // ③ استعادة الاختيارات
+                // ③ استعادة الاختيارات باستخدام Real IDs
                 const currTypeSel = document.getElementById('curr-type');
                 if(currTypeSel) { currTypeSel.value = savedType; toggleCurrAddInputs(); }
 
                 const gradeEl = document.getElementById('add-grade-sel');
-                if(gradeEl && savedGradeIdx !== '') {
-                    gradeEl.value = savedGradeIdx;
+                if(gradeEl && savedGradeId !== '') {
+                    gradeEl.value = savedGradeId;
                     updateAddSemesters();
                 }
                 const termEl = document.getElementById('add-term-sel');
-                if(termEl && savedTermIdx !== '') {
-                    termEl.value = savedTermIdx;
+                if(termEl && savedTermId !== '') {
+                    termEl.value = savedTermId;
                     updateAddUnits();
                 }
                 const unitEl = document.getElementById('add-unit-sel');
-                if(unitEl && savedUnitIdx !== '') unitEl.value = savedUnitIdx;
+                if(unitEl && savedUnitId !== '') unitEl.value = savedUnitId;
             }
         } catch(e) {
             showToast("⚠️ تأكد من اختيار جميع القوائم!", "warning");
@@ -2396,22 +2390,25 @@
     }
 
     function updateAddSemesters() {
-        const gIdx = document.getElementById('add-grade-sel').value;
+        const gId  = document.getElementById('add-grade-sel').value;
         const sel  = document.getElementById('add-term-sel');
         if(!sel) return;
         sel.innerHTML = '<option value="">-- اختر الفصل --</option>';
-        if (gIdx !== "" && fullCurriculum[gIdx])
-            fullCurriculum[gIdx].semesters.forEach((s, i) => sel.innerHTML += `<option value="${i}">${esc(s.name)}</option>`);
+        const gradeObj = fullCurriculum.find(g => Number(g.id) === Number(gId));
+        if (gId !== "" && gradeObj)
+            gradeObj.semesters.forEach(s => sel.innerHTML += `<option value="${s.id}">${esc(s.name)}</option>`);
     }
 
     function updateAddUnits() {
-        const gIdx = document.getElementById('add-grade-sel').value;
-        const sIdx = document.getElementById('add-term-sel').value;
+        const gId  = document.getElementById('add-grade-sel').value;
+        const sId  = document.getElementById('add-term-sel').value;
         const sel  = document.getElementById('add-unit-sel');
         if(!sel) return;
         sel.innerHTML = '<option value="">-- اختر الوحدة --</option>';
-        if (sIdx !== "" && fullCurriculum[gIdx]?.semesters[sIdx])
-            fullCurriculum[gIdx].semesters[sIdx].units.forEach((u, i) => sel.innerHTML += `<option value="${i}">${esc(u.name)}</option>`);
+        const gradeObj = fullCurriculum.find(g => Number(g.id) === Number(gId));
+        const semObj   = gradeObj?.semesters.find(s => Number(s.id) === Number(sId));
+        if (sId !== "" && semObj)
+            semObj.units.forEach(u => sel.innerHTML += `<option value="${u.id}">${esc(u.name)}</option>`);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -2755,22 +2752,47 @@
             }
         }
 
+        // ── مساعد استخراج ID من أي شكل استجابة ──────────────────────────────
+        async function extractId(res, ...keys) {
+            try {
+                const d = await res.json();
+                // جرّب كل المسميات الممكنة مباشرة وداخل data/result
+                for (const obj of [d, d?.data, d?.result, d?.item]) {
+                    if (!obj) continue;
+                    for (const k of keys) {
+                        if (obj[k] !== undefined && obj[k] !== null) return obj[k];
+                    }
+                    // إذا كان الكائن يحتوي على خاصية id بأي شكل
+                    if (obj.id) return obj.id;
+                }
+                // آخر محاولة: أول قيمة رقمية في الكائن
+                const nums = Object.values(d || {}).filter(v => typeof v === 'number' && v > 0);
+                if (nums.length) return nums[0];
+            } catch(e) {}
+            return null;
+        }
+
         // ── الرفع التسلسلي الإجباري: صف → فصل → وحدة → دروس ──
         for (const [gradeName, sems] of Object.entries(parsedCurriculumData)) {
 
-            // ① الصف
+            // ① الصف — إذا موجود في localGradeMap استخدمه مباشرة
             let gradeId = localGradeMap[gradeName];
             if (!gradeId) {
                 const fd = new FormData(); fd.append('name', gradeName);
                 try {
                     const res = await authFetch('/api/admin/curriculum/grades', { method: 'POST', body: fd });
-                    if (res && res.ok) {
-                        const d = await res.json();
-                        gradeId = d.id || d.grade_id;
+                    if (res && (res.ok || res.status === 409)) {
+                        // 409 = موجود مسبقاً — نحاول نجلب ID منه
+                        gradeId = await extractId(res, 'id', 'grade_id', 'gradeId');
+                        if (!gradeId) {
+                            // إذا لم يُرجع ID، نبحث في fullCurriculum مجدداً بعد إعادة التحميل
+                            await loadCurriculum();
+                            gradeId = fullCurriculum.find(g => g.name === gradeName)?.id;
+                        }
                         if (gradeId) localGradeMap[gradeName] = gradeId;
-                        else { failed++; updateProgress(`فشل: ${gradeName}`); continue; }
-                    } else { failed++; updateProgress(`فشل: ${gradeName}`); continue; }
-                } catch(e) { failed++; updateProgress(`خطأ: ${gradeName}`); continue; }
+                        else { failed++; updateProgress(`فشل الصف: ${gradeName}`); continue; }
+                    } else { failed++; updateProgress(`فشل الصف: ${gradeName}`); continue; }
+                } catch(e) { failed++; updateProgress(`خطأ الصف: ${gradeName}`); continue; }
             } else { skipped++; }
             updateProgress(`صف: ${gradeName}`);
             await new Promise(r => setTimeout(r, 60));
@@ -2784,13 +2806,18 @@
                     const fd = new FormData(); fd.append('name', semName); fd.append('grade_id', gradeId);
                     try {
                         const res = await authFetch('/api/admin/curriculum/semesters', { method: 'POST', body: fd });
-                        if (res && res.ok) {
-                            const d = await res.json();
-                            semId = d.id || d.semester_id;
+                        if (res && (res.ok || res.status === 409)) {
+                            semId = await extractId(res, 'id', 'semester_id', 'semesterId');
+                            if (!semId) {
+                                // نُحدِّث fullCurriculum أولاً ثم نبحث في البيانات الطازجة
+                                await loadCurriculum();
+                                const gradeObj = fullCurriculum.find(g => Number(g.id) === Number(gradeId));
+                                semId = gradeObj?.semesters.find(s => s.name === semName)?.id;
+                            }
                             if (semId) localSemMap[semKey] = semId;
-                            else { failed++; updateProgress(`فشل: ${semName}`); continue; }
-                        } else { failed++; updateProgress(`فشل: ${semName}`); continue; }
-                    } catch(e) { failed++; updateProgress(`خطأ: ${semName}`); continue; }
+                            else { failed++; updateProgress(`فشل الفصل: ${semName}`); continue; }
+                        } else { failed++; updateProgress(`فشل الفصل: ${semName}`); continue; }
+                    } catch(e) { failed++; updateProgress(`خطأ الفصل: ${semName}`); continue; }
                 } else { skipped++; }
                 updateProgress(`فصل: ${semName}`);
                 await new Promise(r => setTimeout(r, 60));
@@ -2804,13 +2831,18 @@
                         const fd = new FormData(); fd.append('name', unitName); fd.append('semester_id', semId);
                         try {
                             const res = await authFetch('/api/admin/curriculum/units', { method: 'POST', body: fd });
-                            if (res && res.ok) {
-                                const d = await res.json();
-                                unitId = d.id || d.unit_id;
+                            if (res && (res.ok || res.status === 409)) {
+                                unitId = await extractId(res, 'id', 'unit_id', 'unitId');
+                                if (!unitId) {
+                                    // نُحدِّث fullCurriculum أولاً ثم نبحث في البيانات الطازجة
+                                    await loadCurriculum();
+                                    const gradeObj = fullCurriculum.find(g => Number(g.id) === Number(gradeId));
+                                    unitId = gradeObj?.semesters.find(s => Number(s.id) === Number(semId))?.units.find(u => u.name === unitName)?.id;
+                                }
                                 if (unitId) localUnitMap[unitKey] = unitId;
-                                else { failed++; updateProgress(`فشل: ${unitName}`); continue; }
-                            } else { failed++; updateProgress(`فشل: ${unitName}`); continue; }
-                        } catch(e) { failed++; updateProgress(`خطأ: ${unitName}`); continue; }
+                                else { failed++; updateProgress(`فشل الوحدة: ${unitName}`); continue; }
+                            } else { failed++; updateProgress(`فشل الوحدة: ${unitName}`); continue; }
+                        } catch(e) { failed++; updateProgress(`خطأ الوحدة: ${unitName}`); continue; }
                     } else { skipped++; }
                     updateProgress(`وحدة: ${unitName}`);
                     await new Promise(r => setTimeout(r, 60));
@@ -2822,7 +2854,7 @@
                             const fd = new FormData(); fd.append('name', lessonName); fd.append('unit_id', unitId);
                             try {
                                 const res = await authFetch('/api/admin/curriculum/lessons', { method: 'POST', body: fd });
-                                if (res && res.ok) {
+                                if (res && (res.ok || res.status === 409)) {
                                     localLessonSet.add(lessonKey);
                                 } else { failed++; }
                             } catch(e) { failed++; }
