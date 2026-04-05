@@ -52,6 +52,37 @@
         body.sidebar-collapsed .nav-btn .btn-icon { margin: 0; font-size: 1.4rem; }
         body.sidebar-collapsed .nav-vip-badge { display: none !important; }
         body.sidebar-collapsed .sidebar-bottom-logo { display: none !important; }
+        body.sidebar-collapsed .sidebar-controls { flex-direction: column; padding: 8px 5px; }
+        body.sidebar-collapsed .sidebar-controls .ctrl-icon-btn { width: 38px; height: 38px; }
+
+        /* أزرار التحكم المدمجة */
+        .sidebar-controls {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            padding: 10px 15px;
+            justify-content: center;
+        }
+        .ctrl-icon-btn {
+            background: rgba(212,175,55,0.1);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            border-radius: 10px;
+            width: 44px; height: 44px;
+            cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+            transition: 0.25s;
+            flex-shrink: 0;
+        }
+        .ctrl-icon-btn:hover { background: var(--gold-grad); color: #000; }
+        .ctrl-icon-btn.active { background: var(--gold-grad); color: #000; }
+
+        /* أزرار ديوان المجد والمواطن */
+        .btn-glory { border-color: #d4af37; color: #d4af37; background: rgba(212,175,55,0.08); }
+        .btn-glory:hover, .btn-glory.active { background: var(--gold-grad); color: #000; border-color: var(--gold); box-shadow: 0 0 18px rgba(212,175,55,0.4); }
+        .btn-citizens { border-color: #64b5f6; color: #64b5f6; background: rgba(100,181,246,0.08); }
+        .btn-citizens:hover, .btn-citizens.active { background: linear-gradient(45deg,#1565c0,#64b5f6); color: #fff; }
 
         body {
             margin: 0;
@@ -657,6 +688,38 @@
         .store-buy-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
         /* ============================================================
+           GLORY TREASURES — Sub-tabs
+        ============================================================ */
+        .glory-tabs {
+            display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;
+            margin: 0 auto 20px; max-width: 500px;
+        }
+        .glory-tab-btn {
+            padding: 10px 28px; border-radius: 30px;
+            border: 2px solid var(--border);
+            background: rgba(255,255,255,0.04);
+            color: rgba(255,255,255,0.7);
+            cursor: pointer; font-family: 'Tajawal'; font-weight: bold;
+            font-size: 1rem; transition: 0.25s;
+        }
+        .glory-tab-btn:hover { border-color: var(--gold); color: var(--gold); }
+        .glory-tab-btn.active { background: var(--gold-grad); color: #000; border-color: var(--gold); box-shadow: 0 0 15px rgba(212,175,55,0.4); }
+
+        /* ============================================================
+           BADGE CARDS
+        ============================================================ */
+        .badge-card { text-align: center; padding: 22px 15px; position: relative; overflow: hidden; }
+        .badge-card.badge-unlocked { border-color: var(--gold); background: rgba(212,175,55,0.07); }
+        .badge-card.badge-locked   { border-color: rgba(100,100,100,0.3); filter: opacity(0.65); }
+        .badge-icon-wrap { font-size: 3.5rem; margin-bottom: 12px; display: block; transition: transform 0.3s; }
+        .badge-card:hover .badge-icon-wrap { transform: scale(1.15) rotate(5deg); }
+        .badge-name { color: var(--gold); font-family: 'Amiri'; font-size: 1.1rem; margin: 0 0 8px; }
+        .badge-desc { font-size: 0.78rem; opacity: 0.7; margin-bottom: 12px; line-height: 1.5; }
+        .badge-status { font-size: 0.82rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; display: inline-block; }
+        .badge-status.unlocked { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid #2ecc71; }
+        .badge-status.locked   { background: rgba(255,94,94,0.1);  color: #ff5e5e; border: 1px solid rgba(255,94,94,0.4); }
+
+        /* ============================================================
            RESPONSIVE
         ============================================================ */
         /* ============================================================
@@ -753,6 +816,12 @@
             .battle-vs { font-size: 2rem; margin: 5px 0; }
             .arena-popup { width: 90%; }
             .semester-btns { flex-direction: column; align-items: center; }
+            /* شبكة العمالقة على الموبايل: 2 في الصف */
+            .hero-grid-5 { grid-template-columns: repeat(2, 1fr) !important; }
+        }
+        @media screen and (max-width: 600px) {
+            .glory-tabs { flex-direction: column; align-items: center; }
+            .glory-tab-btn { width: 220px; }
         }
         @media screen and (min-width: 901px) {
             .sidebar-collapse-btn { display: flex; }
@@ -903,11 +972,11 @@
 
     <!-- STORE OVERLAY -->
     <div id="store-overlay">
-        <div class="auth-card tilt-card" style="max-width:700px;">
+        <div class="auth-card tilt-card" style="max-width:750px; max-height:90vh; overflow-y:auto;">
             <h2 style="color:var(--gold); font-family:'Amiri'; font-size:2rem; margin-bottom:5px;">🛒 المتجر الملكي</h2>
-            <p style="color:var(--gold); opacity:0.8; margin-bottom:20px; font-size:0.95rem;">أنفق XP لتزيين صورتك الرمزية وإظهار مكانتك الملكية</p>
+            <p style="color:var(--gold); opacity:0.8; margin-bottom:20px; font-size:0.95rem;">أنفق XP لاكتساب تعزيزات وألقاب ومزايا حصرية</p>
             <p style="color:#fff; font-size:1rem; margin-bottom:20px;">رصيدك الحالي: <strong id="store-xp-display" style="color:var(--gold);">0 XP</strong></p>
-            <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:20px; margin-bottom:25px;" id="store-items-grid"></div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:15px; margin-bottom:25px; align-items:start;" id="store-items-grid"></div>
             <button class="nav-btn" style="border-color:#ff5e5e; color:#ff5e5e;" onclick="document.getElementById('store-overlay').style.display='none'">إغلاق المتجر</button>
         </div>
     </div>
@@ -983,13 +1052,22 @@
     <div id="auth-overlay">
         <div class="auth-card tilt-card" id="login-form">
             <h2 style="color:var(--gold); font-family:'Amiri';">دخول الأبطال 🏰</h2>
+            <!-- رسالة offline تظهر عند فشل الاتصال -->
+            <div id="login-offline-msg" style="display:none; background:rgba(212,175,55,0.12); border:1px solid var(--gold); border-radius:12px; padding:12px 15px; margin-bottom:15px; font-size:0.9rem; color:var(--gold); line-height:1.6;">
+                ⚠️ السيرفر غير متصل حالياً.<br>
+                إذا سجّلت حساباً من قبل ادخل بياناتك.<br>
+                <strong>إذا كنت جديداً انقر على "أنشئ حسابك" أدناه.</strong>
+            </div>
             <input type="text"     id="user-login" class="auth-input" placeholder="اسم المستخدم" autocomplete="username">
             <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور" autocomplete="current-password">
             <button class="nav-btn active shiny-btn" onclick="handleLogin()">دخول الإمبراطورية</button>
-            <p style="margin-top:20px; font-size:0.8rem;">بطل جديد؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold);">أنشئ حسابك</a></p>
+            <p style="margin-top:20px; font-size:0.8rem;">بطل جديد؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold); font-weight:bold;">أنشئ حسابك ←</a></p>
         </div>
         <div class="auth-card tilt-card" id="register-form" style="display:none;">
             <h2 style="color:var(--gold); font-family:'Amiri';">انضمام بطل جديد 📜</h2>
+            <div style="background:rgba(46,204,113,0.1); border:1px solid #2ecc71; border-radius:10px; padding:10px 14px; margin-bottom:12px; font-size:0.85rem; color:#2ecc71;">
+                ✅ التسجيل يعمل بدون اتصال بالإنترنت
+            </div>
             <p style="color:var(--gold); font-size:1rem; margin-bottom:10px; font-weight:bold;">اختر شخصيتك البطولية:</p>
             <div class="avatar-grid" id="avatar-selector"></div>
             <input type="text"     id="reg-name"   class="auth-input" placeholder="الاسم الثلاثي" autocomplete="name">
@@ -998,8 +1076,20 @@
             <input type="text"     id="reg-school" class="auth-input" placeholder="اسم المدرسة">
             <select id="reg-grade" class="auth-input" style="color:#fff; background:rgba(0,0,0,0.5);">
                 <option value="">-- اختر صفك الدراسي --</option>
+                <option value="الصف الأول">الصف الأول</option>
+                <option value="الصف الثاني">الصف الثاني</option>
+                <option value="الصف الثالث">الصف الثالث</option>
+                <option value="الصف الرابع">الصف الرابع</option>
+                <option value="الصف الخامس">الصف الخامس</option>
+                <option value="الصف السادس">الصف السادس</option>
+                <option value="الصف السابع">الصف السابع</option>
+                <option value="الصف الثامن">الصف الثامن</option>
+                <option value="الصف التاسع">الصف التاسع</option>
+                <option value="الصف العاشر">الصف العاشر</option>
+                <option value="الصف الحادي عشر">الصف الحادي عشر</option>
+                <option value="الصف الثاني عشر">الصف الثاني عشر</option>
             </select>
-            <button class="nav-btn active shiny-btn" onclick="handleRegister()">تسجيل واعتلاء العرش</button>
+            <button class="nav-btn active shiny-btn" onclick="handleRegister()">تسجيل واعتلاء العرش ⚔️</button>
             <p style="margin-top:20px; font-size:0.8rem;">لديك حساب؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold);">سجل دخولك</a></p>
         </div>
     </div>
@@ -1031,32 +1121,34 @@
         <button class="nav-btn shiny-btn btn-hospital" id="btn-hospital" onclick="openHospital()">
             <span class="btn-icon">🏥</span><span class="sidebar-label">مستشفى الأرقام</span>
         </button>
-        <button class="nav-btn shiny-btn btn-store" id="btn-store" onclick="openStore()">
-            <span class="btn-icon">🛒</span><span class="sidebar-label">المتجر الملكي</span>
+
+        <!-- ديوان المجد والكنوز: دمج العمالقة + الأوسمة + المتجر -->
+        <button class="nav-btn shiny-btn btn-glory" id="btn-glory" onclick="openGloryTreasures('leaderboard')">
+            <span class="btn-icon">🏆</span><span class="sidebar-label">ديوان المجد والكنوز</span>
         </button>
-        <button class="nav-btn shiny-btn" id="btn-leaderboard" onclick="loadLeaderboard()">
-            <span class="btn-icon">🏆</span><span class="sidebar-label">قائمة العمالقة</span>
+
+        <!-- الدعم والاشتراك مدمجان -->
+        <button class="nav-btn shiny-btn btn-citizens" id="btn-citizens" onclick="openCitizensPortal()">
+            <span class="btn-icon">🛡️</span><span class="sidebar-label">الدعم الفني والاشتراك</span>
         </button>
-        <button class="nav-btn shiny-btn" id="btn-trophy" onclick="openTrophyRoom()">
-            <span class="btn-icon">🏅</span><span class="sidebar-label">خزانة الأوسمة</span>
-        </button>
-        <button class="nav-btn shiny-btn" id="btn-support" onclick="openSupport()">
-            <span class="btn-icon">💬</span><span class="sidebar-label">الدعم الفني</span>
-        </button>
-        <button class="nav-btn shiny-btn" onclick="openEditProfile()">
+
+        <button class="nav-btn shiny-btn" id="btn-profile" onclick="openEditProfile()">
             <span class="btn-icon">⚙️</span><span class="sidebar-label">ملفي الشخصي</span>
-        </button>
-        <button class="nav-btn shiny-btn" id="focus-btn" onclick="toggleFocusMode()">
-            <span class="btn-icon">🌙</span><span class="sidebar-label">وضع التركيز</span>
-        </button>
-        <button class="nav-btn shiny-btn" id="sound-btn" onclick="toggleSound()">
-            <span class="btn-icon">🔊</span><span class="sidebar-label">الصوت: مفعل</span>
         </button>
 
         <div style="flex:1;"></div>
         <button class="nav-btn" style="background:rgba(255,0,0,0.1); color:#ff5e5e; border-color:#ff5e5e;" onclick="logout()">
             <span class="btn-icon">🚪</span><span class="sidebar-label">خروج</span>
         </button>
+        <!-- أزرار التحكم المدمجة: تركيز + صوت -->
+        <div class="sidebar-controls sidebar-label">
+            <button class="ctrl-icon-btn" id="focus-btn" onclick="toggleFocusMode()" title="وضع التركيز">
+                <span class="btn-icon" id="focus-icon">🌙</span>
+            </button>
+            <button class="ctrl-icon-btn" id="sound-btn" onclick="toggleSound()" title="الصوت">
+                <span class="btn-icon" id="sound-icon">🔊</span>
+            </button>
+        </div>
         <div class="sidebar-bottom-logo sidebar-label">👑 إمبراطورية الرياضيات</div>
     </aside>
 
@@ -1270,9 +1362,10 @@
     function toggleFocusMode() {
         isFocusMode = !isFocusMode;
         document.body.classList.toggle('focus-mode', isFocusMode);
+        const icon = document.getElementById('focus-icon');
         const btn = document.getElementById('focus-btn');
-        btn.querySelector('.sidebar-label').textContent = isFocusMode ? 'إلغاء التركيز' : 'وضع التركيز';
-        btn.querySelector('.btn-icon').textContent = isFocusMode ? '☀️' : '🌙';
+        if (icon) icon.textContent = isFocusMode ? '☀️' : '🌙';
+        if (btn) { btn.title = isFocusMode ? 'إلغاء التركيز' : 'وضع التركيز'; btn.classList.toggle('active', isFocusMode); }
     }
 
     /* ================================================================
@@ -1421,6 +1514,7 @@
             showClanBadge();
             showParentCode();
             updateDailyQuest();
+            updateTitleDisplay();
             setTimeout(() => updateRank(currentUser.xp || 0), 100);
         }
         checkUpcomingExams();
@@ -1697,49 +1791,195 @@
     }
 
     /* ================================================================
-       STORE (المتجر الملكي)
+       STORE (المتجر الملكي) — 10 عناصر مفعّلة ميكانيكياً
     ================================================================ */
     const STORE_ITEMS = [
-        { id: 'frame_gold', name: 'الإطار الذهبي', icon: '✨', cost: 200, frame: 'gold', desc: 'إطار ذهبي لامع حول صورتك' },
-        { id: 'frame_fire', name: 'الإطار الناري',  icon: '🔥', cost: 350, frame: 'fire', desc: 'إطار ناري يلتهب بالجلال' },
+        // --- إطارات الصور ---
+        {
+            id: 'frame_gold', name: 'الإطار الذهبي', icon: '✨', cost: 200, category: 'frame',
+            desc: 'إطار ذهبي لامع يميّزك في لوحة العمالقة',
+            check: u => u.avatarFrame === 'gold'
+        },
+        {
+            id: 'frame_fire', name: 'الإطار الناري', icon: '🔥', cost: 350, category: 'frame',
+            desc: 'إطار ناري يلتهب بالجلال والغضب',
+            check: u => u.avatarFrame === 'fire'
+        },
+        // --- تعزيزات القتال ---
+        {
+            id: 'double_xp', name: 'مضاعف الخبرة 2× ⚡', icon: '⚡', cost: 300, category: 'boost',
+            desc: 'يضاعف XP المكتسب لمدة ساعة كاملة',
+            check: u => u.doubleXpUntil && u.doubleXpUntil > Date.now()
+        },
+        {
+            id: 'shield', name: 'درع الحماية 🛡️', icon: '🛡️', cost: 500, category: 'boost',
+            desc: 'يمنع خصم النقاط عند الخطأ مرةً واحدة',
+            check: u => !!u.hasShield
+        },
+        {
+            id: 'second_chance', name: 'فرصة ثانية 🔄', icon: '🔄', cost: 250, category: 'boost',
+            desc: 'احصل على فرصة إجابة ثانية في التحدي القادم',
+            check: u => !!u.hasSecondChance
+        },
+        {
+            id: 'sage_hint', name: 'تلميح الحكماء 🧙', icon: '🧙', cost: 150, category: 'boost',
+            desc: 'يمنحك 3 تلميحات مجانية للاستخدام في التحديات',
+            check: u => (u.freeHints || 0) > 0
+        },
+        // --- الألقاب ---
+        {
+            id: 'title_genius', name: 'لقب "العبقري" 🎓', icon: '🎓', cost: 1000, category: 'title',
+            desc: 'يظهر بجوار اسمك في كل مكان دليلاً على تفوّقك',
+            check: u => u.activeTitle === 'العبقري 🎓'
+        },
+        {
+            id: 'title_slayer', name: 'لقب "السفاح" ⚔️', icon: '💀', cost: 1000, category: 'title',
+            desc: 'لقب المحاربين المتمرسين الذين أسقطوا الجميع',
+            check: u => u.activeTitle === 'السفاح ⚔️'
+        },
+        {
+            id: 'title_sultan', name: 'لقب "السلطان" 👑', icon: '👑', cost: 2000, category: 'title',
+            desc: 'أعلى لقب شرفي في إمبراطورية الرياضيات',
+            check: u => u.activeTitle === 'السلطان 👑'
+        },
+        // --- زينة ---
+        {
+            id: 'coins_pack', name: 'حزمة 500 عملة ذهبية 💰', icon: '💰', cost: 800, category: 'misc',
+            desc: 'احصل على 500 عملة ذهبية إضافية (يُجدَّد XP)',
+            check: u => false  // دائماً قابل للشراء
+        }
     ];
+
+    function renderStoreHTML(targetEl) {
+        if (!currentUser) return;
+        const xp = currentUser.xp || 0;
+        if (targetEl === 'overlay') {
+            document.getElementById('store-xp-display').textContent = xp + ' XP';
+        }
+        const categories = { frame: '🖼️ الإطارات', boost: '⚡ التعزيزات', title: '🏅 الألقاب', misc: '💰 متفرقات' };
+        let html = '';
+        for (const [catKey, catLabel] of Object.entries(categories)) {
+            const items = STORE_ITEMS.filter(i => i.category === catKey);
+            html += `<div style="grid-column:1/-1; text-align:right; padding:8px 0 4px; border-bottom:1px solid var(--border); color:var(--gold); font-weight:bold; font-size:1rem;">${catLabel}</div>`;
+            items.forEach(item => {
+                const owned = item.check(currentUser);
+                const canAfford = xp >= item.cost;
+                const activeBoost = item.id === 'double_xp' && currentUser.doubleXpUntil && currentUser.doubleXpUntil > Date.now();
+                const remaining = activeBoost ? Math.ceil((currentUser.doubleXpUntil - Date.now()) / 60000) : 0;
+
+                const avatarStyle = item.id === 'frame_gold'
+                    ? 'box-shadow:0 0 20px #d4af37; border-color:#d4af37;'
+                    : item.id === 'frame_fire'
+                    ? 'box-shadow:0 0 20px #ff6b35; border-color:#ff6b35; animation:fireGlow 1.5s infinite alternate;'
+                    : '';
+                const showAvatar = item.category === 'frame';
+
+                html += `<div class="store-item-card" style="${owned ? 'border-color:var(--gold); background:rgba(212,175,55,0.07);' : ''}">
+                    ${showAvatar ? `<img src="${currentUser.avatar_url || avatars[0]}" class="store-preview-avatar" style="${avatarStyle}" alt="معاينة">` : `<div style="font-size:3rem; margin:10px 0; filter:drop-shadow(0 0 8px rgba(212,175,55,0.5));">${item.icon}</div>`}
+                    <div style="font-weight:bold; color:var(--gold); margin-bottom:5px; font-size:0.95rem;">${item.name}</div>
+                    <div style="font-size:0.75rem; opacity:0.7; margin-bottom:10px; line-height:1.5;">${item.desc}</div>
+                    <div style="color:var(--gold); font-weight:bold; font-size:1rem; margin-bottom:10px;">${item.cost} XP</div>
+                    ${owned
+                        ? `<div style="color:#2ecc71; font-weight:bold; font-size:0.9rem;">✅ ${activeBoost ? 'نشط — ' + remaining + ' دقيقة متبقية' : 'مفعّل'}</div>`
+                        : `<button class="store-buy-btn" ${!canAfford ? 'disabled' : ''} onclick="buyItem('${item.id}', ${item.cost})">
+                            ${canAfford ? '🛒 شراء الآن' : '❌ رصيد غير كافٍ'}
+                           </button>`
+                    }
+                </div>`;
+            });
+        }
+        const gridEl = targetEl === 'overlay'
+            ? document.getElementById('store-items-grid')
+            : document.getElementById('glory-shop-grid');
+        if (gridEl) gridEl.innerHTML = html;
+    }
+
     function openStore() {
         if (!currentUser) { alert('يجب تسجيل الدخول أولاً.'); return; }
-        const xp = currentUser.xp || 0;
-        document.getElementById('store-xp-display').textContent = xp + ' XP';
-        const grid = document.getElementById('store-items-grid');
-        grid.innerHTML = STORE_ITEMS.map(item => {
-            const owned = currentUser.avatarFrame === item.frame;
-            const canAfford = xp >= item.cost;
-            return `
-            <div class="store-item-card">
-                <img src="${currentUser.avatar_url || avatars[0]}" class="store-preview-avatar" 
-                     style="${item.frame === 'gold' ? 'box-shadow:0 0 20px #d4af37; border-color:#d4af37;' : item.frame === 'fire' ? 'box-shadow:0 0 20px #ff6b35; border-color:#ff6b35;' : ''}" alt="معاينة">
-                <div style="font-size:1.8rem; margin:5px 0;">${item.icon}</div>
-                <div style="font-weight:bold; color:var(--gold); margin-bottom:5px;">${item.name}</div>
-                <div style="font-size:0.8rem; opacity:0.7; margin-bottom:10px;">${item.desc}</div>
-                <div style="color:var(--gold); font-weight:bold; font-size:1.1rem; margin-bottom:10px;">${item.cost} XP</div>
-                ${owned
-                    ? `<div style="color:#2ecc71; font-weight:bold;">✅ مفعّل</div>`
-                    : `<button class="store-buy-btn" ${!canAfford ? 'disabled' : ''} onclick="buyStoreItem('${item.id}', ${item.cost}, '${item.frame}')">
-                        ${canAfford ? 'شراء الآن' : 'رصيد غير كافٍ'}
-                       </button>`
-                }
-            </div>`;
-        }).join('');
+        renderStoreHTML('overlay');
         document.getElementById('store-overlay').style.display = 'flex';
     }
-    function buyStoreItem(itemId, cost, frame) {
+
+    /* دالة الشراء الرئيسية المفعّلة ميكانيكياً */
+    function buyItem(itemId, cost) {
         if (!currentUser) return;
+        const item = STORE_ITEMS.find(i => i.id === itemId);
+        if (!item) return;
         if ((currentUser.xp || 0) < cost) { showToast('❌ رصيدك غير كافٍ!'); return; }
-        if (!confirm(`هل تريد شراء هذا الإطار مقابل ${cost} XP؟`)) return;
+        if (!confirm(`هل تريد شراء "${item.name}" مقابل ${cost} XP؟`)) return;
+
+        // خصم التكلفة
         updateStudentXP(-cost);
-        currentUser.avatarFrame = frame;
+
+        // تطبيق تأثير العنصر
+        if (itemId === 'frame_gold') {
+            currentUser.avatarFrame = 'gold';
+        } else if (itemId === 'frame_fire') {
+            currentUser.avatarFrame = 'fire';
+        } else if (itemId === 'double_xp') {
+            currentUser.doubleXpUntil = Date.now() + (60 * 60 * 1000); // ساعة
+            showToast('⚡ مضاعف الخبرة فعّال لمدة ساعة كاملة!');
+        } else if (itemId === 'shield') {
+            currentUser.hasShield = true;
+            showToast('🛡️ درع الحماية مُفعَّل! سيمنع خصم النقاط مرة واحدة.');
+        } else if (itemId === 'second_chance') {
+            currentUser.hasSecondChance = true;
+            showToast('🔄 فرصة ثانية محفوظة للتحدي القادم!');
+        } else if (itemId === 'sage_hint') {
+            currentUser.freeHints = (currentUser.freeHints || 0) + 3;
+            showToast('🧙 تم إضافة 3 تلميحات مجانية!');
+        } else if (itemId === 'title_genius') {
+            currentUser.activeTitle = 'العبقري 🎓';
+            showToast('🎓 لقب "العبقري" مفعّل! سيظهر بجوار اسمك.');
+        } else if (itemId === 'title_slayer') {
+            currentUser.activeTitle = 'السفاح ⚔️';
+            showToast('⚔️ لقب "السفاح" مفعّل! الجميع سيهابك.');
+        } else if (itemId === 'title_sultan') {
+            currentUser.activeTitle = 'السلطان 👑';
+            showToast('👑 لقب "السلطان" مفعّل! أنت تحكم الإمبراطورية.');
+        } else if (itemId === 'coins_pack') {
+            updateStudentXP(500); // يعيد 500 XP
+            showToast('💰 تم إضافة 500 عملة ذهبية إلى رصيدك!');
+        }
+
+        if (!['double_xp','shield','second_chance','sage_hint','coins_pack'].includes(itemId)) {
+            showToast(`🎉 تم شراء "${item.name}" بنجاح!`);
+        }
+
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
         updateAllStudentsList(currentUser);
-        showToast('🎉 تم شراء الإطار بنجاح!');
-        document.getElementById('store-overlay').style.display = 'none';
+        confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+
+        // تحديث عرض المتجر
+        const inGlory = document.getElementById('glory-shop-grid');
+        if (inGlory) renderStoreHTML('glory');
+        else { renderStoreHTML('overlay'); }
+
+        // تحديث اسم اللقب في الواجهة
+        updateTitleDisplay();
         openHome();
+    }
+
+    // للتوافق مع الكود القديم
+    function buyStoreItem(itemId, cost, frame) { buyItem(itemId, cost); }
+
+    /* عرض اللقب النشط بجوار الاسم */
+    function updateTitleDisplay() {
+        if (!currentUser) return;
+        const title = currentUser.activeTitle || '';
+        const nameEl = document.getElementById('main-profile-name');
+        if (nameEl) {
+            nameEl.textContent = currentUser.full_name + (title ? ' — ' + title : '');
+        }
+    }
+
+    /* التحقق من مضاعف XP عند كسب النقاط */
+    function getXpMultiplier() {
+        if (!currentUser) return 1;
+        if (currentUser.doubleXpUntil && currentUser.doubleXpUntil > Date.now()) {
+            return 2;
+        }
+        return 1;
     }
 
     /* ================================================================
@@ -1944,6 +2184,12 @@
         const log = getBattleLog();
         log.unshift({ enemy, result, myScore, enemyScore, date: new Date().toLocaleDateString('ar-SA') });
         localStorage.setItem(key, JSON.stringify(log.slice(0, 10)));
+        // تحديث سجل المبارزات في ملف المستخدم (للأوسمة)
+        if (!currentUser.battleHistory) currentUser.battleHistory = [];
+        currentUser.battleHistory.push({ enemy, result, date: new Date().toISOString() });
+        if (currentUser.battleHistory.length > 50) currentUser.battleHistory = currentUser.battleHistory.slice(-50);
+        localStorage.setItem('mathHero', JSON.stringify(currentUser));
+        updateAllStudentsList(currentUser);
     }
     function renderBattleLog() {
         const log = getBattleLog().slice(0, 3);
@@ -2233,8 +2479,9 @@
                 scheduledExamData = null;
             }
         } catch {
-            scheduledExamData = { title: 'اختبار ملحمي تجريبي', exam_type: 'تجريبي', duration: 15, num_questions: 5, target_lesson: 'مراجعة شاملة' };
-            showExamNotification();
+            // لا نعرض اختبارات تجريبية عند انقطاع الاتصال — الاختبارات يجدولها الأستاذ
+            document.getElementById('exam-notification').style.display = 'none';
+            scheduledExamData = null;
         }
     }
     function showExamNotification() {
@@ -2327,8 +2574,24 @@
             }
         } catch {
             toggleLoader(false);
-            alert('⚠️ المحرك غير متصل! تأكد من تشغيل السيرفر.');
-            exitExamMode();
+            // ── وضع Offline: استخدام أسئلة تجريبية ──
+            const demoQs = [
+                { question: 'ما حاصل ضرب 7 × 8؟',         q_type:'mcq',       options:'56,54,48,63', answer:'56',   lesson:'تجريبي' },
+                { question: 'ما ناتج 144 ÷ 12؟',           q_type:'mcq',       options:'12,11,13,10', answer:'12',   lesson:'تجريبي' },
+                { question: 'هل مجموع زوايا المثلث = 180°؟', q_type:'true_false', options:'',          answer:'صواب', lesson:'تجريبي' },
+                { question: 'ما هو جذر 25؟',               q_type:'short',     options:'',            answer:'5',    lesson:'تجريبي' },
+                { question: 'ما ناتج 15 + 27؟',            q_type:'mcq',       options:'42,40,44,38', answer:'42',   lesson:'تجريبي' },
+                { question: 'مساحة المستطيل = الطول × العرض؟', q_type:'true_false', options:'',        answer:'صواب', lesson:'تجريبي' },
+                { question: 'ما ناتج 9²؟',                 q_type:'mcq',       options:'81,72,91,64', answer:'81',   lesson:'تجريبي' },
+                { question: 'ما حاصل 1000 - 357؟',         q_type:'short',     options:'',            answer:'643',  lesson:'تجريبي' },
+            ];
+            challengeState.qs = knuthShuffle(demoQs);
+            challengeState.answersStatus = new Array(challengeState.qs.length).fill(null);
+            showToast('⚠️ وضع تجريبي — السيرفر غير متصل');
+            if (challengeState.qs.length > 0) {
+                if (isExamMode && scheduledExamData) startTimer(scheduledExamData.duration);
+                renderCurrentQuestion();
+            }
         }
     }
 
@@ -2396,21 +2659,32 @@
 
     /* زر التلميح في التحدي */
     function useHintChallenge() {
-        if (!currentUser || (currentUser.xp || 0) < 50) { showToast('❌ تحتاج 50 XP للتلميح!'); return; }
+        const hasFreeHint = currentUser && (currentUser.freeHints || 0) > 0;
+        if (!hasFreeHint && (!currentUser || (currentUser.xp || 0) < 50)) {
+            showToast('❌ تحتاج 50 XP للتلميح (أو اشترِ تلميحات الحكماء من المتجر)!'); return;
+        }
         const q = challengeState.qs[challengeState.index];
         if (!q) return;
-        updateStudentXP(-50);
+
+        if (hasFreeHint) {
+            currentUser.freeHints--;
+            localStorage.setItem('mathHero', JSON.stringify(currentUser));
+            showToast(`🧙 تلميح مجاني! متبقٍّ لك ${currentUser.freeHints} تلميح.`);
+        } else {
+            updateStudentXP(-50);
+            showToast('🧙‍♂️ تم خصم 50 XP للتلميح الملكي!');
+        }
+
         if (q.q_type === 'mcq') {
             const btns = document.querySelectorAll('#options-area .quiz-btn');
             let removed = 0;
             btns.forEach(btn => {
                 if (removed < 2 && btn.textContent.trim() !== q.answer) { btn.style.opacity = '0.2'; btn.disabled = true; removed++; }
             });
-            showToast('🧙‍♂️ تم حذف إجابتين خاطئتين! (-50 XP)');
+            showToast('🧙‍♂️ تم حذف إجابتين خاطئتين!');
         } else {
             const display = document.getElementById('hint-display');
             if (display) display.innerHTML = ` <span class="hint-box" style="display:inline-block; margin-right:10px;">💡 الإجابة تبدأ بـ "${q.answer.charAt(0)}"</span>`;
-            showToast('🧙‍♂️ تلميح ملكي! (-50 XP)');
         }
     }
 
@@ -2435,10 +2709,24 @@
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
             challengeState.correct++;
             challengeState.answersStatus[challengeState.index] = true;
+            // إلغاء الفرصة الثانية عند الإجابة الصحيحة
+            challengeState._secondChanceUsed = false;
         } else {
+            // فرصة ثانية: إذا كانت لديه ولم تُستخدم بعد لهذا السؤال
+            if (currentUser && currentUser.hasSecondChance && !challengeState._secondChanceUsed) {
+                challengeState._secondChanceUsed = true;
+                currentUser.hasSecondChance = false;
+                localStorage.setItem('mathHero', JSON.stringify(currentUser));
+                updateAllStudentsList(currentUser);
+                document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = false);
+                f.innerHTML = `<span style="color:#ffeb3b;">🔄 الفرصة الثانية! حاول مجدداً — الإجابة بدأت بـ "${correct.charAt(0)}"</span>`;
+                showToast('🔄 استُهلكت الفرصة الثانية! حاول مرة أخرى.');
+                return;
+            }
             playSound(document.getElementById('wrong-sfx'));
             f.innerHTML = `<span style="color:#ff5e5e;">${phrasesWrong[Math.floor(Math.random() * phrasesWrong.length)]}<br>الإجابة الصحيحة: ${correct}</span>`;
             challengeState.answersStatus[challengeState.index] = false;
+            challengeState._secondChanceUsed = false;
             // حفظ الخطأ في مستشفى الأرقام
             if (q) saveMistake(q, user);
         }
@@ -2617,8 +2905,19 @@
 
     function updateStudentXP(xpToAdd) {
         if (!currentUser) return;
+        // تطبيق مضاعف الخبرة عند الكسب (ليس الخصم)
+        const finalXp = xpToAdd > 0 ? xpToAdd * getXpMultiplier() : xpToAdd;
+        if (xpToAdd > 0 && getXpMultiplier() === 2) showToast('⚡ مضاعف الخبرة نشط! حصلت على ' + finalXp + ' XP');
         const oldXp = currentUser.xp || 0;
-        const newXp = Math.max(0, oldXp + xpToAdd);
+        // درع الحماية: منع خصم النقاط مرة واحدة
+        if (finalXp < 0 && currentUser.hasShield) {
+            currentUser.hasShield = false;
+            localStorage.setItem('mathHero', JSON.stringify(currentUser));
+            updateAllStudentsList(currentUser);
+            showToast('🛡️ درع الحماية امتص الضربة! تم استهلاكه.');
+            return;
+        }
+        const newXp = Math.max(0, oldXp + finalXp);
         currentUser.xp = newXp;
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
         updateAllStudentsList(currentUser);
@@ -2673,7 +2972,8 @@
                 winners = local.sort((a,b) => (b.xp||0) - (a.xp||0)).slice(0,10).map(h => ({
                     student_name: h.full_name || h.username,
                     total_points: h.xp || 0,
-                    avatar_url: h.avatar_url
+                    avatar_url: h.avatar_url,
+                    activeTitle: h.activeTitle || ''
                 }));
             }
 
@@ -2683,29 +2983,21 @@
                 return;
             }
 
+            const top10 = winners.slice(0, 10);
             let html = `<div style="text-align:center; margin-bottom:30px;">
-                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter:drop-shadow(0 0 10px #d4af37);">🏆 لوحة العمالقة الأسبوعية</h1>
-                <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; font-size:1.2rem; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
+                <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter:drop-shadow(0 0 10px #d4af37);">🏆 ديوان العمالقة العشرة</h1>
+                <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; font-size:1.1rem; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
             </div>
-            <div style="display:flex; justify-content:center; align-items:flex-end; gap:20px; margin-bottom:60px; flex-wrap:wrap;">
-                ${winners[1] ? renderPodiumHero(winners[1], 2) : ''}
-                ${winners[0] ? renderPodiumHero(winners[0], 1) : ''}
-                ${winners[2] ? renderPodiumHero(winners[2], 3) : ''}
+
+            <!-- شبكة بطاقات الفرسان: 5 في كل صف -->
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:15px; margin-bottom:40px;">
+                ${top10.map((w, i) => renderHeroCard(w, i+1)).join('')}
             </div>
-            <div style="max-width:800px; margin:0 auto;">
-                ${winners.slice(3).map((w,i) => `
-                <div class="lesson-item tilt-card" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="display:flex; align-items:center; gap:15px;">
-                        <span style="opacity:0.4; font-weight:900;">#${i+4}</span>
-                        <img src="${w.avatar_url || '/static/avatars/king.jpg'}" style="width:45px; height:45px; border-radius:50%; border:2px solid var(--gold); object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
-                        <div><div style="font-weight:bold;">${w.student_name}</div><div style="display:flex; gap:5px; margin-top:3px;">${generateBadges(w.total_points)}</div></div>
-                    </div>
-                    <div style="color:var(--gold); font-weight:bold; font-size:1.2rem;">${w.total_points} ⭐</div>
-                </div>`).join('')}
-            </div>
-            <div style="text-align:center; margin-top:40px;">
+
+            <div style="text-align:center; margin-top:20px;">
                 <button class="nav-btn shiny-btn active" style="max-width:250px; margin:0 auto;" onclick="openHome()">🏠 عودة لعرش الإمبراطورية</button>
             </div>`;
+
             document.getElementById('other-content-area').innerHTML = html;
             startResetTimer();
             initTiltEffect();
@@ -2715,15 +3007,45 @@
         }
     }
 
-    function renderPodiumHero(hero, rank) {
-        const cfg = rank === 1 ? {w:200,h:100,f:3,c:'var(--gold)'} : rank === 2 ? {w:160,h:80,f:2,c:'#C0C0C0'} : {w:140,h:70,f:1.8,c:'#CD7F32'};
-        const sc  = rank === 1 ? 'scale(1.1)' : 'scale(1)';
-        return `<div class="tilt-card shiny-btn" style="width:${cfg.w}px; padding:20px; border-color:${cfg.c}; background:rgba(255,255,255,0.05); transform:${sc}; z-index:${4-rank}; text-align:center;">
-            <div style="font-size:${cfg.f}rem;">${rank===1?'👑':rank===2?'🥈':'🥉'}</div>
-            <img src="${hero.avatar_url||'/static/avatars/king.jpg'}" style="width:${cfg.h}px; height:${cfg.h}px; border-radius:50%; border:4px solid ${cfg.c}; margin:10px 0; object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
-            <div style="font-weight:900; color:${cfg.c}; font-size:1.1rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${hero.student_name}</div>
-            <div style="font-size:1.4rem; color:#fff; font-weight:bold;">${hero.total_points} ⭐</div>
-            <div style="margin-top:5px;">${generateBadges(hero.total_points)}</div>
+    function renderHeroCard(hero, rank) {
+        const medalColors = { 1: { border:'#d4af37', glow:'#d4af37', badge:'👑', bg:'rgba(212,175,55,0.15)' },
+                              2: { border:'#C0C0C0', glow:'#C0C0C0', badge:'🥈', bg:'rgba(192,192,192,0.1)' },
+                              3: { border:'#CD7F32', glow:'#CD7F32', badge:'🥉', bg:'rgba(205,127,50,0.1)' } };
+        const cfg = medalColors[rank] || { border:'rgba(212,175,55,0.3)', glow:'transparent', badge:'#'+rank, bg:'rgba(255,255,255,0.03)' };
+        const isTop3 = rank <= 3;
+        const titleStr = hero.activeTitle ? `<div style="font-size:0.65rem; color:#ffeb3b; margin-top:2px;">${hero.activeTitle}</div>` : '';
+
+        return `<div class="tilt-card" style="
+            border-color:${cfg.border};
+            background:${cfg.bg};
+            ${isTop3 ? `box-shadow: 0 0 20px ${cfg.glow}44; transform: ${rank===1?'scale(1.05)':'scale(1.01)'};` : ''}
+            text-align:center; padding:15px 10px; position:relative; transition:0.3s;">
+            <!-- شارة الرتبة -->
+            <div style="position:absolute; top:-10px; right:50%; transform:translateX(50%);
+                background:${cfg.border}; color:${rank<=3?'#000':'#fff'}; border-radius:50%;
+                width:28px; height:28px; display:flex; align-items:center; justify-content:center;
+                font-weight:900; font-size:0.8rem; border:2px solid rgba(0,0,0,0.3);">
+                ${rank <= 3 ? cfg.badge : '#'+rank}
+            </div>
+            <!-- الصورة الرمزية مع التوهج -->
+            <div style="position:relative; margin:12px auto 8px; width:${isTop3?'70px':'55px'}; height:${isTop3?'70px':'55px'};">
+                <img src="${hero.avatar_url || '/static/avatars/king.jpg'}"
+                     style="width:100%; height:100%; border-radius:50%;
+                            border:3px solid ${cfg.border};
+                            ${isTop3 ? `box-shadow:0 0 15px ${cfg.glow}66;` : ''}
+                            object-fit:cover;"
+                     onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                ${rank === 1 ? `<div style="position:absolute; top:-12px; right:50%; transform:translateX(50%); font-size:1rem;">👑</div>` : ''}
+            </div>
+            <!-- الاسم -->
+            <div style="font-weight:bold; font-size:0.8rem; color:${cfg.border};
+                overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+                max-width:100%;">${hero.student_name}</div>
+            ${titleStr}
+            <!-- النقاط -->
+            <div style="font-size:0.95rem; color:#fff; font-weight:bold; margin-top:4px;">${hero.total_points} ⭐</div>
+            <!-- الأوسمة -->
+            <div style="margin-top:5px; display:flex; justify-content:center; flex-wrap:wrap; gap:2px;">${generateBadges(hero.total_points)}</div>
         </div>`;
     }
 
@@ -2752,7 +3074,7 @@
     }
 
     /* ================================================================
-       TROPHY ROOM
+       TROPHY ROOM — 12 وساماً
     ================================================================ */
     function openTrophyRoom() {
         if (isExamMode) return;
@@ -2760,57 +3082,288 @@
         setActiveButton('btn-trophy');
         switchView('other');
         const xp = currentUser?.xp || 0;
+        const battles = (currentUser?.battleHistory || []);
+        const wins = battles.filter(b => b.result === 'win').length;
+        const histLen = (currentUser?.history || []).length;
+        const streakVal = currentUser?.streak || 0;
+
         const badges = [
-            { name:'المنطلق الصاروخي', icon:'🚀', req:100,  desc:'يُمنح لمن يتجاوز 100 نقطة.' },
-            { name:'درع المثابرة',      icon:'🛡️', req:1000, desc:'يُمنح للأبطال فوق 1000 نقطة.' },
-            { name:'العقل الماسي',      icon:'💎', req:3000, desc:'وسام الذكاء لمن جمع 3000 نقطة.' },
-            { name:'الأسطورة الملتهبة', icon:'🔥', req:5000, desc:'أعلى وسام للعمالقة فقط.' }
+            { name:'المحارب الأول',     icon:'⚔️', req:100,   cond: xp >= 100,        desc:'اجمع 100 نقطة خبرة.' },
+            { name:'درع المثابرة',      icon:'🛡️', req:1000,  cond: xp >= 1000,       desc:'اجمع 1000 نقطة.' },
+            { name:'العقل الماسي',      icon:'💎', req:3000,  cond: xp >= 3000,       desc:'اجمع 3000 نقطة.' },
+            { name:'الأسطورة الملتهبة', icon:'🔥', req:5000,  cond: xp >= 5000,       desc:'اجمع 5000 نقطة — للعمالقة فقط.' },
+            { name:'ملك الساحة',        icon:'👑', req:null,  cond: wins >= 5,         desc:'انتصر في 5 مبارزات.' },
+            { name:'قناص الدرجات',      icon:'🎯', req:null,  cond: histLen >= 10,     desc:'اجتز 10 تحديات.' },
+            { name:'ساهر الليل',        icon:'🌙', req:null,  cond: streakVal >= 7,    desc:'سجّل حضوراً لـ 7 أيام متواصلة.' },
+            { name:'أسطورة الرياضيات',  icon:'🧮', req:null,  cond: xp >= 2000,       desc:'اجمع 2000 نقطة خبرة.' },
+            { name:'سيد الكسور',        icon:'🔢', req:null,  cond: histLen >= 5,      desc:'اجتز 5 تحديات مختلفة.' },
+            { name:'الفارس التاجر',     icon:'🛒', req:null,  cond: !!(currentUser?.avatarFrame), desc:'اشترِ عنصراً من المتجر.' },
+            { name:'اللقب الشرفي',      icon:'🎓', req:null,  cond: !!(currentUser?.activeTitle), desc:'احصل على لقب من المتجر.' },
+            { name:'سلطان الإمبراطور',  icon:'⭐', req:null,  cond: xp >= 10000,      desc:'اجمع 10,000 نقطة — الإنجاز الأعلى!' }
         ];
-        let html = `<div style="text-align:center; margin-bottom:40px;">
-            <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3rem;">🏅 خزانة الأوسمة الملكية</h1>
-            <p style="opacity:0.7;">أوسمتك هي تاريخ بطولاتك في مملكة الرياضيات</p></div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px,1fr)); gap:20px;">
+
+        let html = `<div style="text-align:center; margin-bottom:30px;">
+            <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3rem; filter:drop-shadow(0 0 10px #d4af37);">🏅 خزانة الأوسمة الملكية</h1>
+            <p style="opacity:0.7;">أوسمتك هي تاريخ بطولاتك في مملكة الرياضيات</p>
+            <div style="display:inline-flex; align-items:center; gap:10px; background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:12px; padding:8px 20px; margin-top:10px;">
+                <span style="color:var(--gold); font-weight:bold;">أوسمتك المكتسبة:</span>
+                <span style="color:#fff; font-size:1.3rem; font-weight:900;">${badges.filter(b=>b.cond).length} / ${badges.length}</span>
+            </div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:20px; max-width:1100px; margin:0 auto;">
             ${badges.map(b => {
-                const locked = xp < b.req;
-                return `<div class="tilt-card" style="text-align:center; padding:30px; filter:${locked?'grayscale(1) opacity(0.5)':'none'}; border-color:${locked?'var(--border)':'var(--gold)'};">
-                    <div style="font-size:4rem; margin-bottom:15px; filter:${locked?'blur(2px)':'drop-shadow(0 0 10px var(--gold))'}">
-                        ${locked ? '🔒' : b.icon}</div>
-                    <h3 style="color:var(--gold); margin-bottom:10px;">${b.name}</h3>
-                    <p style="font-size:0.8rem; margin-bottom:15px;">${b.desc}</p>
-                    ${locked ? `<span style="font-size:0.7rem; color:#ff5e5e;">تحتاج ${b.req - xp} XP</span>` : `<span style="color:#4caf50; font-weight:bold;">✅ تم الحصول عليه</span>`}
+                const unlocked = b.cond;
+                return `<div class="tilt-card badge-card ${unlocked ? 'badge-unlocked' : 'badge-locked'}">
+                    <div class="badge-icon-wrap" style="filter:${unlocked ? 'drop-shadow(0 0 12px var(--gold))' : 'grayscale(1) blur(1px)'}">
+                        ${unlocked ? b.icon : '🔒'}
+                    </div>
+                    <h3 class="badge-name" style="color:${unlocked ? 'var(--gold)' : '#555'};">${b.name}</h3>
+                    <p class="badge-desc">${b.desc}</p>
+                    ${unlocked
+                        ? `<div class="badge-status unlocked">✅ مكتسب</div>`
+                        : `<div class="badge-status locked">${b.req ? (b.req - xp) + ' XP متبقٍّ' : '🔒 غير مكتسب بعد'}</div>`
+                    }
                 </div>`;
-            }).join('')}</div>
-            <div style="text-align:center; margin-top:40px;">
-                <button class="nav-btn shiny-btn active" style="max-width:200px; margin:0 auto;" onclick="openHome()">🏠 عودة للرئيسية</button>
-            </div>`;
-        setTimeout(() => { toggleLoader(false); document.getElementById('other-content-area').innerHTML = html; initTiltEffect(); }, 500);
+            }).join('')}
+        </div>
+        <div style="text-align:center; margin-top:40px;">
+            <button class="nav-btn shiny-btn active" style="max-width:200px; margin:0 auto;" onclick="openHome()">🏠 عودة للرئيسية</button>
+        </div>`;
+        setTimeout(() => {
+            toggleLoader(false);
+            document.getElementById('other-content-area').innerHTML = html;
+            initTiltEffect();
+        }, 500);
     }
 
     /* ================================================================
-       SUPPORT
+       CITIZENS PORTAL — دمج الدعم الفني + الاشتراك
     ================================================================ */
-    function openSupport() {
-        if (isExamMode) { alert('لا يمكن فتح الدعم أثناء الاختبار!'); return; }
-        toggleLoader(true); setActiveButton('btn-support'); switchView('other');
-        const html = `<div style="text-align:center; margin-bottom:40px;">
-            <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter:drop-shadow(0 0 10px #d4af37);">💬 ديوان الدعم الملكي</h1>
-            <p style="opacity:0.8; font-size:1.1rem;">نحن هنا لخدمتكم يا أبطال إمبراطورية الرياضيات</p></div>
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:25px; max-width:1000px; margin:0 auto;">
-                <div class="tilt-card shiny-btn" style="text-align:center; padding:35px; border-color:#25D366; background:rgba(37,211,102,0.05); cursor:pointer;" onclick="window.open('https://api.whatsapp.com/send?phone=96878537653','_blank')">
-                    <h3 style="color:#25D366; font-family:'Amiri'; font-size:1.8rem;">تواصل عبر واتساب</h3>
-                    <p style="font-size:0.9rem; opacity:0.7;">للحصول على رد سريع ومباشر من الأستاذ رشدي سيد.</p>
-                    <div style="margin-top:20px; font-weight:bold; color:#fff; background:#25D366; padding:12px; border-radius:10px;">إرسال رسالة الآن 📱</div>
-                </div>
-                <div class="tilt-card" style="padding:30px; background:rgba(255,255,255,0.02); text-align:center;">
-                    <h3 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem; margin-bottom:20px;">البريد الإلكتروني 📜</h3>
-                    <p style="font-size:1.1rem; margin-bottom:15px; border-bottom:1px solid var(--border); padding-bottom:10px;">mathempire22@gmail.com</p>
-                    <button class="nav-btn active shiny-btn" onclick="window.location.href='mailto:mathempire22@gmail.com'">🚀 أرسل رسالة بريدية</button>
+    function openCitizensPortal() {
+        if (isExamMode) { alert('لا يمكن فتح هذا القسم أثناء الاختبار!'); return; }
+        toggleLoader(true);
+        setActiveButton('btn-citizens');
+        switchView('other');
+
+        const subStatus = getSubStatus();
+        const html = `
+        <div style="text-align:center; margin-bottom:35px;">
+            <h1 style="color:#64b5f6; font-family:'Amiri'; font-size:3rem; filter:drop-shadow(0 0 10px #64b5f6);">🛡️ بوابة المواطنين الملكية</h1>
+            <p style="opacity:0.7; font-size:1.1rem;">الدعم الفني وإدارة الاشتراك في مكان واحد</p>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(300px,1fr)); gap:25px; max-width:1000px; margin:0 auto;">
+
+            <!-- قسم الدعم الفني -->
+            <div class="tilt-card" style="border-color:#25D366; background:rgba(37,211,102,0.04);">
+                <h2 style="color:#25D366; font-family:'Amiri'; font-size:1.8rem; text-align:center; margin-bottom:20px;">💬 الدعم الفني</h2>
+                <div style="display:flex; flex-direction:column; gap:15px;">
+                    <div class="tilt-card shiny-btn" style="text-align:center; border-color:#25D366; cursor:pointer; padding:20px;"
+                         onclick="window.open('https://api.whatsapp.com/send?phone=96878537653','_blank')">
+                        <div style="font-size:2.5rem; margin-bottom:8px;">📱</div>
+                        <div style="font-weight:bold; color:#25D366; margin-bottom:5px;">واتساب مباشر</div>
+                        <div style="font-size:0.8rem; opacity:0.7;">رد سريع من الأستاذ رشدي سيد</div>
+                        <div style="margin-top:12px; background:#25D366; color:#000; padding:8px 15px; border-radius:8px; font-weight:bold; font-size:0.9rem;">إرسال رسالة ←</div>
+                    </div>
+                    <div class="tilt-card" style="text-align:center; padding:20px;">
+                        <div style="font-size:2rem; margin-bottom:8px;">📜</div>
+                        <div style="font-weight:bold; color:var(--gold); margin-bottom:8px;">البريد الإلكتروني</div>
+                        <div style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin-bottom:12px;">mathempire22@gmail.com</div>
+                        <button class="nav-btn shiny-btn active" style="padding:8px; font-size:0.85rem;"
+                                onclick="window.location.href='mailto:mathempire22@gmail.com'">🚀 إرسال بريد</button>
+                    </div>
                 </div>
             </div>
-            <div style="text-align:center; margin-top:50px;">
-                <button class="nav-btn" style="max-width:200px; margin:20px auto;" onclick="openHome()">🏠 عودة للمملكة</button>
-            </div>`;
+
+            <!-- قسم الاشتراك -->
+            <div class="tilt-card" style="border-color:var(--gold); background:rgba(212,175,55,0.04);">
+                <h2 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem; text-align:center; margin-bottom:15px;">👑 الاشتراك الملكي</h2>
+                <!-- حالة الاشتراك الحالية -->
+                <div style="text-align:center; margin-bottom:20px;">
+                    <div class="sub-badge ${subStatus.type}" style="display:inline-flex; font-size:0.95rem; padding:8px 20px;">${subStatus.label}</div>
+                </div>
+                <!-- خطط الاشتراك -->
+                <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:18px;">
+                    <div class="sub-plan" onclick="selectSubPlan(this,'monthly',2)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px;">
+                        <div><div style="font-weight:900; color:var(--gold);">شهري</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.4);">تجديد كل 30 يوماً</div></div>
+                        <div><span style="font-family:'Amiri'; font-size:1.3rem; color:#fff; font-weight:700;">2 ر.ع</span></div>
+                    </div>
+                    <div class="sub-plan popular" onclick="selectSubPlan(this,'quarterly',5)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; margin-top:14px;">
+                        <div><div style="font-weight:900; color:var(--gold);">ثلاثة أشهر</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.4);">توفير 17%</div></div>
+                        <div><span style="font-family:'Amiri'; font-size:1.3rem; color:#fff; font-weight:700;">5 ر.ع</span></div>
+                    </div>
+                    <div class="sub-plan" onclick="selectSubPlan(this,'yearly',18)" style="display:flex; justify-content:space-between; align-items:center; padding:14px 18px; margin-top:8px;">
+                        <div><div style="font-weight:900; color:var(--gold);">سنوي</div><div style="font-size:0.75rem; color:rgba(255,255,255,0.4);">توفير 25%</div></div>
+                        <div><span style="font-family:'Amiri'; font-size:1.3rem; color:#fff; font-weight:700;">18 ر.ع</span></div>
+                    </div>
+                </div>
+                <!-- كود الاشتراك -->
+                <div style="border-top:1px solid var(--border); padding-top:15px;">
+                    <p style="font-size:0.85rem; color:rgba(255,255,255,0.5); margin-bottom:8px;">أو أدخل كود الاشتراك من الأستاذ:</p>
+                    <input type="text" id="sub-code-input-portal" class="sub-code-input" placeholder="MATH-XXXX-XXXX"
+                           oninput="this.value=this.value.toUpperCase()"
+                           onkeypress="if(event.key==='Enter') activateSubCodePortal()">
+                    <button class="nav-btn active shiny-btn" style="margin-top:8px;" onclick="activateSubCodePortal()">🔑 تفعيل الكود</button>
+                </div>
+                <p style="font-size:0.72rem; color:rgba(255,255,255,0.3); margin-top:12px; line-height:1.6; text-align:center;">
+                    للاشتراك تواصل مع الأستاذ رشدي سيد عبر واتساب
+                </p>
+            </div>
+        </div>
+        <div style="text-align:center; margin-top:40px;">
+            <button class="nav-btn" style="max-width:200px; margin:0 auto;" onclick="openHome()">🏠 عودة للمملكة</button>
+        </div>`;
+
         setTimeout(() => { toggleLoader(false); document.getElementById('other-content-area').innerHTML = html; initTiltEffect(); }, 400);
+    }
+
+    /* تفعيل كود الاشتراك من البوابة */
+    function activateSubCodePortal() {
+        const inp = document.getElementById('sub-code-input-portal');
+        if (!inp) return;
+        const raw = inp.value.trim().toUpperCase();
+        if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
+        const usedCodes = JSON.parse(localStorage.getItem('usedSubCodes') || '[]');
+        if (usedCodes.includes(raw)) { showToast('❌ هذا الكود مستخدَم مسبقاً!'); return; }
+        const entry = VALID_SUB_CODES.find(c => c.code === raw);
+        if (!entry) { showToast('❌ الكود غير صحيح — تحقق من الأستاذ رشدي'); return; }
+        const now = new Date();
+        const expiry = entry.months === -1 ? null : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
+        localStorage.setItem(SUB_KEY, JSON.stringify({ code: raw, months: entry.months, expiry: expiry?.toISOString() || null, activated: new Date().toISOString() }));
+        usedCodes.push(raw); localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
+        const msg = entry.months === -1 ? 'تفعيل دائم!' : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
+        showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
+        confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
+        updateSubBadge();
+        openCitizensPortal();
+    }
+
+    // للتوافق مع الكود القديم
+    function openSupport() { openCitizensPortal(); }
+
+    /* ================================================================
+       GLORY TREASURES — ديوان المجد والكنوز (sub-tabs)
+    ================================================================ */
+    function openGloryTreasures(tab = 'leaderboard') {
+        if (isExamMode) return;
+        setActiveButton('btn-glory');
+        switchView('other');
+        _renderGloryTreasures(tab);
+    }
+
+    function _renderGloryTreasures(activeTab) {
+        const tabs = [
+            { id: 'leaderboard', label: '🏆 العمالقة', fn: _gloryLeaderboard },
+            { id: 'badges',      label: '🏅 الأوسمة',  fn: _gloryBadges      },
+            { id: 'shop',        label: '🛒 المتجر',    fn: _gloryShop        }
+        ];
+        const tabHtml = tabs.map(t => `
+            <button class="glory-tab-btn ${t.id === activeTab ? 'active' : ''}"
+                    onclick="_renderGloryTreasures('${t.id}')">${t.label}</button>`).join('');
+
+        const container = document.getElementById('other-content-area');
+        container.innerHTML = `
+        <div style="text-align:center; margin-bottom:25px;">
+            <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3rem; filter:drop-shadow(0 0 10px #d4af37); margin-bottom:10px;">
+                ✨ ديوان المجد والكنوز ✨
+            </h1>
+            <div class="glory-tabs">${tabHtml}</div>
+        </div>
+        <div id="glory-content"></div>`;
+
+        const t = tabs.find(x => x.id === activeTab);
+        if (t) t.fn();
+        initTiltEffect();
+    }
+
+    async function _gloryLeaderboard() {
+        const c = document.getElementById('glory-content');
+        c.innerHTML = `<div style="text-align:center; padding:30px; color:var(--gold);">جاري تحميل الفرسان...</div>`;
+        toggleLoader(true);
+        try {
+            const res = await fetch(`${API_URL}/api/leaderboard`);
+            let winners = [];
+            if (res.ok) winners = await res.json();
+            if (!winners || !winners.length) {
+                let local = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+                if (!local.length && currentUser) local = [currentUser];
+                winners = local.sort((a,b) => (b.xp||0) - (a.xp||0)).slice(0,10).map(h => ({
+                    student_name: h.full_name || h.username, total_points: h.xp || 0,
+                    avatar_url: h.avatar_url, activeTitle: h.activeTitle || ''
+                }));
+            }
+            toggleLoader(false);
+            playSound(document.getElementById('podium-sfx'));
+            setTimeout(() => playSound(document.getElementById('applause-sfx')), 800);
+            const top10 = winners.slice(0,10);
+            c.innerHTML = `
+            <div style="text-align:center; margin-bottom:15px;">
+                <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:15px; margin-bottom:30px;">
+                ${top10.map((w,i) => renderHeroCard(w, i+1)).join('')}
+            </div>`;
+            startResetTimer();
+            initTiltEffect();
+        } catch { toggleLoader(false); c.innerHTML = `<h2 style="text-align:center; color:#ff5e5e;">حدث خطأ في التحميل!</h2>`; }
+    }
+
+    function _gloryBadges() {
+        const c = document.getElementById('glory-content');
+        toggleLoader(true);
+        const xp = currentUser?.xp || 0;
+        const wins = (currentUser?.battleHistory || []).filter(b => b.result === 'win').length;
+        const histLen = (currentUser?.history || []).length;
+        const streakVal = currentUser?.streak || 0;
+        const badges = [
+            { name:'المحارب الأول',     icon:'⚔️', cond: xp >= 100,   desc:'اجمع 100 XP.' },
+            { name:'درع المثابرة',      icon:'🛡️', cond: xp >= 1000,  desc:'اجمع 1000 XP.' },
+            { name:'العقل الماسي',      icon:'💎', cond: xp >= 3000,  desc:'اجمع 3000 XP.' },
+            { name:'الأسطورة الملتهبة', icon:'🔥', cond: xp >= 5000,  desc:'اجمع 5000 XP.' },
+            { name:'ملك الساحة',        icon:'👑', cond: wins >= 5,    desc:'انتصر في 5 مبارزات.' },
+            { name:'قناص الدرجات',      icon:'🎯', cond: histLen >= 10,desc:'اجتز 10 تحديات.' },
+            { name:'ساهر الليل',        icon:'🌙', cond: streakVal>=7, desc:'7 أيام حضور متواصلة.' },
+            { name:'أسطورة الرياضيات',  icon:'🧮', cond: xp >= 2000,  desc:'اجمع 2000 XP.' },
+            { name:'سيد الكسور',        icon:'🔢', cond: histLen >= 5, desc:'اجتز 5 تحديات.' },
+            { name:'الفارس التاجر',     icon:'🛒', cond: !!(currentUser?.avatarFrame), desc:'اشترِ عنصراً من المتجر.' },
+            { name:'اللقب الشرفي',      icon:'🎓', cond: !!(currentUser?.activeTitle), desc:'احصل على لقب.' },
+            { name:'سلطان الإمبراطور',  icon:'⭐', cond: xp >= 10000, desc:'اجمع 10,000 XP.' }
+        ];
+        setTimeout(() => {
+            toggleLoader(false);
+            c.innerHTML = `
+            <div style="text-align:center; margin-bottom:20px;">
+                <span style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:12px; padding:8px 20px; color:var(--gold); font-weight:bold;">
+                    أوسمة مكتسبة: ${badges.filter(b=>b.cond).length} / ${badges.length}
+                </span>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(170px,1fr)); gap:15px;">
+                ${badges.map(b => `
+                <div class="tilt-card badge-card ${b.cond ? 'badge-unlocked' : 'badge-locked'}">
+                    <div class="badge-icon-wrap" style="filter:${b.cond ? 'drop-shadow(0 0 10px var(--gold))' : 'grayscale(1)'}">${b.cond ? b.icon : '🔒'}</div>
+                    <h3 class="badge-name" style="color:${b.cond ? 'var(--gold)' : '#555'};">${b.name}</h3>
+                    <p class="badge-desc">${b.desc}</p>
+                    <div class="badge-status ${b.cond ? 'unlocked' : 'locked'}">${b.cond ? '✅ مكتسب' : '🔒 مقفل'}</div>
+                </div>`).join('')}
+            </div>`;
+            initTiltEffect();
+        }, 400);
+    }
+
+    function _gloryShop() {
+        const c = document.getElementById('glory-content');
+        if (!currentUser) { c.innerHTML = `<h2 style="text-align:center; color:#ff5e5e;">يجب تسجيل الدخول أولاً</h2>`; return; }
+        const xp = currentUser.xp || 0;
+        c.innerHTML = `
+        <div style="text-align:center; margin-bottom:20px;">
+            <span style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); border-radius:12px; padding:8px 20px; color:var(--gold); font-weight:bold; font-size:1rem;">
+                💰 رصيدك الحالي: ${xp} XP
+            </span>
+            ${currentUser.doubleXpUntil && currentUser.doubleXpUntil > Date.now()
+                ? `<div style="color:#ffeb3b; font-size:0.85rem; margin-top:8px;">⚡ مضاعف XP نشط — ${Math.ceil((currentUser.doubleXpUntil - Date.now())/60000)} دقيقة متبقية</div>`
+                : ''}
+        </div>
+        <div id="glory-shop-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px,1fr)); gap:20px;"></div>`;
+        renderStoreHTML('glory');
     }
 
     /* ================================================================
@@ -2826,38 +3379,70 @@
     async function handleLogin() {
         const usernameEl = document.getElementById('user-login');
         const passwordEl = document.getElementById('pass-login');
+        const username   = (usernameEl.value || '').trim();
+        const password   = passwordEl.value;
+        if (!username || !password) { showToast('⚠️ أدخل اسم المستخدم وكلمة المرور!'); return; }
         const btn = document.querySelector('#login-form .nav-btn.active');
         if (btn) { btn.disabled = true; btn.textContent = 'جاري الدخول...'; }
         toggleLoader(true);
-        const fd = new FormData();
-        fd.append('username', usernameEl.value);
-        fd.append('password', passwordEl.value);
+
+        const _gMap = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
+
+        function _applyUserDefaults(u) {
+            if (!u.parentCode) u.parentCode = generateParentCode(u.username);
+            if (!u.clanId)     u.clanId = assignClan(u.username).id;
+            const rg = String(u.grade || '').trim();
+            if (/^\d+$/.test(rg) && _gMap[rg]) u.grade = _gMap[rg];
+            if (!u.history)             u.history = [];
+            if (!u.roadmap)             u.roadmap = [];
+            if (!u._roadmapDoneLessons) u._roadmapDoneLessons = [];
+            return u;
+        }
+
+        // ── محاولة السيرفر أولاً ──
         try {
+            const fd = new FormData();
+            fd.append('username', username); fd.append('password', password);
             const res  = await fetch(`${API_URL}/api/student/login`, { method: 'POST', body: fd });
             toggleLoader(false);
             const data = await res.json();
             if (res.ok) {
-                const u = data.user;
-                if (!u.parentCode) u.parentCode = generateParentCode(u.username);
-                if (!u.clanId)    u.clanId     = assignClan(u.username).id;
-                // تطبيع الصف — يحول الرقم إلى نص عربي مرة واحدة فقط
-                const _gMap = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
-                const _rawGrade = String(u.grade || '').trim();
-                if (/^\d+$/.test(_rawGrade) && _gMap[_rawGrade]) u.grade = _gMap[_rawGrade];
-                if (!u.history)              u.history = [];
-                if (!u.roadmap)              u.roadmap = [];
-                if (!u._roadmapDoneLessons)  u._roadmapDoneLessons = [];
+                const u = _applyUserDefaults(data.user);
                 localStorage.setItem('mathHero', JSON.stringify(u));
                 updateAllStudentsList(u);
                 location.reload();
+                return;
+            }
+            alert('بيانات غير صحيحة');
+            if (btn) { btn.disabled = false; btn.textContent = 'دخول الإمبراطورية'; }
+        } catch {
+            // ── وضع Offline: تحقق من localStorage ──
+            toggleLoader(false);
+            const all = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+            // البحث بدون تمييز بين الأحرف الكبيرة والصغيرة
+            const stored = all.find(u => (u.username || '').toLowerCase() === username.toLowerCase());
+            if (stored) {
+                // التحقق من كلمة المرور: إذا لم تُحفظ _pw → نقبل أي كلمة مرور (حسابات قديمة)
+                if (stored._pw && stored._pw !== password) {
+                    showToast('⚠️ كلمة المرور غير صحيحة.');
+                    if (btn) { btn.disabled = false; btn.textContent = 'دخول الإمبراطورية'; }
+                    return;
+                }
+                const u = _applyUserDefaults({...stored});
+                localStorage.setItem('mathHero', JSON.stringify(u));
+                showToast('✅ دخول محلي ناجح');
+                setTimeout(() => location.reload(), 500);
             } else {
-                alert('بيانات غير صحيحة');
+                // لا يوجد حساب محلي — أظهر رسالة توجيهية واضحة
+                toggleLoader(false);
+                const loginMsg = document.getElementById('login-offline-msg');
+                if (loginMsg) {
+                    loginMsg.style.display = 'block';
+                } else {
+                    showToast('⚠️ لا يوجد حساب. انقر على "أنشئ حسابك" للتسجيل أولاً.');
+                }
                 if (btn) { btn.disabled = false; btn.textContent = 'دخول الإمبراطورية'; }
             }
-        } catch {
-            toggleLoader(false);
-            alert('⚠️ الخادم غير متصل.');
-            if (btn) { btn.disabled = false; btn.textContent = 'دخول الإمبراطورية'; }
         }
     }
 
@@ -2873,40 +3458,56 @@
         if (btn) { btn.disabled = true; btn.textContent = 'جاري التسجيل...'; }
         toggleLoader(true);
 
-        const fd = new FormData();
-        fd.append('full_name', name); fd.append('username', user);
-        fd.append('password', pass);  fd.append('grade', grade);
+        const gradeMap = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
+        // grade قد يكون رقماً أو نصاً عربياً (من القائمة الثابتة)
+        const resolvedGrade = gradeMap[String(grade)] || grade;
+        const clan       = assignClan(user);
+        const parentCode = generateParentCode(user);
+        const newUser = {
+            full_name: name, username: user,
+            school_name: school, avatar_url: selectedAvatarUrl,
+            xp: 0, grade: resolvedGrade,
+            parentCode, clanId: clan.id,
+            mistakes: [], history: [], roadmap: [], _roadmapDoneLessons: [],
+            avatarFrame: null, _pw: pass
+        };
 
+        // ── محاولة التسجيل عبر السيرفر ──
+        let serverOk = false;
         try {
+            const fd = new FormData();
+            fd.append('full_name', name); fd.append('username', user);
+            fd.append('password', pass);  fd.append('grade', grade);
             const res = await fetch(`${API_URL}/api/student/register`, { method: 'POST', body: fd });
             toggleLoader(false);
             if (res.ok) {
-                const clan       = assignClan(user);
-                const parentCode = generateParentCode(user);
-                const gradeMap   = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
-                const newUser    = {
-                    full_name: name, username: user,
-                    school_name: school, avatar_url: selectedAvatarUrl,
-                    xp: 0, grade: gradeMap[String(grade)] || grade,
-                    parentCode: parentCode,
-                    clanId: clan.id,
-                    mistakes: [],
-                    history: [],
-                    roadmap: [],
-                    _roadmapDoneLessons: [],
-                    avatarFrame: null
-                };
-                updateAllStudentsList(newUser);
-                alert('تم التسجيل بنجاح! 🎉\n\nكود ولي الأمر الخاص بك:\n' + parentCode + '\n\nاحتفظ به لمتابعة تقدمك.');
-                toggleAuth();
+                serverOk = true;
             } else {
-                alert('اسم المستخدم موجود مسبقاً');
+                const txt = await res.text().catch(() => '');
+                if (txt.includes('exist') || txt.includes('مسبقاً') || res.status === 409) {
+                    alert('اسم المستخدم موجود مسبقاً');
+                    if (btn) { btn.disabled = false; btn.textContent = 'تسجيل واعتلاء العرش'; }
+                    return;
+                }
             }
-        } catch {
-            toggleLoader(false);
-            alert('⚠️ الخادم غير متصل.');
+        } catch { toggleLoader(false); }
+
+        // ── حفظ محلي (Offline أو بعد نجاح السيرفر) ──
+        const allExisting = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+        if (!serverOk && allExisting.find(u => u.username === user)) {
+            showToast('⚠️ اسم المستخدم موجود مسبقاً.');
+            if (btn) { btn.disabled = false; btn.textContent = 'تسجيل واعتلاء العرش'; }
+            return;
         }
-        if (btn) { btn.disabled = false; btn.textContent = 'تسجيل واعتلاء العرش'; }
+        // حفظ الحساب محلياً في كلا المفتاحين
+        updateAllStudentsList(newUser);
+        localStorage.setItem('mathHero', JSON.stringify(newUser));
+        if (!serverOk) {
+            showToast('✅ تم التسجيل محلياً — السيرفر غير متصل');
+        }
+        alert('تم التسجيل بنجاح! 🎉\n\nكود ولي الأمر:\n' + parentCode + '\n\nاحتفظ به لمتابعة تقدمك.');
+        // دخول مباشر بدون الحاجة لتسجيل دخول منفصل
+        location.reload();
     }
 
     function logout() {
@@ -2937,6 +3538,7 @@
         currentUser.school_name = newSchool;
         currentUser.avatar_url  = selectedAvatarUrl;
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
+        // FIX: تحديث السجل العام فوراً لضمان مزامنة الأفاتار عند تسجيل الدخول مجدداً
         updateAllStudentsList(currentUser);
         setTimeout(() => {
             toggleLoader(false);
@@ -2977,6 +3579,19 @@
     }
 
     async function loadGlobalCurriculum() {
+        const OFFLINE_GRADES = [
+            'الصف الأول','الصف الثاني','الصف الثالث','الصف الرابع',
+            'الصف الخامس','الصف السادس','الصف السابع','الصف الثامن',
+            'الصف التاسع','الصف العاشر','الصف الحادي عشر','الصف الثاني عشر'
+        ];
+
+        function _fillGradeDropdown(grades) {
+            const regGrade = document.getElementById('reg-grade');
+            if (!regGrade) return;
+            regGrade.innerHTML = '<option value="">-- اختر صفك الدراسي --</option>';
+            grades.forEach(name => { regGrade.innerHTML += `<option value="${name}">${name}</option>`; });
+        }
+
         try {
             const res  = await fetch(`${API_URL}/api/curriculum/structure`);
             if (!res.ok) throw new Error('Network Error');
@@ -2986,15 +3601,25 @@
             } else {
                 globalCurriculum = data;
             }
-            const regGrade = document.getElementById('reg-grade');
-            if (regGrade) {
-                regGrade.innerHTML = '<option value="">-- اختر صفك الدراسي --</option>';
-                globalCurriculum.forEach((g, idx) => {
-                    const displayName = g.name || 'صف ' + (idx+1);
-                    regGrade.innerHTML += `<option value="${displayName}">${displayName}</option>`;
-                });
-            }
-        } catch (e) { console.warn('لم يتم تحميل المناهج:', e); }
+            _fillGradeDropdown(globalCurriculum.map((g, i) => g.name || 'صف ' + (i+1)));
+        } catch (e) {
+            console.warn('لم يتم تحميل المناهج (offline mode):', e);
+            // ── وضع Offline: منهج تجريبي شامل لجميع الصفوف ──
+            const offlineSemesters = (sem) => ({
+                name: sem === 1 ? 'الفصل الأول' : 'الفصل الثاني',
+                units: [
+                    { name: 'الأعداد والعمليات', lessons: ['الأعداد الطبيعية','الضرب والقسمة','الكسور العادية','الكسور العشرية','العمليات المختلطة'] },
+                    { name: 'الجبر والمعادلات', lessons: ['المتغيرات والتعابير','حل المعادلات','النسبة والتناسب','الدوال الخطية','المعادلات التربيعية'] },
+                    { name: 'الهندسة والقياس', lessons: ['المضلعات','المساحات والمحيطات','الدائرة','المجسمات الهندسية','التماثل والانعكاس'] },
+                    { name: 'الإحصاء والاحتمالات', lessons: ['جمع البيانات وتنظيمها','الرسوم البيانية','المتوسط والوسيط','الاحتمالات الأساسية','التحليل الإحصائي'] },
+                ]
+            });
+            globalCurriculum = OFFLINE_GRADES.map(name => ({
+                name,
+                semesters: [offlineSemesters(1), offlineSemesters(2)]
+            }));
+            _fillGradeDropdown(OFFLINE_GRADES);
+        }
     }
 
     function prepareChoice(lesson) {
@@ -3012,8 +3637,8 @@
             const data = await res.json();
             const s    = data.find(s => s.lesson === challengeState.selectedLesson);
             if (s && s.pdf_url) window.open(s.pdf_url, '_blank');
-            else alert('⚠️ لم يقم الأستاذ رشدي برفع ملخص لهذا الدرس بعد.');
-        } catch { alert('خطأ في الاتصال بالسيرفر.'); }
+            else showToast('⚠️ لم يقم الأستاذ رشدي برفع ملخص لهذا الدرس بعد.');
+        } catch { showToast('⚠️ الملخصات تحتاج اتصالاً بالسيرفر.'); }
     }
 
     function proceedToChallenge() {
@@ -3039,10 +3664,10 @@
     let isSoundOn = true;
     function toggleSound() {
         isSoundOn = !isSoundOn;
+        const icon = document.getElementById('sound-icon');
         const btn = document.getElementById('sound-btn');
-        btn.querySelector('.sidebar-label').textContent = isSoundOn ? 'الصوت: مفعل' : 'الصوت: صامت';
-        btn.querySelector('.btn-icon').textContent      = isSoundOn ? '🔊' : '🔇';
-        btn.style.opacity = isSoundOn ? '1' : '0.6';
+        if (icon) icon.textContent = isSoundOn ? '🔊' : '🔇';
+        if (btn) { btn.title = isSoundOn ? 'الصوت: مفعل' : 'الصوت: صامت'; btn.style.opacity = isSoundOn ? '1' : '0.5'; }
     }
     function playSound(audioEl) { if (isSoundOn && audioEl) { audioEl.currentTime = 0; audioEl.play().catch(() => {}); } }
 
