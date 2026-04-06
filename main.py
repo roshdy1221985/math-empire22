@@ -272,8 +272,17 @@ async def delete_lesson(item_id: int, admin=Depends(get_current_admin)):
 
 @app.get("/api/curriculum/structure")
 async def get_full_structure():
-    res = supabase.table("grades").select("*, semesters(*, units(*, lessons(*)))").execute()
-    data = res.data or []
+    try:
+        res = supabase.table("grades").select("*, semesters(*, units(*, lessons(*)))").execute()
+        data = res.data or []
+    except Exception as e:
+        print(f"curriculum/structure error: {e}")
+        # fallback: جلب الصفوف فقط بدون nested
+        try:
+            res = supabase.table("grades").select("id, name").execute()
+            data = [{"id": g["id"], "name": g["name"], "semesters": []} for g in (res.data or [])]
+        except:
+            return []
 
     # ترتيب احتياطي إذا لم يكن sort_order موجوداً
     grade_order = [
@@ -525,31 +534,64 @@ async def delete_resource(res_id: int, admin=Depends(get_current_admin)):
     return {"status": "success"}
 
 @app.post("/api/admin/summaries")
-async def upload_summary(lesson: str=Form(...), pdf: UploadFile=File(...), admin=Depends(get_current_admin)):
+async def upload_summary(
+    lesson:         str         = Form(...),
+    resource_type:  str         = Form(default="pdf"),
+    resource_label: str         = Form(default=""),
+    external_url:   str         = Form(default=""),
+    pdf:            UploadFile  = File(default=None),
+    admin=Depends(get_current_admin)
+):
+    """رفع مصدر تعليمي — PDF أو فيديو أو رابط خارجي"""
     try:
-        file_extension = os.path.splitext(pdf.filename)[1]
-        file_name = f"sum_{uuid.uuid4().hex}{file_extension}"
-        content = await pdf.read()
-        supabase.storage.from_("resources").upload(path=file_name, file=content, file_options={"content-type": "application/pdf"})
-        pdf_url = supabase.storage.from_("resources").get_public_url(file_name)
-        try:
-             supabase.table("summaries").upsert({"lesson": lesson, "pdf_url": pdf_url}, on_conflict="lesson").execute()
-        except:
-             supabase.table("summaries").delete().eq("lesson", lesson).execute()
-             supabase.table("summaries").insert({"lesson": lesson, "pdf_url": pdf_url}).execute()
-        return {"status": "success", "url": pdf_url}
+        is_file_type = resource_type in ("pdf", "worksheet")
+
+        if is_file_type:
+            if not pdf or not pdf.filename:
+                raise HTTPException(status_code=400, detail="يرجى إرفاق ملف")
+            file_extension = os.path.splitext(pdf.filename)[1] or ".pdf"
+            file_name      = f"res_{uuid.uuid4().hex}{file_extension}"
+            content        = await pdf.read()
+            content_type   = pdf.content_type or "application/pdf"
+            supabase.storage.from_("resources").upload(
+                path=file_name, file=content,
+                file_options={"content-type": content_type}
+            )
+            resource_url = supabase.storage.from_("resources").get_public_url(file_name)
+        else:
+            if not external_url:
+                raise HTTPException(status_code=400, detail="يرجى إدخال الرابط الخارجي")
+            resource_url = external_url
+
+        row = {
+            "lesson":         lesson,
+            "pdf_url":        resource_url,
+            "resource_type":  resource_type,
+            "resource_label": resource_label,
+        }
+        supabase.table("summaries").insert(row).execute()
+        return {"status": "success", "url": resource_url}
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+
 @app.get("/api/admin/summaries_list")
 async def get_summaries():
-    res = supabase.table("summaries").select("*").execute()
+    res = supabase.table("summaries").select("*").order("id", desc=True).execute()
     return res.data if res.data else []
 
-@app.delete("/api/admin/summaries/{lesson:path}")
-async def delete_summary(lesson: str, admin=Depends(get_current_admin)):
-    clean_lesson = unquote(lesson)
-    supabase.table("summaries").delete().eq("lesson", clean_lesson).execute()
+
+@app.delete("/api/admin/summaries/{resource_id}")
+async def delete_summary(resource_id: str, admin=Depends(get_current_admin)):
+    """حذف مصدر بالمعرّف أو باسم الدرس (للتوافق مع الكود القديم)"""
+    if resource_id.isdigit():
+        supabase.table("summaries").delete().eq("id", int(resource_id)).execute()
+    else:
+        clean = unquote(resource_id)
+        supabase.table("summaries").delete().eq("lesson", clean).execute()
     return {"status": "success"}
 
 # ==========================================
@@ -856,6 +898,78 @@ async def get_all_students_admin(admin=Depends(get_current_admin)):
     """جلب قائمة جميع الطلاب للأدمن (للربط بأكواد الاشتراك)"""
     res = supabase.table("students").select("id, full_name, grade, username").order("full_name").execute()
     return res.data if res.data else []
+
+
+@app.get("/api/admin/reports/full")
+async def get_full_report(admin=Depends(get_current_admin)):
+    """تقرير شامل للإمبراطورية — الطلاب + النتائج + الإحصائيات"""
+    # جلب الطلاب
+    students_res = supabase.table("students").select(
+        "id, full_name, grade, username, created_at"
+    ).order("full_name").execute()
+    students = students_res.data or []
+
+    # جلب كل النتائج
+    results_res = supabase.table("results").select(
+        "student_id, student_name, lesson, score, total, timestamp"
+    ).order("timestamp", desc=True).execute()
+    results = results_res.data or []
+
+    # جلب عدد الأسئلة
+    q_res = supabase.table("questions").select("id, grade", count="exact").execute()
+    total_questions = len(q_res.data) if q_res.data else 0
+
+    # بناء إحصائيات لكل طالب
+    from collections import defaultdict
+    student_stats = defaultdict(lambda: {"tests": 0, "total_score": 0, "total_max": 0, "lessons": set()})
+    for r in results:
+        sid = r.get("student_id")
+        if sid:
+            student_stats[sid]["tests"]       += 1
+            student_stats[sid]["total_score"] += (r.get("score") or 0)
+            student_stats[sid]["total_max"]   += (r.get("total") or 1)
+            student_stats[sid]["lessons"].add(r.get("lesson", ""))
+
+    # دمج البيانات
+    students_report = []
+    for s in students:
+        sid   = s["id"]
+        stats = student_stats.get(sid, {})
+        xp    = stats.get("total_score", 0)
+        tests = stats.get("tests", 0)
+        total_max = stats.get("total_max", 0)
+        accuracy = round((xp / total_max * 100)) if total_max > 0 else 0
+        students_report.append({
+            "id":         sid,
+            "full_name":  s.get("full_name", ""),
+            "grade":      s.get("grade", ""),
+            "username":   s.get("username", ""),
+            "joined":     s.get("created_at", ""),
+            "xp":         xp,
+            "tests":      tests,
+            "accuracy":   accuracy,
+            "lessons_count": len(stats.get("lessons", set())),
+        })
+
+    # ترتيب حسب XP
+    students_report.sort(key=lambda x: x["xp"], reverse=True)
+
+    # إحصائيات الصفوف
+    grade_stats = defaultdict(int)
+    for s in students:
+        grade_stats[(s.get("grade") or "غير محدد")] += 1
+
+    return {
+        "summary": {
+            "total_students":  len(students),
+            "total_questions": total_questions,
+            "total_results":   len(results),
+            "active_students": sum(1 for s in students_report if s["tests"] > 0),
+        },
+        "grade_distribution": dict(grade_stats),
+        "students":           students_report,
+        "top10":              students_report[:10],
+    }
 
 
 # ==========================================

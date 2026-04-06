@@ -586,6 +586,7 @@
                     <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
                 </div>
                 <div class="nav-link" onclick="showSection('sub-codes')" style="color:#2ecc71;"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
+                <div class="nav-link" onclick="showSection('monitor')" style="color:#e91e63;"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
                 <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
@@ -938,24 +939,69 @@
             <!-- ==================== SCROLLS ==================== -->
             <section id="scrolls" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-file-pdf"></i> إيداع لفافة (PDF)</h2>
-                    <label>📍 تحديد مسار اللفافة (الدرس)</label>
+                    <h2 style="color:var(--gold);"><i class="fas fa-scroll"></i> إيداع مصدر تعليمي</h2>
+                    <p style="opacity:0.7; margin-bottom:20px;">يمكنك إضافة عدة مصادر لنفس الدرس (PDF، فيديو، ورقة عمل، رابط)</p>
+
+                    <label>📍 تحديد مسار المصدر (الدرس)</label>
                     <div class="cascade-grid">
                         <div><label>الصف</label><select id="pdf-grade" onchange="updateSemesters('pdf')"></select></div>
                         <div><label>الفصل</label><select id="pdf-term" onchange="updateUnits('pdf')"></select></div>
                         <div><label>الوحدة</label><select id="pdf-unit" onchange="updateLessons('pdf')"></select></div>
                         <div><label>الدرس</label><select id="pdf-lesson"></select></div>
                     </div>
-                    <div style="margin-top:20px;">
-                        <label>📂 ملف الملخص</label>
-                        <input type="file" id="pdf-file-input" accept="application/pdf, .pdf">
+
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px; margin-top:20px;">
+                        <div>
+                            <label>📌 نوع المصدر</label>
+                            <select id="pdf-resource-type" onchange="toggleResourceInput()">
+                                <option value="pdf">📄 ملف PDF (ملخص/مذكرة)</option>
+                                <option value="video">🎬 رابط فيديو</option>
+                                <option value="worksheet">📝 ورقة عمل (PDF)</option>
+                                <option value="link">🔗 رابط خارجي</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>🏷️ تسمية المصدر (اختياري)</label>
+                            <input type="text" id="pdf-resource-label" placeholder="مثال: شرح المعلم، ورقة تدريب...">
+                        </div>
                     </div>
-                    <button class="btn-gold" id="btn-upload-pdf" onclick="uploadSmartPDF()"><i class="fas fa-upload"></i> رفع للمكتبة الملكية</button>
+
+                    <!-- رفع ملف (PDF) -->
+                    <div id="resource-file-area" style="margin-top:15px;">
+                        <label>📂 الملف</label>
+                        <input type="file" id="pdf-file-input" accept="application/pdf,.pdf">
+                    </div>
+
+                    <!-- رابط خارجي (فيديو / رابط) -->
+                    <div id="resource-url-area" style="margin-top:15px; display:none;">
+                        <label>🔗 الرابط الخارجي</label>
+                        <input type="text" id="pdf-external-url" placeholder="https://...">
+                    </div>
+
+                    <button class="btn-gold" id="btn-upload-pdf" onclick="uploadSmartPDF()">
+                        <i class="fas fa-upload"></i> إيداع في المكتبة الملكية
+                    </button>
                 </div>
+
                 <div class="card">
-                    <h3>📂 اللفائف المودعة</h3>
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; flex-wrap:wrap; gap:10px;">
+                        <h3>📚 المصادر المودعة</h3>
+                        <div style="display:flex; gap:10px;">
+                            <select id="filter-scrolls-grade" onchange="loadPDFs()" style="background:#000; color:var(--gold); border:1px solid var(--gold); padding:8px; border-radius:8px; font-family:'Cairo';">
+                                <option value="">كل الصفوف</option>
+                            </select>
+                        </div>
+                    </div>
                     <table id="pdfs-table">
-                        <thead><tr><th>الدرس المرتبط</th><th>المعاينة</th><th>إجراء</th></tr></thead>
+                        <thead>
+                            <tr>
+                                <th style="padding:12px; text-align:right;">الدرس</th>
+                                <th style="padding:12px; text-align:right;">النوع</th>
+                                <th style="padding:12px; text-align:right;">التسمية</th>
+                                <th style="padding:12px; text-align:right;">المعاينة</th>
+                                <th style="padding:12px; text-align:right;">إجراء</th>
+                            </tr>
+                        </thead>
                         <tbody id="pdfs-table-body"></tbody>
                     </table>
                 </div>
@@ -1081,6 +1127,69 @@
                 </div>
             </section>
 
+            <!-- ==================== MONITOR ==================== -->
+            <section id="monitor" class="section">
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:25px;">
+                        <h2 style="color:var(--gold); margin:0;"><i class="fas fa-eye"></i> عرش المراقبة الملكي 👁️</h2>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+                            <select id="monitor-grade-sel" onchange="monitorLoadStudents()" style="background:#000; color:var(--gold); border:1px solid var(--gold); padding:10px 14px; border-radius:10px; font-family:'Cairo'; min-width:200px;">
+                                <option value="">-- اختر الصف --</option>
+                            </select>
+                            <select id="monitor-student-sel" onchange="monitorLoadStudent()" style="background:#000; color:var(--gold); border:1px solid var(--gold); padding:10px 14px; border-radius:10px; font-family:'Cairo'; min-width:220px;">
+                                <option value="">-- اختر الطالب --</option>
+                            </select>
+                            <button onclick="monitorRefresh()" style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); color:var(--gold); padding:10px 16px; border-radius:10px; cursor:pointer; font-family:'Cairo';">
+                                <i class="fas fa-sync-alt"></i> تحديث
+                            </button>
+                            <a id="monitor-open-tab" href="#" target="_blank" style="background:rgba(233,30,99,0.1); border:1px solid #e91e63; color:#e91e63; padding:10px 16px; border-radius:10px; font-family:'Cairo'; text-decoration:none; display:none;">
+                                <i class="fas fa-external-link-alt"></i> فتح في تبويب
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- معلومات الطالب المختار -->
+                    <div id="monitor-student-info" style="display:none; background:rgba(212,175,55,0.05); border:1px solid var(--border); border-radius:15px; padding:20px; margin-bottom:20px;">
+                        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:15px;">
+                            <div style="text-align:center;">
+                                <div style="font-size:2.5rem;" id="mon-avatar">🎓</div>
+                                <div style="color:var(--gold); font-weight:bold; font-size:1.1rem;" id="mon-name">—</div>
+                                <div style="opacity:0.6; font-size:0.85rem;" id="mon-grade">—</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.8rem; color:var(--gold); font-weight:bold;" id="mon-xp">0</div>
+                                <div style="opacity:0.6; font-size:0.85rem;">نقاط XP</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.8rem; color:#2ecc71; font-weight:bold;" id="mon-tests">0</div>
+                                <div style="opacity:0.6; font-size:0.85rem;">اختبار أجراه</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.8rem; color:#3498db; font-weight:bold;" id="mon-accuracy">0%</div>
+                                <div style="opacity:0.6; font-size:0.85rem;">دقة الإجابات</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:1.8rem; color:#e91e63; font-weight:bold;" id="mon-rank">—</div>
+                                <div style="opacity:0.6; font-size:0.85rem;">الترتيب</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- iframe لوحة الطالب -->
+                    <div style="position:relative; border-radius:20px; overflow:hidden; border:2px solid var(--border);">
+                        <div id="monitor-placeholder" style="text-align:center; padding:80px 20px; opacity:0.4;">
+                            <div style="font-size:4rem; margin-bottom:15px;">👁️</div>
+                            <h3>اختر صفاً ثم طالباً لمشاهدة لوحته مباشرة</h3>
+                            <p style="font-size:0.9rem; margin-top:10px;">ترى ما يراه الطالب بالضبط — الأسئلة والمنهج والنتائج</p>
+                        </div>
+                        <iframe id="monitor-iframe"
+                            style="display:none; width:100%; height:800px; border:none; border-radius:18px;"
+                            title="عرش المراقبة">
+                        </iframe>
+                    </div>
+                </div>
+            </section>
+
             <!-- ==================== SETTINGS ==================== -->
             <section id="personal-settings" class="section">
                 <div class="card">
@@ -1094,11 +1203,97 @@
             </section>
 
             <section id="reports" class="section">
-                <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-print"></i> التقارير والطباعة</h2>
-                    <p>يمكنك طباعة تقرير شامل عن أداء الإمبراطورية والطلاب لهذا الشهر.</p>
-                    <button class="btn-gold" onclick="window.print()"><i class="fas fa-file-pdf"></i> استخراج تقرير ملكي (PDF)</button>
+
+                <!-- بطاقات الملخص السريع -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:15px; margin-bottom:25px;" id="report-summary-cards">
+                    <div class="card" style="text-align:center; padding:20px;">
+                        <div style="font-size:2rem; color:var(--gold); font-weight:bold;" id="rpt-students">—</div>
+                        <div style="opacity:0.6; font-size:0.85rem; margin-top:5px;">إجمالي الطلاب</div>
+                    </div>
+                    <div class="card" style="text-align:center; padding:20px;">
+                        <div style="font-size:2rem; color:#2ecc71; font-weight:bold;" id="rpt-active">—</div>
+                        <div style="opacity:0.6; font-size:0.85rem; margin-top:5px;">طلاب نشطون</div>
+                    </div>
+                    <div class="card" style="text-align:center; padding:20px;">
+                        <div style="font-size:2rem; color:#3498db; font-weight:bold;" id="rpt-questions">—</div>
+                        <div style="opacity:0.6; font-size:0.85rem; margin-top:5px;">الأسئلة</div>
+                    </div>
+                    <div class="card" style="text-align:center; padding:20px;">
+                        <div style="font-size:2rem; color:#e91e63; font-weight:bold;" id="rpt-results">—</div>
+                        <div style="opacity:0.6; font-size:0.85rem; margin-top:5px;">اختبارات أُجريت</div>
+                    </div>
                 </div>
+
+                <!-- أدوات التقرير -->
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px; margin-bottom:25px;">
+                        <h2 style="color:var(--gold); margin:0;"><i class="fas fa-chart-bar"></i> تقرير أداء الإمبراطورية</h2>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <button onclick="loadFullReport()" style="background:rgba(212,175,55,0.1); border:1px solid var(--gold); color:var(--gold); padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                <i class="fas fa-sync-alt"></i> تحديث التقرير
+                            </button>
+                            <button onclick="exportReportExcel()" style="background:rgba(46,204,113,0.1); border:1px solid #2ecc71; color:#2ecc71; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                <i class="fas fa-file-excel"></i> تصدير Excel
+                            </button>
+                            <button onclick="printReport()" style="background:rgba(52,152,219,0.1); border:1px solid #3498db; color:#3498db; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                <i class="fas fa-print"></i> طباعة PDF
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- فلتر الصف -->
+                    <div style="display:flex; gap:15px; align-items:center; margin-bottom:20px; flex-wrap:wrap;">
+                        <select id="rpt-grade-filter" onchange="filterReportTable()" style="background:#000; color:var(--gold); border:1px solid var(--gold); padding:10px 14px; border-radius:10px; font-family:'Cairo'; min-width:200px;">
+                            <option value="">جميع الصفوف</option>
+                        </select>
+                        <input type="text" id="rpt-search" placeholder="بحث باسم الطالب..." oninput="filterReportTable()"
+                            style="background:rgba(0,0,0,0.5); color:#fff; border:1px solid var(--border); padding:10px 14px; border-radius:10px; font-family:'Cairo'; min-width:220px;">
+                        <select id="rpt-sort" onchange="filterReportTable()" style="background:#000; color:var(--gold); border:1px solid var(--gold); padding:10px 14px; border-radius:10px; font-family:'Cairo';">
+                            <option value="xp">ترتيب بـ XP</option>
+                            <option value="name">ترتيب بالاسم</option>
+                            <option value="tests">ترتيب بعدد الاختبارات</option>
+                            <option value="accuracy">ترتيب بالدقة</option>
+                        </select>
+                    </div>
+
+                    <!-- جدول الطلاب -->
+                    <div style="overflow-x:auto;">
+                        <table id="rpt-table">
+                            <thead>
+                                <tr>
+                                    <th style="padding:14px; text-align:right;">#</th>
+                                    <th style="padding:14px; text-align:right;">الطالب</th>
+                                    <th style="padding:14px; text-align:right;">الصف</th>
+                                    <th style="padding:14px; text-align:right;">XP</th>
+                                    <th style="padding:14px; text-align:right;">الاختبارات</th>
+                                    <th style="padding:14px; text-align:right;">الدقة</th>
+                                    <th style="padding:14px; text-align:right;">الدروس</th>
+                                    <th style="padding:14px; text-align:right;">المستوى</th>
+                                    <th style="padding:14px; text-align:right;">تقرير</th>
+                                </tr>
+                            </thead>
+                            <tbody id="rpt-tbody">
+                                <tr><td colspan="9" style="text-align:center; padding:40px; opacity:0.4;">اضغط "تحديث التقرير" لعرض البيانات</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- توزيع الصفوف -->
+                <div class="card" id="rpt-grade-chart-card" style="display:none;">
+                    <h3 style="color:var(--gold); margin-bottom:20px;"><i class="fas fa-chart-pie"></i> توزيع الطلاب على الصفوف</h3>
+                    <div id="rpt-grade-bars" style="display:flex; flex-direction:column; gap:12px;"></div>
+                </div>
+
+                <!-- تقرير فردي -->
+                <div class="card" id="rpt-individual-card" style="display:none;">
+                    <h3 style="color:var(--gold); margin-bottom:20px;"><i class="fas fa-user"></i> التقرير الفردي — <span id="rpt-individual-name"></span></h3>
+                    <div id="rpt-individual-content"></div>
+                    <button onclick="printIndividualReport()" style="background:rgba(52,152,219,0.1); border:1px solid #3498db; color:#3498db; padding:10px 20px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold; margin-top:15px;">
+                        <i class="fas fa-print"></i> طباعة التقرير الفردي
+                    </button>
+                </div>
+
             </section>
         </main>
     </div>
@@ -1956,46 +2151,108 @@
         }
     }
 
-    // ─── PDFs ───────────────────────────────────────────────────────────────────
+    // ─── PDFs / Resources ──────────────────────────────────────────────────────
+
+    function toggleResourceInput() {
+        const type    = document.getElementById('pdf-resource-type').value;
+        const fileArea = document.getElementById('resource-file-area');
+        const urlArea  = document.getElementById('resource-url-area');
+        if (type === 'video' || type === 'link') {
+            fileArea.style.display = 'none';
+            urlArea.style.display  = 'block';
+        } else {
+            fileArea.style.display = 'block';
+            urlArea.style.display  = 'none';
+        }
+    }
+
+    const RESOURCE_ICONS = { pdf:'📄', video:'🎬', worksheet:'📝', link:'🔗' };
+    const RESOURCE_LABELS_AR = { pdf:'ملف PDF', video:'فيديو', worksheet:'ورقة عمل', link:'رابط' };
+
     async function uploadSmartPDF() {
-        const lesson    = document.getElementById('pdf-lesson').value;
-        const fileInput = document.getElementById('pdf-file-input');
-        const btn       = document.getElementById('btn-upload-pdf');
-        if(!lesson) return void showToast("⚠️ يرجى اختيار الدرس أولاً!", "warning");
-        if(fileInput.files.length === 0) return void showToast("⚠️ يرجى إرفاق ملف الـ PDF!", "warning");
+        const lesson       = document.getElementById('pdf-lesson').value;
+        const resType      = document.getElementById('pdf-resource-type').value;
+        const resLabel     = document.getElementById('pdf-resource-label').value.trim();
+        const fileInput    = document.getElementById('pdf-file-input');
+        const externalUrl  = document.getElementById('pdf-external-url').value.trim();
+        const btn          = document.getElementById('btn-upload-pdf');
+
+        if (!lesson) return void showToast("⚠️ يرجى اختيار الدرس أولاً!", "warning");
+
+        const isFileType = resType === 'pdf' || resType === 'worksheet';
+        if (isFileType && fileInput.files.length === 0)
+            return void showToast("⚠️ يرجى إرفاق الملف!", "warning");
+        if (!isFileType && !externalUrl)
+            return void showToast("⚠️ يرجى إدخال الرابط الخارجي!", "warning");
+
         btn.disabled  = true;
-        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الرفع...';
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الإيداع...';
+
         const fd = new FormData();
-        fd.append('lesson', lesson);
-        fd.append('pdf', fileInput.files[0]);
+        fd.append('lesson',         lesson);
+        fd.append('resource_type',  resType);
+        fd.append('resource_label', resLabel);
+
+        if (isFileType) {
+            fd.append('pdf', fileInput.files[0]);
+        } else {
+            fd.append('external_url', externalUrl);
+        }
+
         try {
             const res = await authFetch('/api/admin/summaries', { method: 'POST', body: fd });
-            if(res && res.ok) { showToast("📜 تم إيداع اللفافة بنجاح!", "success"); fileInput.value = ""; await loadPDFs(); }
-            else { showToast("⚠️ حدث خطأ أثناء الرفع!", "error"); }
-        } catch (e) { showToast("⚠️ لا يمكن الاتصال بالمكتبة السحابية.", "error"); }
-        finally { btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> رفع للمكتبة الملكية'; }
+            if (res && res.ok) {
+                showToast("✨ تم إيداع المصدر بنجاح في المكتبة الملكية!", "success");
+                fileInput.value = "";
+                document.getElementById('pdf-external-url').value = "";
+                document.getElementById('pdf-resource-label').value = "";
+                await loadPDFs();
+            } else {
+                const err = await res.json().catch(() => ({}));
+                showToast("⚠️ " + (err.detail || "حدث خطأ أثناء الرفع!"), "error");
+            }
+        } catch(e) {
+            showToast("⚠️ لا يمكن الاتصال بالمكتبة السحابية.", "error");
+        } finally {
+            btn.disabled  = false;
+            btn.innerHTML = '<i class="fas fa-upload"></i> إيداع في المكتبة الملكية';
+        }
     }
 
     async function loadPDFs() {
         const res = await fetch(`${API_URL}/api/admin/summaries_list`);
-        if(!res.ok) return;
+        if (!res.ok) return;
         const data      = await res.json();
         const tableBody = document.getElementById('pdfs-table-body');
-        if(tableBody) {
-            tableBody.innerHTML = data.map(pdf => `
-                <tr>
-                    <td><strong>${pdf.lesson}</strong></td>
-                    <td><a href="${pdf.pdf_url}" target="_blank" style="color:var(--gold); text-decoration:none; font-weight:bold;">معاينة 👁️</a></td>
-                    <td><button class="btn-action btn-del" onclick="deletePDF('${pdf.lesson}')">حرق اللفافة 🔥</button></td>
-                </tr>`).join('');
+        if (!tableBody) return;
+
+        if (!data || data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; opacity:0.5; padding:30px;">لا توجد مصادر مودعة بعد.</td></tr>';
+            return;
         }
+
+        tableBody.innerHTML = data.map(r => `
+            <tr style="border-bottom:1px solid rgba(212,175,55,0.1);">
+                <td style="padding:12px; font-weight:bold;">${esc(r.lesson)}</td>
+                <td style="padding:12px;">${RESOURCE_ICONS[r.resource_type] || '📄'} ${RESOURCE_LABELS_AR[r.resource_type] || r.resource_type}</td>
+                <td style="padding:12px; opacity:0.7;">${esc(r.resource_label || '—')}</td>
+                <td style="padding:12px;">
+                    <a href="${esc(r.pdf_url)}" target="_blank"
+                       style="color:var(--gold); text-decoration:none; font-weight:bold;">
+                       معاينة 👁️
+                    </a>
+                </td>
+                <td style="padding:12px;">
+                    <button class="btn-action btn-del" onclick="deletePDF(${r.id})">🗑️ حذف</button>
+                </td>
+            </tr>`).join('');
     }
 
-    async function deletePDF(lesson) {
-        if(confirm("هل تريد حرق هذه اللفافة نهائياً؟")) {
-            await authFetch(`/api/admin/summaries/${encodeURIComponent(lesson)}`, { method: 'DELETE' });
-            await loadPDFs();
-        }
+    async function deletePDF(id) {
+        if (!confirm("هل تريد حذف هذا المصدر نهائياً؟")) return;
+        await authFetch(`/api/admin/summaries/${id}`, { method: 'DELETE' });
+        await loadPDFs();
+        showToast("🗑️ تم حذف المصدر.", "info");
     }
 
     function toggleOptions() {
@@ -3302,7 +3559,7 @@
         const passInput = document.getElementById('pass-input');
         if (passInput) { passInput.addEventListener('keydown', e => { if(e.key === 'Enter') checkLoginSafe(); }); }
     };
-    // hook على showSection لتحميل البيانات عند فتح تبويب الأكواد
+    // hook على showSection لتحميل البيانات عند فتح التبويبات
     document.querySelectorAll('.nav-link').forEach(link => {
         link.addEventListener('click', () => {
             const onclick = link.getAttribute('onclick') || '';
@@ -3310,9 +3567,373 @@
                 loadStudentsIntoCodeSelect();
                 renderCodesLog();
             }
+            if (onclick.includes("'monitor'")) {
+                monitorInit();
+            }
+            if (onclick.includes("'reports'")) {
+                loadFullReport();
+            }
         });
     });
 
+    // ════════════════════════════════════════════════════════
+    // ██ عرش المراقبة الملكي — مراقبة لوحة الطالب من الأدمن ██
+    // ════════════════════════════════════════════════════════
+    let _monitorStudents = [];
+    let _monitorCurrentUser = null;
+
+    async function monitorInit() {
+        const gradeSel = document.getElementById('monitor-grade-sel');
+        if (!gradeSel) return;
+        gradeSel.innerHTML = '<option value="">-- اختر الصف --</option>';
+        const GRADE_LIST = [
+            'الصف الخامس','الصف السادس','الصف السابع','الصف الثامن',
+            'الصف التاسع','الصف العاشر',
+            'الصف الحادي عشر (متقدم)','الصف الحادي عشر(اساسي)',
+            'الصف الثاني عشر (متقدم)','الصف الثاني عشر (أساسي)',
+        ];
+        GRADE_LIST.forEach(g => {
+            gradeSel.innerHTML += `<option value="${esc(g)}">${esc(g)}</option>`;
+        });
+
+        // جلب كل الطلاب
+        try {
+            const res = await authFetch('/api/admin/students');
+            if (res && res.ok) {
+                _monitorStudents = await res.json();
+            }
+        } catch(e) { console.warn('monitor: failed to load students', e); }
+    }
+
+    function monitorLoadStudents() {
+        const grade = document.getElementById('monitor-grade-sel').value;
+        const stuSel = document.getElementById('monitor-student-sel');
+        stuSel.innerHTML = '<option value="">-- اختر الطالب --</option>';
+        document.getElementById('monitor-student-info').style.display = 'none';
+        document.getElementById('monitor-iframe').style.display = 'none';
+        document.getElementById('monitor-placeholder').style.display = 'block';
+        document.getElementById('monitor-open-tab').style.display = 'none';
+
+        if (!grade) return;
+        const filtered = _monitorStudents.filter(s =>
+            (s.grade || '').trim() === grade.trim()
+        );
+
+        if (filtered.length === 0) {
+            stuSel.innerHTML = '<option value="">لا يوجد طلاب في هذا الصف</option>';
+            return;
+        }
+        filtered.forEach(s => {
+            stuSel.innerHTML += `<option value="${s.id}">${esc(s.full_name)} (${esc(s.username)})</option>`;
+        });
+    }
+
+    async function monitorLoadStudent() {
+        const studentId = document.getElementById('monitor-student-sel').value;
+        if (!studentId) return;
+
+        const student = _monitorStudents.find(s => String(s.id) === String(studentId));
+        if (!student) return;
+        _monitorCurrentUser = student;
+
+        // جلب نتائج الطالب
+        let results = [];
+        try {
+            const res = await authFetch(`/api/parent/search/${encodeURIComponent(student.full_name)}`);
+            if (res && res.ok) {
+                const data = await res.json();
+                if (data.found) results = data.history || [];
+            }
+        } catch(e) {}
+
+        // حساب الإحصائيات
+        const totalXP   = results.reduce((s, r) => s + (r.score || 0), 0);
+        const totalTests = results.length;
+        const totalScore = results.reduce((s, r) => s + (r.score || 0), 0);
+        const totalMax   = results.reduce((s, r) => s + (r.total || 1), 0);
+        const accuracy   = totalMax > 0 ? Math.round((totalScore / totalMax) * 100) : 0;
+
+        // تحديث بطاقة المعلومات
+        const infoBox = document.getElementById('monitor-student-info');
+        infoBox.style.display = 'block';
+        document.getElementById('mon-name').textContent    = student.full_name;
+        document.getElementById('mon-grade').textContent   = student.grade || '—';
+        document.getElementById('mon-xp').textContent      = totalXP.toLocaleString('ar-EG');
+        document.getElementById('mon-tests').textContent   = totalTests;
+        document.getElementById('mon-accuracy').textContent = accuracy + '%';
+        document.getElementById('mon-rank').textContent    = '—';
+
+        // جلب الترتيب من Leaderboard
+        try {
+            const lbRes = await fetch(`${API_URL}/api/leaderboard`);
+            if (lbRes.ok) {
+                const lb = await lbRes.json();
+                const rank = lb.findIndex(x => x.student_name === student.full_name) + 1;
+                document.getElementById('mon-rank').textContent = rank > 0 ? '#' + rank : '—';
+            }
+        } catch(e) {}
+
+        // تحميل لوحة الطالب في iframe مع بيانات الطالب عبر URL params
+        const iframe = document.getElementById('monitor-iframe');
+        const placeholder = document.getElementById('monitor-placeholder');
+        const openTabBtn = document.getElementById('monitor-open-tab');
+
+        // نحفظ بيانات الطالب في sessionStorage ثم نحمّل الصفحة
+        const studentData = {
+            id:        student.id,
+            full_name: student.full_name,
+            username:  student.username,
+            grade:     student.grade,
+        };
+
+        // نستخدم postMessage لتمرير البيانات للـ iframe بعد تحميله
+        const studentUrl = `${API_URL}/student?monitor=1&sid=${student.id}`;
+        iframe.src = studentUrl;
+        iframe.style.display = 'block';
+        placeholder.style.display = 'none';
+        openTabBtn.href = studentUrl;
+        openTabBtn.style.display = 'inline-flex';
+
+        // إرسال بيانات الطالب للـ iframe بعد تحميله
+        iframe.onload = () => {
+            try {
+                iframe.contentWindow.postMessage({
+                    type: 'MONITOR_LOGIN',
+                    student: studentData
+                }, '*');
+            } catch(e) {
+                console.warn('postMessage failed:', e);
+            }
+        };
+    }
+
+    function monitorRefresh() {
+        const stuSel = document.getElementById('monitor-student-sel');
+        if (stuSel.value) monitorLoadStudent();
+    }
+
+
+
+    // ════════════════════════════════════════════════════════
+    // ██ نظام التقارير الذكية ██
+    // ════════════════════════════════════════════════════════
+    let _reportData = null;
+
+    async function loadFullReport() {
+        const tbody = document.getElementById('rpt-tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin" style="color:var(--gold);"></i> جاري تحميل بيانات الإمبراطورية...</td></tr>';
+        try {
+            const res  = await authFetch('/api/admin/reports/full');
+            if (!res || !res.ok) { showToast('⚠️ تعذّر جلب بيانات التقرير', 'error'); return; }
+            const data = await res.json();
+            _reportData = data;
+            const s = data.summary || {};
+            const setEl = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = (val||0).toLocaleString('ar-EG'); };
+            setEl('rpt-students',  s.total_students);
+            setEl('rpt-active',    s.active_students);
+            setEl('rpt-questions', s.total_questions);
+            setEl('rpt-results',   s.total_results);
+            const gradeFilter = document.getElementById('rpt-grade-filter');
+            if (gradeFilter) {
+                const grades = Object.keys(data.grade_distribution || {}).sort((a,b) => {
+                    const ai = GRADE_ORDER.indexOf(a), bi = GRADE_ORDER.indexOf(b);
+                    return (ai===-1?999:ai)-(bi===-1?999:bi);
+                });
+                gradeFilter.innerHTML = '<option value="">جميع الصفوف</option>';
+                grades.forEach(g => { gradeFilter.innerHTML += `<option value="${esc(g)}">${esc(g)}</option>`; });
+            }
+            renderGradeChart(data.grade_distribution, s.total_students);
+            renderReportTable(data.students);
+            showToast('✅ تم تحميل التقرير الملكي!', 'success');
+        } catch(e) {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#ff5e5e; padding:30px;">خطأ في جلب البيانات</td></tr>';
+        }
+    }
+
+    function getRankLabel(xp) {
+        if (xp >= 5000) return { label: '🔮 إمبراطور', color: '#9b59b6' };
+        if (xp >= 3000) return { label: '👑 قائد', color: '#d4af37' };
+        if (xp >= 1500) return { label: '🧙 حكيم', color: '#3498db' };
+        if (xp >= 500)  return { label: '⚔️ فارس', color: '#2ecc71' };
+        if (xp >= 100)  return { label: '🛡️ جندي', color: '#e67e22' };
+        return { label: '🌟 مستكشف', color: '#95a5a6' };
+    }
+
+    function renderReportTable(students) {
+        const tbody = document.getElementById('rpt-tbody');
+        if (!tbody || !students) return;
+        if (students.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px; opacity:0.4;">لا يوجد طلاب مسجّلون بعد</td></tr>';
+            return;
+        }
+        tbody.innerHTML = students.map((s, i) => {
+            const rank = getRankLabel(s.xp);
+            const accColor = s.accuracy >= 80 ? '#2ecc71' : s.accuracy >= 60 ? '#f39c12' : '#e74c3c';
+            return `<tr style="border-bottom:1px solid rgba(212,175,55,0.1); transition:0.2s;" onmouseover="this.style.background='rgba(212,175,55,0.05)'" onmouseout="this.style.background=''">
+                <td style="padding:12px; opacity:0.5;">${i+1}</td>
+                <td style="padding:12px;"><div style="font-weight:bold;">${esc(s.full_name)}</div><div style="opacity:0.5;font-size:0.8rem;">@${esc(s.username)}</div></td>
+                <td style="padding:12px;font-size:0.9rem;">${esc(s.grade||'—')}</td>
+                <td style="padding:12px;color:var(--gold);font-weight:bold;">${(s.xp||0).toLocaleString('ar-EG')}</td>
+                <td style="padding:12px;color:#3498db;">${s.tests||0}</td>
+                <td style="padding:12px;"><span style="color:${accColor};font-weight:bold;">${s.accuracy||0}%</span></td>
+                <td style="padding:12px;">${s.lessons_count||0}</td>
+                <td style="padding:12px;"><span style="color:${rank.color};font-size:0.85rem;">${rank.label}</span></td>
+                <td style="padding:12px;">
+                    <button onclick="showIndividualReport(${s.id})"
+                        style="background:rgba(212,175,55,0.1);border:1px solid var(--border);color:var(--gold);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;">
+                        📊 تقرير
+                    </button>
+                </td>
+            </tr>`;
+        }).join('');
+    }
+
+    function filterReportTable() {
+        if (!_reportData) return;
+        const gradeVal  = document.getElementById('rpt-grade-filter')?.value || '';
+        const searchVal = (document.getElementById('rpt-search')?.value || '').trim().toLowerCase();
+        const sortVal   = document.getElementById('rpt-sort')?.value || 'xp';
+        let filtered = [...(_reportData.students || [])];
+        if (gradeVal)  filtered = filtered.filter(s => (s.grade||'') === gradeVal);
+        if (searchVal) filtered = filtered.filter(s => (s.full_name||'').toLowerCase().includes(searchVal));
+        filtered.sort((a,b) => {
+            if (sortVal === 'name')     return (a.full_name||'').localeCompare(b.full_name||'');
+            if (sortVal === 'tests')    return (b.tests||0)-(a.tests||0);
+            if (sortVal === 'accuracy') return (b.accuracy||0)-(a.accuracy||0);
+            return (b.xp||0)-(a.xp||0);
+        });
+        renderReportTable(filtered);
+    }
+
+    function renderGradeChart(distribution, total) {
+        const card = document.getElementById('rpt-grade-chart-card');
+        const bars = document.getElementById('rpt-grade-bars');
+        if (!card || !bars || !distribution) return;
+        const sorted = Object.entries(distribution).sort((a,b) => {
+            const ai = GRADE_ORDER.indexOf(a[0]), bi = GRADE_ORDER.indexOf(b[0]);
+            return (ai===-1?999:ai)-(bi===-1?999:bi);
+        });
+        const colors = ['#d4af37','#2ecc71','#3498db','#9b59b6','#e67e22','#e91e63','#1abc9c','#f39c12'];
+        bars.innerHTML = sorted.map(([grade,count],i) => {
+            const pct = total > 0 ? Math.round((count/total)*100) : 0;
+            return `<div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:0.9rem;">
+                    <span>${esc(grade)}</span><span style="color:var(--gold);">${count} طالب (${pct}%)</span>
+                </div>
+                <div style="background:rgba(255,255,255,0.05);border-radius:8px;height:12px;overflow:hidden;">
+                    <div style="height:100%;width:${pct}%;background:${colors[i%colors.length]};border-radius:8px;transition:width 0.8s ease;"></div>
+                </div>
+            </div>`;
+        }).join('');
+        card.style.display = 'block';
+    }
+
+    async function showIndividualReport(studentId) {
+        if (!_reportData) return;
+        const student = _reportData.students.find(s => s.id === studentId);
+        if (!student) return;
+        const card    = document.getElementById('rpt-individual-card');
+        const content = document.getElementById('rpt-individual-content');
+        const nameEl  = document.getElementById('rpt-individual-name');
+        if (nameEl) nameEl.textContent = student.full_name;
+        if (card)   card.style.display = 'block';
+        content.innerHTML = '<p style="opacity:0.5;"><i class="fas fa-spinner fa-spin"></i> جاري التحميل...</p>';
+        try {
+            const res  = await authFetch(`/api/parent/search/${encodeURIComponent(student.full_name)}`);
+            const data = await res.json();
+            const history = data.history || [];
+            const rank = getRankLabel(student.xp);
+            content.innerHTML = `
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:15px;margin-bottom:20px;">
+                    <div style="text-align:center;padding:15px;background:rgba(212,175,55,0.05);border-radius:12px;border:1px solid var(--border);">
+                        <div style="font-size:1.8rem;color:var(--gold);font-weight:bold;">${(student.xp||0).toLocaleString('ar-EG')}</div>
+                        <div style="opacity:0.6;font-size:0.8rem;">نقاط XP</div>
+                    </div>
+                    <div style="text-align:center;padding:15px;background:rgba(46,204,113,0.05);border-radius:12px;border:1px solid rgba(46,204,113,0.2);">
+                        <div style="font-size:1.8rem;color:#2ecc71;font-weight:bold;">${student.tests||0}</div>
+                        <div style="opacity:0.6;font-size:0.8rem;">اختبارات</div>
+                    </div>
+                    <div style="text-align:center;padding:15px;background:rgba(52,152,219,0.05);border-radius:12px;border:1px solid rgba(52,152,219,0.2);">
+                        <div style="font-size:1.8rem;color:#3498db;font-weight:bold;">${student.accuracy||0}%</div>
+                        <div style="opacity:0.6;font-size:0.8rem;">دقة الإجابات</div>
+                    </div>
+                    <div style="text-align:center;padding:15px;background:rgba(155,89,182,0.05);border-radius:12px;border:1px solid rgba(155,89,182,0.2);">
+                        <div style="font-size:1.5rem;color:${rank.color};font-weight:bold;">${rank.label}</div>
+                        <div style="opacity:0.6;font-size:0.8rem;">الرتبة</div>
+                    </div>
+                </div>
+                ${history.length > 0 ? `
+                <h4 style="color:var(--gold);margin-bottom:10px;">آخر 10 اختبارات:</h4>
+                <table style="width:100%;font-size:0.9rem;">
+                    <thead><tr>
+                        <th style="padding:10px;text-align:right;opacity:0.7;">الدرس</th>
+                        <th style="padding:10px;text-align:right;opacity:0.7;">الدرجة</th>
+                        <th style="padding:10px;text-align:right;opacity:0.7;">النسبة</th>
+                        <th style="padding:10px;text-align:right;opacity:0.7;">التاريخ</th>
+                    </tr></thead>
+                    <tbody>${history.slice(0,10).map(h => {
+                        const pct = h.total>0?Math.round((h.score/h.total)*100):0;
+                        const col = pct>=80?'#2ecc71':pct>=60?'#f39c12':'#e74c3c';
+                        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <td style="padding:10px;">${esc(h.lesson||'—')}</td>
+                            <td style="padding:10px;color:var(--gold);">${h.score}/${h.total}</td>
+                            <td style="padding:10px;color:${col};font-weight:bold;">${pct}%</td>
+                            <td style="padding:10px;opacity:0.5;font-size:0.8rem;">${h.timestamp?new Date(h.timestamp).toLocaleDateString('ar-OM'):'—'}</td>
+                        </tr>`;
+                    }).join('')}</tbody>
+                </table>` : '<p style="opacity:0.4;text-align:center;padding:20px;">لم يُجرِ هذا الطالب أي اختبارات بعد.</p>'}`;
+        } catch(e) {
+            content.innerHTML = '<p style="color:#ff5e5e;">تعذّر جلب بيانات الطالب.</p>';
+        }
+        if (card) card.scrollIntoView({ behavior:'smooth', block:'start' });
+    }
+
+    function printIndividualReport() {
+        const name    = document.getElementById('rpt-individual-name')?.textContent || '';
+        const content = document.getElementById('rpt-individual-content')?.innerHTML || '';
+        const win = window.open('','_blank');
+        win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير ${name}</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+            <style>body{font-family:'Cairo',sans-serif;padding:30px;direction:rtl;}h1{color:#d4af37;border-bottom:2px solid #d4af37;padding-bottom:10px;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{padding:10px;border:1px solid #ddd;text-align:right;}th{background:#f5f5f5;}</style></head><body>
+            <h1>تقرير الطالب: ${name}</h1>
+            <p>إمبراطورية الرياضيات | الأستاذ رشدي سيد | ${new Date().toLocaleDateString('ar-OM',{year:'numeric',month:'long',day:'numeric'})}</p>
+            ${content}<scr' + 'ipt>window.print();window.close();<\/scr' + 'ipt></body></html>`);
+        win.document.close();
+    }
+
+    function printReport() {
+        if (!_reportData) { showToast('⚠️ يرجى تحميل التقرير أولاً','warning'); return; }
+        const students = _reportData.students || [];
+        const win = window.open('','_blank');
+        win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>تقرير إمبراطورية الرياضيات</title>
+            <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+            <style>body{font-family:'Cairo',sans-serif;padding:20px;direction:rtl;}h1{color:#d4af37;text-align:center;}table{width:100%;border-collapse:collapse;font-size:12px;}th{background:#d4af37;color:#000;padding:8px;text-align:right;}td{padding:8px;border-bottom:1px solid #eee;}tr:nth-child(even){background:#f9f9f9;}</style></head><body>
+            <h1>🏰 تقرير إمبراطورية الرياضيات</h1>
+            <p style="text-align:center;color:#666;">الأستاذ رشدي سيد | ${new Date().toLocaleDateString('ar-OM',{year:'numeric',month:'long',day:'numeric'})}</p>
+            <p style="text-align:center;">إجمالي الطلاب: ${_reportData.summary?.total_students||0} | نشطون: ${_reportData.summary?.active_students||0} | أسئلة: ${_reportData.summary?.total_questions||0}</p>
+            <table><thead><tr><th>#</th><th>الاسم</th><th>الصف</th><th>XP</th><th>الاختبارات</th><th>الدقة</th><th>الرتبة</th></tr></thead>
+            <tbody>${students.map((s,i)=>`<tr><td>${i+1}</td><td><strong>${esc(s.full_name)}</strong></td><td>${esc(s.grade||'—')}</td><td>${(s.xp||0).toLocaleString()}</td><td>${s.tests||0}</td><td>${s.accuracy||0}%</td><td>${getRankLabel(s.xp).label}</td></tr>`).join('')}</tbody>
+            </table><scr' + 'ipt>setTimeout(()=>{window.print();},500);<\/scr' + 'ipt></body></html>`);
+        win.document.close();
+    }
+
+    function exportReportExcel() {
+        if (!_reportData) { showToast('⚠️ يرجى تحميل التقرير أولاً','warning'); return; }
+        if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة','error'); return; }
+        const students = _reportData.students || [];
+        const wsData = [
+            ['#','الاسم الكامل','اسم المستخدم','الصف','XP','الاختبارات','الدقة %','الدروس','الرتبة'],
+            ...students.map((s,i)=>[i+1,s.full_name,s.username,s.grade||'—',s.xp||0,s.tests||0,(s.accuracy||0)+'%',s.lessons_count||0,getRankLabel(s.xp).label])
+        ];
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet(wsData);
+        ws['!cols'] = [{wch:5},{wch:25},{wch:15},{wch:20},{wch:10},{wch:12},{wch:10},{wch:10},{wch:15}];
+        XLSX.utils.book_append_sheet(wb, ws, 'تقرير الطلاب');
+        const ws2 = XLSX.utils.aoa_to_sheet([['الصف','عدد الطلاب'],...Object.entries(_reportData.grade_distribution||{})]);
+        XLSX.utils.book_append_sheet(wb, ws2, 'توزيع الصفوف');
+        XLSX.writeFile(wb, `تقرير_امبراطورية_الرياضيات_${new Date().toLocaleDateString('en-CA')}.xlsx`);
+        showToast('✅ تم تصدير Excel بنجاح!','success');
+    }
 
 </script>
 </body>

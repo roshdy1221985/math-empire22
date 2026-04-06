@@ -451,7 +451,7 @@
             box-shadow: 0 0 25px rgba(212,175,55,0.4);
             transition: transform 0.3s;
         }
-        .photo-frame:hover { transform: scale(1.05) rotate(5deg); }
+        .photo-frame:hover { transform: scale(1.05); }
         .teacher-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
         .sidebar h2 { font-family: 'Amiri', serif; color: var(--gold); font-size: 1.6rem; margin: 10px 0; }
         .sidebar > p { font-size: 0.85rem; opacity: 0.8; margin-bottom: 20px; }
@@ -713,7 +713,7 @@
         .badge-card.badge-unlocked { border-color: var(--gold); background: rgba(212,175,55,0.07); }
         .badge-card.badge-locked   { border-color: rgba(100,100,100,0.3); filter: opacity(0.65); }
         .badge-icon-wrap { font-size: 3.5rem; margin-bottom: 12px; display: block; transition: transform 0.3s; }
-        .badge-card:hover .badge-icon-wrap { transform: scale(1.15) rotate(5deg); }
+        .badge-card:hover .badge-icon-wrap { transform: scale(1.1); }
         .badge-name { color: var(--gold); font-family: 'Amiri'; font-size: 1.1rem; margin: 0 0 8px; }
         .badge-desc { font-size: 0.78rem; opacity: 0.7; margin-bottom: 12px; line-height: 1.5; }
         .badge-status { font-size: 0.82rem; font-weight: bold; padding: 4px 12px; border-radius: 20px; display: inline-block; }
@@ -1271,10 +1271,13 @@
     <div id="choice-overlay">
         <div class="choice-card tilt-card">
             <h2 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem;">ماذا تختار يا بطل؟</h2>
-            <p id="target-lesson-name" style="opacity:0.8; margin-bottom:25px;"></p>
-            <button class="choice-btn shiny-btn" style="background:var(--gold-grad); color:#000;" onclick="openSummary()">📖 الاطلاع على لفافة المعرفة (PDF)</button>
-            <button class="choice-btn shiny-btn" style="background:transparent; border:2px solid var(--gold); color:#fff;" onclick="proceedToChallenge()">⚔️ دخول التحدي الإمبراطوري</button>
-            <button onclick="document.getElementById('choice-overlay').style.display='none'" style="background:none; border:none; color:#ff5e5e; cursor:pointer; margin-top:20px; font-weight:bold; font-family:'Tajawal';">إغلاق ❌</button>
+            <p id="target-lesson-name" style="opacity:0.7; margin-bottom:25px; font-size:0.95rem;"></p>
+            <!-- الأزرار تُبنى ديناميكياً حسب المصادر المتاحة -->
+            <div id="choice-buttons-container" style="display:flex; flex-direction:column; gap:12px;"></div>
+            <button onclick="document.getElementById('choice-overlay').style.display='none'"
+                style="background:none; border:none; color:#ff5e5e; cursor:pointer; margin-top:20px; font-weight:bold; font-family:'Tajawal'; font-size:1rem;">
+                إغلاق ❌
+            </button>
         </div>
     </div>
 
@@ -1679,7 +1682,9 @@
                 const open   = isLessonUnlocked(lesson.name);
                 const cls    = done ? 'done' : open ? 'open' : 'locked-pill';
                 const icon   = done ? '✅' : open ? '🟡' : '🔒';
-                const clickAttr = (open && !done) ? `onclick="prepareChoice('${lesson.name.replace(/'/g,"\\'")}') "` : '';
+                // في وضع المراقبة — كل الدروس قابلة للضغط
+                const canClick  = isAdminMonitor ? true : (open && !done);
+                const clickAttr = canClick ? `onclick="prepareChoice('${lesson.name.replace(/'/g,"\\'")}') "` : '';
                 html += `<div class="timeline-lesson-pill ${cls}" ${clickAttr} title="${lesson.unit}">${icon} ${lesson.name}</div>`;
             });
 
@@ -2067,6 +2072,9 @@
     ];
 
     function getSubStatus() {
+        // وضع المراقبة — اشتراك دائم
+        if (isAdminMonitor)
+            return { type: 'active', valid: true, label: '👁️ وضع المراقبة', expiry: null };
         const now = new Date();
         if (now <= TRIAL_END_DATE)
             return { type: 'trial', valid: true,
@@ -3723,12 +3731,74 @@
         }
     }
 
-    function prepareChoice(lesson) {
+    async function prepareChoice(lesson) {
         if (isExamMode) return;
         challengeState.selectedLesson = lesson;
+
         const el = document.getElementById('target-lesson-name');
         if (el) el.textContent = 'درس: ' + lesson;
+
+        const container = document.getElementById('choice-buttons-container');
+        container.innerHTML = '<p style="opacity:0.5; text-align:center;">⏳ جاري تحميل المصادر...</p>';
         document.getElementById('choice-overlay').style.display = 'flex';
+
+        // جلب المصادر المتاحة لهذا الدرس
+        let resources = [];
+        try {
+            const res = await fetch(`${API_URL}/api/admin/summaries_list`);
+            if (res.ok) {
+                const data = await res.json();
+                resources = data.filter(s => s.lesson === lesson);
+            }
+        } catch(e) {}
+
+        // بناء الأزرار ديناميكياً
+        container.innerHTML = '';
+
+        // ── أزرار المصادر (PDF، فيديو، إلخ) ──
+        if (resources.length === 0) {
+            // لا توجد ملخصات — زر واحد فقط للـ PDF (معطّل)
+            container.innerHTML += `
+                <button class="choice-btn shiny-btn" disabled
+                    style="background:rgba(212,175,55,0.1); color:rgba(255,255,255,0.3); border:1px solid rgba(212,175,55,0.2); cursor:not-allowed;">
+                    📖 لفافة المعرفة (PDF) — غير متوفرة بعد
+                </button>`;
+        } else if (resources.length === 1) {
+            // مصدر واحد فقط
+            const r = resources[0];
+            const icon = r.type === 'video' ? '🎬' : r.type === 'worksheet' ? '📝' : '📖';
+            const label = r.type === 'video' ? 'شرح الفيديو' : r.type === 'worksheet' ? 'ورقة العمل' : 'لفافة المعرفة (PDF)';
+            container.innerHTML += `
+                <button class="choice-btn shiny-btn"
+                    style="background:var(--gold-grad); color:#000;"
+                    onclick="window.open('${r.pdf_url}','_blank'); document.getElementById('choice-overlay').style.display='none';">
+                    ${icon} الاطلاع على ${label}
+                </button>`;
+        } else {
+            // مصادر متعددة — زر لكل مصدر
+            resources.forEach((r, idx) => {
+                const colors = ['var(--gold-grad)', 'linear-gradient(45deg,#2ecc71,#27ae60)', 'linear-gradient(45deg,#3498db,#2980b9)', 'linear-gradient(45deg,#9b59b6,#8e44ad)'];
+                const icons  = ['📖', '🎬', '📝', '📌'];
+                const labels = ['لفافة المعرفة (PDF)', 'شرح الفيديو', 'ورقة العمل', 'مصدر إضافي'];
+                const color  = colors[idx % colors.length];
+                const icon   = r.type === 'video' ? '🎬' : r.type === 'worksheet' ? '📝' : icons[idx % icons.length];
+                const label  = r.label || (r.type === 'video' ? 'شرح الفيديو' : r.type === 'worksheet' ? 'ورقة العمل' : labels[idx % labels.length]);
+                container.innerHTML += `
+                    <button class="choice-btn shiny-btn"
+                        style="background:${color}; color:#000;"
+                        onclick="window.open('${r.pdf_url}','_blank'); document.getElementById('choice-overlay').style.display='none';">
+                        ${icon} ${label}
+                    </button>`;
+            });
+        }
+
+        // ── زر التحدي الإمبراطوري دائماً موجود ──
+        container.innerHTML += `
+            <button class="choice-btn shiny-btn"
+                style="background:transparent; border:2px solid var(--gold); color:#fff;"
+                onclick="proceedToChallenge()">
+                ⚔️ دخول التحدي الإمبراطوري
+            </button>`;
     }
 
     async function openSummary() {
@@ -3795,8 +3865,8 @@
             card.dataset.tiltBound = '1';
             card.addEventListener('mousemove', e => {
                 const rect = card.getBoundingClientRect();
-                const rotX = ((e.clientY - rect.top  - rect.height/2) / (rect.height/2)) * -10;
-                const rotY = ((e.clientX - rect.left - rect.width/2)  / (rect.width/2))  *  10;
+                const rotX = ((e.clientY - rect.top  - rect.height/2) / (rect.height/2)) * -4;
+                const rotY = ((e.clientX - rect.left - rect.width/2)  / (rect.width/2))  *  4;
                 card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg)`;
             });
             card.addEventListener('mouseleave', () => { card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0)'; });
@@ -3843,6 +3913,44 @@
     /* ================================================================
        INIT
     ================================================================ */
+    // ── استقبال بيانات المراقبة من لوحة الأدمن (postMessage) ──
+    // علامة وضع المراقبة — تفتح جميع الدروس وتتجاوز الاشتراك
+    let isAdminMonitor = false;
+
+    window.addEventListener('message', async (event) => {
+        if (!event.data || event.data.type !== 'MONITOR_LOGIN') return;
+        const student = event.data.student;
+        if (!student) return;
+
+        isAdminMonitor = true;
+
+        currentUser = {
+            id:        student.id,
+            full_name: student.full_name,
+            username:  student.username,
+            grade:     student.grade,
+            xp:        9999,
+        };
+        localStorage.setItem('currentStudent', JSON.stringify(currentUser));
+
+        // إخفاء overlay الدخول
+        ['login-overlay','register-overlay','auth-overlay'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+
+        await loadGlobalCurriculum();
+        openHome();
+
+        // شارة المراقبة في أعلى الصفحة
+        const badge = document.createElement('div');
+        badge.style.cssText = 'position:fixed;top:0;left:0;right:0;background:linear-gradient(90deg,#e91e63,#9c27b0);color:#fff;text-align:center;padding:8px;font-weight:bold;z-index:99999;font-family:Cairo;font-size:0.9rem;';
+        badge.innerHTML = '👁️ وضع المراقبة الملكي — ' + student.full_name + ' | ' + (student.grade || '') + ' <span style="opacity:0.7;font-size:0.8rem;">(جميع الدروس مفتوحة)</span>';
+        document.body.prepend(badge);
+
+        showToast('👁️ وضع المراقبة — ' + student.full_name, 'success', 4000);
+    });
+
     window.onload = () => {
         initStars();
         populateAvatarGrid('avatar-selector', avatars[0]);
