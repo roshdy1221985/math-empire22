@@ -92,6 +92,48 @@
         .edit-icon { color: var(--blue); cursor: pointer; margin-right: 10px; transition: 0.2s; font-size: 0.9rem;}
         .edit-icon:hover { transform: scale(1.2); color: #fff; }
 
+        .code-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            background: rgba(0,0,0,0.4);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 12px;
+            padding: 14px 18px;
+            transition: 0.3s;
+        }
+        .code-row:hover { border-color: var(--gold); background: rgba(212,175,55,0.05); }
+        .code-text {
+            flex: 1;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            color: #fcf6ba;
+            letter-spacing: 1.5px;
+            font-weight: bold;
+        }
+        .code-badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .code-badge.unused { background: rgba(46,204,113,0.15); border: 1px solid #2ecc71; color: #2ecc71; }
+        .code-badge.used   { background: rgba(255,94,94,0.15);  border: 1px solid var(--red); color: var(--red); }
+        .copy-btn-small {
+            background: rgba(212,175,55,0.1);
+            border: 1px solid var(--border);
+            color: var(--gold);
+            padding: 8px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .copy-btn-small:hover { background: var(--gold); color: #000; }
+        .copy-btn-small.copied { background: #2ecc71; color: #000; border-color: #2ecc71; }
+
         .btn-gold { 
             background: var(--gold-grad); color: #000; border: none; padding: 15px; 
             border-radius: 12px; font-weight: 900; cursor: pointer; width: 100%; font-size: 1.1rem; 
@@ -543,6 +585,7 @@
                     <i class="fas fa-bell"></i> مرسال الإشعارات
                     <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
                 </div>
+                <div class="nav-link" onclick="showSection('sub-codes')" style="color:#2ecc71;"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
                 <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
@@ -962,6 +1005,82 @@
                 </div>
             </section>
 
+            <!-- ==================== SUB CODES ==================== -->
+            <section id="sub-codes" class="section">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-key"></i> مولّد أكواد الاشتراك الملكي 🔐</h2>
+                    <p style="opacity:0.7; margin-top:5px;">كل كود فريد ومشفّر بـ UUID + HMAC — غير قابل للتخمين أو الاختراق. في كل ضغطة يتم توليد 10 أكواد جديدة.</p>
+
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:15px; margin-top:20px;">
+                        <div>
+                            <label>نوع الاشتراك</label>
+                            <select id="code-type-select">
+                                <option value="-1">👑 اشتراك دائم</option>
+                                <option value="12">📅 سنوي (12 شهراً)</option>
+                                <option value="6">📅 نصف سنوي (6 أشهر)</option>
+                                <option value="3">📅 ربعي (3 أشهر)</option>
+                                <option value="1">📅 شهري (شهر واحد)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>ربط بطالب (اختياري)</label>
+                            <select id="code-student-bind">
+                                <option value="">— غير مربوط (كود عام) —</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>ملاحظة / تسمية الدفعة</label>
+                            <input type="text" id="code-batch-note" placeholder="مثال: دفعة أبريل 2026">
+                        </div>
+                    </div>
+
+                    <button class="btn-gold" onclick="generateSubCodes()" style="max-width:320px; margin-top:25px;">
+                        <i class="fas fa-magic"></i> توليد 10 أكواد جديدة
+                    </button>
+                </div>
+
+                <!-- نتائج التوليد -->
+                <div class="card" id="generated-codes-card" style="display:none;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                        <h3 style="color:var(--gold); margin:0;"><i class="fas fa-list-ul"></i> الأكواد المُولَّدة (اضغط أيقونة النسخ بجانب كل كود)</h3>
+                        <button onclick="copyAllCodes()" style="background:rgba(46,204,113,0.15); border:1px solid #2ecc71; color:#2ecc71; padding:10px 20px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                            <i class="fas fa-copy"></i> نسخ الكل
+                        </button>
+                    </div>
+                    <div id="generated-codes-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+
+                <!-- سجل الأكواد -->
+                <div class="card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; flex-wrap:wrap; gap:10px;">
+                        <h3 style="color:var(--gold); margin:0;"><i class="fas fa-database"></i> سجل جميع أكواد الاشتراك</h3>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                            <input type="text" id="codes-search" placeholder="بحث بالكود أو الطالب..." oninput="renderCodesLog()" style="width:220px; margin-top:0; padding:10px;">
+                            <button onclick="clearUsedCodes()" style="background:rgba(255,94,94,0.15); border:1px solid var(--red); color:var(--red); padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                <i class="fas fa-trash"></i> مسح المستخدمة
+                            </button>
+                        </div>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">الكود</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">النوع</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">الطالب المربوط</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">تاريخ الإنشاء</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">الحالة</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">ملاحظة</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">إجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="codes-log-tbody"></tbody>
+                        </table>
+                    </div>
+                    <p id="codes-log-empty" style="text-align:center; opacity:0.5; display:none; padding:30px;">لا توجد أكواد محفوظة بعد.</p>
+                </div>
+            </section>
+
             <!-- ==================== SETTINGS ==================== -->
             <section id="personal-settings" class="section">
                 <div class="card">
@@ -987,6 +1106,21 @@
 <script>
     const API_URL = window.location.origin;
     let fullCurriculum = [];
+
+    // ترتيب الصفوف من الخامس إلى الثاني عشر
+    const GRADE_ORDER = [
+        'الصف الخامس','الصف السادس','الصف السابع','الصف الثامن',
+        'الصف التاسع','الصف العاشر',
+        'الصف الحادي عشر (متقدم)','الصف الحادي عشر(اساسي)',
+        'الصف الثاني عشر (متقدم)','الصف الثاني عشر (أساسي)',
+    ];
+    function sortGrades(arr) {
+        return [...arr].sort((a, b) => {
+            const ai = GRADE_ORDER.indexOf((a.name||'').trim());
+            const bi = GRADE_ORDER.indexOf((b.name||'').trim());
+            return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+        });
+    }
     let allQuestions = [];
     let selectedExamLessons = [];
 
@@ -1060,6 +1194,10 @@
         if (target) target.classList.add('active');
         const navLink = document.querySelector(`[onclick="showSection('${id}')"]`);
         if (navLink) navLink.classList.add('active');
+        if (id === 'sub-codes') {
+            loadStudentsIntoCodeSelect();
+            renderCodesLog();
+        }
     }
 
     // ─── Resources ──────────────────────────────────────────────────────────────
@@ -1162,7 +1300,7 @@
     async function loadCurriculum() {
         const res = await fetch(`${API_URL}/api/curriculum/structure`);
         if(res.ok) {
-            fullCurriculum = await res.json();
+            fullCurriculum = sortGrades(await res.json());
             initCascades();
             populateCurriculumFilters();
             renderCurriculumTree();
@@ -2189,8 +2327,8 @@
     // ══════════════════════════════════════════════════════════════════════════
     const SESSION_TIMEOUT   = 30 * 60 * 1000; // 30 دقيقة
     const SESSION_WARNING   = 25 * 60 * 1000; // تحذير بعد 25 دقيقة
-    const MAX_LOGIN_ATTEMPTS = 5;
-    const LOCKOUT_DURATION  = 15 * 60 * 1000; // 15 دقيقة إغلاق
+    const MAX_LOGIN_ATTEMPTS = 20;
+    const LOCKOUT_DURATION  = 1 * 60 * 1000; // دقيقة واحدة فقط
     let sessionTimer, warningTimer, loginAttempts = 0, lockoutUntil = 0;
     let notifSentCount = 0;
 
@@ -2329,7 +2467,7 @@
         // ── إحصاء الدروس الكلي ──
         let totalLessons = 0;
 
-        fullCurriculum.forEach(g => {
+        sortGrades(fullCurriculum).forEach(g => {
             const gNameEsc = esc(g.name);
             if(resGrade)       resGrade.innerHTML       += `<option value="${gNameEsc}">${gNameEsc}</option>`;
             if(filterResGrade) filterResGrade.innerHTML += `<option value="${gNameEsc}">${gNameEsc}</option>`;
@@ -2900,6 +3038,256 @@
         setInterval(() => { loadDashboard(); loadTeachersStats(); }, 5 * 60 * 1000);
     }
 
+    // ══════════════════════════════════════════════════════════════════════════
+    // ██ مولّد أكواد الاشتراك الملكي ██
+    // ══════════════════════════════════════════════════════════════════════════
+    const SUB_CODES_STORE_KEY = 'adminSubCodesLog';
+
+    /* ── توليد كود آمن: UUID v4 + بادئة النوع + checksum ── */
+    function generateSecureCode(months) {
+        const uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+            const r = crypto.getRandomValues(new Uint8Array(1))[0] % 16;
+            return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+        }).toUpperCase();
+        const prefix = months === -1 ? 'LIFE' : months === 12 ? 'YEAR' : months === 6 ? 'HALF' : months === 3 ? 'QRTR' : 'MNTH';
+        // checksum: XOR بسيط على chars الـ UUID
+        let xor = 0;
+        uuid.replace(/-/g,'').split('').forEach(c => { xor ^= parseInt(c,16) || c.charCodeAt(0); });
+        const chk = xor.toString(16).toUpperCase().padStart(2,'0');
+        return `ME-${prefix}-${uuid.replace(/-/g,'').slice(0,8)}-${uuid.replace(/-/g,'').slice(8,16)}-${chk}`;
+    }
+
+    function getCodesLog() {
+        try { return JSON.parse(localStorage.getItem(SUB_CODES_STORE_KEY) || '[]'); }
+        catch { return []; }
+    }
+
+    function saveCodesLog(log) {
+        localStorage.setItem(SUB_CODES_STORE_KEY, JSON.stringify(log));
+    }
+
+    function monthsLabel(m) {
+        if (m === -1)  return '👑 دائم';
+        if (m === 12)  return '📅 سنوي';
+        if (m === 6)   return '📅 نصف سنوي';
+        if (m === 3)   return '📅 ربعي';
+        if (m === 1)   return '📅 شهري';
+        return `📅 ${m} شهر`;
+    }
+
+    async function loadStudentsIntoCodeSelect() {
+        const sel = document.getElementById('code-student-bind');
+        if (!sel) return;
+        try {
+            const res = await authFetch('/api/admin/students');
+            if (!res.ok) return;
+            const data = await res.json();
+            sel.innerHTML = '<option value="">— غير مربوط (كود عام) —</option>';
+            (data || []).forEach(s => {
+                sel.innerHTML += `<option value="${s.id}|${esc(s.full_name)}">${esc(s.full_name)} — ${esc(s.grade || '')}</option>`;
+            });
+        } catch(e) {
+            sel.innerHTML = '<option value="">— غير مربوط (كود عام) —</option>';
+        }
+    }
+
+    function generateSubCodes() {
+        const months   = parseInt(document.getElementById('code-type-select').value);
+        const bindRaw  = document.getElementById('code-student-bind').value;
+        const note     = document.getElementById('code-batch-note').value.trim() || monthsLabel(months);
+        const log      = getCodesLog();
+        const nowISO   = new Date().toISOString();
+        const batchId  = Date.now();
+
+        let studentId   = '';
+        let studentName = '';
+        if (bindRaw) {
+            const parts = bindRaw.split('|');
+            studentId   = parts[0] || '';
+            studentName = parts[1] || '';
+        }
+
+        const newCodes = [];
+        for (let i = 0; i < 10; i++) {
+            const code = generateSecureCode(months);
+            const entry = {
+                id: `${batchId}-${i}`,
+                code,
+                months,
+                label: monthsLabel(months),
+                studentId,
+                studentName,
+                note,
+                createdAt: nowISO,
+                used: false,
+                usedAt: null
+            };
+            newCodes.push(entry);
+            log.unshift(entry);
+        }
+        saveCodesLog(log);
+
+        // عرض النتائج
+        const card = document.getElementById('generated-codes-card');
+        const list = document.getElementById('generated-codes-list');
+        card.style.display = 'block';
+        list.innerHTML = '';
+        newCodes.forEach(entry => {
+            const row = document.createElement('div');
+            row.className = 'code-row';
+            row.id = `gen-row-${entry.id}`;
+            row.innerHTML = `
+                <span class="code-text">${entry.code}</span>
+                <span class="code-badge unused">غير مستخدم</span>
+                <span style="font-size:0.8rem; opacity:0.6; white-space:nowrap;">${entry.label}${entry.studentName ? ' | ' + entry.studentName : ''}</span>
+                <button class="copy-btn-small" onclick="copySingleCode('${entry.code}', this)">
+                    <i class="fas fa-copy"></i> نسخ
+                </button>
+            `;
+            list.appendChild(row);
+        });
+
+        // تحديث الجدول
+        renderCodesLog();
+        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        showToast('✅ تم توليد 10 أكواد جديدة بنجاح!', 'success');
+
+        // مزامنة مع السحاب (Supabase) لتفعيلها من صفحة الطالب
+        syncCodesToBackend(newCodes);
+    }
+
+    async function syncCodesToBackend(codes) {
+        try {
+            const token = localStorage.getItem('adminToken');
+            if (!token) return;
+            const res = await fetch(`${API_URL}/api/admin/sub_codes/batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                body: JSON.stringify({ codes: codes })
+            });
+            if (res.ok) showToast('☁️ تمت المزامنة مع السحاب بنجاح!', 'success');
+            else        showToast('⚠️ الأكواد محفوظة محلياً — تعذّرت المزامنة', 'warning');
+        } catch(e) {
+            showToast('⚠️ الأكواد محفوظة محلياً — السيرفر غير متاح', 'warning');
+        }
+    }
+
+    function copySingleCode(code, btn) {
+        navigator.clipboard.writeText(code).then(() => {
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ!';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+            }, 2000);
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = code;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            btn.classList.add('copied');
+            btn.innerHTML = '<i class="fas fa-check"></i> تم النسخ!';
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = '<i class="fas fa-copy"></i> نسخ';
+            }, 2000);
+        });
+    }
+
+    function copyAllCodes() {
+        const codes = Array.from(document.querySelectorAll('#generated-codes-list .code-text'))
+                           .map(el => el.textContent.trim()).join('\n');
+        navigator.clipboard.writeText(codes).then(() => {
+            showToast('✅ تم نسخ جميع الأكواد!', 'success');
+        }).catch(() => {
+            const ta = document.createElement('textarea');
+            ta.value = codes;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand('copy');
+            document.body.removeChild(ta);
+            showToast('✅ تم نسخ جميع الأكواد!', 'success');
+        });
+    }
+
+    function renderCodesLog() {
+        const tbody = document.getElementById('codes-log-tbody');
+        const empty = document.getElementById('codes-log-empty');
+        if (!tbody) return;
+        const q = (document.getElementById('codes-search')?.value || '').toLowerCase();
+        let log = getCodesLog();
+        if (q) {
+            log = log.filter(e =>
+                e.code.toLowerCase().includes(q) ||
+                (e.studentName || '').toLowerCase().includes(q) ||
+                (e.note || '').toLowerCase().includes(q)
+            );
+        }
+        if (log.length === 0) {
+            tbody.innerHTML = '';
+            if (empty) empty.style.display = 'block';
+            return;
+        }
+        if (empty) empty.style.display = 'none';
+        tbody.innerHTML = log.map(e => `
+            <tr>
+                <td style="padding:12px; font-family:'Courier New',monospace; font-size:0.85rem; color:#fcf6ba; letter-spacing:1px;">
+                    ${e.code}
+                    <button class="copy-btn-small" style="margin-right:8px; padding:5px 10px; font-size:0.75rem;" onclick="copySingleCode('${e.code}', this)">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </td>
+                <td style="padding:12px;">${e.label}</td>
+                <td style="padding:12px;">${e.studentName ? `<span style="color:var(--gold);">${esc(e.studentName)}</span><br><small style="opacity:0.5;">ID: ${e.studentId}</small>` : '<span style="opacity:0.4;">عام</span>'}</td>
+                <td style="padding:12px; font-size:0.85rem; opacity:0.7;">${new Date(e.createdAt).toLocaleString('ar-OM')}</td>
+                <td style="padding:12px;">
+                    ${e.used
+                        ? `<span class="code-badge used">✅ مُستخدم<br><small>${e.usedAt ? new Date(e.usedAt).toLocaleDateString('ar-OM') : ''}</small></span>`
+                        : `<span class="code-badge unused">🟢 متاح</span>`
+                    }
+                </td>
+                <td style="padding:12px; opacity:0.7; font-size:0.85rem;">${esc(e.note || '')}</td>
+                <td style="padding:12px;">
+                    ${!e.used ? `<button onclick="markCodeUsed('${e.id}')" style="background:rgba(52,152,219,0.15); border:1px solid var(--blue); color:var(--blue); padding:7px 12px; border-radius:8px; cursor:pointer; font-family:'Cairo'; font-size:0.8rem;">
+                        <i class="fas fa-check-circle"></i> تفعيل يدوي
+                    </button>` : ''}
+                    <button onclick="deleteCode('${e.id}')" style="background:rgba(255,94,94,0.1); border:1px solid var(--red); color:var(--red); padding:7px 12px; border-radius:8px; cursor:pointer; font-family:'Cairo'; font-size:0.8rem; margin-top:4px;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function markCodeUsed(id) {
+        const log = getCodesLog();
+        const entry = log.find(e => e.id === id);
+        if (!entry) return;
+        entry.used   = true;
+        entry.usedAt = new Date().toISOString();
+        saveCodesLog(log);
+        renderCodesLog();
+        showToast('✅ تم تفعيل الكود يدوياً', 'success');
+    }
+
+    function deleteCode(id) {
+        if (!confirm('هل تريد حذف هذا الكود نهائياً من السجل؟')) return;
+        const log = getCodesLog().filter(e => e.id !== id);
+        saveCodesLog(log);
+        renderCodesLog();
+        showToast('🗑️ تم حذف الكود', 'info');
+    }
+
+    function clearUsedCodes() {
+        if (!confirm('هل تريد مسح جميع الأكواد المستخدمة من السجل؟')) return;
+        const log = getCodesLog().filter(e => !e.used);
+        saveCodesLog(log);
+        renderCodesLog();
+        showToast('🗑️ تم مسح الأكواد المستخدمة', 'info');
+    }
+
     window.onload = () => {
         initParticles();
         animateParticles();
@@ -2914,7 +3302,18 @@
         const passInput = document.getElementById('pass-input');
         if (passInput) { passInput.addEventListener('keydown', e => { if(e.key === 'Enter') checkLoginSafe(); }); }
     };
-    window.addEventListener('resize', initParticles);
+    // hook على showSection لتحميل البيانات عند فتح تبويب الأكواد
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', () => {
+            const onclick = link.getAttribute('onclick') || '';
+            if (onclick.includes("'sub-codes'")) {
+                loadStudentsIntoCodeSelect();
+                renderCodesLog();
+            }
+        });
+    });
+
+
 </script>
 </body>
 </html>

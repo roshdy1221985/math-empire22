@@ -1323,46 +1323,134 @@ function getHistoryBadge(score, total) {
 /* ════════════════════════════
    LOGIN LOGIC
 ════════════════════════════ */
-function getAllHeroes() {
+// ── عنوان API — يُكتشف تلقائياً من المتصفح ──
+const API_URL = window.location.origin;
+
+/* ════════════════════════════
+   تحويل بيانات API → نموذج Dashboard
+════════════════════════════ */
+function mapApiToStudent(apiStudent, apiHistory) {
+  // حساب XP = مجموع درجات جميع النتائج
+  const totalXP = (apiHistory || []).reduce((sum, r) => sum + (r.score || 0), 0);
+
+  // تحويل سجل النتائج
+  const history = (apiHistory || []).map(r => ({
+    lesson:    r.lesson    || "—",
+    score:     r.score     || 0,
+    total:     r.total     || r.score || 1,
+    timestamp: r.timestamp || r.created_at || null,
+  }));
+
+  return {
+    id:         String(apiStudent.id),
+    name:       apiStudent.full_name || "—",
+    grade:      apiStudent.grade     || "—",
+    school:     apiStudent.school    || "—",
+    joinDate:   apiStudent.created_at || null,
+    parentCode: "RS-" + String(apiStudent.id).padStart(4, "0"),
+    xp:         totalXP,
+    history:    history,
+    roadmap:    null,   // سيُستخدم الافتراضي
+    mistakes:   [],
+  };
+}
+
+/* ════════════════════════════
+   LOGIN LOGIC — API أولاً ثم fallback
+════════════════════════════ */
+async function doLogin() {
+  const parentName = document.getElementById("parent-name").value.trim();
+  const code       = document.getElementById("parent-code").value.trim().toUpperCase();
+  const btn        = document.querySelector(".btn-royal");
+
+  if (!parentName) { showLoginError("⚠️ يرجى إدخال اسم ولي الأمر."); return; }
+  if (!code) { showLoginError("⚠️ يرجى إدخال الكود المرجعي للبطل."); return; }
+
+  // ── تحديد اسم البطل من الكود ──
+  // الكود المرجعي: RS-XXXX حيث XXXX هو معرف الطالب
+  // أو البحث بالاسم مباشرة
+  const isRsCode   = /^RS-\d+$/i.test(code);
+  const searchName = isRsCode ? "" : code.replace(/^RS-/i, "").trim();
+
+  // تغيير حالة الزر للتحميل
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ جاري البحث في الإمبراطورية..."; }
+
+  // ── محاولة 1: البحث عبر API ──
+  try {
+    const searchTerm = isRsCode
+      ? code.replace(/^RS-0*/i, "")   // استخرج الرقم من RS-0042 → "42"
+      : code;
+
+    const res  = await fetch(`${API_URL}/api/parent/search/${encodeURIComponent(searchTerm)}`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.found && data.student) {
+        const student = mapApiToStudent(data.student, data.history || []);
+        // لوحة الشرف: جلب بيانات الصف من leaderboard
+        let allHeroes = [];
+        try {
+          const lbRes  = await fetch(`${API_URL}/api/leaderboard`);
+          if (lbRes.ok) {
+            const lbData = await lbRes.json();
+            allHeroes = (lbData || []).map(s => ({
+              id:         String(s.student_id || s.student_name),
+              name:       s.student_name,
+              grade:      student.grade,
+              xp:         s.total_points || 0,
+              parentCode: "RS-" + String(s.student_id || "0").padStart(4, "0"),
+            }));
+          }
+        } catch(_) {}
+        if (!allHeroes.length) allHeroes = [student];
+        if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+        document.getElementById("login-error").style.display = "none";
+        openDashboard(student, allHeroes, false);
+        return;
+      } else {
+        // الطالب غير موجود في قاعدة البيانات
+        if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+        showLoginError("❌ لم يُعثر على بطل بهذا الاسم أو الكود — تحقق من البيانات.");
+        return;
+      }
+    }
+  } catch(e) {
+    // السيرفر غير متاح — نستخدم localStorage كـ fallback
+    console.warn("⚠️ API غير متاح — محاولة localStorage:", e);
+  }
+
+  // ── محاولة 2: localStorage fallback ──
   try {
     const raw = localStorage.getItem("allMathHeroes");
     if (raw) {
       const arr = JSON.parse(raw);
-      if (Array.isArray(arr) && arr.length) return { data: arr, isDemo: false };
+      if (Array.isArray(arr) && arr.length) {
+        const student = arr.find(h =>
+          (h.parentCode && h.parentCode.toUpperCase() === code) ||
+          (h.id && String(h.id).toUpperCase() === code) ||
+          (h.name && h.name.toUpperCase().includes(code.replace(/^RS-/i,"").trim().toUpperCase()))
+        );
+        if (student) {
+          if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+          document.getElementById("login-error").style.display = "none";
+          openDashboard(student, arr, false);
+          return;
+        }
+      }
     }
-  } catch(e) {}
-  return { data: DEMO_HEROES, isDemo: true };
+  } catch(_) {}
+
+  // ── فشل الاثنان ──
+  if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+  showLoginError("❌ لم يُعثر على بطل — تحقق من الاسم أو الكود. إذا كان السيرفر يعمل، تأكد أن الطالب مسجل.");
 }
 
-function doLogin() {
-  const parentName = document.getElementById("parent-name").value.trim();
-  const code       = document.getElementById("parent-code").value.trim().toUpperCase();
-  const errEl      = document.getElementById("login-error");
-
-  if (!parentName) {
-    showLoginError("⚠️ يرجى إدخال اسم ولي الأمر.");
-    return;
-  }
-  if (!code.startsWith("RS-") || code.length < 5) {
-    showLoginError("⚠️ الكود المرجعي يجب أن يبدأ بـ RS- ويكون صحيحاً.");
-    return;
-  }
-
-  const { data: heroes, isDemo } = getAllHeroes();
-
-  const student = heroes.find(h =>
-    (h.parentCode && h.parentCode.toUpperCase() === code) ||
-    (h.id && h.id.toUpperCase() === code)
-  );
-
-  if (!student) {
-    showLoginError("❌ لم يُعثر على بطل بهذا الكود في سجلات الإمبراطورية. تحقق من الكود مجدداً.");
-    return;
-  }
-
-  errEl.style.display = "none";
-  openDashboard(student, heroes, isDemo);
-}
+// ── دعم Enter ──
+document.addEventListener("DOMContentLoaded", () => {
+  const codeInput = document.getElementById("parent-code");
+  if (codeInput) codeInput.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+  const nameInput = document.getElementById("parent-name");
+  if (nameInput) nameInput.addEventListener("keydown", e => { if (e.key === "Enter") doLogin(); });
+});
 
 function showLoginError(msg) {
   const e = document.getElementById("login-error");

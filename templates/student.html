@@ -460,23 +460,24 @@
             background: var(--glass);
             border: 1px solid var(--border);
             color: #fff;
-            padding: 13px 12px;
+            padding: 17px 14px;
             margin-top: 10px;
-            border-radius: 12px;
+            border-radius: 14px;
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 8px;
+            gap: 10px;
             width: 100%;
             font-family: 'Tajawal';
             box-sizing: border-box;
-            font-size: 0.9rem;
+            font-size: 1rem;
+            min-height: 54px;
         }
         .nav-btn:hover, .nav-btn.active { background: var(--gold-grad); color: #000; }
-        .btn-icon { font-size: 1rem; min-width: 18px; text-align: center; }
+        .btn-icon { font-size: 1.2rem; min-width: 22px; text-align: center; }
 
         .btn-arena { border-color: #ff5e5e; color: #ffeb3b; background: rgba(220,53,69,0.1); }
         .btn-arena:hover, .btn-arena.active { background: #ff5e5e; color: #fff; border-color: #fff; box-shadow: 0 0 20px rgba(220,53,69,0.5); }
@@ -1116,8 +1117,6 @@
             <span class="btn-icon">⚔️</span>
             <span class="sidebar-label">ساحة المبارزة <span class="nav-vip-badge">VIP</span></span>
         </button>
-        <!-- شارة حالة الاشتراك -->
-        <div id="sub-status-badge" class="sub-badge trial sidebar-label" style="justify-content:center; margin-top:4px;" onclick="openSubOverlay()" title="انقر لإدارة اشتراكك"></div>
         <button class="nav-btn shiny-btn btn-hospital" id="btn-hospital" onclick="openHospital()">
             <span class="btn-icon">🏥</span><span class="sidebar-label">مستشفى الأرقام</span>
         </button>
@@ -1137,6 +1136,8 @@
         </button>
 
         <div style="flex:1;"></div>
+        <!-- شارة حالة الاشتراك في أسفل الشريط -->
+        <div id="sub-status-badge" class="sub-badge trial sidebar-label" style="justify-content:center; margin-bottom:10px; cursor:pointer; border-radius:12px; padding:12px 8px; font-size:0.9rem;" onclick="openSubOverlay()" title="انقر لإدارة اشتراكك"></div>
         <button class="nav-btn" style="background:rgba(255,0,0,0.1); color:#ff5e5e; border-color:#ff5e5e;" onclick="logout()">
             <span class="btn-icon">🚪</span><span class="sidebar-label">خروج</span>
         </button>
@@ -1283,7 +1284,8 @@
     /* ================================================================
        CONSTANTS & STATE
     ================================================================ */
-    const API_URL = window.location.origin;
+    const API_URL  = window.location.origin;
+    const API_BASE = window.location.origin;
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
 
     let isExamMode        = false;
@@ -1293,6 +1295,25 @@
     let isFocusMode       = false;
 
     let globalCurriculum = [];
+
+    // ── دالة تشخيصية: اكتبها في Console للتحقق من الأسئلة ──
+    // diagQuestions()
+    window.diagQuestions = async function() {
+        try {
+            const res = await fetch(`${API_URL}/api/admin/debug/questions`, {
+                headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
+            });
+            const data = await res.json();
+            console.group('🔍 تشخيص الأسئلة في Supabase');
+            console.log('إجمالي الأسئلة:', data.count);
+            console.log('قيم grade المخزونة:', data.grades);
+            console.log('قيم lesson المخزونة (أول 20):', data.lessons?.slice(0,20));
+            console.log('صف الطالب الحالي:', currentUser?.grade);
+            console.log('نماذج أسئلة:', data.samples);
+            console.groupEnd();
+            return data;
+        } catch(e) { console.error('خطأ:', e); }
+    };
     let activeUnits      = [];
 
     // Challenge state — scoped object to avoid global pollution
@@ -2062,29 +2083,87 @@
         return { type: 'expired', valid: false, label: '🔒 انتهت الفترة التجريبية' };
     }
 
-    function activateSubCode() {
+    async function activateSubCode() {
         const raw = (document.getElementById('sub-code-input')?.value || '').trim().toUpperCase();
         if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
+
+        const btn = document.querySelector('[onclick="activateSubCode()"]');
+        if (btn) { btn.disabled = true; btn.textContent = '⏳ جاري التحقق...'; }
+
+        // فحص إذا كان الكود مستخدماً محلياً مسبقاً
         const usedCodes = JSON.parse(localStorage.getItem('usedSubCodes') || '[]');
-        if (usedCodes.includes(raw)) { showToast('❌ هذا الكود مستخدَم مسبقاً!'); return; }
-        const entry = VALID_SUB_CODES.find(c => c.code === raw);
-        if (!entry) { showToast('❌ الكود غير صحيح — تحقق من الأستاذ رشدي'); return; }
-        const now    = new Date();
-        const expiry = entry.months === -1 ? null
-                     : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
-        localStorage.setItem(SUB_KEY, JSON.stringify({
-            code: raw, months: entry.months,
-            expiry: expiry?.toISOString() || null,
-            activated: new Date().toISOString()
-        }));
-        usedCodes.push(raw);
-        localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
-        const msg = entry.months === -1 ? 'تفعيل دائم!'
-                  : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
-        showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
-        confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
-        updateSubBadge();
-        closeSubOverlay();
+        if (usedCodes.includes(raw)) {
+            if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
+            showToast('❌ هذا الكود مستخدَم مسبقاً على هذا الجهاز!');
+            return;
+        }
+
+        // 1) محاولة التحقق من السيرفر أولاً (الأكواد المولّدة من لوحة الأدمن)
+        let activated = false;
+        try {
+            const fd = new FormData();
+            fd.append('code', raw);
+            const studentData = JSON.parse(localStorage.getItem('currentStudent') || 'null');
+            if (studentData?.id) fd.append('student_id', studentData.id);
+
+            const res = await fetch(`${API_BASE}/api/subscription/activate`, {
+                method: 'POST',
+                body: fd
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.status === 'success') {
+                    const expiry = data.expiry ? new Date(data.expiry) : null;
+                    localStorage.setItem(SUB_KEY, JSON.stringify({
+                        code: raw,
+                        months: data.months,
+                        expiry: expiry?.toISOString() || null,
+                        activated: new Date().toISOString()
+                    }));
+                    usedCodes.push(raw);
+                    localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
+                    const msg = data.months === -1 ? 'تفعيل دائم!'
+                              : `صالح حتى ${expiry?.toLocaleDateString('ar-EG') || '—'}`;
+                    showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
+                    if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
+                    updateSubBadge();
+                    closeSubOverlay();
+                    activated = true;
+                } else {
+                    // الكود غير موجود في السيرفر — جرّب الأكواد المدمجة fallback
+                }
+            }
+        } catch(e) {
+            // السيرفر غير متاح — fallback للأكواد المدمجة
+        }
+
+        // 2) fallback — الأكواد الثابتة المدمجة في الكود
+        if (!activated) {
+            const entry = VALID_SUB_CODES.find(c => c.code === raw);
+            if (!entry) {
+                if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
+                showToast('❌ الكود غير صحيح أو منتهي — تحقق من الأستاذ رشدي');
+                return;
+            }
+            const now    = new Date();
+            const expiry = entry.months === -1 ? null
+                         : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
+            localStorage.setItem(SUB_KEY, JSON.stringify({
+                code: raw, months: entry.months,
+                expiry: expiry?.toISOString() || null,
+                activated: new Date().toISOString()
+            }));
+            usedCodes.push(raw);
+            localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
+            const msg = entry.months === -1 ? 'تفعيل دائم!'
+                      : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
+            showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
+            if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
+            updateSubBadge();
+            closeSubOverlay();
+        }
+
+        if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
     }
 
     function selectSubPlan(el, plan, price) {
@@ -2288,11 +2367,13 @@
         document.getElementById('battle-question-area').innerHTML = `<h3 style="color:var(--gold);">جاري استدعاء 5 أسلحة من ${currentUser?.grade || 'صفك'}...</h3>`;
 
         try {
-            const res   = await fetch(`${API_URL}/api/admin/questions`);
+            const gradeParam = encodeURIComponent(currentUser?.grade || '');
+            const res   = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam}`);
             if (!res.ok) throw new Error('offline');
             const allQs = await res.json();
-            // ── فلترة صارمة بالصف ──
-            let pool = allQs.filter(q => normalizeGradeNum(q.grade) === userGradeNum);
+            // الأسئلة مفلترة مسبقاً بالصف من السيرفر
+            let pool = allQs.slice();
+            console.info('🏟️ أسئلة المبارزة المتاحة:', pool.length, 'للصف:', currentUser?.grade);
             // fallback: أسئلة بدون صف محدد
             if (pool.length < 5)
                 pool = allQs.filter(q => !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum);
@@ -2546,11 +2627,31 @@
         toggleLoader(true);
 
         try {
-            const res   = await fetch(`${API_URL}/api/admin/questions`);
+            const gradeParam2 = encodeURIComponent(currentUser?.grade || '');
+            const res   = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam2}`);
             if (!res.ok) throw new Error('Server error');
             const allQs = await res.json();
             const targets = lessonStr.split(',').map(l => l.trim());
+            
+            // فلترة دقيقة أولاً
             let filtered = allQs.filter(q => targets.includes(q.lesson));
+            
+            // إذا لم نجد شيئاً — فلترة مرنة (تجاهل الفراغات والتشكيل)
+            if (filtered.length === 0 && allQs.length > 0) {
+                const normalize = s => (s || '').trim().replace(/\s+/g, ' ');
+                filtered = allQs.filter(q => 
+                    targets.some(t => normalize(t) === normalize(q.lesson))
+                );
+            }
+            
+            // تسجيل تشخيصي في Console للمساعدة في حل المشكلة
+            if (filtered.length === 0) {
+                console.warn('⚠️ لا توجد أسئلة للدرس:', targets);
+                console.info('📦 الأسئلة المتاحة في هذا الصف:', allQs.length, 
+                    'أسماء الدروس:', [...new Set(allQs.map(q => q.lesson))]);
+            } else {
+                console.info('✅ أسئلة موجودة:', filtered.length, 'للدرس:', targets[0]);
+            }
 
             if (isExamMode && scheduledExamData) {
                 if (scheduledExamData.target_q_type && scheduledExamData.target_q_type !== 'all')

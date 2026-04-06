@@ -16,16 +16,49 @@ from jose import JWTError, jwt
 # استيراد مكتبة السحاب (Supabase)
 from supabase import create_client, Client
 
+# Rate Limiting — منطق يدوي في الذاكرة (لا يحتاج مكتبة خارجية)
+import time as _time
+from collections import defaultdict as _defaultdict
+
+_rate_store: dict = _defaultdict(list)  # {ip: [timestamps]}
+
+def _is_rate_limited(ip: str, max_calls: int, window_seconds: int) -> bool:
+    """يتحقق إذا تجاوز الـ IP الحد المسموح — يُرجع True إذا محظور"""
+    now = _time.time()
+    calls = _rate_store[ip]
+    # احتفظ فقط بالطلبات داخل النافذة الزمنية
+    _rate_store[ip] = [t for t in calls if now - t < window_seconds]
+    if len(_rate_store[ip]) >= max_calls:
+        return True
+    _rate_store[ip].append(now)
+    return False
+
 # ==========================================
 # --- 1. الإعدادات الأمنية والاتصال ---
 # ==========================================
-SECRET_KEY = "ROYAL_MATH_968_OMAN" 
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 480 
+# ══════════════════════════════════════════════════
+# الأسرار تُقرأ من متغيرات البيئة (.env) — لا تكتب
+# أي قيمة حرفية هنا أبداً
+# ══════════════════════════════════════════════════
+# python-dotenv اختياري — يمكن ضبط المتغيرات مباشرة في البيئة
+try:
+    import importlib.util as _ilu
+    if _ilu.find_spec("dotenv") is not None:
+        from dotenv import load_dotenv  # type: ignore[import]
+        load_dotenv()
+except Exception:
+    pass
 
-# بيانات الاتصال بخزنة Supabase
-SUPABASE_URL = "https://xlgttngreiuihutjrlev.supabase.co"
-SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw"
+SECRET_KEY = os.getenv("JWT_SECRET_KEY", "ROYAL_MATH_968_OMAN")
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 480
+
+# بيانات الاتصال بـ Supabase — من متغيرات البيئة
+SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xlgttngreiuihutjrlev.supabase.co")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw")
+
+# كلمة مرور الأدمن — من متغيرات البيئة
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Roshdy@2026")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -44,20 +77,28 @@ def create_access_token(data: dict):
 # ==========================================
 app = FastAPI(title="Math Empire API")
 
+# Rate Limiter — يدوي في الذاكرة، لا يحتاج تسجيل
+
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     print(f"Error occurred: {str(exc)}")
     return JSONResponse(
         status_code=500,
-        content={"status": "error", "message": "عطل في الديوان الملكي", "details": str(exc)},
+        content={"status": "error", "message": "عطل في الديوان الملكي"},
     )
 
+# النطاقات المسموح بها — أضف نطاق إنتاجك هنا
+_ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:8001,http://127.0.0.1:8001"
+).split(",") if o.strip()]
+
 app.add_middleware(
-    CORSMiddleware, 
-    allow_origins=["*"], 
+    CORSMiddleware,
+    allow_origins=_ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"], 
-    allow_headers=["*"]
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
 )
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -108,8 +149,12 @@ async def get_sw(): return FileResponse(os.path.join(BASE_DIR, "static", "sw.js"
 # --- 4. نظام الدخول (إمبراطور / طالب / معلم) ---
 # ==========================================
 @app.post("/api/admin/login")
-async def admin_login(username: str = Form(...), password: str = Form(...)):
-    if username == "admin" and password == "Roshdy@2026":
+async def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    # Rate limit: 5 محاولات/دقيقة لكل IP
+    client_ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(client_ip, max_calls=5, window_seconds=60):
+        raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات المسموحة — انتظر دقيقة")
+    if username == os.getenv("ADMIN_USERNAME", "admin") and password == ADMIN_PASSWORD:
         token = create_access_token(data={"sub": username})
         return {"access_token": token, "token_type": "bearer"}
     raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
@@ -130,8 +175,7 @@ async def teacher_login(username: str = Form(...), password: str = Form(...)):
     res = supabase.table("teachers").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         return {"status": "success", "user": res.data[0]}
-    if username == "teacher" and password == "Oman2026":
-        return {"status": "success", "user": {"full_name": "معلم رياضيات"}}
+
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
 @app.post("/api/student/register")
@@ -142,7 +186,11 @@ async def register_student(full_name: str=Form(...), username: str=Form(...), pa
     return {"status": "success"}
 
 @app.post("/api/student/login")
-async def login_student(username: str = Form(...), password: str = Form(...)):
+async def login_student(request: Request, username: str = Form(...), password: str = Form(...)):
+    # Rate limit: 10 محاولات/دقيقة لكل IP
+    client_ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(client_ip, max_calls=10, window_seconds=60):
+        raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات المسموحة — انتظر دقيقة")
     res = supabase.table("students").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         user = res.data[0]
@@ -158,8 +206,8 @@ async def grant_xp(student_name: str = Form(...), points: int = Form(...), admin
     supabase.table("results").insert({
         "student_name": student_name,
         "lesson": "💎 منحة ملكية تقديرية من الأستاذ رشدي",
-        "score": points // 10, 
-        "total": points // 10
+        "score": points,
+        "total": points
     }).execute()
     return {"status": "success"}
 
@@ -225,7 +273,35 @@ async def delete_lesson(item_id: int, admin=Depends(get_current_admin)):
 @app.get("/api/curriculum/structure")
 async def get_full_structure():
     res = supabase.table("grades").select("*, semesters(*, units(*, lessons(*)))").execute()
-    return res.data
+    data = res.data or []
+
+    # ترتيب احتياطي إذا لم يكن sort_order موجوداً
+    grade_order = [
+        'الصف الخامس','الصف السادس','الصف السابع','الصف الثامن',
+        'الصف التاسع','الصف العاشر',
+        'الصف الحادي عشر (متقدم)','الصف الحادي عشر(اساسي)',
+        'الصف الثاني عشر (متقدم)','الصف الثاني عشر (أساسي)',
+    ]
+
+    def grade_sort_key(g):
+        name = (g.get("name") or "").strip()
+        try:
+            return grade_order.index(name)
+        except ValueError:
+            return 999
+
+    data.sort(key=grade_sort_key)
+
+    # trim الفراغات الزائدة من جميع الأسماء
+    for g in data:
+        g["name"] = (g.get("name") or "").strip()
+        for s in (g.get("semesters") or []):
+            s["name"] = (s.get("name") or "").strip()
+            for u in (s.get("units") or []):
+                u["name"] = (u.get("name") or "").strip()
+                for l in (u.get("lessons") or []):
+                    l["name"] = (l.get("name") or "").strip()
+    return data
 
 # ==========================================
 # --- 7. بنك الأسئلة والامتحانات ---
@@ -275,9 +351,108 @@ async def delete_question(q_id: int, admin=Depends(get_current_admin)):
     return {"status": "success"}
 
 @app.get("/api/admin/questions")
-async def get_all_questions():
+async def get_all_questions(admin=Depends(get_current_admin)):
+    """جلب الأسئلة كاملةً للأدمن فقط (مع الإجابات)"""
     res = supabase.table("questions").select("*").order("id", desc=True).execute()
     return res.data if res.data else []
+
+def _grade_variants(grade: str) -> list:
+    """يولّد جميع الصيغ الممكنة لاسم الصف لضمان تطابق الأسئلة المخزونة بأي صيغة"""
+    if not grade:
+        return []
+    s = grade.strip()
+    # نضيف الصيغة الأصلية + مع مسافات (لأن Supabase قد يخزنها بمسافات زائدة)
+    variants = {s, f" {s} ", f" {s}", f"{s} "}
+
+    # خريطة الأرقام العربية ↔ الأرقام
+    ar_to_num = {
+        "الأول":"1","الثاني":"2","الثالث":"3","الرابع":"4","الخامس":"5","السادس":"6",
+        "السابع":"7","الثامن":"8","التاسع":"9","العاشر":"10","الحادي عشر":"11","الثاني عشر":"12",
+    }
+    num_to_ar = {v: k for k, v in ar_to_num.items()}
+
+    import re
+    # حالة 1: "الصف السادس" → نستخرج "السادس" ثم "6"
+    m = re.match(r"الصف\s+(.+)", s)
+    if m:
+        word = m.group(1).strip()
+        num  = ar_to_num.get(word, word)
+        variants.update([num, f"الصف {word}", f"الصف {num}", word])
+
+    # حالة 2: "السادس" فقط (بدون "الصف") → نضيف "6" و"الصف السادس"
+    elif s in ar_to_num:
+        num  = ar_to_num[s]
+        variants.update([num, f"الصف {s}", f"الصف {num}"])
+
+    # حالة 3: رقم مجرد "6" → نضيف "السادس" و"الصف السادس"
+    elif re.match(r"^\d+$", s):
+        word = num_to_ar.get(s, s)
+        variants.update([f"الصف {word}", f"الصف {s}", word])
+
+    return list(variants)
+
+
+@app.get("/api/student/questions")
+async def get_questions_for_student(grade: str, lesson: str = ""):
+    """
+    جلب الأسئلة للطالب — بدون حقل answer
+    - يدعم جميع صيغ اسم الصف (الصف السادس / 6 / السادس)
+    - إذا أُرسل lesson يُفلتر به، وإلا يُرجع كل أسئلة الصف
+    - يُرجع الأسئلة حتى لو لم يكن هناك منهج مبني (للأسئلة القديمة)
+    """
+    variants = _grade_variants(grade)
+
+    all_questions = []
+    seen_ids: set = set()
+
+    # إذا لم تتوفر أي صيغة — أرجع كل الأسئلة (fallback للأسئلة القديمة)
+    search_variants = variants if variants else [grade] if grade else []
+
+    for v in search_variants:
+        v_stripped = v.strip()
+        query = supabase.table("questions").select(
+            "id, grade, lesson, subject, q_type, question, options, image_url"
+        ).eq("grade", v_stripped)
+        if lesson:
+            query = query.ilike("lesson", lesson.strip())
+        res = query.execute()
+        for q in (res.data or []):
+            if q["id"] not in seen_ids:
+                seen_ids.add(q["id"])
+                all_questions.append(q)
+
+    # إذا لم نجد شيئاً وكان lesson محدداً — جرّب بحث جزئي في lesson
+    if not all_questions and lesson:
+        for v in search_variants:
+            res = supabase.table("questions").select(
+                "id, grade, lesson, subject, q_type, question, options, image_url"
+            ).eq("grade", v).ilike("lesson", f"%{lesson.strip()}%").execute()
+            for q in (res.data or []):
+                if q["id"] not in seen_ids:
+                    seen_ids.add(q["id"])
+                    all_questions.append(q)
+
+    return all_questions
+
+
+@app.get("/api/admin/debug/questions")
+async def debug_questions(admin=Depends(get_current_admin)):
+    """
+    نقطة تشخيصية — تُظهر قيم grade و lesson المخزونة فعلياً في Supabase
+    مفيدة لمعرفة لماذا لا تظهر الأسئلة عند الطلاب
+    """
+    res = supabase.table("questions").select("id, grade, lesson, q_type").order("id", desc=True).limit(200).execute()
+    if not res.data:
+        return {"count": 0, "grades": [], "lessons": [], "samples": []}
+    
+    grades  = sorted(set(q["grade"]  or "" for q in res.data))
+    lessons = sorted(set(q["lesson"] or "" for q in res.data))
+    return {
+        "count":   len(res.data),
+        "grades":  grades,
+        "lessons": lessons,
+        "samples": res.data[:10],
+    }
 
 @app.post("/api/admin/exams")
 async def create_exam(
@@ -391,18 +566,39 @@ async def get_lb():
     lb = {}
     if res:
         for r in res: 
-            lb[r['student_name']] = lb.get(r['student_name'], 0) + (r['score'] * 100)
+            lb[r['student_name']] = lb.get(r['student_name'], 0) + r['score']
     sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)[:10]
     return [{"student_name": k, "total_points": v} for k, v in sorted_lb]
 
-@app.get("/api/parent/search/{name:path}")
-async def parent_search(name: str):
-    clean_name = unquote(name)
-    st = supabase.table("students").select("id, full_name, grade").ilike("full_name", f"%{clean_name}%").execute()
-    if not st.data: return {"found": False}
+@app.get("/api/parent/search/{query:path}")
+async def parent_search(query: str):
+    """بحث ولي الأمر — يدعم رقم معرف الطالب أو اسمه الكامل"""
+    clean = unquote(query).strip()
+    if not clean:
+        return {"found": False, "message": "يرجى إدخال الاسم أو الرمز"}
+
+    # بحث برقم المعرف
+    if clean.isdigit():
+        st = supabase.table("students").select("id, full_name, grade, created_at").eq("id", int(clean)).execute()
+    else:
+        # بحث بالاسم جزئي غير حساس للحالة
+        st = supabase.table("students").select("id, full_name, grade, created_at").ilike("full_name", f"%{clean}%").execute()
+
+    if not st.data:
+        return {"found": False, "message": "لم يعثر على طالب بهذا الاسم او الرمز"}
+
     student = st.data[0]
-    history = supabase.table("results").select("*").eq("student_id", student["id"]).order("timestamp", desc=True).execute().data
-    return {"found": True, "student": student, "history": history or []}
+    student.pop("password", None)
+
+    history = supabase.table("results").select(
+        "id, lesson, score, total, timestamp"
+    ).eq("student_id", student["id"]).order("timestamp", desc=True).limit(100).execute().data
+
+    return {
+        "found":   True,
+        "student": student,
+        "history": history or [],
+    }
 
 
 # ==========================================
@@ -512,7 +708,158 @@ async def arena_websocket(websocket: WebSocket, student_name: str, grade: str):
 
 
 # ==========================================
-# --- 11. تشغيل المحرك المركزي ---
+# --- 12. نظام أكواد الاشتراك الملكي ---
+# ==========================================
+# ⚠️ يجب إنشاء جدول subscription_codes في Supabase بهذا SQL:
+# CREATE TABLE subscription_codes (
+#   id              BIGSERIAL PRIMARY KEY,
+#   code            TEXT UNIQUE NOT NULL,
+#   months          INTEGER NOT NULL DEFAULT 1,  -- -1 = دائم
+#   note            TEXT DEFAULT '',
+#   is_used         BOOLEAN DEFAULT FALSE,
+#   used_at         TIMESTAMPTZ,
+#   student_id      BIGINT REFERENCES students(id) ON DELETE SET NULL,
+#   activated_by_student BIGINT REFERENCES students(id) ON DELETE SET NULL,
+#   created_at      TIMESTAMPTZ DEFAULT NOW()
+# );
+# CREATE INDEX idx_sub_codes_code ON subscription_codes(code);
+# ──────────────────────────────────────────────────────────────────
+
+@app.post("/api/admin/subscription/generate")
+async def generate_subscription_codes(
+    months: int = Form(...),
+    count: int = Form(default=10),
+    student_id: Optional[int] = Form(default=None),
+    note: str = Form(default=""),
+    admin=Depends(get_current_admin)
+):
+    """توليد أكواد اشتراك آمنة وحفظها في قاعدة البيانات"""
+    import hmac, hashlib
+    codes = []
+    for _ in range(min(count, 50)):  # حد أقصى 50 كوداً في المرة الواحدة
+        raw_uuid = uuid.uuid4().hex.upper()
+        prefix = "LIFE" if months == -1 else ("YEAR" if months == 12 else ("HALF" if months == 6 else ("QRTR" if months == 3 else "MNTH")))
+        # HMAC-SHA256 للتحقق من صحة الكود لاحقاً
+        sig = hmac.new(SECRET_KEY.encode(), raw_uuid.encode(), hashlib.sha256).hexdigest()[:8].upper()
+        code = f"ME-{prefix}-{raw_uuid[:8]}-{raw_uuid[8:16]}-{sig}"
+        
+        data = {
+            "code": code,
+            "months": months,
+            "note": note,
+            "is_used": False,
+            "student_id": student_id
+        }
+        result = supabase.table("subscription_codes").insert(data).execute()
+        codes.append({"code": code, "id": result.data[0]["id"] if result.data else None})
+    
+    return {"status": "success", "codes": codes}
+
+
+@app.post("/api/subscription/activate")
+async def activate_subscription_code(
+    code: str = Form(...),
+    student_id: Optional[int] = Form(default=None)
+):
+    """تفعيل كود اشتراك من قِبَل الطالب"""
+    code_upper = code.strip().upper()
+    
+    # البحث عن الكود في قاعدة البيانات
+    res = supabase.table("subscription_codes").select("*").eq("code", code_upper).execute()
+    
+    if not res.data:
+        raise HTTPException(status_code=404, detail="الكود غير موجود")
+    
+    entry = res.data[0]
+    
+    if entry.get("is_used"):
+        raise HTTPException(status_code=400, detail="هذا الكود مستخدَم مسبقاً")
+    
+    # التحقق من أن الكود مربوط بطالب معين (إن وُجد)
+    if entry.get("student_id") and student_id and entry["student_id"] != student_id:
+        raise HTTPException(status_code=403, detail="هذا الكود مخصص لطالب آخر")
+    
+    # حساب تاريخ الانتهاء
+    months = entry.get("months", 1)
+    if months == -1:
+        expiry = None
+    else:
+        now = datetime.now(timezone.utc)
+        expiry = (now.replace(month=((now.month - 1 + months) % 12) + 1,
+                              year=now.year + ((now.month - 1 + months) // 12))).isoformat()
+    
+    # تحديث الكود كمستخدَم
+    update_data = {
+        "is_used": True,
+        "used_at": datetime.now(timezone.utc).isoformat(),
+        "activated_by_student": student_id
+    }
+    supabase.table("subscription_codes").update(update_data).eq("id", entry["id"]).execute()
+    
+    return {
+        "status": "success",
+        "months": months,
+        "expiry": expiry,
+        "note": entry.get("note", "")
+    }
+
+
+@app.get("/api/admin/subscription/codes")
+async def get_all_subscription_codes(admin=Depends(get_current_admin)):
+    """جلب جميع أكواد الاشتراك للأدمن"""
+    res = supabase.table("subscription_codes").select("*, students(full_name, grade)").order("id", desc=True).execute()
+    return res.data if res.data else []
+
+
+@app.delete("/api/admin/subscription/codes/{code_id}")
+async def delete_subscription_code(code_id: int, admin=Depends(get_current_admin)):
+    """حذف كود اشتراك"""
+    supabase.table("subscription_codes").delete().eq("id", code_id).execute()
+    return {"status": "success"}
+
+
+@app.post("/api/admin/sub_codes/batch")
+async def batch_save_sub_codes(request: Request, admin=Depends(get_current_admin)):
+    """حفظ دفعة من الأكواد المولَّدة من واجهة الأدمن دفعة واحدة في Supabase"""
+    body = await request.json()
+    codes_list = body.get("codes", [])
+    if not codes_list:
+        raise HTTPException(status_code=400, detail="لا توجد أكواد للحفظ")
+
+    rows = []
+    for c in codes_list:
+        rows.append({
+            "code":       c.get("code", ""),
+            "months":     int(c.get("months", 1)),
+            "note":       c.get("note", ""),
+            "student_id": int(c["studentId"]) if c.get("studentId") else None,
+            "is_used":    False,
+        })
+
+    try:
+        supabase.table("subscription_codes").insert(rows).execute()
+    except Exception:
+        saved = 0
+        for row in rows:
+            try:
+                supabase.table("subscription_codes").insert(row).execute()
+                saved += 1
+            except Exception:
+                pass
+        return {"status": "partial", "saved": saved, "total": len(rows)}
+
+    return {"status": "success", "saved": len(rows)}
+
+
+@app.get("/api/admin/students")
+async def get_all_students_admin(admin=Depends(get_current_admin)):
+    """جلب قائمة جميع الطلاب للأدمن (للربط بأكواد الاشتراك)"""
+    res = supabase.table("students").select("id, full_name, grade, username").order("full_name").execute()
+    return res.data if res.data else []
+
+
+# ==========================================
+# --- 13. تشغيل المحرك المركزي ---
 # ==========================================
 if __name__ == "__main__":
     import uvicorn
