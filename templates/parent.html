@@ -1369,18 +1369,17 @@ async function doLogin() {
   // ── تحديد اسم البطل من الكود ──
   // الكود المرجعي: RS-XXXX حيث XXXX هو معرف الطالب
   // أو البحث بالاسم مباشرة
-  const isRsCode   = /^RS-\d+$/i.test(code);
-  const searchName = isRsCode ? "" : code.replace(/^RS-/i, "").trim();
+  const isRsCode      = /^RS-/i.test(code);
+  const codeBody      = code.replace(/^RS-0*/i, "").trim(); // RS-0042→42, RS-RWRHQ→RWRHQ
+  const isNumericCode = /^\d+$/.test(codeBody);
 
   // تغيير حالة الزر للتحميل
   if (btn) { btn.disabled = true; btn.textContent = "⏳ جاري البحث في الإمبراطورية..."; }
 
   // ── محاولة 1: البحث عبر API ──
   try {
-    const searchTerm = isRsCode
-      ? code.replace(/^RS-0*/i, "")   // استخرج الرقم من RS-0042 → "42"
-      : code;
-
+    // إذا كان رقمياً → بحث بالـ id، وإلا → بحث بـ username أو الاسم
+    const searchTerm = isNumericCode ? codeBody : codeBody;
     const res  = await fetch(`${API_URL}/api/parent/search/${encodeURIComponent(searchTerm)}`);
     if (res.ok) {
       const data = await res.json();

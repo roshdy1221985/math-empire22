@@ -3587,6 +3587,7 @@
             const fd = new FormData();
             fd.append('full_name', name); fd.append('username', user);
             fd.append('password', pass);  fd.append('grade', grade);
+            fd.append('parent_code', parentCode); // حفظ كود ولي الأمر في Supabase
             const res = await fetch(`${API_URL}/api/student/register`, { method: 'POST', body: fd });
             toggleLoader(false);
             if (res.ok) {

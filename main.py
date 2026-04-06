@@ -179,10 +179,20 @@ async def teacher_login(username: str = Form(...), password: str = Form(...)):
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
 @app.post("/api/student/register")
-async def register_student(full_name: str=Form(...), username: str=Form(...), password: str=Form(...), grade: str=Form(...)):
+async def register_student(
+    full_name: str=Form(...), username: str=Form(...),
+    password: str=Form(...), grade: str=Form(...),
+    parent_code: str=Form(default="")
+):
     existing = supabase.table("students").select("username").eq("username", username).execute()
     if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود مسبقاً")
-    supabase.table("students").insert({"full_name": full_name, "username": username, "password": hash_password(password), "grade": grade}).execute()
+    supabase.table("students").insert({
+        "full_name":   full_name,
+        "username":    username,
+        "password":    hash_password(password),
+        "grade":       grade,
+        "parent_code": parent_code or None,
+    }).execute()
     return {"status": "success"}
 
 @app.post("/api/student/login")
@@ -614,17 +624,29 @@ async def get_lb():
 
 @app.get("/api/parent/search/{query:path}")
 async def parent_search(query: str):
-    """بحث ولي الأمر — يدعم رقم معرف الطالب أو اسمه الكامل"""
+    """بحث ولي الأمر — يدعم: رقم معرف، كود RS-، اسم المستخدم، اسم الطالب"""
     clean = unquote(query).strip()
     if not clean:
         return {"found": False, "message": "يرجى إدخال الاسم أو الرمز"}
 
+    st = None
+
     # بحث برقم المعرف
     if clean.isdigit():
-        st = supabase.table("students").select("id, full_name, grade, created_at").eq("id", int(clean)).execute()
-    else:
-        # بحث بالاسم جزئي غير حساس للحالة
-        st = supabase.table("students").select("id, full_name, grade, created_at").ilike("full_name", f"%{clean}%").execute()
+        st = supabase.table("students").select("id, full_name, grade, username, created_at").eq("id", int(clean)).execute()
+
+    # بحث بـ parent_code (RS-XXXXX)
+    if not (st and st.data):
+        pc = clean if clean.upper().startswith("RS-") else f"RS-{clean}"
+        st = supabase.table("students").select("id, full_name, grade, username, created_at").eq("parent_code", pc.upper()).execute()
+
+    # بحث بـ username
+    if not (st and st.data):
+        st = supabase.table("students").select("id, full_name, grade, username, created_at").ilike("username", clean).execute()
+
+    # بحث بالاسم جزئي
+    if not (st and st.data):
+        st = supabase.table("students").select("id, full_name, grade, username, created_at").ilike("full_name", f"%{clean}%").execute()
 
     if not st.data:
         return {"found": False, "message": "لم يعثر على طالب بهذا الاسم او الرمز"}
