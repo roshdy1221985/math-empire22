@@ -87,6 +87,16 @@ async def global_exception_handler(request: Request, exc: Exception):
         content={"status": "error", "message": "عطل في الديوان الملكي"},
     )
 
+# ضمان ترميز UTF-8 لجميع الاستجابات
+from fastapi.responses import Response
+import json as _json
+
+class UTF8JSONResponse(JSONResponse):
+    def render(self, content) -> bytes:
+        return _json.dumps(content, ensure_ascii=False, allow_nan=False, indent=None, separators=(",", ":")).encode("utf-8")
+
+app.router.default_response_class = UTF8JSONResponse
+
 # النطاقات المسموح بها — أضف نطاق إنتاجك هنا
 _ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
     "ALLOWED_ORIGINS",
@@ -195,6 +205,22 @@ async def register_student(
     }).execute()
     return {"status": "success"}
 
+def get_current_student(request: Request):
+    """التحقق من JWT الطالب"""
+    auth = request.headers.get("Authorization", "")
+    token = auth.replace("Bearer ", "").strip()
+    if not token:
+        # fallback: قبول student_id في الـ form (للتوافق مع الكود القديم)
+        return None
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "student":
+            return None
+        return payload
+    except JWTError:
+        return None
+
+
 @app.post("/api/student/login")
 async def login_student(request: Request, username: str = Form(...), password: str = Form(...)):
     # Rate limit: 10 محاولات/دقيقة لكل IP
@@ -205,7 +231,13 @@ async def login_student(request: Request, username: str = Form(...), password: s
     if res.data and verify_password(password, res.data[0]['password']):
         user = res.data[0]
         user.pop('password', None)
-        return {"status": "success", "user": user}
+        # إنشاء JWT للطالب
+        token = create_access_token({
+            "sub":   str(user["id"]),
+            "role":  "student",
+            "grade": user.get("grade", "")
+        })
+        return {"status": "success", "access_token": token, "user": user}
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
 # ==========================================
@@ -430,7 +462,7 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     for v in search_variants:
         v_stripped = v.strip()
         query = supabase.table("questions").select(
-            "id, grade, lesson, subject, q_type, question, options, image_url"
+            "id, grade, lesson, subject, q_type, question, options, answer, image_url"
         ).eq("grade", v_stripped)
         if lesson:
             query = query.ilike("lesson", lesson.strip())
@@ -444,7 +476,7 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     if not all_questions and lesson:
         for v in search_variants:
             res = supabase.table("questions").select(
-                "id, grade, lesson, subject, q_type, question, options, image_url"
+                "id, grade, lesson, subject, q_type, question, options, answer, image_url"
             ).eq("grade", v).ilike("lesson", f"%{lesson.strip()}%").execute()
             for q in (res.data or []):
                 if q["id"] not in seen_ids:
@@ -608,8 +640,31 @@ async def delete_summary(resource_id: str, admin=Depends(get_current_admin)):
 # --- 9. النتائج ولوحة الشرف والبحث ---
 # ==========================================
 @app.post("/api/student/results")
-async def save_result(student_id: int=Form(...), student_name: str=Form(...), lesson: str=Form(...), score: int=Form(...), total: int=Form(...)):
-    supabase.table("results").insert({"student_id": student_id, "student_name": student_name, "lesson": lesson, "score": score, "total": total}).execute()
+async def save_result(
+    request: Request,
+    student_id: int=Form(...), student_name: str=Form(...),
+    lesson: str=Form(...), score: int=Form(...), total: int=Form(...)
+):
+    # Rate limit: 30 نتيجة/دقيقة لكل IP
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=30, window_seconds=60):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة جداً")
+
+    # التحقق من منطقية البيانات
+    if score < 0 or total <= 0 or score > total:
+        raise HTTPException(status_code=400, detail="بيانات غير صحيحة")
+    if total > 200:
+        raise HTTPException(status_code=400, detail="عدد أسئلة غير منطقي")
+
+    # التحقق أن الطالب موجود فعلاً
+    st = supabase.table("students").select("id").eq("id", student_id).execute()
+    if not st.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+
+    supabase.table("results").insert({
+        "student_id": student_id, "student_name": student_name,
+        "lesson": lesson, "score": score, "total": total
+    }).execute()
     return {"status": "success"}
 
 @app.get("/api/leaderboard")

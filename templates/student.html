@@ -222,28 +222,94 @@
         /* ============================================================
            DASHBOARD
         ============================================================ */
+        /* ══ بطاقة الملف الشخصي الجديدة ══ */
+        /* ═══ بطاقة الملف الشخصي المحسّنة ═══ */
+        @keyframes _shimmerBar{0%{background-position:-200% 0}100%{background-position:200% 0}}
+        @keyframes _spinRing{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+        @keyframes _twinkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.9;transform:scale(1.6)}}
+        @keyframes _barShine{0%{left:-100%}100%{left:200%}}
+
         .profile-dashboard {
-            background: var(--glass);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
+            background: rgba(4,13,33,0.65);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            border: 1px solid rgba(212,175,55,0.22);
+            border-radius: 24px;
+            padding: 0;
             margin-bottom: 25px;
             position: relative;
             overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06);
         }
-        .profile-dashboard::before { content: ''; position: absolute; top:0; left:0; width:100%; height:5px; background: var(--gold-grad); }
+        /* خط ذهبي متحرك */
+        .profile-dashboard::before {
+            content:'';position:absolute;top:0;left:0;right:0;height:2px;
+            background:linear-gradient(90deg,transparent 0%,#b38728 20%,#fcf6ba 50%,#b38728 80%,transparent 100%);
+            background-size:200% 100%;
+            animation:_shimmerBar 3s infinite linear;
+        }
+        /* طبقة زجاجية داخلية */
+        .profile-dashboard::after {
+            content:'';position:absolute;top:0;left:0;right:0;height:50%;
+            background:linear-gradient(180deg,rgba(255,255,255,0.04) 0%,transparent 100%);
+            pointer-events:none;
+        }
+        /* نجوم داخل البطاقة */
+        .profile-stars { position:absolute;inset:0;pointer-events:none;overflow:hidden; }
+        .profile-star {
+            position:absolute;width:2px;height:2px;
+            background:rgba(212,175,55,0.5);border-radius:50%;
+            animation:_twinkle var(--pd,3s) var(--pdelay,0s) infinite;
+        }
+        .profile-top {
+            display:flex;align-items:center;gap:18px;
+            padding:24px 24px 18px;direction:rtl;
+            position:relative;z-index:1;
+        }
+        .profile-avatar-wrap { position:relative;flex-shrink:0;cursor:pointer; }
+        /* حلقة دوّارة حول الأفاتار */
+        .profile-avatar-ring {
+            width:118px;height:118px;border-radius:50%;
+            padding:3px;
+            background:conic-gradient(from 0deg,#7a5c10,#d4af37,#fcf6ba,#d4af37,#7a5c10);
+            animation:_spinRing 8s linear infinite;
+            flex-shrink:0;
+        }
         .profile-avatar-large {
-            width: 90px; height: 90px; border-radius: 50%;
-            border: 3px solid var(--gold);
-            box-shadow: 0 0 20px rgba(212,175,55,0.4);
-            margin-bottom: 10px;
-            background: rgba(255,255,255,0.1);
-            object-fit: cover; padding: 2px;
-            transition: box-shadow 0.3s, border-color 0.3s;
+            width:100%;height:100%;border-radius:50%;
+            border:3px solid #040d21;
+            object-fit:cover;display:block;
+            background:#0d1b3e;
+            transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
+        }
+        .profile-avatar-wrap:hover .profile-avatar-large {
+            transform:scale(1.08);
+        }
+        .profile-rank-pin {
+            position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
+            background:linear-gradient(135deg,#d4af37,#b38728);
+            color:#000;font-size:0.65rem;font-weight:900;
+            padding:3px 10px;border-radius:20px;
+            border:2px solid #040d21;white-space:nowrap;
+            box-shadow:0 2px 8px rgba(0,0,0,0.5);
+            z-index:2;
+        }
+        .profile-info { flex:1;min-width:0;position:relative;z-index:1; }
+        /* shimmer على شريط التقدم */
+        .level-bar-fill { position:relative;overflow:hidden; }
+        .level-bar-fill::after {
+            content:'';position:absolute;top:0;left:-100%;bottom:0;width:60%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
+            animation:_barShine 2.5s infinite;
+        }
+        /* hover على stat-box */
+        .stat-box {
+            transition:border-color 0.2s, background 0.2s, transform 0.2s;
+        }
+        .stat-box:hover {
+            border-color:rgba(212,175,55,0.5) !important;
+            background:rgba(212,175,55,0.07) !important;
+            transform:translateY(-2px);
         }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 12px; margin-top: 15px; width: 100%; }
         .stat-box { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 12px; border: 1px solid var(--border); }
@@ -1077,18 +1143,16 @@
             <input type="text"     id="reg-school" class="auth-input" placeholder="اسم المدرسة">
             <select id="reg-grade" class="auth-input" style="color:#fff; background:rgba(0,0,0,0.5);">
                 <option value="">-- اختر صفك الدراسي --</option>
-                <option value="الصف الأول">الصف الأول</option>
-                <option value="الصف الثاني">الصف الثاني</option>
-                <option value="الصف الثالث">الصف الثالث</option>
-                <option value="الصف الرابع">الصف الرابع</option>
                 <option value="الصف الخامس">الصف الخامس</option>
                 <option value="الصف السادس">الصف السادس</option>
                 <option value="الصف السابع">الصف السابع</option>
                 <option value="الصف الثامن">الصف الثامن</option>
                 <option value="الصف التاسع">الصف التاسع</option>
                 <option value="الصف العاشر">الصف العاشر</option>
-                <option value="الصف الحادي عشر">الصف الحادي عشر</option>
-                <option value="الصف الثاني عشر">الصف الثاني عشر</option>
+                <option value="الصف الحادي عشر (متقدم)">الصف الحادي عشر (متقدم)</option>
+                <option value="الصف الحادي عشر(اساسي)">الصف الحادي عشر (أساسي)</option>
+                <option value="الصف الثاني عشر (متقدم)">الصف الثاني عشر (متقدم)</option>
+                <option value="الصف الثاني عشر (أساسي)">الصف الثاني عشر (أساسي)</option>
             </select>
             <button class="nav-btn active shiny-btn" onclick="handleRegister()">تسجيل واعتلاء العرش ⚔️</button>
             <p style="margin-top:20px; font-size:0.8rem;">لديك حساب؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold);">سجل دخولك</a></p>
@@ -1196,37 +1260,59 @@
                 <button id="start-exam-btn" class="nav-btn active shiny-btn" style="font-size:1.3rem; padding:15px; margin:0 auto; max-width:300px; display:none;" onclick="startScheduledExam()">⏳ ابدأ الاختبار في وضع ملء الشاشة!</button>
             </div>
 
-            <!-- PROFILE CARD -->
-            <div class="profile-dashboard tilt-card">
-                <img src="/static/avatars/king.jpg" id="main-profile-avatar" class="profile-avatar-large" alt="صورة البطل" onerror="this.src='https://ui-avatars.com/api/?name=Hero&background=d4af37&color=000&rounded=true&bold=true'">
-                <h2 style="color:var(--gold); font-family:'Amiri'; font-size:1.8rem; margin:0 0 5px 0;" id="main-profile-name">ضيف</h2>
-                <div style="font-size:1rem; opacity:0.8;" id="main-profile-rank">مستكشف جديد</div>
-
-                <!-- شارة التحالف -->
-                <div id="clan-display" style="display:none;">
-                    <div id="clan-badge-el" class="clan-badge"></div>
+            <!-- PROFILE CARD — تصميم جديد -->
+            <div class="profile-dashboard" id="profile-dashboard-el">
+                <div class="profile-stars" id="profile-stars-container"></div>
+                <div class="profile-top">
+                    <div class="profile-avatar-wrap" onclick="openEditProfile()">
+                        <div class="profile-avatar-ring">
+                            <img src="/static/avatars/king.jpg" id="main-profile-avatar"
+                                class="profile-avatar-large" alt="صورة البطل"
+                                onerror="this.src='https://ui-avatars.com/api/?name=Hero&background=d4af37&color=000&rounded=true&bold=true&size=200'">
+                        </div>
+                        <div class="profile-rank-pin" id="profile-rank-pin">🌟 مستكشف</div>
+                    </div>
+                    <div class="profile-info">
+                        <h2 style="font-family:'Amiri';font-size:1.7rem;margin:0 0 3px 0;
+                            background:linear-gradient(135deg,#d4af37,#fcf6ba,#d4af37);
+                            -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;"
+                            id="main-profile-name">ضيف</h2>
+                        <div style="font-size:0.82rem;opacity:0.5;margin-bottom:10px;" id="main-profile-rank">مستكشف جديد</div>
+                        <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+                            <div id="clan-display" style="display:none;"><div id="clan-badge-el" class="clan-badge"></div></div>
+                            <div class="streak-badge" id="streak-display" style="display:none;">
+                                <span>🔥</span><span id="streak-count">0</span><span>يوم</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-
-                <!-- سلسلة الحضور -->
-                <div class="streak-badge" id="streak-display" style="display:none;">
-                    <span>🔥</span><span id="streak-count">0</span><span>يوم متواصل</span>
-                </div>
-
-                <!-- كود ولي الأمر -->
-                <div class="parent-code-box" id="parent-code-box" style="display:none;">
-                    <span class="parent-code-label">🔑 كود ولي الأمر:</span>
-                    <span class="parent-code-val" id="parent-code-val">RS-00000</span>
-                    <button class="copy-code-btn" onclick="copyParentCode()">📋 نسخ</button>
-                </div>
-
-                <div class="stats-grid">
-                    <div class="stat-box"><div style="font-size:0.9rem;">مجموع النقاط</div><div class="stat-number" id="dashboard-xp-count">0 XP</div></div>
-                    <div class="stat-box"><div style="font-size:0.9rem;">المدرسة</div><div class="stat-number" style="font-size:1rem;" id="main-profile-school">غير محدد</div></div>
-                    <div class="stat-box"><div style="font-size:0.9rem;">الصف</div><div class="stat-number" style="font-size:1rem;" id="main-profile-grade">—</div></div>
-                </div>
-                <div style="margin-top:15px; text-align:right; width:100%;">
-                    <label style="color:var(--gold); font-size:0.9rem;">🚀 التقدم نحو الرتبة التالية:</label>
-                    <div class="level-bar-bg"><div class="level-bar-fill" id="dashboard-level-bar"></div></div>
+                <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.3),transparent);margin:0 22px;"></div>
+                <div style="padding:16px 22px 20px;display:flex;flex-direction:column;gap:13px;">
+                    <div class="stats-grid">
+                        <div class="stat-box"><div style="font-size:0.8rem;opacity:0.5;">نقاط XP</div><div class="stat-number" id="dashboard-xp-count">0 XP</div></div>
+                        <div class="stat-box"><div style="font-size:0.8rem;opacity:0.5;">المدرسة</div><div class="stat-number" style="font-size:0.9rem;" id="main-profile-school">غير محدد</div></div>
+                        <div class="stat-box"><div style="font-size:0.8rem;opacity:0.5;">الصف</div><div class="stat-number" style="font-size:0.9rem;" id="main-profile-grade">—</div></div>
+                    </div>
+                    <div>
+                        <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:0.8rem;">
+                            <span style="opacity:0.5;">🚀 التقدم نحو الرتبة التالية</span>
+                            <span style="color:var(--gold);font-weight:bold;" id="next-rank-label">—</span>
+                        </div>
+                        <div class="level-bar-bg"><div class="level-bar-fill" id="dashboard-level-bar"></div></div>
+                        <div style="display:flex;justify-content:space-between;margin-top:8px;" id="ranks-row">
+                            <span style="font-size:0.68rem;opacity:0.35;">🌟</span>
+                            <span style="font-size:0.68rem;opacity:0.35;">🛡️</span>
+                            <span style="font-size:0.68rem;opacity:0.35;">⚔️</span>
+                            <span style="font-size:0.68rem;opacity:0.35;">🧙</span>
+                            <span style="font-size:0.68rem;opacity:0.35;">👑</span>
+                            <span style="font-size:0.68rem;opacity:0.35;">🔮</span>
+                        </div>
+                    </div>
+                    <div class="parent-code-box" id="parent-code-box" style="display:none;">
+                        <span class="parent-code-label">🔑 كود ولي الأمر:</span>
+                        <span class="parent-code-val" id="parent-code-val">RS-00000</span>
+                        <button class="copy-code-btn" onclick="copyParentCode()">📋 نسخ</button>
+                    </div>
                 </div>
             </div>
 
@@ -2053,23 +2139,7 @@
     const ARENA_DAILY_KEY = 'arenaDaily';
     const ARENA_MAX_DAILY = 3;
 
-    /* أكواد الاشتراك الصالحة — يضيف الأستاذ أكواداً جديدة هنا
-       months = -1 → اشتراك دائم */
-    const VALID_SUB_CODES = [
-        { code: 'MATH-2026-VIP1',  months: 12, note: 'VIP سنوي 1' },
-        { code: 'MATH-2026-VIP2',  months: 12, note: 'VIP سنوي 2' },
-        { code: 'MATH-2026-VIP3',  months: 12, note: 'VIP سنوي 3' },
-        { code: 'MATH-Q3-2026A',   months:  3, note: 'ربعي أ'     },
-        { code: 'MATH-Q3-2026B',   months:  3, note: 'ربعي ب'     },
-        { code: 'MATH-Q3-2026C',   months:  3, note: 'ربعي ج'     },
-        { code: 'MATH-M1-2026A',   months:  1, note: 'شهري أ'     },
-        { code: 'MATH-M1-2026B',   months:  1, note: 'شهري ب'     },
-        { code: 'MATH-M1-2026C',   months:  1, note: 'شهري ج'     },
-        { code: 'MATH-M1-2026D',   months:  1, note: 'شهري د'     },
-        { code: 'MATH-M1-2026E',   months:  1, note: 'شهري هـ'    },
-        { code: 'MATH-FREE-LIFE1', months: -1, note: 'دائم - مميز'},
-        { code: 'MATH-FREE-LIFE2', months: -1, note: 'دائم - مميز'},
-    ];
+    // الأكواد محفوظة في السيرفر فقط — لا أكواد هنا لأمان أعلى
 
     function getSubStatus() {
         // وضع المراقبة — اشتراك دائم
@@ -2145,30 +2215,10 @@
             // السيرفر غير متاح — fallback للأكواد المدمجة
         }
 
-        // 2) fallback — الأكواد الثابتة المدمجة في الكود
+        // إذا لم ينجح السيرفر — خطأ واضح
         if (!activated) {
-            const entry = VALID_SUB_CODES.find(c => c.code === raw);
-            if (!entry) {
-                if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
-                showToast('❌ الكود غير صحيح أو منتهي — تحقق من الأستاذ رشدي');
-                return;
-            }
-            const now    = new Date();
-            const expiry = entry.months === -1 ? null
-                         : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
-            localStorage.setItem(SUB_KEY, JSON.stringify({
-                code: raw, months: entry.months,
-                expiry: expiry?.toISOString() || null,
-                activated: new Date().toISOString()
-            }));
-            usedCodes.push(raw);
-            localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
-            const msg = entry.months === -1 ? 'تفعيل دائم!'
-                      : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
-            showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
-            if (typeof confetti === 'function') confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
-            updateSubBadge();
-            closeSubOverlay();
+            if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
+            showToast('❌ الكود غير صحيح أو منتهي — تحقق من الأستاذ رشدي');
         }
 
         if (btn) { btn.disabled = false; btn.innerHTML = '🔑 تفعيل الكود'; }
@@ -2425,11 +2475,13 @@
             </div>
             <div id="arena-options-area" style="display:grid; gap:15px; grid-template-columns:1fr 1fr;">`;
 
-        if (q.q_type === 'true_false') {
+        const _aqt = (q.q_type||'').toLowerCase().replace('_','');
+        if (_aqt === 'truefalse' || _aqt === 'tf' || _aqt === 'true_false') {
             html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('صواب','${q.answer}')">صواب ✅</button>
                      <button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('خطأ','${q.answer}')">خطأ ❌</button>`;
-        } else if (q.q_type === 'short') {
-            html += `<input type="text" id="arena-short" class="short-answer-input" style="grid-column:1/-1;" placeholder="اكتب إجابتك هنا">
+        } else if (_aqt === 'short' || _aqt === 'essay') {
+            html += `<input type="text" id="arena-short" class="short-answer-input" style="grid-column:1/-1;" placeholder="اكتب إجابتك هنا"
+                onkeypress="if(event.key==='Enter') submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">
                      <button class="nav-btn active shiny-btn" style="grid-column:1/-1;" onclick="submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">ضربة السيف ⚔️</button>`;
         } else {
             q.options.split(',').forEach(opt => {
@@ -2642,6 +2694,12 @@
             const targets = lessonStr.split(',').map(l => l.trim());
             
             // فلترة دقيقة أولاً
+            // فك تشفير الإجابات
+            allQs.forEach(q => {
+                if (q._a && !q.answer) {
+                    try { q.answer = atob(q._a); } catch(e) { q.answer = q._a; }
+                }
+            });
             let filtered = allQs.filter(q => targets.includes(q.lesson));
             
             // إذا لم نجد شيئاً — فلترة مرنة (تجاهل الفراغات والتشكيل)
@@ -2751,20 +2809,43 @@
         area.innerHTML = html;
 
         const optArea = document.getElementById('options-area');
-        if (q.q_type === 'short') {
-            optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input" placeholder="اكتب إجابتك هنا..." autofocus>
-                <button class="nav-btn active shiny-btn" onclick="submitShortAnswer('${q.answer.replace(/'/g,"\\'")}') ">إرسال الإجابة ✅</button>`;
-            document.getElementById('short-answer-input')?.focus();
-        } else if (q.q_type === 'true_false') {
+        const _qt = (q.q_type || '').toLowerCase().replace('_','');
+        const _isShort = _qt === 'short' || _qt === 'essay';
+        const _isTF    = _qt === 'truefalse' || _qt === 'tf' || _qt === 'true_false';
+
+        if (_isShort) {
+            const _ans = (q.answer||'').replace(/'/g,"\\'");
+            optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input"
+                placeholder="اكتب إجابتك هنا..." autocomplete="off"
+                onkeypress="if(event.key==='Enter'){event.preventDefault();submitShortAnswer('${_ans}');}">
+                <button class="nav-btn active shiny-btn" style="margin-top:12px;"
+                    onclick="submitShortAnswer('${_ans}')">إرسال الإجابة ✅</button>`;
+            setTimeout(()=>document.getElementById('short-answer-input')?.focus(), 80);
+        } else if (_isTF) {
             optArea.innerHTML = `<button class="quiz-btn shiny-btn" onclick="checkAnswer('صواب','${q.answer}')">صواب ✅</button>
                 <button class="quiz-btn shiny-btn" onclick="checkAnswer('خطأ','${q.answer}')">خطأ ❌</button>`;
         } else {
-            q.options.split(',').forEach(opt => {
-                const o = opt.trim();
-                optArea.innerHTML += `<button class="quiz-btn shiny-btn" onclick="checkAnswer('${o.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}') ">${o}</button>`;
-            });
+            const _sep  = (q.options||'').includes('|') ? '|' : ',';
+            const _opts = (q.options||'').split(_sep).map(o=>o.trim()).filter(o=>o.length>0);
+            if (_opts.length === 0) {
+                const _ans = (q.answer||'').replace(/'/g,"\\'");
+                optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input"
+                    placeholder="اكتب إجابتك هنا..." autocomplete="off"
+                    onkeypress="if(event.key==='Enter'){event.preventDefault();submitShortAnswer('${_ans}');}">
+                    <button class="nav-btn active shiny-btn" style="margin-top:12px;"
+                        onclick="submitShortAnswer('${_ans}')">إرسال الإجابة ✅</button>`;
+                setTimeout(()=>document.getElementById('short-answer-input')?.focus(), 80);
+            } else {
+                _opts.forEach(opt => {
+                    const _o   = opt.trim();
+                    const _oEs = _o.replace(/'/g,"\\'");
+                    const _aEs = (q.answer||'').replace(/'/g,"\\'");
+                    optArea.innerHTML += `<button class="quiz-btn shiny-btn"
+                        onclick="checkAnswer('${_oEs}','${_aEs}')">${_o}</button>`;
+                });
+            }
         }
-    }
+        }
 
     /* زر التلميح في التحدي */
     function useHintChallenge() {
@@ -2799,9 +2880,9 @@
 
     function submitShortAnswer(correct) {
         const val = document.getElementById('short-answer-input')?.value;
-        if (!val) { alert('يرجى كتابة الإجابة!'); return; }
+        if (!val || !val.trim()) { showToast('⚠️ يرجى كتابة الإجابة!'); return; }
         document.getElementById('short-answer-input').disabled = true;
-        checkAnswer(val, correct);
+        checkAnswer(val.trim(), correct.trim());
     }
 
     const phrasesCorrect = ['كفو يا الذيب! 🐺','بيض الله وجهك! ✨','إجابة سلطانية! 👑','ما شاء الله، عبقري! 🌟'];
@@ -2812,7 +2893,9 @@
         const f = document.getElementById('feedback');
         const q = challengeState.qs[challengeState.index];
 
-        if (user.trim() === correct.trim()) {
+        // مقارنة مرنة: تجاهل فراغات + حالة الأحرف
+        const normalize = s => (s||'').trim().replace(/\s+/g,' ');
+        if (normalize(user) === normalize(correct)) {
             playSound(document.getElementById('correct-sfx'));
             f.innerHTML = `<span style="color:#00ff00;">${phrasesCorrect[Math.floor(Math.random() * phrasesCorrect.length)]}</span>`;
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
@@ -3033,21 +3116,59 @@
         animateXP(oldXp, newXp);
     }
 
+    const RANK_LEVELS = [
+        { label:'مستكشف جديد', icon:'🌟', min:0,    max:100,  next:'جندي شجاع',         nextXp:100  },
+        { label:'جندي شجاع',   icon:'🛡️', min:100,  max:500,  next:'فارس الرياضيات',    nextXp:500  },
+        { label:'فارس الرياضيات', icon:'⚔️', min:500, max:1500, next:'الوزير الحكيم',   nextXp:1500 },
+        { label:'الوزير الحكيم',  icon:'🧙', min:1500,max:3000, next:'سلطان الأرقام',   nextXp:3000 },
+        { label:'سلطان الأرقام',  icon:'👑', min:3000,max:5000, next:'إمبراطور الرياضيات',nextXp:5000},
+        { label:'إمبراطور الرياضيات',icon:'🔮',min:5000,max:null,next:null,nextXp:null   },
+    ];
+
     function updateRank(xp) {
-        let title = 'مستكشف جديد', widthValue = 0;
-        const oldEl = document.getElementById('rank-title');
+        const oldEl    = document.getElementById('rank-title');
         const oldTitle = oldEl ? oldEl.textContent : '';
 
-        if      (xp >= 3000) { title = '👑 سلطان الأرقام';    widthValue = 100; }
-        else if (xp >= 1500) { title = '🧙‍♂️ الوزير الحكيم';  widthValue = 75 + ((xp - 1500) / 1500) * 25; }
-        else if (xp >= 500)  { title = '⚔️ فارس الرياضيات';   widthValue = 50 + ((xp - 500) / 1000) * 25; }
-        else if (xp >= 100)  { title = '🛡️ جندي شجاع';        widthValue = 25 + ((xp - 100) / 400) * 25; }
-        else                  { widthValue = (xp / 100) * 25; }
+        let rank = RANK_LEVELS[0];
+        for (let i = RANK_LEVELS.length - 1; i >= 0; i--) {
+            if (xp >= RANK_LEVELS[i].min) { rank = RANK_LEVELS[i]; break; }
+        }
 
-        if (oldTitle && title !== oldTitle && oldTitle !== 'مستكشف جديد') triggerLevelUp(title);
+        // حساب نسبة الشريط (0→100%)
+        const segSize  = 5000 / RANK_LEVELS.length;
+        const rankIdx  = RANK_LEVELS.indexOf(rank);
+        const segStart = rankIdx * segSize;
+        const segEnd   = rank.max ? rank.max : 5000;
+        const progress = segStart + ((Math.min(xp, segEnd) - rank.min) / (segEnd - rank.min)) * segSize;
+        const widthPct = Math.min(100, (progress / 5000) * 100).toFixed(1) + '%';
+
+        const title = rank.icon + ' ' + rank.label;
+        if (oldTitle && title !== oldTitle && oldTitle !== '🌟 مستكشف جديد') triggerLevelUp(title);
+
         document.querySelectorAll('#rank-title, #main-profile-rank').forEach(el => el.textContent = title);
-        const w = widthValue.toFixed(1) + '%';
-        document.querySelectorAll('.level-bar-fill, #dashboard-level-bar').forEach(bar => { bar.style.width = w; bar.style.transition = 'width 1s ease-in-out'; });
+        document.querySelectorAll('.level-bar-fill, #dashboard-level-bar').forEach(bar => {
+            bar.style.width = widthPct; bar.style.transition = 'width 1s ease-in-out';
+        });
+
+        // شارة الرتبة على الأفاتار
+        const pinEl = document.getElementById('profile-rank-pin');
+        if (pinEl) pinEl.textContent = rank.icon + ' ' + rank.label;
+
+        // الرتبة التالية
+        const nextEl = document.getElementById('next-rank-label');
+        if (nextEl) nextEl.textContent = rank.next
+            ? rank.next + ' — ' + (rank.nextXp - xp) + ' XP'
+            : '🔮 أقصى رتبة!';
+
+        // تمييز الرتب في الصف
+        const ranksRow = document.getElementById('ranks-row');
+        if (ranksRow) {
+            ranksRow.querySelectorAll('span').forEach((s, i) => {
+                if (i < rankIdx)      { s.style.opacity = '0.8'; s.style.color = ''; }
+                else if (i === rankIdx){ s.style.opacity = '1';   s.style.color = 'var(--gold)'; s.style.fontSize = '0.85rem'; }
+                else                  { s.style.opacity = '0.3'; s.style.color = ''; s.style.fontSize = '0.68rem'; }
+            });
+        }
     }
 
     function triggerLevelUp(newTitle) {
@@ -3327,23 +3448,12 @@
 
     /* تفعيل كود الاشتراك من البوابة */
     function activateSubCodePortal() {
-        const inp = document.getElementById('sub-code-input-portal');
-        if (!inp) return;
-        const raw = inp.value.trim().toUpperCase();
+        const raw = (document.getElementById('portal-sub-code')?.value || '').trim().toUpperCase();
         if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
-        const usedCodes = JSON.parse(localStorage.getItem('usedSubCodes') || '[]');
-        if (usedCodes.includes(raw)) { showToast('❌ هذا الكود مستخدَم مسبقاً!'); return; }
-        const entry = VALID_SUB_CODES.find(c => c.code === raw);
-        if (!entry) { showToast('❌ الكود غير صحيح — تحقق من الأستاذ رشدي'); return; }
-        const now = new Date();
-        const expiry = entry.months === -1 ? null : new Date(now.getFullYear(), now.getMonth() + entry.months, now.getDate());
-        localStorage.setItem(SUB_KEY, JSON.stringify({ code: raw, months: entry.months, expiry: expiry?.toISOString() || null, activated: new Date().toISOString() }));
-        usedCodes.push(raw); localStorage.setItem('usedSubCodes', JSON.stringify(usedCodes));
-        const msg = entry.months === -1 ? 'تفعيل دائم!' : `صالح حتى ${expiry.toLocaleDateString('ar-EG')}`;
-        showToast(`🎉 تم تفعيل الاشتراك! ${msg}`);
-        confetti({ particleCount: 200, spread: 80, origin: { y: 0.5 } });
-        updateSubBadge();
-        openCitizensPortal();
+        // إعادة التوجيه لدالة activateSubCode الرئيسية
+        const inp = document.getElementById('sub-code-input');
+        if (inp) { inp.value = raw; activateSubCode(); }
+        else { showToast('⚠️ افتح نافذة الاشتراك أولاً'); }
     }
 
     // للتوافق مع الكود القديم
@@ -3567,7 +3677,7 @@
         if (btn) { btn.disabled = true; btn.textContent = 'جاري التسجيل...'; }
         toggleLoader(true);
 
-        const gradeMap = {'1':'الصف الأول','2':'الصف الثاني','3':'الصف الثالث','4':'الصف الرابع','5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر','11':'الصف الحادي عشر','12':'الصف الثاني عشر'};
+        const gradeMap = {'5':'الصف الخامس','6':'الصف السادس','7':'الصف السابع','8':'الصف الثامن','9':'الصف التاسع','10':'الصف العاشر'};
         // grade قد يكون رقماً أو نصاً عربياً (من القائمة الثابتة)
         const resolvedGrade = gradeMap[String(grade)] || grade;
         const clan       = assignClan(user);
@@ -3958,6 +4068,16 @@
         loadGlobalCurriculum();
         checkInviteLink();
         updateSubBadge();
+        // توليد نجوم داخل بطاقة الملف الشخصي
+        const sc = document.getElementById('profile-stars-container');
+        if (sc) {
+            for(let i=0;i<12;i++){
+                const s=document.createElement('div');
+                s.className='profile-star';
+                s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--pd:${2+Math.random()*4}s;--pdelay:${Math.random()*3}s;`;
+                sc.appendChild(s);
+            }
+        }
 
         if (currentUser) {
             document.getElementById('auth-overlay').style.display = 'none';
