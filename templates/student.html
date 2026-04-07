@@ -26,6 +26,20 @@
         /* ============================================================
            CSS VARIABLES & ROOT
         ============================================================ */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .01ms !important;
+            }
+            #particles-js { display: none !important; }
+        }
+        @media (max-width: 768px) {
+            .profile-dashboard, .tilt-card, .auth-card {
+                backdrop-filter: blur(8px) !important;
+                -webkit-backdrop-filter: blur(8px) !important;
+            }
+        }
         :root {
             --primary: #040d21;
             --gold: #d4af37;
@@ -104,6 +118,7 @@
            PARTICLES (CANVAS STARS)
         ============================================================ */
         #particles-js {
+            display: none !important;
             position: fixed !important;
             top: 0; left: 0;
             width: 100%; height: 100%;
@@ -283,7 +298,11 @@
             transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1);
         }
         .profile-avatar-wrap:hover .profile-avatar-large {
-            transform:scale(1.08);
+            transform: scale(1.04);
+        }
+        .profile-avatar-wrap:active .profile-avatar-large {
+            transform: scale(0.95);
+            transition: transform 0.1s ease;
         }
         .profile-rank-pin {
             position:absolute;bottom:-6px;left:50%;transform:translateX(-50%);
@@ -298,9 +317,13 @@
         /* shimmer على شريط التقدم */
         .level-bar-fill { position:relative;overflow:hidden; }
         .level-bar-fill::after {
-            content:'';position:absolute;top:0;left:-100%;bottom:0;width:60%;
-            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.35),transparent);
-            animation:_barShine 2.5s infinite;
+            content:'';position:absolute;top:0;left:-100%;bottom:0;width:50%;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,0.5),transparent);
+            animation:_barShine 2s infinite;
+        }
+        @keyframes _barShine {
+            0%   { left:-100%; }
+            100% { left:200%;  }
         }
         /* hover على stat-box */
         .stat-box {
@@ -702,6 +725,7 @@
         .timeline-lesson-pill.open:hover { background: var(--gold-grad); color: #000; }
         .timeline-lesson-pill.locked-pill { background: rgba(100,100,100,0.1); border: 1px solid rgba(100,100,100,0.3); color: #555; cursor: not-allowed; }
         .timeline-lesson-pill.done { background: rgba(40,167,69,0.15); border: 1px solid #28a745; color: #28a745; }
+        .timeline-lesson-pill.weak-lesson { background: rgba(243,156,18,0.1); border: 1px solid #f39c12; color: #f39c12; }
 
         /* ============================================================
            BROADCAST
@@ -942,6 +966,8 @@
             <div class="arena-daily-counter" id="arena-daily-counter">
                 <span>مبارزات اليوم:</span>
                 <div class="arena-dots" id="arena-dots">
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
@@ -1294,18 +1320,36 @@
                         <div class="stat-box"><div style="font-size:0.8rem;opacity:0.5;">الصف</div><div class="stat-number" style="font-size:0.9rem;" id="main-profile-grade">—</div></div>
                     </div>
                     <div>
-                        <div style="display:flex;justify-content:space-between;margin-bottom:7px;font-size:0.8rem;">
-                            <span style="opacity:0.5;">🚀 التقدم نحو الرتبة التالية</span>
-                            <span style="color:var(--gold);font-weight:bold;" id="next-rank-label">—</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;font-size:0.8rem;">
+                            <span style="opacity:0.45;font-size:0.75rem;">🚀 التقدم نحو الرتبة التالية</span>
+                            <span style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.3);color:var(--gold);font-weight:900;font-size:0.75rem;padding:2px 10px;border-radius:20px;" id="next-rank-label">—</span>
                         </div>
                         <div class="level-bar-bg"><div class="level-bar-fill" id="dashboard-level-bar"></div></div>
-                        <div style="display:flex;justify-content:space-between;margin-top:8px;" id="ranks-row">
-                            <span style="font-size:0.68rem;opacity:0.35;">🌟</span>
-                            <span style="font-size:0.68rem;opacity:0.35;">🛡️</span>
-                            <span style="font-size:0.68rem;opacity:0.35;">⚔️</span>
-                            <span style="font-size:0.68rem;opacity:0.35;">🧙</span>
-                            <span style="font-size:0.68rem;opacity:0.35;">👑</span>
-                            <span style="font-size:0.68rem;opacity:0.35;">🔮</span>
+                        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:10px;padding:0 2px;" id="ranks-row">
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">🌟</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">مستكشف</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">🛡️</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">جندي</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">⚔️</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">فارس</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">🧙</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">وزير</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">👑</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">سلطان</span>
+                            </div>
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:2px;">
+                                <span style="font-size:1rem;line-height:1;">🔮</span>
+                                <span style="font-size:0.58rem;color:rgba(255,255,255,0.3);">إمبراطور</span>
+                            </div>
                         </div>
                     </div>
                     <div class="parent-code-box" id="parent-code-box" style="display:none;">
@@ -1374,6 +1418,11 @@
        CONSTANTS & STATE
     ================================================================ */
     const API_URL  = window.location.origin;
+    const _isDev = ['localhost','127.0.0.1'].includes(window.location.hostname);
+    const _log   = (...a) => { if (_isDev) _log(...a); };
+    const _warn  = (...a) => { if (_isDev) _warn(...a); };
+    const _grp   = (...a) => { if (_isDev) _grp(...a); };
+    const _grpE  = ()     => { if (_isDev) _grpE(); };
     const API_BASE = window.location.origin;
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
 
@@ -1393,13 +1442,13 @@
                 headers: { 'Authorization': 'Bearer ' + localStorage.getItem('adminToken') }
             });
             const data = await res.json();
-            console.group('🔍 تشخيص الأسئلة في Supabase');
-            console.log('إجمالي الأسئلة:', data.count);
-            console.log('قيم grade المخزونة:', data.grades);
-            console.log('قيم lesson المخزونة (أول 20):', data.lessons?.slice(0,20));
-            console.log('صف الطالب الحالي:', currentUser?.grade);
-            console.log('نماذج أسئلة:', data.samples);
-            console.groupEnd();
+            _grp('🔍 تشخيص الأسئلة في Supabase');
+            _log('إجمالي الأسئلة:', data.count);
+            _log('قيم grade المخزونة:', data.grades);
+            _log('قيم lesson المخزونة (أول 20):', data.lessons?.slice(0,20));
+            _log('صف الطالب الحالي:', currentUser?.grade);
+            _log('نماذج أسئلة:', data.samples);
+            _grpE();
             return data;
         } catch(e) { console.error('خطأ:', e); }
     };
@@ -1629,6 +1678,9 @@
         }
         checkUpcomingExams();
         updateHeroBroadcast();
+        // إشعارات بعد تأكد من وجود currentUser
+        setTimeout(() => { if (currentUser) checkGeneralNotifications(); }, 3000);
+        setInterval(() => { if (currentUser) checkGeneralNotifications(); }, 60000);
     }
 
     /* ================================================================
@@ -1738,14 +1790,13 @@
 
         // أول درس غير مكتمل
         function isLessonUnlocked(lessonName) {
-            if (progress[lessonName] === 'done') return true;
-            // الدرس الأول دائماً مفتوح
+            if (progress[lessonName] === 'done' || progress[lessonName] === 'weak') return true;
             const firstLesson = allLessons[0]?.name;
             if (lessonName === firstLesson) return true;
-            // الدرس مفتوح إذا كان الذي قبله مكتملاً
             const idx = allLessons.findIndex(l => l.name === lessonName);
             if (idx <= 0) return true;
-            return progress[allLessons[idx - 1].name] === 'done';
+            const prev = progress[allLessons[idx - 1].name];
+            return prev === 'done' || prev === 'weak';
         }
 
         let html = `<div class="roadmap-container">
@@ -1764,14 +1815,15 @@
                 <div class="timeline-lessons">`;
 
             wLessons.forEach(lesson => {
-                const done   = progress[lesson.name] === 'done';
+                const isDone = progress[lesson.name] === 'done';
+                const isWeak = progress[lesson.name] === 'weak';
                 const open   = isLessonUnlocked(lesson.name);
-                const cls    = done ? 'done' : open ? 'open' : 'locked-pill';
-                const icon   = done ? '✅' : open ? '🟡' : '🔒';
-                // في وضع المراقبة — كل الدروس قابلة للضغط
-                const canClick  = isAdminMonitor ? true : (open && !done);
+                const cls    = isDone ? 'done' : isWeak ? 'open weak-lesson' : open ? 'open' : 'locked-pill';
+                const icon   = isDone ? '✅' : isWeak ? '⚠️' : open ? '🟡' : '🔒';
+                const tipTxt = isWeak ? 'نسبتك أقل من 85% — يُنصح بالإعادة' : (lesson.unit || '');
+                const canClick  = isAdminMonitor ? true : ((open || isWeak) && !isDone);
                 const clickAttr = canClick ? `onclick="prepareChoice('${lesson.name.replace(/'/g,"\\'")}') "` : '';
-                html += `<div class="timeline-lesson-pill ${cls}" ${clickAttr} title="${lesson.unit}">${icon} ${lesson.name}</div>`;
+                html += `<div class="timeline-lesson-pill ${cls}" ${clickAttr} title="${tipTxt}">${icon} ${lesson.name}</div>`;
             });
 
             html += `</div></div>`;
@@ -2137,7 +2189,7 @@
     const TRIAL_END_DATE  = new Date('2026-09-15T23:59:59');
     const SUB_KEY         = 'mathEmpireSub';
     const ARENA_DAILY_KEY = 'arenaDaily';
-    const ARENA_MAX_DAILY = 3;
+    const ARENA_MAX_DAILY = 5;
 
     // الأكواد محفوظة في السيرفر فقط — لا أكواد هنا لأمان أعلى
 
@@ -2431,7 +2483,7 @@
             const allQs = await res.json();
             // الأسئلة مفلترة مسبقاً بالصف من السيرفر
             let pool = allQs.slice();
-            console.info('🏟️ أسئلة المبارزة المتاحة:', pool.length, 'للصف:', currentUser?.grade);
+            _log('🏟️ أسئلة المبارزة المتاحة:', pool.length, 'للصف:', currentUser?.grade);
             // fallback: أسئلة بدون صف محدد
             if (pool.length < 5)
                 pool = allQs.filter(q => !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum);
@@ -2607,6 +2659,33 @@
     /* ================================================================
        EXAMS
     ================================================================ */
+    async function checkGeneralNotifications() {
+        if (!currentUser) return;
+        try {
+            const grade = encodeURIComponent(currentUser.grade || '');
+            const res = await fetch(`${API_URL}/api/notifications?grade=${grade}`);
+            if (!res.ok) return;
+            const notifs = await res.json();
+            if (!notifs || notifs.length === 0) return;
+            const latest = notifs[0];
+            const seenKey = 'seenNotif_' + latest.id;
+            if (localStorage.getItem(seenKey)) return;
+            const icons  = {announcement:'📢',exam:'📝',achievement:'🏆',warning:'⚠️',homework:'📚'};
+            const colors = {urgent:'#e74c3c',important:'#f39c12',normal:'#d4af37'};
+            const color = colors[latest.priority] || '#d4af37';
+            const icon  = icons[latest.type] || '🔔';
+            const bid   = 'nb_' + latest.id;
+            if (document.getElementById(bid)) return;
+            const banner = document.createElement('div');
+            banner.id = bid;
+            banner.style.cssText=`position:fixed;top:0;left:0;right:0;background:${color};color:#000;padding:10px 20px;z-index:99999;font-family:'Cairo',sans-serif;font-weight:bold;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;direction:rtl;`;
+            banner.innerHTML=`<span>${icon} <strong>${latest.title}</strong> — ${latest.body}</span><button onclick="document.getElementById('${bid}').remove();" style="background:rgba(0,0,0,.2);border:none;color:#000;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:'Cairo';">✕</button>`;
+            document.body.prepend(banner);
+            localStorage.setItem(seenKey,'1');
+            setTimeout(()=>{const b=document.getElementById(bid);if(b)b.remove();},12000);
+        } catch(e){}
+    }
+
     async function checkUpcomingExams() {
         try {
             const res = await fetch(`${API_URL}/api/exams/upcoming`);
@@ -2688,36 +2767,20 @@
 
         try {
             const gradeParam2 = encodeURIComponent(currentUser?.grade || '');
-            const res   = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam2}`);
+            const targets     = lessonStr.split(',').map(l => l.trim());
+            const lessonParam = encodeURIComponent(targets[0] || '');
+            const res   = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam2}&lesson=${lessonParam}`);
             if (!res.ok) throw new Error('Server error');
-            const allQs = await res.json();
-            const targets = lessonStr.split(',').map(l => l.trim());
-            
-            // فلترة دقيقة أولاً
-            // فك تشفير الإجابات
-            allQs.forEach(q => {
-                if (q._a && !q.answer) {
-                    try { q.answer = atob(q._a); } catch(e) { q.answer = q._a; }
+            let allQs = await res.json();
+            if ((!allQs || allQs.length === 0) && targets[0]) {
+                const res2 = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam2}`);
+                if (res2.ok) {
+                    const all2 = await res2.json();
+                    const norm = s => (s||'').trim().replace(/\s+/g,' ');
+                    allQs = all2.filter(q => targets.some(t => norm(t) === norm(q.lesson)));
                 }
-            });
-            let filtered = allQs.filter(q => targets.includes(q.lesson));
-            
-            // إذا لم نجد شيئاً — فلترة مرنة (تجاهل الفراغات والتشكيل)
-            if (filtered.length === 0 && allQs.length > 0) {
-                const normalize = s => (s || '').trim().replace(/\s+/g, ' ');
-                filtered = allQs.filter(q => 
-                    targets.some(t => normalize(t) === normalize(q.lesson))
-                );
             }
-            
-            // تسجيل تشخيصي في Console للمساعدة في حل المشكلة
-            if (filtered.length === 0) {
-                console.warn('⚠️ لا توجد أسئلة للدرس:', targets);
-                console.info('📦 الأسئلة المتاحة في هذا الصف:', allQs.length, 
-                    'أسماء الدروس:', [...new Set(allQs.map(q => q.lesson))]);
-            } else {
-                console.info('✅ أسئلة موجودة:', filtered.length, 'للدرس:', targets[0]);
-            }
+            let filtered = allQs || [];
 
             if (isExamMode && scheduledExamData) {
                 if (scheduledExamData.target_q_type && scheduledExamData.target_q_type !== 'all')
@@ -2945,7 +3008,11 @@
             updateStudentXP(pointsEarned);
             await sendResultToBackend();
             // تحديث تقدم خريطة الطريق
-            markLessonDone(challengeState.lesson, challengeState.correct, challengeState.qs.length);
+            const _finPct = challengeState.qs.length > 0 ? (challengeState.correct / challengeState.qs.length) * 100 : 0;
+        markLessonDone(challengeState.lesson, challengeState.correct, challengeState.qs.length);
+        if (_finPct > 0 && _finPct < 85) {
+            setTimeout(() => showToast(`⚠️ نسبتك ${Math.round(_finPct)}% — يُنصح بإعادة الدرس للوصول لـ 85%`, 'warning', 5000), 2800);
+        }
             // ── حفظ السجل التاريخي لصفحة ولي الأمر ──
             if (currentUser) {
                 if (!currentUser.history) currentUser.history = [];
@@ -3009,12 +3076,14 @@
     function markLessonDone(lessonName, correct, total) {
         if (!currentUser) return;
         const pct = total > 0 ? (correct / total) * 100 : 0;
-        if (pct >= 50) {
-            const progressKey = 'roadmap_' + currentUser.username;
-            const progress = JSON.parse(localStorage.getItem(progressKey) || '{}');
+        const progressKey = 'roadmap_' + currentUser.username;
+        const progress = JSON.parse(localStorage.getItem(progressKey) || '{}');
+        if (pct >= 85) {
             progress[lessonName] = 'done';
-            localStorage.setItem(progressKey, JSON.stringify(progress));
+        } else if (pct >= 50 && progress[lessonName] !== 'done') {
+            progress[lessonName] = 'weak';
         }
+        localStorage.setItem(progressKey, JSON.stringify(progress));
         // ── بناء roadmap منظّم متوافق مع صفحة ولي الأمر ──
         if (!currentUser.roadmap) currentUser.roadmap = [];
         if (!currentUser._roadmapDoneLessons) currentUser._roadmapDoneLessons = [];
@@ -3163,10 +3232,22 @@
         // تمييز الرتب في الصف
         const ranksRow = document.getElementById('ranks-row');
         if (ranksRow) {
-            ranksRow.querySelectorAll('span').forEach((s, i) => {
-                if (i < rankIdx)      { s.style.opacity = '0.8'; s.style.color = ''; }
-                else if (i === rankIdx){ s.style.opacity = '1';   s.style.color = 'var(--gold)'; s.style.fontSize = '0.85rem'; }
-                else                  { s.style.opacity = '0.3'; s.style.color = ''; s.style.fontSize = '0.68rem'; }
+            ranksRow.querySelectorAll('div').forEach((div, i) => {
+                const ico = div.querySelector('span:first-child');
+                const lbl = div.querySelector('span:last-child');
+                if (!ico) return;
+                if (i < rankIdx) {
+                    ico.style.fontSize = '1rem'; ico.style.opacity = '0.9';
+                    if (lbl) { lbl.style.color = 'rgba(212,175,55,0.5)'; lbl.style.fontWeight = ''; }
+                } else if (i === rankIdx) {
+                    ico.style.fontSize = '1.3rem'; ico.style.opacity = '1';
+                    div.style.transform = 'translateY(-3px)';
+                    if (lbl) { lbl.style.color = 'var(--gold)'; lbl.style.fontWeight = '900'; }
+                } else {
+                    ico.style.fontSize = '0.9rem'; ico.style.opacity = '0.25';
+                    div.style.transform = '';
+                    if (lbl) { lbl.style.color = 'rgba(255,255,255,0.2)'; lbl.style.fontWeight = ''; }
+                }
             });
         }
     }
@@ -3823,7 +3904,7 @@
             }
             _fillGradeDropdown(globalCurriculum.map((g, i) => g.name || 'صف ' + (i+1)));
         } catch (e) {
-            console.warn('لم يتم تحميل المناهج (offline mode):', e);
+            _warn('لم يتم تحميل المناهج (offline mode):', e);
             // ── وضع Offline: منهج تجريبي شامل لجميع الصفوف ──
             const offlineSemesters = (sem) => ({
                 name: sem === 1 ? 'الفصل الأول' : 'الفصل الثاني',
@@ -3987,6 +4068,9 @@
     /* ================================================================
        STARS (PARTICLES)
     ================================================================ */
+    let _starsPaused = false;
+    document.addEventListener('visibilitychange', () => { _starsPaused = document.hidden; });
+
     function initStars() {
         const canvas = document.getElementById('particles-js');
         const ctx    = canvas.getContext('2d');
@@ -4004,6 +4088,7 @@
         }
 
         function anim() {
+            if (_starsPaused) { requestAnimationFrame(anim); return; }
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             stars.forEach(s => {
                 s.o += 0.012;
@@ -4029,6 +4114,8 @@
     let isAdminMonitor = false;
 
     window.addEventListener('message', async (event) => {
+        if (event.origin && event.origin !== window.location.origin &&
+            !event.origin.startsWith('http://localhost')) return;
         if (!event.data || event.data.type !== 'MONITOR_LOGIN') return;
         const student = event.data.student;
         if (!student) return;
@@ -4036,11 +4123,14 @@
         isAdminMonitor = true;
 
         currentUser = {
-            id:        student.id,
-            full_name: student.full_name,
-            username:  student.username,
-            grade:     student.grade,
-            xp:        9999,
+            id:          student.id,
+            full_name:   student.full_name,
+            username:    student.username,
+            grade:       student.grade,
+            school_name: student.school_name || '',
+            avatar_url:  student.avatar_url  || '',
+            parent_code: student.parent_code || '',
+            xp:          0,
         };
         localStorage.setItem('currentStudent', JSON.stringify(currentUser));
 

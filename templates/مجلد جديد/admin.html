@@ -2833,54 +2833,10 @@
     let notifHistory = JSON.parse(localStorage.getItem('notifHistory') || '[]');
     let selectedNotifType = 'announcement';
 
-    async function openNotifModal() {
+    function openNotifModal() {
         document.getElementById('notif-modal').style.display = 'flex';
-        // جلب السجل من API أولاً
-        try {
-            const res = await authFetch('/api/notifications?grade=all');
-            if (res && res.ok) {
-                const data = await res.json();
-                if (data && data.length > 0) {
-                    const typeIcons = {announcement:'📢',exam:'📝',achievement:'🏆',warning:'⚠️',homework:'📚'};
-                    // دمج مع السجل المحلي
-                    const apiEntries = data.map(n => ({
-                        id: n.id,
-                        title: n.title,
-                        body:  n.body,
-                        grade: n.grade === 'all' ? 'جميع الصفوف' : n.grade,
-                        type:  n.type || 'announcement',
-                        priority: n.priority || 'normal',
-                        sentAt: new Date(n.created_at).toLocaleString('ar-OM'),
-                        status: 'sent',
-                        from_api: true
-                    }));
-                    // نضيف فقط ما ليس في السجل المحلي
-                    apiEntries.forEach(e => {
-                        if (!notifHistory.find(h => h.id === e.id)) {
-                            notifHistory.push(e);
-                        }
-                    });
-                    notifHistory.sort((a,b) => b.id - a.id);
-                    if (notifHistory.length > 50) notifHistory.length = 50;
-                }
-            }
-        } catch(e) {}
         renderNotifHistory();
     }
-    async function deleteNotif(id, btn) {
-        if (!confirm('هل تريد حذف هذا الإشعار؟ لن يظهر للطلاب بعد الآن.')) return;
-        btn.disabled = true; btn.textContent = '...';
-        try {
-            const res = await authFetch(`/api/admin/notifications/${id}`, { method: 'DELETE' });
-            if (res && res.ok) {
-                notifHistory = notifHistory.filter(n => n.id !== id);
-                localStorage.setItem('notifHistory', JSON.stringify(notifHistory));
-                renderNotifHistory();
-                showToast('🗑️ تم حذف الإشعار', 'success');
-            }
-        } catch(e) { btn.disabled = false; btn.textContent = '🗑️'; }
-    }
-
     function closeNotifModal() {
         document.getElementById('notif-modal').style.display = 'none';
         document.getElementById('notif-preview-box').style.display = 'none';
@@ -2972,7 +2928,6 @@
                     <div style="font-weight:bold;color:#fff;font-size:0.95rem;">${typeIcons[n.type]||'🔔'} ${n.title}</div>
                     <div style="color:rgba(255,255,255,0.5);font-size:0.82rem;margin-top:4px;">${n.grade} · ${n.sentAt}</div>
                 </div>
-                ${n.from_api && n.id ? `<button onclick="deleteNotif(${n.id},this)" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;border-radius:8px;padding:4px 10px;cursor:pointer;font-size:0.78rem;font-family:'Cairo';margin-left:8px;" title="حذف الإشعار">🗑️</button>` : ''}
                 <span class="notif-badge ${n.status}">${n.status === 'sent' ? '✓ أُرسل' : '⏳ محلي'}</span>
             </div>`).join('');
     }
@@ -3745,7 +3700,7 @@
                 iframe.contentWindow.postMessage({
                     type: 'MONITOR_LOGIN',
                     student: studentData
-                }, window.location.origin);
+                }, '*');
             } catch(e) {
                 console.warn('postMessage failed:', e);
             }
