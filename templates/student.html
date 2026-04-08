@@ -917,7 +917,20 @@
         @media screen and (min-width: 901px) {
             .sidebar-collapse-btn { display: flex; }
         }
-    </style>
+    
+        /* ═══ Elite Club CSS (إضافة) ═══ */
+        .btn-elite { border-color:#f39c12; color:#f39c12; background:rgba(243,156,18,0.08); position:relative; }
+        .btn-elite:hover, .btn-elite.active { background:linear-gradient(135deg,#b38728,#f39c12,#fcf6ba); color:#000; border-color:#f39c12; box-shadow:0 0 20px rgba(243,156,18,0.4); }
+        .elite-badge-crown { display:inline-block; background:linear-gradient(135deg,#b38728,#f39c12,#fcf6ba); color:#000; font-size:0.65rem; font-weight:900; padding:2px 8px; border-radius:20px; vertical-align:middle; }
+        .elite-lock-overlay { position:absolute; inset:0; background:rgba(4,13,33,0.85); backdrop-filter:blur(6px); display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:16px; z-index:5; gap:12px; }
+        .elite-card { background:rgba(243,156,18,0.04); border:1px solid rgba(243,156,18,0.2); border-radius:16px; padding:24px; margin-bottom:16px; position:relative; overflow:hidden; }
+        .elite-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:linear-gradient(90deg,transparent,#f39c12,#fcf6ba,#f39c12,transparent); }
+        .elite-diff-hard    { color:#e74c3c; font-weight:700; }
+        .elite-diff-expert  { color:#9b59b6; font-weight:700; }
+        .elite-diff-olympic { color:#f39c12; font-weight:700; }
+        .elite-arena-vs { font-family:'Amiri',serif; font-size:3rem; color:#f39c12; text-shadow:0 0 20px #f39c12; animation:pulse 1s infinite alternate; }
+        #view-elite { display:none; }
+</style>
 </head>
 <body>
     <!-- PARTICLES CANVAS -->
@@ -1221,6 +1234,11 @@
             <span class="btn-icon">🛡️</span><span class="sidebar-label">الدعم الفني والاشتراك</span>
         </button>
 
+        <button class="nav-btn shiny-btn btn-elite" id="btn-elite" onclick="openEliteClub()" style="display:none;">
+            <span class="btn-icon">⭐</span>
+            <span class="sidebar-label">نادي النخبة <span class="elite-badge-crown">VIP+</span></span>
+        </button>
+
         <button class="nav-btn shiny-btn" id="btn-profile" onclick="openEditProfile()">
             <span class="btn-icon">⚙️</span><span class="sidebar-label">ملفي الشخصي</span>
         </button>
@@ -1395,6 +1413,105 @@
         <div id="view-other" style="display:none;">
             <div id="other-content-area"></div>
         </div>
+
+        <!-- ═══════════════════════════════════════
+             نادي النخبة — Elite Club View
+             ═══════════════════════════════════════ -->
+        <div id="view-elite">
+
+            <!-- LOCK OVERLAY — للطلاب غير المعتمدين -->
+            <div id="elite-lock-overlay" class="elite-lock-overlay" style="position:fixed;top:0;left:0;right:0;bottom:0;z-index:100;">
+                <div style="font-size:4rem;filter:drop-shadow(0 0 20px rgba(243,156,18,0.6));">⭐</div>
+                <h2 style="font-family:'Amiri';color:#f39c12;font-size:2rem;margin:0;text-align:center;">نادي النخبة</h2>
+                <p style="color:rgba(255,255,255,0.6);text-align:center;max-width:320px;line-height:1.7;">
+                    هذا النادي مخصص للطلاب الفائقين فقط.<br>
+                    حقق 85%+ في 5 دروس على الأقل لتقديم طلب الانضمام.
+                </p>
+                <div id="elite-lock-status" style="text-align:center;"></div>
+            </div>
+
+            <!-- MAIN CONTENT — يظهر للمعتمدين فقط -->
+            <div id="elite-content" style="display:none;">
+
+                <!-- رأس النادي -->
+                <div class="elite-card" style="text-align:center;margin-bottom:24px;">
+                    <div style="font-size:3rem;margin-bottom:8px;filter:drop-shadow(0 0 16px rgba(243,156,18,0.6));">⭐</div>
+                    <h2 style="font-family:'Amiri';color:#f39c12;font-size:2.2rem;margin:0 0 6px;">نادي النخبة</h2>
+                    <p style="color:rgba(255,255,255,0.5);margin:0;">مرحباً بك يا فائق — تحديات على مستوى أعلى تنتظرك</p>
+                </div>
+
+                <!-- تبويبات النادي -->
+                <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+                    <button class="nav-btn shiny-btn active" id="eclub-tab-arena" onclick="eclubTab(this,'arena')">⚔️ ساحة المتفوقين</button>
+                    <button class="nav-btn shiny-btn" id="eclub-tab-challenges" onclick="eclubTab(this,'challenges')">🏆 تحديات الأولمبياد</button>
+                    <button class="nav-btn shiny-btn" id="eclub-tab-board" onclick="eclubTab(this,'board')">👑 لوحة الشرف</button>
+                </div>
+
+                <!-- ساحة المتفوقين -->
+                <div id="eclub-panel-arena">
+                    <div class="elite-card">
+                        <h3 style="color:#f39c12;margin-bottom:16px;font-family:'Amiri';font-size:1.5rem;">⚔️ ساحة مبارزة المتفوقين</h3>
+                        <p style="color:rgba(255,255,255,0.5);margin-bottom:20px;">تحدَّ أفضل الطلاب في مبارزة حصرية للفائقين فقط. الأسئلة أصعب والجوائز أكبر.</p>
+                        <div id="elite-arena-status" style="text-align:center;margin-bottom:20px;">
+                            <div style="font-size:1.1rem;color:rgba(255,255,255,0.6);">اضغط للدخول وانتظر منافساً من النخبة</div>
+                        </div>
+                        <button class="nav-btn shiny-btn" id="btn-elite-arena" onclick="openEliteArena()"
+                            style="background:linear-gradient(135deg,#b38728,#f39c12);color:#000;font-weight:900;font-size:1.1rem;padding:16px;">
+                            ⚔️ دخول ساحة النخبة
+                        </button>
+                        <button class="nav-btn" id="btn-elite-arena-cancel" onclick="cancelEliteArena()"
+                            style="display:none;margin-top:10px;border-color:#e74c3c;color:#e74c3c;background:transparent;">
+                            ❌ الانسحاب
+                        </button>
+                    </div>
+
+                    <!-- منطقة المعركة -->
+                    <div id="elite-battle-zone" style="display:none;">
+                        <div class="elite-card">
+                            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+                                <div style="text-align:center;">
+                                    <div style="font-size:2rem;">🦁</div>
+                                    <div id="elite-p1-name" style="color:#f39c12;font-weight:bold;">أنت</div>
+                                    <div id="elite-p1-score" style="font-size:1.5rem;font-weight:900;color:#fff;">0</div>
+                                </div>
+                                <div class="elite-arena-vs">VS</div>
+                                <div style="text-align:center;">
+                                    <div style="font-size:2rem;">🐯</div>
+                                    <div id="elite-p2-name" style="color:#e74c3c;font-weight:bold;">المنافس</div>
+                                    <div id="elite-p2-score" style="font-size:1.5rem;font-weight:900;color:#fff;">0</div>
+                                </div>
+                            </div>
+                            <div id="elite-battle-question" style="text-align:center;font-size:1.3rem;font-weight:bold;margin-bottom:16px;color:#fff;"></div>
+                            <div id="elite-battle-options" style="display:grid;grid-template-columns:1fr 1fr;gap:12px;"></div>
+                            <div id="elite-battle-feedback" style="text-align:center;margin-top:16px;font-size:1.1rem;font-weight:bold;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- تحديات الأولمبياد -->
+                <div id="eclub-panel-challenges" style="display:none;">
+                    <div class="elite-card">
+                        <h3 style="color:#f39c12;margin-bottom:16px;font-family:'Amiri';font-size:1.5rem;">🏆 تحديات الأولمبياد</h3>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                            <button class="nav-btn shiny-btn active" onclick="eliteChallFilter(this,'all')" style="font-size:0.82rem;padding:6px 14px;">الكل</button>
+                            <button class="nav-btn shiny-btn" onclick="eliteChallFilter(this,'hard')" style="font-size:0.82rem;padding:6px 14px;">🔥 صعب</button>
+                            <button class="nav-btn shiny-btn" onclick="eliteChallFilter(this,'expert')" style="font-size:0.82rem;padding:6px 14px;">💎 خبير</button>
+                            <button class="nav-btn shiny-btn" onclick="eliteChallFilter(this,'olympic')" style="font-size:0.82rem;padding:6px 14px;">🏆 أولمبي</button>
+                        </div>
+                    </div>
+                    <div id="eclub-challenges-area"></div>
+                </div>
+
+                <!-- لوحة الشرف -->
+                <div id="eclub-panel-board" style="display:none;">
+                    <div class="elite-card">
+                        <h3 style="color:#f39c12;margin-bottom:16px;font-family:'Amiri';font-size:1.5rem;">👑 لوحة شرف الفائقين</h3>
+                        <div id="eclub-board-list"><p style="opacity:0.5;text-align:center;padding:20px;">جاري التحميل...</p></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
     </main>
 
     <!-- CHOICE OVERLAY -->
@@ -1492,10 +1609,13 @@
     }
 
     function switchView(viewName) {
-        ['dashboard','curriculum','other'].forEach(v =>
-            document.getElementById('view-' + v).style.display = 'none'
-        );
-        document.getElementById('view-' + viewName).style.display = 'block';
+        ['dashboard','curriculum','other','elite'].forEach(v => {
+            const el = document.getElementById('view-' + v);
+            if (el) el.style.display = 'none';
+        });
+        const target = document.getElementById('view-' + viewName);
+        if (target) target.style.display = 'block';
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
     }
 
     /* ================================================================
@@ -1681,6 +1801,7 @@
         // إشعارات بعد تأكد من وجود currentUser
         setTimeout(() => { if (currentUser) checkGeneralNotifications(); }, 3000);
         setInterval(() => { if (currentUser) checkGeneralNotifications(); }, 60000);
+        setTimeout(checkEliteStatus, 3500);
     }
 
     /* ================================================================
@@ -4197,6 +4318,350 @@
             openHome();
         }
     };
+    
+    // ══════════════════════════════════════════════════════════
+    //  ELITE CLUB STUDENT — JavaScript (إضافة فقط)
+    // ══════════════════════════════════════════════════════════
+    let isEliteMember       = false;
+    let eliteWs             = null;
+    let eliteRoomId         = null;
+    let eliteBattleQs       = [];
+    let eliteBattleIdx      = 0;
+    let eliteMyScore        = 0;
+    let eliteOppScore       = 0;
+    let eliteChallQsCache   = [];
+    let eliteCurrFilter     = 'all';
+
+    // ── فحص حالة العضوية عند تسجيل الدخول ──
+    async function checkEliteStatus() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch(`${API_URL}/api/elite/check/${currentUser.id}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            isEliteMember = data.is_elite === true;
+            const btn = document.getElementById('btn-elite');
+            if (btn) btn.style.display = isEliteMember ? 'flex' : 'none';
+            if (isEliteMember) currentUser.is_elite = true;
+        } catch(e) {}
+    }
+
+    // ── فتح نادي النخبة ──
+    function openEliteClub() {
+        ['dashboard','curriculum','other'].forEach(v =>
+            document.getElementById('view-' + v).style.display = 'none'
+        );
+        document.getElementById('view-elite').style.display = 'block';
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('btn-elite')?.classList.add('active');
+
+        if (isEliteMember) {
+            document.getElementById('elite-lock-overlay').style.display = 'none';
+            document.getElementById('elite-content').style.display = 'block';
+            eliteLoadChallenges();
+            eliteLoadBoard();
+        } else {
+            eliteCheckRequest();
+        }
+    }
+
+    // ── التحقق من طلب الانضمام ──
+    async function eliteCheckRequest() {
+        const el = document.getElementById('elite-lock-status');
+        if (!el || !currentUser) return;
+
+        // هل يستحق التقديم؟
+        const progressKey = 'roadmap_' + currentUser.username;
+        const progress = JSON.parse(localStorage.getItem(progressKey) || '{}');
+        const lessons85 = Object.values(progress).filter(v => v === 'done').length;
+        const xp = currentUser.xp || 0;
+
+        if (lessons85 >= 5) {
+            // يستحق — تقديم طلب تلقائي
+            el.innerHTML = `
+                <div style="color:rgba(255,255,255,0.6);margin-bottom:12px;">أنت مؤهل! حققت 85%+ في ${lessons85} درس</div>
+                <button class="nav-btn shiny-btn" onclick="eliteSubmitRequest(${lessons85},${xp})"
+                    style="background:linear-gradient(135deg,#b38728,#f39c12);color:#000;font-weight:900;">
+                    ⭐ تقديم طلب الانضمام
+                </button>`;
+        } else {
+            el.innerHTML = `
+                <div style="color:rgba(255,255,255,0.5);margin-bottom:8px;">تقدمك الحالي: ${lessons85}/5 دروس بنسبة 85%+</div>
+                <div style="background:rgba(255,255,255,0.06);border-radius:8px;height:8px;width:200px;margin:0 auto;">
+                    <div style="background:#f39c12;height:100%;border-radius:8px;width:${Math.min(100,(lessons85/5)*100)}%;transition:width 0.5s;"></div>
+                </div>
+                <div style="color:rgba(255,255,255,0.3);font-size:0.82rem;margin-top:8px;">أكمل ${5-lessons85} دروس إضافية بنسبة 85%+ للتأهل</div>`;
+        }
+    }
+
+    async function eliteSubmitRequest(lessons85, xp) {
+        if (!currentUser) return;
+        try {
+            const fd = new FormData();
+            fd.append('student_id', currentUser.id);
+            fd.append('username',   currentUser.username);
+            fd.append('full_name',  currentUser.full_name);
+            fd.append('grade',      currentUser.grade);
+            fd.append('xp',         xp);
+            fd.append('lessons_85', lessons85);
+            const res = await fetch(`${API_URL}/api/elite/request`, { method: 'POST', body: fd });
+            const data = await res.json();
+            const el = document.getElementById('elite-lock-status');
+            if (data.status === 'submitted') {
+                if (el) el.innerHTML = '<div style="color:#2ecc71;font-size:1rem;">✅ تم إرسال طلبك! انتظر موافقة الأستاذ رشدي</div>';
+                showToast('✅ تم إرسال طلب الانضمام لنادي النخبة!', 'success');
+            } else if (data.status === 'already_elite') {
+                isEliteMember = true;
+                openEliteClub();
+            } else if (data.status === 'pending') {
+                if (el) el.innerHTML = '<div style="color:#f39c12;">⏳ طلبك قيد المراجعة من الأستاذ</div>';
+            }
+        } catch(e) { showToast('خطأ في إرسال الطلب', 'error'); }
+    }
+
+    // ── تبويبات نادي النخبة ──
+    function eclubTab(btn, panel) {
+        document.querySelectorAll('#eclub-panel-arena,#eclub-panel-challenges,#eclub-panel-board')
+            .forEach(p => p.style.display = 'none');
+        document.querySelectorAll('#eclub-tab-arena,#eclub-tab-challenges,#eclub-tab-board')
+            .forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById('eclub-panel-' + panel).style.display = 'block';
+        if (panel === 'challenges') eliteLoadChallenges();
+        if (panel === 'board')      eliteLoadBoard();
+    }
+
+    // ══ ساحة مبارزة النخبة ══
+    function openEliteArena() {
+        if (!currentUser || !isEliteMember) return;
+        document.getElementById('btn-elite-arena').style.display = 'none';
+        document.getElementById('btn-elite-arena-cancel').style.display = 'block';
+        document.getElementById('elite-arena-status').innerHTML =
+            '<div style="color:#f39c12;animation:pulse 1s infinite alternate;">⏳ جاري البحث عن منافس من النخبة...</div>';
+
+        const wsUrl = `${API_URL.replace('http','ws')}/api/elite/arena/ws/${encodeURIComponent(currentUser.full_name)}/${encodeURIComponent(currentUser.grade)}`;
+        eliteWs = new WebSocket(wsUrl);
+
+        eliteWs.onmessage = async (e) => {
+            const data = JSON.parse(e.data);
+            if (data.type === 'waiting') {
+                document.getElementById('elite-arena-status').innerHTML =
+                    '<div style="color:#f39c12;animation:pulse 1s infinite alternate;">⏳ ' + data.msg + '</div>';
+            } else if (data.type === 'matched') {
+                eliteRoomId = data.room_id;
+                document.getElementById('elite-arena-status').innerHTML = '';
+                document.getElementById('elite-p1-name').textContent = currentUser.full_name;
+                document.getElementById('elite-p2-name').textContent = data.opponent;
+                document.getElementById('elite-battle-zone').style.display = 'block';
+                document.getElementById('btn-elite-arena-cancel').style.display = 'none';
+                showToast('⚔️ وجدنا لك منافساً: ' + data.opponent, 'success');
+                // تحميل أسئلة النخبة
+                await eliteLoadBattleQuestions();
+                eliteShowBattleQuestion();
+            } else if (data.type === 'score_update') {
+                const scores = data.scores;
+                const myName = currentUser.full_name;
+                Object.entries(scores).forEach(([name, score]) => {
+                    if (name === myName) {
+                        eliteMyScore = score;
+                        document.getElementById('elite-p1-score').textContent = score;
+                    } else {
+                        eliteOppScore = score;
+                        document.getElementById('elite-p2-score').textContent = score;
+                    }
+                });
+            }
+        };
+        eliteWs.onerror = () => {
+            showToast('❌ تعذر الاتصال بساحة النخبة', 'error');
+            cancelEliteArena();
+        };
+    }
+
+    function cancelEliteArena() {
+        if (eliteWs) { eliteWs.close(); eliteWs = null; }
+        eliteRoomId = null;
+        document.getElementById('btn-elite-arena').style.display = 'block';
+        document.getElementById('btn-elite-arena-cancel').style.display = 'none';
+        document.getElementById('elite-battle-zone').style.display = 'none';
+        document.getElementById('elite-arena-status').innerHTML =
+            '<div style="color:rgba(255,255,255,0.5);">اضغط للدخول وانتظر منافساً من النخبة</div>';
+        eliteMyScore = 0; eliteOppScore = 0; eliteBattleIdx = 0;
+        document.getElementById('elite-p1-score').textContent = '0';
+        document.getElementById('elite-p2-score').textContent = '0';
+    }
+
+    async function eliteLoadBattleQuestions() {
+        try {
+            const grade = encodeURIComponent(currentUser.grade || '');
+            const res   = await fetch(`${API_URL}/api/elite/questions?grade=${grade}`);
+            const data  = await res.json();
+            eliteBattleQs = knuthShuffle(data || []).slice(0, 10);
+            eliteBattleIdx = 0;
+        } catch(e) { eliteBattleQs = []; }
+    }
+
+    function eliteShowBattleQuestion() {
+        if (eliteBattleIdx >= eliteBattleQs.length) {
+            const winner = eliteMyScore > eliteOppScore ? '🏆 فزت!' : eliteMyScore < eliteOppScore ? '💀 خسرت' : '⚖️ تعادل';
+            document.getElementById('elite-battle-question').innerHTML =
+                `<div style="font-size:2rem;">${winner}</div><div style="color:#f39c12;margin-top:8px;">نتيجتك: ${eliteMyScore} | خصمك: ${eliteOppScore}</div>`;
+            document.getElementById('elite-battle-options').innerHTML = `
+                <button class="nav-btn shiny-btn" onclick="cancelEliteArena()" style="grid-column:1/-1;">🔄 مبارزة جديدة</button>`;
+            return;
+        }
+        const q = eliteBattleQs[eliteBattleIdx];
+        const diffLabel = {hard:'🔥 صعب', expert:'💎 خبير', olympic:'🏆 أولمبي'};
+        document.getElementById('elite-battle-question').innerHTML =
+            `<span style="font-size:0.75rem;background:rgba(243,156,18,0.15);color:#f39c12;padding:2px 8px;border-radius:8px;">${diffLabel[q.difficulty]||'—'}</span>
+            <div style="margin-top:10px;">${q.question}</div>`;
+
+        const optArea = document.getElementById('elite-battle-options');
+        optArea.innerHTML = '';
+        document.getElementById('elite-battle-feedback').innerHTML = '';
+
+        const _qt = (q.q_type||'').toLowerCase().replace('_','');
+        if (_qt === 'truefalse' || _qt === 'tf') {
+            ['صواب','خطأ'].forEach(opt => {
+                const b = document.createElement('button');
+                b.className = 'quiz-btn shiny-btn';
+                b.textContent = opt + (_qt==='صواب' ? ' ✅' : ' ❌');
+                b.onclick = () => eliteCheckBattleAnswer(opt, q.answer);
+                optArea.appendChild(b);
+            });
+        } else if (_qt === 'short' || _qt === 'essay') {
+            optArea.innerHTML = `<input type="text" id="elite-short-input" class="short-answer-input" style="grid-column:1/-1;" placeholder="إجابتك..."
+                onkeypress="if(event.key==='Enter') eliteCheckBattleAnswer(this.value,'${q.answer.replace(/'/g,"\\'")}')">
+                <button class="nav-btn shiny-btn" style="grid-column:1/-1;" onclick="eliteCheckBattleAnswer(document.getElementById('elite-short-input').value,'${q.answer.replace(/'/g,"\\'")}')">ضربة السيف ⚔️</button>`;
+        } else {
+            const sep  = (q.options||'').includes('|') ? '|' : ',';
+            const opts = (q.options||'').split(sep).map(o=>o.trim()).filter(Boolean);
+            if (opts.length) {
+                opts.forEach(opt => {
+                    const b = document.createElement('button');
+                    b.className = 'quiz-btn shiny-btn';
+                    b.textContent = opt;
+                    b.onclick = () => eliteCheckBattleAnswer(opt, q.answer);
+                    optArea.appendChild(b);
+                });
+            }
+        }
+    }
+
+    function eliteCheckBattleAnswer(user, correct) {
+        optArea = document.getElementById('elite-battle-options');
+        document.querySelectorAll('#elite-battle-options .quiz-btn, #elite-battle-options .nav-btn').forEach(b => b.disabled = true);
+        const norm = s => (s||'').trim().replace(/\s+/g,' ');
+        const isCorrect = norm(user) === norm(correct);
+        document.getElementById('elite-battle-feedback').innerHTML =
+            isCorrect ? '<span style="color:#2ecc71;font-size:1.3rem;">✅ إجابة صحيحة! +10 XP نخبة</span>'
+                      : `<span style="color:#e74c3c;">❌ خطأ — الصحيح: <strong style="color:#fff;">${correct}</strong></span>`;
+        if (isCorrect) {
+            eliteMyScore += 10;
+            document.getElementById('elite-p1-score').textContent = eliteMyScore;
+            if (eliteWs && eliteRoomId) {
+                eliteWs.send(JSON.stringify({ type:'score_update', room_id:eliteRoomId, score:eliteMyScore }));
+            }
+        }
+        eliteBattleIdx++;
+        setTimeout(eliteShowBattleQuestion, 1800);
+    }
+
+    // ══ تحديات الأولمبياد ══
+    async function eliteLoadChallenges() {
+        if (!currentUser) return;
+        try {
+            const grade = encodeURIComponent(currentUser.grade || '');
+            const res   = await fetch(`${API_URL}/api/elite/questions?grade=${grade}`);
+            eliteChallQsCache = await res.json() || [];
+            eliteRenderChallenges(eliteChallQsCache);
+        } catch(e) {}
+    }
+
+    function eliteChallFilter(btn, diff) {
+        document.querySelectorAll('#eclub-panel-challenges .nav-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        eliteCurrFilter = diff;
+        const filtered = diff === 'all' ? eliteChallQsCache : eliteChallQsCache.filter(q => q.difficulty === diff);
+        eliteRenderChallenges(filtered);
+    }
+
+    function eliteRenderChallenges(qs) {
+        const el = document.getElementById('eclub-challenges-area');
+        if (!el) return;
+        if (!qs.length) {
+            el.innerHTML = '<div class="elite-card" style="text-align:center;opacity:0.5;padding:40px;">لا توجد تحديات متاحة لصفك حالياً</div>';
+            return;
+        }
+        const diffLabel = {hard:'🔥 صعب', expert:'💎 خبير', olympic:'🏆 أولمبي'};
+        const diffClass = {hard:'elite-diff-hard', expert:'elite-diff-expert', olympic:'elite-diff-olympic'};
+        const byLesson = {};
+        qs.forEach(q => {
+            if (!byLesson[q.lesson]) byLesson[q.lesson] = [];
+            byLesson[q.lesson].push(q);
+        });
+        el.innerHTML = Object.entries(byLesson).map(([lesson, qList]) => `
+            <div class="elite-card">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h4 style="color:#f39c12;margin:0;font-size:1rem;">${lesson}</h4>
+                    <span style="background:rgba(243,156,18,0.12);color:#f39c12;padding:2px 10px;border-radius:12px;font-size:0.78rem;">${qList.length} سؤال</span>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${[...new Set(qList.map(q=>q.difficulty))].map(d =>
+                        `<button class="nav-btn shiny-btn" onclick="startEliteChallenge('${lesson.replace(/'/g,"\\'")}','${d}')"
+                            style="font-size:0.82rem;padding:8px 16px;">
+                            ${diffLabel[d]||d} — ${qList.filter(q=>q.difficulty===d).length} سؤال
+                        </button>`
+                    ).join('')}
+                </div>
+            </div>`).join('');
+    }
+
+    function startEliteChallenge(lesson, difficulty) {
+        const qs = eliteChallQsCache.filter(q => q.lesson === lesson && (difficulty === 'all' || q.difficulty === difficulty));
+        if (!qs.length) return showToast('لا توجد أسئلة لهذا الدرس', 'warning');
+        // نعيد استخدام نظام التحدي الحالي
+        challengeState.lesson  = lesson + ' [نخبة]';
+        challengeState.qs      = knuthShuffle(qs).slice(0, 10);
+        challengeState.correct = 0;
+        challengeState.index   = 0;
+        challengeState.answersStatus = new Array(challengeState.qs.length).fill(null);
+        switchView('curriculum');
+        renderCurrentQuestion();
+        showToast(`⭐ تحدي النخبة — ${lesson}`, 'success');
+    }
+
+    // ══ لوحة الشرف ══
+    async function eliteLoadBoard() {
+        try {
+            const res  = await fetch(`${API_URL}/api/elite/leaderboard`);
+            const data = await res.json();
+            const el   = document.getElementById('eclub-board-list');
+            if (!el) return;
+            if (!data.length) { el.innerHTML='<p style="opacity:0.5;text-align:center;padding:20px;">لا يوجد فائقون بعد</p>'; return; }
+            const med = ['🥇','🥈','🥉'];
+            const myId = currentUser?.id;
+            el.innerHTML = data.map((m,i) => `
+                <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);
+                    ${m.id===myId?'background:rgba(243,156,18,0.06);border-radius:8px;padding-right:8px;':''  }">
+                    <div style="font-size:1.4rem;width:32px;text-align:center;">${med[i]||i+1}</div>
+                    <div style="flex:1;">
+                        <div style="font-weight:bold;color:${m.id===myId?'#f39c12':'#fff'};">⭐ ${m.full_name} ${m.id===myId?'(أنت)':''}</div>
+                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${m.grade}</div>
+                    </div>
+                    <div style="text-align:center;min-width:60px;">
+                        <div style="color:${m.accuracy>=85?'#2ecc71':m.accuracy>=60?'#f39c12':'#e74c3c'};font-weight:bold;">${m.accuracy}%</div>
+                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">دقة</div>
+                    </div>
+                    <div style="text-align:center;min-width:60px;">
+                        <div style="color:var(--gold);font-weight:900;">${m.xp}</div>
+                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">XP</div>
+                    </div>
+                </div>`).join('');
+        } catch(e) {}
+    }
+    // ── END ELITE STUDENT JS ──
+
     </script>
 </body>
 </html>

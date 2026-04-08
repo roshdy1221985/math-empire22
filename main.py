@@ -49,7 +49,11 @@ try:
 except Exception:
     pass
 
-SECRET_KEY = os.getenv("JWT_SECRET_KEY", "ROYAL_MATH_968_OMAN")
+SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    import secrets
+    SECRET_KEY = secrets.token_hex(32)
+    print("⚠️ JWT_SECRET_KEY not set — using random key (tokens reset on restart)")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480
 
@@ -76,6 +80,16 @@ def create_access_token(data: dict):
 # --- 2. تهيئة التطبيق ومعالجة الأخطاء ---
 # ==========================================
 app = FastAPI(title="Math Empire API")
+
+@app.middleware("http")
+async def security_headers(request: Request, call_next):
+    """إضافة security headers لكل response"""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"]    = "nosniff"
+    response.headers["X-Frame-Options"]           = "SAMEORIGIN"
+    response.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"]        = "geolocation=(), camera=(), microphone=()"
+    return response
 
 # Rate Limiter — يدوي في الذاكرة، لا يحتاج تسجيل
 
@@ -645,25 +659,25 @@ async def save_result(
     student_id: int=Form(...), student_name: str=Form(...),
     lesson: str=Form(...), score: int=Form(...), total: int=Form(...)
 ):
-    # Rate limit: 30 نتيجة/دقيقة لكل IP
     ip = request.client.host if request.client else "unknown"
     if _is_rate_limited(ip, max_calls=30, window_seconds=60):
         raise HTTPException(status_code=429, detail="طلبات كثيرة جداً")
-
-    # التحقق من منطقية البيانات
     if score < 0 or total <= 0 or score > total:
         raise HTTPException(status_code=400, detail="بيانات غير صحيحة")
     if total > 200:
         raise HTTPException(status_code=400, detail="عدد أسئلة غير منطقي")
-
-    # التحقق أن الطالب موجود فعلاً
-    st = supabase.table("students").select("id").eq("id", student_id).execute()
+    if len(lesson.strip()) < 2 or len(lesson) > 300:
+        raise HTTPException(status_code=400, detail="اسم درس غير صحيح")
+    # التحقق أن الطالب موجود ونتيجة واحدة لكل درس/جلسة
+    st = supabase.table("students").select("id,username").eq("id", student_id).execute()
     if not st.data:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
-
     supabase.table("results").insert({
-        "student_id": student_id, "student_name": student_name,
-        "lesson": lesson, "score": score, "total": total
+        "student_id": student_id,
+        "student_name": student_name[:100],
+        "lesson": lesson[:300],
+        "score": score,
+        "total": total
     }).execute()
     return {"status": "success"}
 
@@ -1048,6 +1062,261 @@ async def get_full_report(admin=Depends(get_current_admin)):
         "top10":              students_report[:10],
     }
 
+
+
+# ==========================================
+# --- 14. نظام النخبة (Elite System) ---
+# ==========================================
+
+class EliteArenaManager:
+    """مدير ساحة مبارزة النخبة — WebSocket مستقل"""
+    def __init__(self):
+        self.waiting_players: dict = {}
+        self.active_rooms:    dict = {}
+
+    async def connect(self, websocket: WebSocket, student_name: str, grade: str):
+        await websocket.accept()
+        if grade not in self.waiting_players:
+            self.waiting_players[grade] = []
+        self.waiting_players[grade].append({"ws": websocket, "name": student_name})
+        await self.elite_matchmake(grade)
+
+    async def elite_matchmake(self, grade: str):
+        queue = self.waiting_players[grade]
+        if len(queue) < 2:
+            try:
+                await queue[-1]["ws"].send_json({"type": "waiting", "msg": "⏳ بحث عن منافس من النخبة..."})
+            except: pass
+            return
+        p1 = queue.pop(0)
+        p2 = queue.pop(0)
+        room_id = f"elite_{id(p1['ws'])}_{id(p2['ws'])}"
+        self.active_rooms[room_id] = {"p1": p1, "p2": p2, "scores": {p1["name"]: 0, p2["name"]: 0}}
+        for p, opp in [(p1, p2), (p2, p1)]:
+            try:
+                await p["ws"].send_json({
+                    "type": "matched",
+                    "room_id": room_id,
+                    "opponent": opp["name"],
+                    "msg": f"⚔️ تم إيجاد منافس: {opp['name']}"
+                })
+            except: pass
+
+    async def broadcast_score(self, room_id: str, sender_name: str, new_score: int):
+        room = self.active_rooms.get(room_id)
+        if not room: return
+        room["scores"][sender_name] = new_score
+        for key in ["p1", "p2"]:
+            try:
+                await room[key]["ws"].send_json({
+                    "type": "score_update",
+                    "scores": room["scores"]
+                })
+            except: pass
+
+    async def disconnect(self, websocket: WebSocket, grade: str):
+        if grade in self.waiting_players:
+            self.waiting_players[grade] = [
+                p for p in self.waiting_players[grade] if p["ws"] != websocket
+            ]
+
+elite_arena_manager = EliteArenaManager()
+
+
+@app.websocket("/api/elite/arena/ws/{student_name}/{grade}")
+async def elite_arena_websocket(websocket: WebSocket, student_name: str, grade: str):
+    """WebSocket لساحة مبارزة النخبة"""
+    from urllib.parse import unquote
+    clean_name  = unquote(student_name)
+    clean_grade = unquote(grade)
+    await elite_arena_manager.connect(websocket, clean_name, clean_grade)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if data.get("type") == "score_update":
+                await elite_arena_manager.broadcast_score(
+                    data["room_id"], clean_name, data["score"]
+                )
+    except WebSocketDisconnect:
+        await elite_arena_manager.disconnect(websocket, clean_grade)
+
+
+@app.post("/api/elite/request")
+async def submit_elite_request(
+    request: Request,
+    student_id: int = Form(...),
+    username:   str = Form(...),
+    full_name:  str = Form(...),
+    grade:      str = Form(...),
+    xp:         int = Form(default=0),
+    lessons_85: int = Form(default=0),
+):
+    """طلب انضمام تلقائي لنادي النخبة"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=5, window_seconds=3600):
+        raise HTTPException(status_code=429, detail="تم الإرسال مسبقاً")
+    # تحقق: هل قدّم طلباً سابقاً؟
+    existing = supabase.table("elite_requests").select("id,status")         .eq("student_id", student_id).execute()
+    if existing.data:
+        st = existing.data[0]["status"]
+        if st == "approved": return {"status": "already_elite"}
+        if st == "pending":  return {"status": "pending"}
+    supabase.table("elite_requests").insert({
+        "student_id": student_id, "username": username,
+        "full_name":  full_name,  "grade":    grade,
+        "xp":         xp,         "lessons_85": lessons_85,
+        "status":     "pending"
+    }).execute()
+    return {"status": "submitted"}
+
+
+@app.get("/api/elite/check/{student_id}")
+async def check_elite_status(student_id: int):
+    """هل الطالب معتمد كفائق؟"""
+    res = supabase.table("students").select("is_elite").eq("id", student_id).execute()
+    if res.data:
+        return {"is_elite": bool(res.data[0].get("is_elite", False))}
+    return {"is_elite": False}
+
+
+@app.get("/api/elite/questions")
+async def get_elite_questions(grade: str = "", lesson: str = ""):
+    """أسئلة النخبة — مصنّفة"""
+    query = supabase.table("questions").select(
+        "id,grade,lesson,subject,q_type,question,options,answer,image_url,difficulty"
+    ).eq("is_elite", True)
+    if grade:   query = query.eq("grade", grade.strip())
+    if lesson:  query = query.ilike("lesson", lesson.strip())
+    res = query.execute()
+    return res.data or []
+
+
+@app.get("/api/elite/leaderboard")
+async def elite_leaderboard():
+    """ترتيب الفائقين"""
+    res = supabase.table("students").select(
+        "id,full_name,grade,school_name,avatar_url"
+    ).eq("is_elite", True).execute()
+    students = res.data or []
+    board = []
+    for st in students:
+        r = supabase.table("results").select("score,total")             .eq("student_id", st["id"]).execute()
+        results = r.data or []
+        total_correct = sum(x["score"] for x in results)
+        total_q       = sum(x["total"] for x in results if x["total"] > 0)
+        accuracy = round((total_correct / total_q * 100)) if total_q > 0 else 0
+        board.append({**st, "xp": total_correct, "accuracy": accuracy, "tests": len(results)})
+    board.sort(key=lambda x: (-x["xp"], -x["accuracy"]))
+    return board[:50]
+
+
+# ── ADMIN: إدارة النخبة ──
+@app.get("/api/admin/elite/requests")
+async def get_elite_requests(admin=Depends(get_current_admin)):
+    res = supabase.table("elite_requests").select("*").order("created_at", desc=True).execute()
+    return res.data or []
+
+
+@app.post("/api/admin/elite/approve/{request_id}")
+async def approve_elite(request_id: int, admin=Depends(get_current_admin)):
+    req = supabase.table("elite_requests").select("*").eq("id", request_id).execute()
+    if not req.data: raise HTTPException(status_code=404, detail="الطلب غير موجود")
+    r = req.data[0]
+    supabase.table("students").update({
+        "is_elite": True,
+        "elite_approved_at": datetime.now(timezone.utc).isoformat()
+    }).eq("id", r["student_id"]).execute()
+    supabase.table("elite_requests").update({"status": "approved"}).eq("id", request_id).execute()
+    return {"status": "approved"}
+
+
+@app.post("/api/admin/elite/reject/{request_id}")
+async def reject_elite(request_id: int, admin=Depends(get_current_admin)):
+    supabase.table("elite_requests").update({"status": "rejected"}).eq("id", request_id).execute()
+    return {"status": "rejected"}
+
+
+@app.post("/api/admin/elite/revoke/{student_id}")
+async def revoke_elite(student_id: int, admin=Depends(get_current_admin)):
+    supabase.table("students").update({"is_elite": False}).eq("id", student_id).execute()
+    supabase.table("elite_requests").update({"status": "rejected"})         .eq("student_id", student_id).execute()
+    return {"status": "revoked"}
+
+
+@app.post("/api/admin/elite/grant/{student_id}")
+async def grant_elite_manually(student_id: int, admin=Depends(get_current_admin)):
+    """منح لقب الفائق يدوياً"""
+    supabase.table("students").update({
+        "is_elite": True,
+        "elite_approved_at": datetime.now(timezone.utc).isoformat()
+    }).eq("id", student_id).execute()
+    return {"status": "granted"}
+
+
+@app.get("/api/admin/elite/members")
+async def get_elite_members(admin=Depends(get_current_admin)):
+    res = supabase.table("students").select(
+        "id,full_name,username,grade,school_name,is_elite,elite_approved_at"
+    ).eq("is_elite", True).execute()
+    return res.data or []
+
+
+# ==========================================
+# --- الإشعارات العامة ---
+# ==========================================
+@app.post("/api/admin/notifications")
+async def send_notification(
+    request: Request,
+    title:    str = Form(...),
+    body:     str = Form(...),
+    grade:    str = Form(default="all"),
+    priority: str = Form(default="normal"),
+    type:     str = Form(default="announcement"),
+    admin=Depends(get_current_admin)
+):
+    """إرسال إشعار للطلاب — يُخزَّن في Supabase"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=20, window_seconds=60):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة جداً")
+    row = {
+        "title":    title.strip()[:200],
+        "body":     body.strip()[:500],
+        "grade":    grade,
+        "priority": priority,
+        "type":     type,
+        "is_active": True,
+    }
+    try:
+        supabase.table("notifications").insert(row).execute()
+    except Exception as e:
+        print(f"notifications insert error: {e}")
+    return {"status": "success", "message": "تم إرسال الإشعار"}
+
+
+@app.get("/api/notifications")
+async def get_notifications(grade: str = ""):
+    """جلب الإشعارات النشطة للطلاب"""
+    try:
+        if grade and grade != "all":
+            res1 = supabase.table("notifications").select("*").eq("is_active", True).eq("grade", grade).order("created_at", desc=True).limit(5).execute()
+            res2 = supabase.table("notifications").select("*").eq("is_active", True).eq("grade", "all").order("created_at", desc=True).limit(5).execute()
+            data = (res1.data or []) + (res2.data or [])
+            data.sort(key=lambda x: x.get("created_at", ""), reverse=True)
+            return data[:10]
+        res = supabase.table("notifications").select("*").eq("is_active", True).order("created_at", desc=True).limit(10).execute()
+        return res.data or []
+    except Exception:
+        return []
+
+
+@app.delete("/api/admin/notifications/{notif_id}")
+async def delete_notification(notif_id: int, admin=Depends(get_current_admin)):
+    """تعطيل إشعار"""
+    try:
+        supabase.table("notifications").update({"is_active": False}).eq("id", notif_id).execute()
+    except Exception:
+        pass
+    return {"status": "success"}
 
 # ==========================================
 # --- 13. تشغيل المحرك المركزي ---
