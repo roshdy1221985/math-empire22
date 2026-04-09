@@ -15,6 +15,43 @@
             --glass: rgba(255,255,255,0.05);
             --border: rgba(212,175,55,0.22);
             --red: #e74c3c; --blue: #3498db; --green: #2ecc71;
+            /* ألوان التبويبات */
+            --nav-gold:   #d4af37; --nav-gold-bg:   rgba(212,175,55,0.12);
+            --nav-blue:   #3498db; --nav-blue-bg:   rgba(52,152,219,0.12);
+            --nav-purple: #9b59b6; --nav-purple-bg: rgba(155,89,182,0.12);
+            --nav-green:  #2ecc71; --nav-green-bg:  rgba(46,204,113,0.12);
+            --nav-orange: #e67e22; --nav-orange-bg: rgba(230,126,34,0.12);
+            --nav-red:    #e74c3c; --nav-red-bg:    rgba(231,76,60,0.12);
+            --nav-cyan:   #1abc9c; --nav-cyan-bg:   rgba(26,188,156,0.12);
+            --nav-yellow: #f1c40f; --nav-yellow-bg: rgba(241,196,15,0.12);
+            --nav-pink:   #e91e63; --nav-pink-bg:   rgba(233,30,99,0.12);
+            --nav-gray:   #95a5a6; --nav-gray-bg:   rgba(149,165,166,0.12);
+        }
+        /* ── nav color classes ── */
+        .nl-gold   { --nc: var(--nav-gold);   --nb: var(--nav-gold-bg);   }
+        .nl-blue   { --nc: var(--nav-blue);   --nb: var(--nav-blue-bg);   }
+        .nl-purple { --nc: var(--nav-purple); --nb: var(--nav-purple-bg); }
+        .nl-green  { --nc: var(--nav-green);  --nb: var(--nav-green-bg);  }
+        .nl-orange { --nc: var(--nav-orange); --nb: var(--nav-orange-bg); }
+        .nl-red    { --nc: var(--nav-red);    --nb: var(--nav-red-bg);    }
+        .nl-cyan   { --nc: var(--nav-cyan);   --nb: var(--nav-cyan-bg);   }
+        .nl-yellow { --nc: var(--nav-yellow); --nb: var(--nav-yellow-bg); }
+        .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   }
+        .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   }
+
+        [class*="nl-"]:hover {
+            background: var(--nb) !important;
+            border-color: var(--nc) !important;
+            color: var(--nc) !important;
+            box-shadow: 0 0 14px color-mix(in srgb, var(--nc) 20%, transparent);
+        }
+        [class*="nl-"]:hover i { color: var(--nc); }
+        [class*="nl-"].active {
+            background: var(--nb) !important;
+            border-color: var(--nc) !important;
+            border-right: 3px solid var(--nc) !important;
+            color: var(--nc) !important;
+            box-shadow: 0 4px 16px color-mix(in srgb, var(--nc) 18%, transparent);
         }
         /* نجوم الخلفية */
         @keyframes _adminTwinkle{0%,100%{opacity:.15;transform:scale(1)}50%{opacity:.8;transform:scale(1.5)}}
@@ -661,25 +698,26 @@
                 <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);margin:14px 0 0;"></div>
             </div>
             <nav>
-                <div class="nav-link" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
-                <div class="nav-link active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
-                <div class="nav-link" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد 📚</div>
-                <div class="nav-link" onclick="showSection('students')"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
-                <div class="nav-link" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
-                <div class="nav-link" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
-                <div class="nav-link" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
-                <div class="nav-link" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
-                <div class="nav-link" onclick="openNotifModal()" style="color:#f39c12; position:relative;">
+                <div class="nav-link nl-gold" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
+                <div class="nav-link nl-blue active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
+                <div class="nav-link nl-purple" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد 📚</div>
+                <div class="nav-link nl-green" onclick="showSection('students')"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
+                <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
+                <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
+                <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
+                <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
+                <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
                     <i class="fas fa-bell"></i> مرسال الإشعارات
                     <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
                 </div>
-                <div class="nav-link" onclick="showSection('elite')" style="color:#f39c12;" id="nav-elite">
+                <div class="nav-link nl-gold" onclick="showSection('elite')" id="nav-elite">
                     <i class="fas fa-star"></i> نادي النخبة ⭐
                     <span id="elite-req-badge" style="display:none;"></span>
                 </div>
-                <div class="nav-link" onclick="showSection('sub-codes')" style="color:#2ecc71;"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
-                <div class="nav-link" onclick="showSection('monitor')" style="color:#e91e63;"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
-                <div class="nav-link" onclick="showSection('personal-settings')" style="color:var(--blue);"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
+                <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
+                <div class="nav-link nl-pink" onclick="showSection('monitor')"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
+                <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات 🔐</div>
+                <div class="nav-link nl-gray" onclick="showSection('personal-settings')"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
             <div class="nav-link" onclick="logout()" style="color:var(--red); margin-top:10px;"><i class="fas fa-power-off"></i> خروج المعلم</div>
@@ -700,6 +738,31 @@
                             <i class="fas fa-bell"></i> إرسال إشعار سريع
                         </button>
                     </div>
+                    <!-- بطاقة التنبيهات السريعة -->
+                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;" id="dash-alerts-row">
+                        <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('elite')">
+                            <div style="font-size:1.8rem;flex-shrink:0;">🔔</div>
+                            <div>
+                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">طلبات النخبة المعلقة</div>
+                                <div id="dash-elite-pending" style="font-size:1.5rem;font-weight:900;color:#f39c12;">—</div>
+                            </div>
+                        </div>
+                        <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('students')">
+                            <div style="font-size:1.8rem;flex-shrink:0;">🆕</div>
+                            <div>
+                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">طلاب جدد اليوم</div>
+                                <div id="dash-new-students" style="font-size:1.5rem;font-weight:900;color:#2ecc71;">—</div>
+                            </div>
+                        </div>
+                        <div style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('students')">
+                            <div style="font-size:1.8rem;flex-shrink:0;">⚡</div>
+                            <div>
+                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">نشطون اليوم</div>
+                                <div id="dash-active-today" style="font-size:1.5rem;font-weight:900;color:#3498db;">—</div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="stats-grid" id="stats-grid-main">
                         <div class="stat-box">
                             <div>👥 إجمالي الرعية (الطلاب)</div>
@@ -728,6 +791,14 @@
                             <div>🔔 إشعارات مُرسَلة</div>
                             <div class="stat-number" id="stat-total-notifs" style="color:#f39c12;">0</div>
                             <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">هذا الشهر</div>
+                        </div>
+                    </div>
+
+                    <!-- آخر نشاط الطلاب -->
+                    <div style="margin-top:20px;">
+                        <h3 style="color:var(--gold);margin-bottom:12px;font-size:0.95rem;"><i class="fas fa-history"></i> آخر نشاط الطلاب</h3>
+                        <div id="dash-recent-activity" style="display:flex;flex-direction:column;gap:7px;">
+                            <div style="opacity:0.4;text-align:center;padding:20px;font-size:0.85rem;">جاري التحميل...</div>
                         </div>
                     </div>
                 </div>
@@ -1485,6 +1556,139 @@
                             <button class="btn-action" id="eq-cancel-btn" onclick="eliteCancelEdit()" style="display:none;border:1px solid var(--red);color:var(--red);background:transparent;padding:15px 24px;">إلغاء</button>
                         </div>
                     </div>
+
+                    <!-- استيراد Excel للنخبة -->
+                    <div class="card" style="margin-top:16px;border-color:rgba(243,156,18,0.3);">
+                        <h3 style="color:var(--gold);margin-bottom:16px;"><i class="fas fa-file-excel"></i> استيراد أسئلة النخبة من Excel ⭐</h3>
+                        <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:14px;">
+                            أعمدة الملف المطلوبة:
+                            <code style="background:rgba(212,175,55,0.1);padding:2px 8px;border-radius:6px;font-size:0.8rem;">grade | semester | unit | lesson | q_type | question | options | answer | difficulty</code>
+                        </p>
+                        <div style="display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap;">
+                            <div style="flex:1;min-width:200px;">
+                                <label>📎 اختر ملف Excel (.xlsx أو .csv)</label>
+                                <input type="file" id="elite-excel-file" accept=".xlsx,.xls,.csv" onchange="elitePreviewExcel()">
+                            </div>
+                        </div>
+                        <!-- معاينة -->
+                        <div id="elite-excel-preview" style="display:none;margin-top:16px;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                                <span id="elite-excel-count" style="color:#2ecc71;font-weight:bold;"></span>
+                                <div style="display:flex;gap:8px;">
+                                    <button onclick="eliteImportExcel()" class="btn-gold" style="padding:10px 20px;margin:0;width:auto;">
+                                        <i class="fas fa-upload"></i> استيراد الكل
+                                    </button>
+                                    <button onclick="eliteCancelExcel()" style="background:transparent;border:1px solid var(--red);color:var(--red);padding:10px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';">
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </div>
+                            <div id="elite-excel-table" style="overflow-x:auto;max-height:300px;overflow-y:auto;"></div>
+                        </div>
+                        <!-- نتيجة الاستيراد -->
+                        <div id="elite-import-result" style="display:none;margin-top:12px;"></div>
+                    </div>
+
+                    <!-- بوابة الاستيراد الملكي للنخبة ⭐ -->
+                    <div class="card" style="margin-top:16px;border-color:rgba(243,156,18,0.3);position:relative;overflow:hidden;">
+                        <div style="position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,#f39c12,#fcf6ba,#f39c12,transparent);"></div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+                            <h3 style="color:var(--gold);margin:0;display:flex;align-items:center;gap:10px;">
+                                <span style="background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:6px 12px;font-size:0.85rem;">
+                                    <i class="fas fa-file-excel" style="color:#2ecc71;"></i>
+                                </span>
+                                بوابة الاستيراد الملكي من Excel ⭐
+                            </h3>
+                            <p style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin:0;">أودع مئات تحديات النخبة دفعة واحدة</p>
+                        </div>
+
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;">
+                            <!-- الخطوة 1 -->
+                            <div style="background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.2);border-radius:14px;padding:20px;">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(52,152,219,0.2);border:1px solid #3498db;display:flex;align-items:center;justify-content:center;font-weight:900;color:#3498db;font-size:0.85rem;flex-shrink:0;">1</div>
+                                    <span style="font-weight:700;font-size:0.9rem;color:#3498db;">حمّل القالب المعتمد وأدخل أسئلتك</span>
+                                </div>
+                                <button onclick="eliteDownloadTemplate()" class="btn-import-outline" style="width:100%;padding:13px;display:flex;align-items:center;justify-content:center;gap:8px;background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.35);color:#3498db;border-radius:12px;cursor:pointer;font-family:'Cairo';font-weight:700;font-size:0.9rem;transition:0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.15)'" onmouseout="this.style.background='rgba(52,152,219,0.08)'">
+                                    <i class="fas fa-download"></i> تحميل القالب المعتمد
+                                </button>
+                                <div style="margin-top:14px;display:flex;flex-wrap:wrap;gap:6px;">
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">الصف</span>
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">الدرس</span>
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">نوع التحدي</span>
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">نص السؤال</span>
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">الخيارات</span>
+                                    <span style="background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.2);color:var(--gold);padding:3px 10px;border-radius:20px;font-size:0.72rem;">الإجابة الصحيحة ✓</span>
+                                    <span style="background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.4);color:#f39c12;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:700;">⭐ مستوى الصعوبة</span>
+                                </div>
+                            </div>
+
+                            <!-- الخطوة 2 -->
+                            <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:20px;">
+                                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                                    <div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,0.15);border:1px solid var(--gold);display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--gold);font-size:0.85rem;flex-shrink:0;">2</div>
+                                    <span style="font-weight:700;font-size:0.9rem;color:var(--gold);">ارفع المخطوطة للمعاينة الذكية</span>
+                                </div>
+                                <label for="elite-import-file" style="display:flex;align-items:center;justify-content:center;gap:8px;background:var(--gold-grad);color:#000;border:none;border-radius:12px;padding:13px;cursor:pointer;font-family:'Cairo';font-weight:900;font-size:0.9rem;transition:0.2s;width:100%;box-sizing:border-box;">
+                                    <i class="fas fa-file-upload"></i>
+                                    رفع مخطوطة الأسئلة (Excel) ⭐
+                                </label>
+                                <input type="file" id="elite-import-file" accept=".xlsx,.xls" style="display:none;" onchange="eliteHandleExcelImport(this)">
+                                <p style="color:rgba(255,255,255,0.3);font-size:0.75rem;text-align:center;margin-top:10px;">
+                                    <i class="fas fa-info-circle"></i> يقبل ملفات .xlsx و .xls
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- نتيجة الاستيراد -->
+                        <div id="elite-import-success-msg" style="display:none;margin-top:16px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:12px;padding:14px;text-align:center;">
+                            <i class="fas fa-crown" style="color:var(--gold);"></i>
+                            <span id="elite-import-success-text" style="color:#2ecc71;font-weight:bold;"></span>
+                        </div>
+                    </div>
+
+                    <!-- مودال المعاينة الذكية للنخبة -->
+                    <div id="elite-import-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:10003;justify-content:center;align-items:center;padding:20px;backdrop-filter:blur(10px);">
+                        <div style="background:#0a1628;border:1px solid rgba(243,156,18,0.3);border-radius:24px;padding:32px;width:100%;max-width:900px;max-height:90vh;overflow-y:auto;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid rgba(212,175,55,0.2);padding-bottom:18px;">
+                                <h2 style="color:var(--gold);font-family:'Amiri';font-size:1.8rem;margin:0;display:flex;align-items:center;gap:12px;">
+                                    <i class="fas fa-file-excel" style="color:#2ecc71;"></i>
+                                    رادار المعاينة — أسئلة النخبة ⭐
+                                </h2>
+                                <button onclick="eliteCloseImportModal()" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.4);color:var(--red);border-radius:12px;padding:10px 20px;cursor:pointer;font-family:'Cairo';font-weight:bold;">
+                                    <i class="fas fa-times"></i> إغلاق
+                                </button>
+                            </div>
+                            <div id="elite-import-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:20px;"></div>
+                            <div style="max-height:340px;overflow-y:auto;border-radius:12px;border:1px solid var(--border);">
+                                <table style="width:100%;font-size:0.82rem;">
+                                    <thead><tr style="background:rgba(212,175,55,0.1);color:var(--gold);">
+                                        <th style="padding:10px;">#</th>
+                                        <th style="padding:10px;text-align:right;">الصف</th>
+                                        <th style="padding:10px;text-align:right;">الدرس</th>
+                                        <th style="padding:10px;text-align:right;">النوع</th>
+                                        <th style="padding:10px;text-align:right;">السؤال</th>
+                                        <th style="padding:10px;text-align:right;">⭐ الصعوبة</th>
+                                        <th style="padding:10px;text-align:right;">الحالة</th>
+                                    </tr></thead>
+                                    <tbody id="elite-import-table-body"></tbody>
+                                </table>
+                            </div>
+                            <div id="elite-import-progress-section" style="display:none;margin-top:20px;">
+                                <div style="display:flex;justify-content:space-between;margin-bottom:8px;">
+                                    <span style="color:var(--gold);font-weight:bold;"><i class="fas fa-upload"></i> جاري الإيداع في خزنة النخبة...</span>
+                                    <span id="elite-import-progress-text" style="color:rgba(255,255,255,0.7);">0 / 0</span>
+                                </div>
+                                <div class="import-progress-wrap">
+                                    <div class="import-progress-bar" id="elite-import-progress-bar" style="width:0%;">0%</div>
+                                </div>
+                                <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-align:center;margin:8px 0 0;">⚠️ لا تغلق هذه النافذة أثناء عملية الإيداع</p>
+                            </div>
+                            <button class="btn-import" id="elite-btn-confirm-import" onclick="eliteStartBatchUpload()" style="width:100%;margin-top:20px;font-size:1.1rem;padding:18px;justify-content:center;display:flex;align-items:center;gap:10px;">
+                                <i class="fas fa-crown"></i> تأكيد وإيداع تحديات النخبة ⭐
+                            </button>
+                        </div>
+                    </div>
                     <div class="card" style="margin-top:16px;">
                         <h3 style="color:var(--gold);margin-bottom:12px;"><i class="fas fa-list"></i> أسئلة النخبة المحفوظة</h3>
                         <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
@@ -1511,6 +1715,108 @@
                         <div id="elite-leaderboard-list"><p style="opacity:0.5;text-align:center;padding:20px;">جاري التحميل...</p></div>
                     </div>
                 </div>
+            </section>
+
+
+            <!-- ══════════════════════════════════════════
+                 إدارة الحسابات — Account Management
+                 ══════════════════════════════════════════ -->
+            <section id="accounts" class="section">
+                <div style="display:flex;align-items:center;gap:16px;margin-bottom:28px;">
+                    <div style="font-size:3rem;filter:drop-shadow(0 0 12px rgba(231,76,60,0.6));">🔐</div>
+                    <div>
+                        <h2 style="font-family:'Amiri';color:var(--gold);font-size:2rem;margin:0;">إدارة الحسابات</h2>
+                        <p style="color:rgba(255,255,255,0.5);margin:0;font-size:0.9rem;">إدارة حسابات الطلاب والمعلمين — تعطيل وتفعيل وحذف</p>
+                    </div>
+                </div>
+
+                <!-- SUB-TABS -->
+                <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap;">
+                    <button class="btn-gold accounts-stab active" onclick="accountsTab(this,'students')" id="atab-students">👥 الطلاب</button>
+                    <button class="btn-action accounts-stab" onclick="accountsTab(this,'teachers')" id="atab-teachers">👨‍🏫 المعلمون</button>
+                    <button class="btn-action accounts-stab" onclick="accountsTab(this,'add-teacher')" id="atab-add-teacher">➕ إضافة معلم</button>
+                </div>
+
+                <!-- ── لوحة الطلاب ── -->
+                <div id="accounts-panel-students">
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                            <h3 style="color:var(--gold);margin:0;"><i class="fas fa-users"></i> قائمة الطلاب</h3>
+                            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                <input type="text" id="acc-search-student" placeholder="🔍 بحث باسم أو مستخدم..."
+                                    oninput="accFilterStudents()"
+                                    style="padding:8px 14px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,0.06);color:#fff;font-family:'Cairo';font-size:0.85rem;width:220px;">
+                                <select id="acc-filter-grade" onchange="accFilterStudents()"
+                                    style="padding:8px 12px;border-radius:10px;border:1px solid var(--border);background:rgba(4,13,33,0.8);color:#fff;font-family:'Cairo';font-size:0.85rem;">
+                                    <option value="all">كل الصفوف</option>
+                                </select>
+                                <button class="btn-action" onclick="accLoadStudents()" style="padding:8px 16px;font-size:0.82rem;">🔄 تحديث</button>
+                            </div>
+                        </div>
+                        <div id="acc-students-list"><p style="opacity:0.5;text-align:center;padding:30px;">جاري التحميل...</p></div>
+                    </div>
+                </div>
+
+                <!-- ── لوحة المعلمين ── -->
+                <div id="accounts-panel-teachers" style="display:none;">
+                    <div class="card">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                            <h3 style="color:var(--gold);margin:0;"><i class="fas fa-chalkboard-teacher"></i> المعلمون المسجلون</h3>
+                            <button class="btn-action" onclick="accLoadTeachers()" style="padding:8px 16px;font-size:0.82rem;">🔄 تحديث</button>
+                        </div>
+                        <div id="acc-teachers-list"><p style="opacity:0.5;text-align:center;padding:30px;">جاري التحميل...</p></div>
+                    </div>
+                </div>
+
+                <!-- ── إضافة معلم ── -->
+                <div id="accounts-panel-add-teacher" style="display:none;">
+                    <div class="card">
+                        <h3 style="color:var(--gold);margin-bottom:20px;"><i class="fas fa-user-plus"></i> إضافة معلم جديد</h3>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+                            <div>
+                                <label>👤 الاسم الكامل</label>
+                                <input type="text" id="new-teacher-name" placeholder="اسم المعلم">
+                            </div>
+                            <div>
+                                <label>🔑 اسم المستخدم</label>
+                                <input type="text" id="new-teacher-username" placeholder="username">
+                            </div>
+                            <div>
+                                <label>🔒 كلمة المرور</label>
+                                <input type="password" id="new-teacher-password" placeholder="كلمة مرور قوية">
+                            </div>
+                            <div>
+                                <label>📚 المادة</label>
+                                <input type="text" id="new-teacher-subject" placeholder="رياضيات" value="رياضيات">
+                            </div>
+                        </div>
+                        <button class="btn-gold" onclick="accAddTeacher()" style="margin-top:16px;max-width:300px;">
+                            <i class="fas fa-user-plus"></i> إضافة المعلم
+                        </button>
+                    </div>
+                </div>
+
+                <!-- مودال التأكيد المزدوج للحذف -->
+                <div id="acc-delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;align-items:center;justify-content:center;">
+                    <div style="background:#0a1628;border:1px solid rgba(231,76,60,0.4);border-radius:20px;padding:36px;max-width:440px;width:90%;text-align:center;">
+                        <div style="font-size:3rem;margin-bottom:12px;">⚠️</div>
+                        <h3 style="color:#e74c3c;margin-bottom:8px;">تأكيد الحذف النهائي</h3>
+                        <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-bottom:20px;" id="acc-delete-msg">هل تريد حذف هذا الحساب نهائياً؟</p>
+                        <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;margin-bottom:12px;">أدخل كلمة مرور الأدمن للتأكيد:</p>
+                        <input type="password" id="acc-delete-confirm-pass"
+                            placeholder="كلمة مرور الأدمن"
+                            style="width:100%;padding:12px;border-radius:10px;border:1px solid rgba(231,76,60,0.4);background:rgba(255,255,255,0.05);color:#fff;font-family:'Cairo';text-align:center;font-size:1rem;margin-bottom:16px;">
+                        <div style="display:flex;gap:12px;justify-content:center;">
+                            <button onclick="accConfirmDelete()" style="background:rgba(231,76,60,0.2);border:1px solid #e74c3c;color:#e74c3c;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:700;">
+                                🗑️ تأكيد الحذف
+                            </button>
+                            <button onclick="accCancelDelete()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:'Cairo';">
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </section>
 
 </main>
@@ -1956,6 +2262,8 @@
         populateGradeDropdown('q');
         populateGradeDropdown('pdf');
         populateGradeDropdown('exam');
+        // تهيئة cascade النخبة تلقائياً بعد تحميل المنهج
+        eliteInitCascade();
     }
 
     function resetDropdowns(prefix, parts) {
@@ -4307,34 +4615,73 @@
     }
 
     function eliteInitCascade() {
-        const srcGrade = document.getElementById('q-grade');
         const dstGrade = document.getElementById('eq-grade');
         const fltGrade = document.getElementById('eqf-grade');
-        if (!srcGrade || !dstGrade || dstGrade.options.length > 1) return;
-        Array.from(srcGrade.options).forEach(opt => {
-            dstGrade.add(new Option(opt.text, opt.value));
-            if (fltGrade) fltGrade.add(new Option(opt.text, opt.value));
-        });
+        if (!dstGrade) return;
+        // إذا fullCurriculum جاهز — استخدمه مباشرة
+        if (fullCurriculum && fullCurriculum.length > 0) {
+            if (dstGrade.options.length <= 1) {
+                dstGrade.innerHTML = '<option value="">-- اختر الصف --</option>';
+                if (fltGrade) fltGrade.innerHTML = '<option value="all">كل الصفوف</option>';
+                fullCurriculum.forEach((g, i) => {
+                    dstGrade.add(new Option(g.name, i));
+                    if (fltGrade) fltGrade.add(new Option(g.name, g.name));
+                });
+            }
+            return;
+        }
+        // fallback: نسخ من q-grade
+        const srcGrade = document.getElementById('q-grade');
+        if (srcGrade && dstGrade.options.length <= 1) {
+            Array.from(srcGrade.options).forEach(opt => {
+                dstGrade.add(new Option(opt.text, opt.value));
+                if (fltGrade) fltGrade.add(new Option(opt.text, opt.value));
+            });
+        }
     }
     function eliteUpdateSemesters() {
-        const grade = document.getElementById('eq-grade').value;
-        ['eq-term','eq-unit','eq-lesson'].forEach(id => { document.getElementById(id).innerHTML = '<option value="">اختر...</option>'; });
-        if (!grade || !gradeIdMap) return;
-        const gid = gradeIdMap[grade]; if (!gid) return;
-        supabaseAPI(`/rest/v1/semesters?grade_id=eq.${gid}&order=id`,'GET').then(d => (d||[]).forEach(s => document.getElementById('eq-term').add(new Option(s.name,s.id))));
+        const gIdx = document.getElementById('eq-grade').value;
+        ['eq-term','eq-unit','eq-lesson'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = '<option value="">-- اختر --</option>';
+        });
+        if (gIdx === '' || !fullCurriculum[gIdx]) return;
+        const termSel = document.getElementById('eq-term');
+        fullCurriculum[gIdx].semesters.forEach((s, i) =>
+            termSel.innerHTML += `<option value="${gIdx}_${i}">${esc(s.name)}</option>`
+        );
     }
-    function eliteUpdateUnits() {
-        const tid = document.getElementById('eq-term').value;
-        ['eq-unit','eq-lesson'].forEach(id => { document.getElementById(id).innerHTML = '<option value="">اختر...</option>'; });
-        if (!tid) return;
-        supabaseAPI(`/rest/v1/units?semester_id=eq.${tid}&order=id`,'GET').then(d => (d||[]).forEach(u => document.getElementById('eq-unit').add(new Option(u.name,u.id))));
+        function eliteUpdateUnits() {
+        const val = document.getElementById('eq-term').value;
+        ['eq-unit','eq-lesson'].forEach(id => {
+            const el = document.getElementById(id);
+            if(el) el.innerHTML = '<option value="">-- اختر --</option>';
+        });
+        if (!val || !val.includes('_')) return;
+        const [gIdx, sIdx] = val.split('_').map(Number);
+        const sem = fullCurriculum[gIdx]?.semesters[sIdx];
+        if (!sem) return;
+        const unitSel = document.getElementById('eq-unit');
+        sem.units.forEach((u, i) =>
+            unitSel.innerHTML += `<option value="${gIdx}_${sIdx}_${i}">${esc(u.name)}</option>`
+        );
     }
-    function eliteUpdateLessons() {
-        const uid = document.getElementById('eq-unit').value;
-        document.getElementById('eq-lesson').innerHTML = '<option value="">اختر...</option>';
-        if (!uid) return;
-        supabaseAPI(`/rest/v1/lessons?unit_id=eq.${uid}&order=id`,'GET').then(d => (d||[]).forEach(l => document.getElementById('eq-lesson').add(new Option(l.name,l.name))));
+
+        function eliteUpdateLessons() {
+        const val = document.getElementById('eq-unit').value;
+        const lessonSel = document.getElementById('eq-lesson');
+        if(lessonSel) lessonSel.innerHTML = '<option value="">-- اختر --</option>';
+        if (!val) return;
+        const parts = val.split('_').map(Number);
+        if (parts.length < 3) return;
+        const [gIdx, sIdx, uIdx] = parts;
+        const unit = fullCurriculum[gIdx]?.semesters[sIdx]?.units[uIdx];
+        if (!unit) return;
+        unit.lessons.forEach(l =>
+            lessonSel.innerHTML += `<option value="${esc(l.name)}">${esc(l.name)}</option>`
+        );
     }
+
     function eliteToggleOptions() {
         const t = document.getElementById('eq-type').value;
         document.getElementById('eq-options-container').style.display = (t==='true_false'||t==='short') ? 'none' : 'block';
@@ -4343,7 +4690,8 @@
     async function eliteSaveQuestion() {
         const lesson = document.getElementById('eq-lesson').value;
         if (!lesson) return showToast('⚠️ حدد مسار الدرس كاملاً','warning');
-        const grade = document.getElementById('eq-grade').value;
+        const gIdx  = document.getElementById('eq-grade').value;
+        const grade = (fullCurriculum[gIdx]?.name) || gIdx;
         const answer = document.getElementById('eq-answer').value.trim();
         const question = document.getElementById('eq-text').value.trim();
         if (!answer||!question) return showToast('⚠️ أدخل نص السؤال والإجابة','warning');
@@ -4459,6 +4807,586 @@
             sc.appendChild(s);
         }
     })();
+
+    
+    // ══════════════════════════════════════════════════════════
+    //  إدارة الحسابات — Account Management JS (إضافة فقط)
+    // ══════════════════════════════════════════════════════════
+
+    let _accStudentsCache = [];
+    let _accDeleteTarget  = null;
+    let _accDeleteType    = '';
+
+    // ── Sub-tab switching ──
+    function accountsTab(btn, panel) {
+        document.querySelectorAll('.accounts-stab').forEach(b => {
+            b.classList.remove('btn-gold'); b.classList.add('btn-action');
+        });
+        btn.classList.remove('btn-action'); btn.classList.add('btn-gold');
+        ['students','teachers','add-teacher'].forEach(p => {
+            const el = document.getElementById('accounts-panel-' + p);
+            if (el) el.style.display = 'none';
+        });
+        const target = document.getElementById('accounts-panel-' + panel);
+        if (target) target.style.display = 'block';
+        if (panel === 'students') accLoadStudents();
+        if (panel === 'teachers') accLoadTeachers();
+    }
+
+    // load عند فتح التبويب
+    const _origShowSectionAcc = showSection;
+    showSection = function(id) {
+        _origShowSectionAcc(id);
+        if (id === 'accounts') accLoadStudents();
+        if (id === 'dash')     dashLoadExtras();
+    };
+
+    // ── جلب الطلاب ──
+    async function accLoadStudents() {
+        const el = document.getElementById('acc-students-list');
+        if (!el) return;
+        el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">جاري التحميل...</p>';
+        try {
+            const res  = await authFetch('/api/admin/students');
+            const data = await res.json();
+            _accStudentsCache = data || [];
+            // تعبئة فلتر الصفوف
+            const grades = [...new Set(_accStudentsCache.map(s => s.grade).filter(Boolean))].sort();
+            const gSel = document.getElementById('acc-filter-grade');
+            if (gSel && gSel.options.length <= 1) {
+                grades.forEach(g => gSel.add(new Option(g, g)));
+            }
+            accRenderStudents(_accStudentsCache);
+        } catch(e) { el.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">خطأ في التحميل</p>'; }
+    }
+
+    function accFilterStudents() {
+        const q    = (document.getElementById('acc-search-student')?.value || '').trim().toLowerCase();
+        const grade = document.getElementById('acc-filter-grade')?.value || 'all';
+        let filtered = _accStudentsCache;
+        if (grade !== 'all') filtered = filtered.filter(s => s.grade === grade);
+        if (q) filtered = filtered.filter(s =>
+            (s.full_name||'').toLowerCase().includes(q) ||
+            (s.username||'').toLowerCase().includes(q)
+        );
+        accRenderStudents(filtered);
+    }
+
+    function accRenderStudents(students) {
+        const el = document.getElementById('acc-students-list');
+        if (!el) return;
+        if (!students.length) { el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا توجد نتائج</p>'; return; }
+        el.innerHTML = `
+            <div style="overflow-x:auto;">
+            <table style="width:100%;min-width:600px;">
+                <thead><tr style="color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.3);">
+                    <th style="padding:10px;text-align:right;">الاسم</th>
+                    <th style="padding:10px;text-align:right;">المستخدم</th>
+                    <th style="padding:10px;text-align:right;">الصف</th>
+                    <th style="padding:10px;text-align:right;">الحالة</th>
+                    <th style="padding:10px;text-align:center;">الإجراءات</th>
+                </tr></thead>
+                <tbody>
+                ${students.map(s => `
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);" id="acc-row-${s.id}">
+                        <td style="padding:10px;font-weight:bold;">${esc(s.full_name||'')}</td>
+                        <td style="padding:10px;color:rgba(255,255,255,0.5);font-size:0.85rem;">${esc(s.username||'')}</td>
+                        <td style="padding:10px;font-size:0.85rem;">${esc(s.grade||'')}</td>
+                        <td style="padding:10px;">
+                            <span style="background:${s.is_active===false?'rgba(231,76,60,0.15)':'rgba(46,204,113,0.12)'};
+                                color:${s.is_active===false?'#e74c3c':'#2ecc71'};
+                                border-radius:8px;padding:3px 10px;font-size:0.75rem;font-weight:700;">
+                                ${s.is_active===false?'🔴 معطّل':'🟢 نشط'}
+                            </span>
+                        </td>
+                        <td style="padding:10px;text-align:center;">
+                            <div style="display:flex;gap:6px;justify-content:center;flex-wrap:wrap;">
+                                ${s.is_active===false
+                                    ? `<button onclick="accToggleStudent(${s.id},true)" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">✅ تفعيل</button>`
+                                    : `<button onclick="accToggleStudent(${s.id},false)" style="background:rgba(243,156,18,0.12);border:1px solid rgba(243,156,18,0.35);color:#f39c12;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">⏸ تعطيل</button>`
+                                }
+                                <button onclick="accDeletePrompt(${s.id},'${esc(s.full_name||'')}','student')"
+                                    style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">
+                                    🗑️ حذف
+                                </button>
+                            </div>
+                        </td>
+                    </tr>`).join('')}
+                </tbody>
+            </table>
+            </div>`;
+    }
+
+    async function accToggleStudent(id, activate) {
+        try {
+            const fd = new FormData();
+            fd.append('is_active', activate);
+            const res = await authFetch(`/api/admin/students/${id}/toggle`, { method: 'POST', body: fd });
+            if (res && res.ok) {
+                showToast(activate ? '✅ تم تفعيل الحساب' : '⏸ تم تعطيل الحساب مؤقتاً', activate ? 'success' : 'warning');
+                accLoadStudents();
+            }
+        } catch(e) { showToast('خطأ في الاتصال','error'); }
+    }
+
+    // ── جلب المعلمين ──
+    async function accLoadTeachers() {
+        const el = document.getElementById('acc-teachers-list');
+        if (!el) return;
+        el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">جاري التحميل...</p>';
+        try {
+            const res  = await authFetch('/api/admin/teachers');
+            const data = await res.json();
+            if (!data || !data.length) { el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا يوجد معلمون مسجلون</p>'; return; }
+            el.innerHTML = `
+                <table style="width:100%;">
+                    <thead><tr style="color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.3);">
+                        <th style="padding:10px;text-align:right;">الاسم</th>
+                        <th style="padding:10px;text-align:right;">المستخدم</th>
+                        <th style="padding:10px;text-align:right;">المادة</th>
+                        <th style="padding:10px;text-align:center;">الإجراءات</th>
+                    </tr></thead>
+                    <tbody>
+                    ${data.map(t => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <td style="padding:10px;font-weight:bold;">👨‍🏫 ${esc(t.full_name||t.name||'')}</td>
+                            <td style="padding:10px;color:rgba(255,255,255,0.5);">${esc(t.username||'')}</td>
+                            <td style="padding:10px;">${esc(t.subject||'')}</td>
+                            <td style="padding:10px;text-align:center;">
+                                <div style="display:flex;gap:6px;justify-content:center;">
+                                    ${t.is_active===false
+                                        ? `<button onclick="accToggleTeacher(${t.id},true)" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">✅ تفعيل</button>`
+                                        : `<button onclick="accToggleTeacher(${t.id},false)" style="background:rgba(243,156,18,0.12);border:1px solid rgba(243,156,18,0.35);color:#f39c12;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">⏸ تعطيل</button>`
+                                    }
+                                    <button onclick="accDeletePrompt(${t.id},'${esc(t.full_name||'')}','teacher')"
+                                        style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);color:#e74c3c;border-radius:7px;padding:5px 10px;cursor:pointer;font-size:0.75rem;font-family:'Cairo';">
+                                        🗑️ حذف
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>`).join('')}
+                    </tbody>
+                </table>`;
+        } catch(e) { el.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">خطأ في التحميل</p>'; }
+    }
+
+    async function accToggleTeacher(id, activate) {
+        try {
+            const fd = new FormData();
+            fd.append('is_active', activate);
+            const res = await authFetch(`/api/admin/teachers/${id}/toggle`, { method: 'POST', body: fd });
+            if (res && res.ok) {
+                showToast(activate ? '✅ تم تفعيل المعلم' : '⏸ تم تعطيل المعلم', activate ? 'success' : 'warning');
+                accLoadTeachers();
+            }
+        } catch(e) { showToast('خطأ','error'); }
+    }
+
+    // ── إضافة معلم ──
+    async function accAddTeacher() {
+        const name     = document.getElementById('new-teacher-name').value.trim();
+        const username = document.getElementById('new-teacher-username').value.trim();
+        const password = document.getElementById('new-teacher-password').value.trim();
+        const subject  = document.getElementById('new-teacher-subject').value.trim() || 'رياضيات';
+        if (!name||!username||!password) return showToast('⚠️ أكمل جميع الحقول','warning');
+        if (password.length < 6) return showToast('⚠️ كلمة المرور أقل من 6 أحرف','warning');
+        const fd = new FormData();
+        fd.append('full_name', name); fd.append('username', username);
+        fd.append('password', password); fd.append('subject', subject);
+        try {
+            const res = await authFetch('/api/teacher/register', { method: 'POST', body: fd });
+            if (res && res.ok) {
+                showToast(`✅ تم إضافة المعلم ${name}`, 'success');
+                document.getElementById('new-teacher-name').value = '';
+                document.getElementById('new-teacher-username').value = '';
+                document.getElementById('new-teacher-password').value = '';
+            } else {
+                const err = await res.json().catch(()=>({}));
+                showToast('❌ ' + (err.detail || 'خطأ في الإضافة'), 'error');
+            }
+        } catch(e) { showToast('خطأ في الاتصال','error'); }
+    }
+
+    // ── حذف نهائي — تأكيد مزدوج ──
+    function accDeletePrompt(id, name, type) {
+        _accDeleteTarget = id;
+        _accDeleteType   = type;
+        const msg = document.getElementById('acc-delete-msg');
+        if (msg) msg.textContent = `سيتم حذف حساب "${name}" نهائياً ولا يمكن التراجع.`;
+        document.getElementById('acc-delete-confirm-pass').value = '';
+        const modal = document.getElementById('acc-delete-modal');
+        if (modal) { modal.style.display = 'flex'; }
+    }
+
+    async function accConfirmDelete() {
+        const pass = document.getElementById('acc-delete-confirm-pass').value.trim();
+        if (!pass) return showToast('⚠️ أدخل كلمة مرور الأدمن','warning');
+        try {
+            const fd = new FormData();
+            fd.append('admin_password', pass);
+            const url = _accDeleteType === 'student'
+                ? `/api/admin/students/${_accDeleteTarget}/delete`
+                : `/api/admin/teachers/${_accDeleteTarget}/delete`;
+            const res = await authFetch(url, { method: 'DELETE', body: fd });
+            if (res && res.ok) {
+                showToast('🗑️ تم الحذف النهائي', 'success');
+                accCancelDelete();
+                _accDeleteType === 'student' ? accLoadStudents() : accLoadTeachers();
+            } else {
+                const err = await res.json().catch(()=>({}));
+                showToast('❌ ' + (err.detail || 'كلمة مرور خاطئة أو خطأ في الحذف'), 'error');
+            }
+        } catch(e) { showToast('خطأ في الاتصال','error'); }
+    }
+
+    function accCancelDelete() {
+        const modal = document.getElementById('acc-delete-modal');
+        if (modal) modal.style.display = 'none';
+        _accDeleteTarget = null; _accDeleteType = '';
+    }
+
+    // ── تحسين صفحة العرش ──
+    async function dashLoadExtras() {
+        try {
+            const res  = await authFetch('/api/admin/students');
+            const data = await res.json() || [];
+            const today = new Date().toDateString();
+            // طلاب جدد اليوم
+            const newToday = data.filter(s => s.created_at && new Date(s.created_at).toDateString() === today).length;
+            const el1 = document.getElementById('dash-new-students');
+            if (el1) el1.textContent = newToday;
+            // طلبات النخبة
+            try {
+                const r2 = await authFetch('/api/admin/elite/requests');
+                const d2 = await r2.json() || [];
+                const pending = d2.filter(r => r.status === 'pending').length;
+                const el2 = document.getElementById('dash-elite-pending');
+                if (el2) el2.textContent = pending;
+                // badge في nav
+                const badge = document.getElementById('elite-req-badge');
+                if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
+            } catch(e) {}
+            // آخر نشاط
+            const recent = data.sort((a,b) => (b.last_active||b.created_at||'') > (a.last_active||a.created_at||'') ? 1 : -1).slice(0,5);
+            const elR = document.getElementById('dash-recent-activity');
+            if (elR && recent.length) {
+                elR.innerHTML = recent.map(s => `
+                    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+                        <div style="width:34px;height:34px;border-radius:50%;background:rgba(212,175,55,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">
+                            ${s.avatar_url ? `<img src="${s.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : '👤'}
+                        </div>
+                        <div style="flex:1;min-width:0;">
+                            <div style="font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.full_name||'')}</div>
+                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${esc(s.grade||'')} · ${esc(s.username||'')}</div>
+                        </div>
+                        <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);flex-shrink:0;">
+                            ${s.last_active ? new Date(s.last_active).toLocaleString('ar-OM') : 'غير محدد'}
+                        </div>
+                    </div>`).join('');
+            }
+        } catch(e) {}
+    }
+
+    // ── END ACCOUNTS + DASH EXTRAS ──
+
+    
+    // ══ استيراد Excel للنخبة ══
+    let _eliteExcelData = [];
+
+    async function elitePreviewExcel() {
+        const file = document.getElementById('elite-excel-file')?.files[0];
+        if (!file) return;
+        const preview = document.getElementById('elite-excel-preview');
+        const countEl = document.getElementById('elite-excel-count');
+        const tableEl = document.getElementById('elite-excel-table');
+        if (!preview) return;
+
+        try {
+            // قراءة الملف
+            const ab = await file.arrayBuffer();
+            let rows = [];
+
+            if (file.name.endsWith('.csv')) {
+                // CSV
+                const text = new TextDecoder('utf-8').decode(ab);
+                const lines = text.split('\n').filter(l => l.trim());
+                const headers = lines[0].split(',').map(h => h.trim().replace(/"/g,''));
+                rows = lines.slice(1).map(l => {
+                    const vals = l.split(',').map(v => v.trim().replace(/"/g,''));
+                    const obj = {};
+                    headers.forEach((h,i) => obj[h] = vals[i]||'');
+                    return obj;
+                });
+            } else {
+                // XLSX — نستخدم SheetJS
+                const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+                const wb = read(ab);
+                const ws = wb.Sheets[wb.SheetNames[0]];
+                rows = utils.sheet_to_json(ws, { defval: '' });
+            }
+
+            // تطبيع أسماء الأعمدة
+            const normalize = k => (k||'').toString().trim().toLowerCase()
+                .replace('grade','grade').replace('الصف','grade')
+                .replace('lesson','lesson').replace('الدرس','lesson')
+                .replace('question','question').replace('السؤال','question')
+                .replace('answer','answer').replace('الإجابة','answer').replace('الاجابة','answer')
+                .replace('options','options').replace('الخيارات','options')
+                .replace('q_type','q_type').replace('النوع','q_type')
+                .replace('difficulty','difficulty').replace('الصعوبة','difficulty')
+                .replace('semester','semester').replace('الفصل','semester')
+                .replace('unit','unit').replace('الوحدة','unit');
+
+            _eliteExcelData = rows.map(row => {
+                const norm = {};
+                Object.entries(row).forEach(([k,v]) => { norm[normalize(k)] = v; });
+                return {
+                    grade:      norm.grade      || '',
+                    semester:   norm.semester   || '',
+                    unit:       norm.unit       || '',
+                    lesson:     norm.lesson     || '',
+                    q_type:     (norm.q_type    || 'choice').toLowerCase(),
+                    question:   norm.question   || '',
+                    options:    norm.options    || '',
+                    answer:     norm.answer     || '',
+                    difficulty: (norm.difficulty|| 'hard').toLowerCase(),
+                    is_elite:   true,
+                };
+            }).filter(r => r.question && r.answer);
+
+            countEl.textContent = `✅ تم قراءة ${_eliteExcelData.length} سؤال جاهز للاستيراد`;
+
+            // جدول المعاينة
+            const diffLabel = {hard:'🔥 صعب', expert:'💎 خبير', olympic:'🏆 أولمبي'};
+            tableEl.innerHTML = `
+                <table style="width:100%;font-size:0.78rem;border-collapse:collapse;">
+                    <thead><tr style="color:var(--gold);background:rgba(212,175,55,0.08);">
+                        <th style="padding:7px;text-align:right;">#</th>
+                        <th style="padding:7px;text-align:right;">الصف</th>
+                        <th style="padding:7px;text-align:right;">الدرس</th>
+                        <th style="padding:7px;text-align:right;">السؤال</th>
+                        <th style="padding:7px;text-align:right;">الصعوبة</th>
+                    </tr></thead>
+                    <tbody>
+                    ${_eliteExcelData.slice(0,20).map((r,i) => `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                            <td style="padding:7px;color:rgba(255,255,255,0.4);">${i+1}</td>
+                            <td style="padding:7px;">${esc(r.grade)}</td>
+                            <td style="padding:7px;">${esc(r.lesson)}</td>
+                            <td style="padding:7px;max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.question)}</td>
+                            <td style="padding:7px;">${diffLabel[r.difficulty]||r.difficulty}</td>
+                        </tr>`).join('')}
+                    ${_eliteExcelData.length > 20 ? `<tr><td colspan="5" style="padding:8px;text-align:center;color:rgba(255,255,255,0.3);">... و${_eliteExcelData.length-20} سؤال آخر</td></tr>` : ''}
+                    </tbody>
+                </table>`;
+
+            preview.style.display = 'block';
+        } catch(e) {
+            showToast('❌ خطأ في قراءة الملف — تحقق من الصيغة', 'error');
+            _aLog('Excel read error:', e);
+        }
+    }
+
+    async function eliteImportExcel() {
+        if (!_eliteExcelData.length) return showToast('⚠️ لا توجد بيانات', 'warning');
+        const btn = document.querySelector('#elite-excel-preview button');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الاستيراد...'; }
+
+        let success = 0, failed = 0;
+        // نرسل دفعات
+        const batchSize = 10;
+        for (let i = 0; i < _eliteExcelData.length; i += batchSize) {
+            const batch = _eliteExcelData.slice(i, i + batchSize);
+            for (const q of batch) {
+                try {
+                    const fd = new FormData();
+                    Object.entries(q).forEach(([k,v]) => fd.append(k, v));
+                    const res = await authFetch('/api/admin/questions/add', { method: 'POST', body: fd });
+                    if (res && res.ok) success++; else failed++;
+                } catch(e) { failed++; }
+            }
+        }
+
+        const resultEl = document.getElementById('elite-import-result');
+        if (resultEl) {
+            resultEl.style.display = 'block';
+            resultEl.innerHTML = `
+                <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:14px;text-align:center;">
+                    <div style="font-size:1.3rem;font-weight:900;color:#2ecc71;">✅ ${success} سؤال تم استيراده بنجاح</div>
+                    ${failed ? `<div style="color:#e74c3c;font-size:0.85rem;margin-top:4px;">❌ ${failed} فشل في الاستيراد</div>` : ''}
+                </div>`;
+        }
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-upload"></i> استيراد الكل'; }
+        _eliteExcelData = [];
+        document.getElementById('elite-excel-preview').style.display = 'none';
+        showToast(`✅ استُورد ${success} سؤال نخبة بنجاح`, 'success');
+        eliteLoadQuestions();
+    }
+
+    function eliteCancelExcel() {
+        _eliteExcelData = [];
+        document.getElementById('elite-excel-preview').style.display = 'none';
+        document.getElementById('elite-import-result').style.display = 'none';
+        const fi = document.getElementById('elite-excel-file');
+        if (fi) fi.value = '';
+    }
+    // ── END EXCEL IMPORT ──
+
+    
+    // ══ بوابة الاستيراد الملكي للنخبة — Excel Import ══
+    let _eliteImportRows = [];
+
+    function eliteDownloadTemplate() {
+        // إنشاء ملف CSV كقالب
+        const headers = ['الصف','الدرس','نوع التحدي','نص السؤال','الخيارات','الإجابة الصحيحة','مستوى الصعوبة'];
+        const sample  = [
+            ['الصف الخامس','الكسور العادية','اختيار من متعدد','ما ناتج 1/2 + 1/4 ؟','3/4 , 1/4 , 1 , 2/4','3/4','hard'],
+            ['الصف الخامس','الكسور العادية','صواب أو خطأ','1/2 أكبر من 3/4','','خطأ','expert'],
+            ['الصف السادس','الأعداد الصحيحة','اختيار من متعدد','ما قيمة (-3) × (-4) ؟','12 , -12 , 7 , -7','12','olympic'],
+        ];
+        const csv = [headers, ...sample].map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+        const blob = new Blob(['\uFEFF' + csv], { type:'text/csv;charset=utf-8;' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'قالب_أسئلة_النخبة.csv';
+        a.click();
+        showToast('⬇️ تم تحميل قالب النخبة', 'success');
+    }
+
+    async function eliteHandleExcelImport(input) {
+        const file = input.files[0];
+        if (!file) return;
+        try {
+            const ab = await file.arrayBuffer();
+            const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+            const wb   = read(ab);
+            const ws   = wb.Sheets[wb.SheetNames[0]];
+            const rows = utils.sheet_to_json(ws, { defval: '' });
+
+            const diffMap = {
+                'صعب':'hard','hard':'hard','hard 🔥':'hard',
+                'خبير':'expert','expert':'expert','expert 💎':'expert',
+                'أولمبي':'olympic','olympic':'olympic','olympic 🏆':'olympic',
+            };
+
+            _eliteImportRows = rows.map((r, i) => {
+                const rawDiff = String(r['مستوى الصعوبة'] || r['difficulty'] || 'hard').trim().toLowerCase();
+                return {
+                    row_num:    i + 2,
+                    grade:      String(r['الصف']            || r['grade']    || '').trim(),
+                    lesson:     String(r['الدرس']           || r['lesson']   || '').trim(),
+                    q_type:     translateQTypeToEn(String(r['نوع التحدي'] || r['q_type'] || 'اختيار من متعدد')),
+                    question:   String(r['نص السؤال']       || r['question'] || '').trim(),
+                    options:    String(r['الخيارات']        || r['options']  || '').trim(),
+                    answer:     String(r['الإجابة الصحيحة'] || r['answer']   || '').trim(),
+                    difficulty: diffMap[rawDiff] || 'hard',
+                    is_elite:   true,
+                    valid: !!(r['الصف'] || r['grade']) && !!(r['نص السؤال'] || r['question']) && !!(r['الإجابة الصحيحة'] || r['answer']),
+                };
+            }).filter(r => r.question);
+
+            eliteRenderImportPreview(_eliteImportRows);
+            document.getElementById('elite-import-modal').style.display = 'flex';
+        } catch(err) {
+            _aLog('Elite Excel error:', err);
+            showToast('❌ خطأ في قراءة الملف — تحقق من الصيغة', 'error');
+        }
+        input.value = '';
+    }
+
+    function eliteRenderImportPreview(rows) {
+        const diffLabel = { hard:'🔥 صعب', expert:'💎 خبير', olympic:'🏆 أولمبي' };
+        const valid   = rows.filter(r => r.valid).length;
+        const invalid = rows.length - valid;
+        const stats = document.getElementById('elite-import-stats');
+        if (stats) stats.innerHTML = `
+            <div style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:10px 18px;font-size:0.85rem;color:#2ecc71;font-weight:bold;">✅ ${valid} جاهز للإيداع</div>
+            ${invalid ? `<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:10px 18px;font-size:0.85rem;color:#e74c3c;font-weight:bold;">❌ ${invalid} ناقص البيانات</div>` : ''}
+            <div style="background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:10px 18px;font-size:0.85rem;color:#f39c12;font-weight:bold;">⭐ ${rows.filter(r=>r.difficulty==='olympic').length} أولمبي · ${rows.filter(r=>r.difficulty==='expert').length} خبير · ${rows.filter(r=>r.difficulty==='hard').length} صعب</div>`;
+
+        const tbody = document.getElementById('elite-import-table-body');
+        if (!tbody) return;
+        tbody.innerHTML = rows.map(r => `
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.05);${!r.valid?'opacity:0.5;':''}" >
+                <td style="padding:9px;color:rgba(255,255,255,0.4);">${r.row_num}</td>
+                <td style="padding:9px;">${esc(r.grade)}</td>
+                <td style="padding:9px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.lesson)}</td>
+                <td style="padding:9px;font-size:0.78rem;">${esc(r.q_type)}</td>
+                <td style="padding:9px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(r.question)}</td>
+                <td style="padding:9px;">${diffLabel[r.difficulty]||r.difficulty}</td>
+                <td style="padding:9px;">${r.valid ? '<span style="color:#2ecc71;font-size:0.78rem;">✅ جاهز</span>' : '<span style="color:#e74c3c;font-size:0.78rem;">❌ ناقص</span>'}</td>
+            </tr>`).join('');
+    }
+
+    async function eliteStartBatchUpload() {
+        const validRows = _eliteImportRows.filter(r => r.valid);
+        if (!validRows.length) return showToast('⚠️ لا توجد أسئلة صالحة', 'warning');
+
+        const btn         = document.getElementById('elite-btn-confirm-import');
+        const progressSec = document.getElementById('elite-import-progress-section');
+        const progressBar = document.getElementById('elite-import-progress-bar');
+        const progressTxt = document.getElementById('elite-import-progress-text');
+
+        btn.disabled = true;
+        progressSec.style.display = 'block';
+
+        let success = 0, failed = 0;
+        const total = validRows.length;
+        const DELAY_MS = total > 100 ? 100 : 60;
+
+        for (let i = 0; i < validRows.length; i++) {
+            const row = validRows[i];
+            try {
+                const fd = new FormData();
+                fd.append('grade',      row.grade);
+                fd.append('lesson',     row.lesson);
+                fd.append('subject',    'الرياضيات');
+                fd.append('q_type',     row.q_type);
+                fd.append('question',   row.question);
+                fd.append('answer',     row.answer);
+                fd.append('options',    row.options);
+                fd.append('is_elite',   'true');
+                fd.append('difficulty', row.difficulty);
+
+                const res = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
+                if (res && res.ok) success++; else failed++;
+            } catch(e) { failed++; }
+
+            await new Promise(r => setTimeout(r, DELAY_MS));
+
+            const pct = Math.round(((i + 1) / total) * 100);
+            progressBar.style.width = pct + '%';
+            progressBar.textContent = pct + '%';
+            progressTxt.textContent = `تم إيداع ${i+1} من ${total}${failed ? ` (${failed} فشل)` : ' ✓'}`;
+        }
+
+        progressBar.style.width = '100%';
+        progressBar.textContent = '100%';
+
+        setTimeout(() => {
+            eliteCloseImportModal();
+            const msg = document.getElementById('elite-import-success-msg');
+            const txt = document.getElementById('elite-import-success-text');
+            if (msg && txt) {
+                txt.textContent = `تم إيداع ${success} تحدي نخبة بنجاح في الخزنة الملكية! ⭐${failed ? ` (${failed} فشل)` : ''}`;
+                msg.style.display = 'block';
+                setTimeout(() => msg.style.display = 'none', 7000);
+            }
+            showToast(`⭐ اكتمل إيداع ${success} تحدي نخبة${failed ? ` · ${failed} فشل` : ' · جميعها ناجحة!'}`, failed ? 'warning' : 'success', 6000);
+            eliteLoadQuestions();
+            _eliteImportRows = [];
+        }, 800);
+    }
+
+    function eliteCloseImportModal() {
+        document.getElementById('elite-import-modal').style.display = 'none';
+        document.getElementById('elite-import-progress-section').style.display = 'none';
+        const btn = document.getElementById('elite-btn-confirm-import');
+        if (btn) { btn.disabled = false; }
+        const bar = document.getElementById('elite-import-progress-bar');
+        if (bar) { bar.style.width = '0%'; bar.textContent = '0%'; }
+    }
+    // ── END ELITE EXCEL IMPORT ──
 
     </script>
 </body>

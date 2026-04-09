@@ -373,9 +373,17 @@ async def get_full_structure():
 # ==========================================
 @app.post("/api/admin/questions")
 async def add_question(
-    grade: str=Form(...), lesson: str=Form(...), subject: str=Form(...), 
-    q_type: str=Form(...), question: str=Form(...), options: str=Form(""), 
-    answer: str=Form(...), image: UploadFile=File(None), admin=Depends(get_current_admin)
+    grade:      str         = Form(...),
+    lesson:     str         = Form(...),
+    subject:    str         = Form(...),
+    q_type:     str         = Form(...),
+    question:   str         = Form(...),
+    options:    str         = Form(""),
+    answer:     str         = Form(...),
+    image:      UploadFile  = File(None),
+    is_elite:   str         = Form(default="false"),
+    difficulty: str         = Form(default="hard"),
+    admin=Depends(get_current_admin)
 ):
     img_url = ""
     if image and image.filename:
@@ -383,11 +391,24 @@ async def add_question(
         content = await image.read()
         supabase.storage.from_("resources").upload(path=img_name, file=content, file_options={"content-type": image.content_type})
         img_url = supabase.storage.from_("resources").get_public_url(img_name)
-    
-    supabase.table("questions").insert({
-        "grade": grade, "lesson": lesson, "subject": subject, "q_type": q_type, 
-        "question": question, "options": options, "answer": answer, "image_url": img_url
-    }).execute()
+
+    row = {
+        "grade":    grade,
+        "lesson":   lesson,
+        "subject":  subject,
+        "q_type":   q_type,
+        "question": question,
+        "options":  options,
+        "answer":   answer,
+        "image_url": img_url,
+    }
+    # حقول النخبة — اختيارية
+    elite_val = is_elite.lower().strip() not in ('false', '0', 'no', '')
+    if elite_val:
+        row["is_elite"]   = True
+        row["difficulty"] = difficulty.strip() or "hard"
+
+    supabase.table("questions").insert(row).execute()
     return {"status": "success"}
 
 @app.put("/api/admin/questions/{q_id}")
@@ -1317,6 +1338,96 @@ async def delete_notification(notif_id: int, admin=Depends(get_current_admin)):
     except Exception:
         pass
     return {"status": "success"}
+
+
+# ==========================================
+# --- endpoints إدارة الحسابات ---
+# ==========================================
+
+@app.get("/api/admin/students/full")
+async def get_all_students_full(admin=Depends(get_current_admin)):
+    """جلب قائمة الطلاب كاملة مع is_active"""
+    res = supabase.table("students").select(
+        "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active"
+    ).order("full_name").execute()
+    return res.data or []
+
+
+@app.post("/api/admin/students/{student_id}/toggle")
+async def toggle_student(student_id: int, is_active: str = Form(...), admin=Depends(get_current_admin)):
+    """تعطيل أو تفعيل حساب طالب"""
+    active = is_active.lower() not in ('false', '0', 'no')
+    supabase.table("students").update({"is_active": active}).eq("id", student_id).execute()
+    return {"status": "success", "is_active": active}
+
+
+@app.delete("/api/admin/students/{student_id}/delete")
+async def delete_student(student_id: int, request: Request, admin=Depends(get_current_admin)):
+    """حذف طالب نهائياً — يتطلب كلمة مرور الأدمن"""
+    body = await request.form()
+    admin_pass = body.get("admin_password", "")
+    if not admin_pass or not (admin_pass == ADMIN_PASSWORD or verify_password(admin_pass, ADMIN_PASSWORD)):
+        raise HTTPException(status_code=403, detail="كلمة مرور الأدمن خاطئة")
+    supabase.table("results").delete().eq("student_id", student_id).execute()
+    supabase.table("elite_requests").delete().eq("student_id", student_id).execute()
+    res = supabase.table("students").delete().eq("id", student_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    return {"status": "deleted"}
+
+
+@app.get("/api/admin/teachers")
+async def get_all_teachers(admin=Depends(get_current_admin)):
+    """جلب قائمة المعلمين"""
+    res = supabase.table("teachers").select(
+        "id, full_name, username, subject, is_active, created_at"
+    ).order("full_name").execute()
+    return res.data or []
+
+
+@app.post("/api/admin/teachers/{teacher_id}/toggle")
+async def toggle_teacher(teacher_id: int, is_active: str = Form(...), admin=Depends(get_current_admin)):
+    """تعطيل أو تفعيل حساب معلم"""
+    active = is_active.lower() not in ('false', '0', 'no')
+    supabase.table("teachers").update({"is_active": active}).eq("id", teacher_id).execute()
+    return {"status": "success", "is_active": active}
+
+
+@app.delete("/api/admin/teachers/{teacher_id}/delete")
+async def delete_teacher(teacher_id: int, request: Request, admin=Depends(get_current_admin)):
+    """حذف معلم نهائياً — يتطلب كلمة مرور الأدمن"""
+    body = await request.form()
+    admin_pass = body.get("admin_password", "")
+    if not admin_pass or not (admin_pass == ADMIN_PASSWORD or verify_password(admin_pass, ADMIN_PASSWORD)):
+        raise HTTPException(status_code=403, detail="كلمة مرور الأدمن خاطئة")
+    res = supabase.table("teachers").delete().eq("id", teacher_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="المعلم غير موجود")
+    return {"status": "deleted"}
+
+
+@app.post("/api/admin/teachers/add")
+async def add_teacher_admin(
+    full_name: str = Form(...),
+    username:  str = Form(...),
+    password:  str = Form(...),
+    subject:   str = Form(default="رياضيات"),
+    admin=Depends(get_current_admin)
+):
+    """إضافة معلم جديد من لوحة الأدمن"""
+    if len(password) < 6:
+        raise HTTPException(status_code=400, detail="كلمة المرور أقل من 6 أحرف")
+    existing = supabase.table("teachers").select("username").eq("username", username).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="اسم المستخدم موجود مسبقاً")
+    supabase.table("teachers").insert({
+        "full_name": full_name.strip(),
+        "username":  username.strip().lower(),
+        "password":  hash_password(password),
+        "subject":   subject.strip(),
+        "is_active": True,
+    }).execute()
+    return {"status": "success", "message": f"تم إضافة المعلم {full_name}"}
 
 # ==========================================
 # --- 13. تشغيل المحرك المركزي ---
