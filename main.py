@@ -521,6 +521,52 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     return all_questions
 
 
+@app.post("/api/student/check_answer")
+async def check_answer(request: Request):
+    """
+    التحقق من إجابة الطالب على السيرفر
+    يُرجع is_correct + correct_answer عند الخطأ (ليُعرض في مستشفى الأرقام)
+    Body JSON: { "question_id": int, "student_answer": str }
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=120, window_seconds=60):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة جداً — انتظر لحظة")
+
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="صيغة الطلب غير صحيحة — يُتوقع JSON")
+
+    question_id    = body.get("question_id")
+    student_answer = body.get("student_answer", "")
+
+    if not question_id or not isinstance(question_id, int):
+        raise HTTPException(status_code=400, detail="question_id مطلوب وصحيح")
+
+    # جلب الإجابة الصحيحة من قاعدة البيانات
+    res = supabase.table("questions").select("id, answer, q_type").eq("id", question_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="السؤال غير موجود")
+
+    correct_answer  = str(res.data[0].get("answer", "")).strip()
+    q_type          = res.data[0].get("q_type", "")
+    student_cleaned = str(student_answer).strip()
+
+    # مقارنة غير حساسة لحالة الأحرف + تجاهل المسافات الزائدة
+    normalize = lambda s: " ".join((s or "").strip().split())
+    is_correct = normalize(correct_answer).lower() == normalize(student_cleaned).lower()
+
+    response_data = {
+        "is_correct": is_correct,
+        "q_type":     q_type,
+    }
+    # نُرجع الإجابة الصحيحة فقط عند الخطأ — لعرضها في مستشفى الأرقام
+    if not is_correct:
+        response_data["correct_answer"] = correct_answer
+
+    return response_data
+
+
 @app.get("/api/admin/debug/questions")
 async def debug_questions(admin=Depends(get_current_admin)):
     """

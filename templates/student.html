@@ -287,7 +287,6 @@
             width:118px;height:118px;border-radius:50%;
             padding:3px;
             background:conic-gradient(from 0deg,#7a5c10,#d4af37,#fcf6ba,#d4af37,#7a5c10);
-            animation:_spinRing 8s linear infinite;
             flex-shrink:0;
         }
         .profile-avatar-large {
@@ -1182,16 +1181,6 @@
             <input type="text"     id="reg-school" class="auth-input" placeholder="اسم المدرسة">
             <select id="reg-grade" class="auth-input" style="color:#fff; background:rgba(0,0,0,0.5);">
                 <option value="">-- اختر صفك الدراسي --</option>
-                <option value="الصف الخامس">الصف الخامس</option>
-                <option value="الصف السادس">الصف السادس</option>
-                <option value="الصف السابع">الصف السابع</option>
-                <option value="الصف الثامن">الصف الثامن</option>
-                <option value="الصف التاسع">الصف التاسع</option>
-                <option value="الصف العاشر">الصف العاشر</option>
-                <option value="الصف الحادي عشر (متقدم)">الصف الحادي عشر (متقدم)</option>
-                <option value="الصف الحادي عشر(اساسي)">الصف الحادي عشر (أساسي)</option>
-                <option value="الصف الثاني عشر (متقدم)">الصف الثاني عشر (متقدم)</option>
-                <option value="الصف الثاني عشر (أساسي)">الصف الثاني عشر (أساسي)</option>
             </select>
             <button class="nav-btn active shiny-btn" onclick="handleRegister()">تسجيل واعتلاء العرش ⚔️</button>
             <p style="margin-top:20px; font-size:0.8rem;">لديك حساب؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold);">سجل دخولك</a></p>
@@ -1536,10 +1525,10 @@
     ================================================================ */
     const API_URL  = window.location.origin;
     const _isDev = ['localhost','127.0.0.1'].includes(window.location.hostname);
-    const _log   = (...a) => { if (_isDev) _log(...a); };
-    const _warn  = (...a) => { if (_isDev) _warn(...a); };
-    const _grp   = (...a) => { if (_isDev) _grp(...a); };
-    const _grpE  = ()     => { if (_isDev) _grpE(); };
+    const _log   = (...a) => { if (_isDev) console.log(...a); };
+    const _warn  = (...a) => { if (_isDev) console.warn(...a); };
+    const _grp   = (...a) => { if (_isDev) console.group(...a); };
+    const _grpE  = ()     => { if (_isDev) console.groupEnd(); };
     const API_BASE = window.location.origin;
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
 
@@ -1584,6 +1573,19 @@
     let currentArenaQIndex  = 0;
     let myArenaScore        = 0;
     let enemyArenaScore     = 0;
+    // ── تتبع IDs الأسئلة المستخدمة في المبارزة — مستمر طوال الجلسة ──
+    const _arenaUsedIds = (() => {
+        const _KEY = '_arenaUsedIds';
+        const _load = () => new Set(JSON.parse(sessionStorage.getItem(_KEY) || '[]'));
+        const _save = (s) => sessionStorage.setItem(_KEY, JSON.stringify([...s]));
+        return {
+            _set: _load(),
+            has(id)    { return this._set.has(id); },
+            add(id)    { this._set.add(id); _save(this._set); },
+            clear()    { this._set.clear(); sessionStorage.removeItem(_KEY); },
+            get size() { return this._set.size; }
+        };
+    })();
 
     const CLANS = [
         { id: 'khwarizmi', name: 'فرسان الخوارزمي', icon: '🗡️', color: '#6a5acd', bg: 'rgba(106,90,205,0.2)' },
@@ -1744,7 +1746,9 @@
     /* ================================================================
        TOAST NOTIFICATION
     ================================================================ */
-    function showToast(msg, duration = 2500) {
+    function showToast(msg, typeOrDuration = 2500, duration = null) {
+        // يقبل: showToast(msg) | showToast(msg, 3000) | showToast(msg, 'success', 4000)
+        const _dur = typeof typeOrDuration === 'number' ? typeOrDuration : (duration || 2500);
         let toast = document.getElementById('royal-toast');
         if (!toast) {
             toast = document.createElement('div');
@@ -1761,7 +1765,7 @@
         toast.textContent = msg;
         toast.style.opacity = '1';
         clearTimeout(toast._timeout);
-        toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, duration);
+        toast._timeout = setTimeout(() => { toast.style.opacity = '0'; }, _dur);
     }
 
     /* ================================================================
@@ -1800,7 +1804,9 @@
         updateHeroBroadcast();
         // إشعارات بعد تأكد من وجود currentUser
         setTimeout(() => { if (currentUser) checkGeneralNotifications(); }, 3000);
-        setInterval(() => { if (currentUser) checkGeneralNotifications(); }, 60000);
+        // منع تراكم الـ setInterval عند فتح الرئيسية أكثر من مرة
+        if (window._notifInterval) clearInterval(window._notifInterval);
+        window._notifInterval = setInterval(() => { if (currentUser) checkGeneralNotifications(); }, 60000);
         setTimeout(checkEliteStatus, 3500);
     }
 
@@ -2041,11 +2047,14 @@
         if (!currentUser) return;
         if (!currentUser.mistakes) currentUser.mistakes = [];
         currentUser.mistakes.push({
-            question: questionObj.question,
+            question:      questionObj.question,
             correctAnswer: questionObj.answer,
-            yourAnswer: yourAnswer,
-            lesson: challengeState.lesson,
-            date: new Date().toLocaleDateString('ar-SA')
+            yourAnswer:    yourAnswer,
+            q_type:        questionObj.q_type  || 'short',
+            options:       questionObj.options || '',
+            _qid:          questionObj.id      || null,
+            lesson:        challengeState.lesson,
+            date:          new Date().toLocaleDateString('ar-SA')
         });
         // Keep last 50 mistakes
         if (currentUser.mistakes.length > 50) currentUser.mistakes = currentUser.mistakes.slice(-50);
@@ -2065,12 +2074,19 @@
         if (!currentUser || !currentUser.mistakes) return;
         const m = currentUser.mistakes[idx];
         if (!m) return;
-        // Build a single-question challenge from this mistake
-        challengeState.qs = [{ question: m.question, answer: m.correctAnswer, q_type: 'short', options: '' }];
+        // ── نحافظ على نوع السؤال وخياراته الأصلية ──
+        challengeState.qs = [{
+            question:   m.question,
+            answer:     m.correctAnswer || '',
+            q_type:     m.q_type || 'short',
+            options:    m.options || '',
+            id:         m._qid || null
+        }];
         challengeState.index = 0;
         challengeState.correct = 0;
         challengeState.lesson = 'مراجعة الأخطاء';
         challengeState.answersStatus = [null];
+        challengeState._reviewMode = false;
         switchView('curriculum');
         renderCurrentQuestion();
     }
@@ -2561,11 +2577,62 @@
         document.getElementById('arena-overlay').style.display = 'none';
     }
 
+    async function generateEnemyAsync(grade) {
+        const userGradeNum = normalizeGradeNum(grade);
+
+        // ── 1. محاولة جلب طلاب من نفس الصف من السيرفر ──
+        try {
+            const res = await fetch(`${API_URL}/api/leaderboard`);
+            if (res.ok) {
+                const all = await res.json();
+                // فلترة بالصف
+                const sameGrade = all.filter(h =>
+                    h.username !== currentUser?.username &&
+                    normalizeGradeNum(h.grade || h.class_name || '') === userGradeNum
+                );
+                const pool = sameGrade.length > 0 ? sameGrade
+                    : all.filter(h => h.username !== currentUser?.username);
+                if (pool.length > 0) {
+                    const hero = pool[Math.floor(Math.random() * pool.length)];
+                    return {
+                        name:   hero.full_name || hero.student_name || 'فارس مجهول',
+                        xp:     hero.xp || hero.total_points || 0,
+                        avatar: hero.avatar_url || avatars[Math.floor(Math.random() * avatars.length)],
+                        grade:  hero.grade || grade
+                    };
+                }
+            }
+        } catch {}
+
+        // ── 2. fallback: localStorage ──
+        const allHeroes  = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+        const sameGradeLocal = allHeroes.filter(h =>
+            h.username !== currentUser?.username &&
+            normalizeGradeNum(h.grade) === userGradeNum
+        );
+        const localPool = sameGradeLocal.length > 0 ? sameGradeLocal
+            : allHeroes.filter(h => h.username !== currentUser?.username);
+        if (localPool.length > 0) {
+            const hero = localPool[Math.floor(Math.random() * localPool.length)];
+            return { name: hero.full_name, xp: hero.xp || 0,
+                     avatar: hero.avatar_url || avatars[0], grade: hero.grade };
+        }
+
+        // ── 3. fallback أخير: خصم وهمي بنفس الصف ──
+        const names = ['فارس الظلام','عقل أينشتاين','بطل الأرقام','المقاتل المجهول','ساحر الأرقام'];
+        return {
+            name:   names[Math.floor(Math.random() * names.length)],
+            xp:     Math.floor(Math.random() * 500) + 50,
+            avatar: avatars[Math.floor(Math.random() * avatars.length)],
+            grade:  grade
+        };
+    }
+
+    // نبقي generateEnemy للتوافق مع الكود القديم
     function generateEnemy() {
         const allHeroes    = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
         const userGradeNum = normalizeGradeNum(currentUser?.grade);
-        // ── خصم من نفس الصف بالضبط ──
-        const classmates = allHeroes.filter(h =>
+        const classmates   = allHeroes.filter(h =>
             h.username !== currentUser?.username &&
             normalizeGradeNum(h.grade) === userGradeNum
         );
@@ -2585,7 +2652,7 @@
         isExamMode = true;
         const enemy = isInvitedFriend
             ? { name: 'صديقك المتحدي', xp: currentUser?.xp || 0, avatar: avatars[1], grade: currentUser?.grade }
-            : generateEnemy();
+            : await generateEnemyAsync(currentUser?.grade || '');
 
         document.getElementById('battle-my-avatar').src          = currentUser?.avatar_url || avatars[0];
         document.getElementById('battle-my-name').textContent    = currentUser?.full_name || 'أنا';
@@ -2594,41 +2661,69 @@
         document.getElementById('battle-enemy-name').textContent = enemy.name;
         document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/5';
 
-        const userGradeNum = normalizeGradeNum(currentUser?.grade);
-        document.getElementById('battle-question-area').innerHTML = `<h3 style="color:var(--gold);">جاري استدعاء 5 أسلحة من ${currentUser?.grade || 'صفك'}...</h3>`;
+        const userGrade    = currentUser?.grade || '';
+        const userGradeNum = normalizeGradeNum(userGrade);
+        document.getElementById('battle-question-area').innerHTML =
+            `<h3 style="color:var(--gold);">⚔️ جاري استدعاء 5 أسلحة من ${userGrade || 'صفك'}...</h3>`;
 
         try {
-            const gradeParam = encodeURIComponent(currentUser?.grade || '');
-            const res   = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam}`);
+            const gradeParam = encodeURIComponent(userGrade);
+            const res = await fetch(`${API_URL}/api/student/questions?grade=${gradeParam}`);
             if (!res.ok) throw new Error('offline');
             const allQs = await res.json();
-            // الأسئلة مفلترة مسبقاً بالصف من السيرفر
-            let pool = allQs.slice();
-            _log('🏟️ أسئلة المبارزة المتاحة:', pool.length, 'للصف:', currentUser?.grade);
-            // fallback: أسئلة بدون صف محدد
-            if (pool.length < 5)
-                pool = allQs.filter(q => !q.grade || q.grade === '' || normalizeGradeNum(q.grade) === userGradeNum);
-            // fallback أخير
-            if (pool.length < 5) pool = allQs;
 
-            if (pool.length >= 5) {
-                arenaQs = knuthShuffle(pool).slice(0, 5);
-                currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
-                updateArenaScoreBoard();
-                renderArenaQuestion(arenaQs[0]);
-                updateHeroBroadcast(`⚔️ معركة حية: ${currentUser?.full_name} vs ${enemy.name}!`);
-            } else throw new Error('not enough');
-        } catch {
-            arenaQs = [
-                { question:'ما هو ناتج 5 × 6؟',                    q_type:'mcq',       options:'30,25,35,20', answer:'30'   },
-                { question:'هل المثلث يحتوي على 3 أضلاع؟',          q_type:'true_false', options:'',           answer:'صواب' },
-                { question:'ما هو ناتج 100 ÷ 10؟',                  q_type:'short',     options:'',           answer:'10'   },
-                { question:'مساحة المربع = طول الضلع × نفسه؟',      q_type:'true_false', options:'',           answer:'صواب' },
-                { question:'ما هو ناتج 12 + 8؟',                    q_type:'mcq',       options:'20,18,22,15', answer:'20'   }
-            ];
+            // ── 1. فلترة صارمة بالصف ──
+            let pool = allQs.filter(q => {
+                if (!q.grade) return false;
+                return normalizeGradeNum(q.grade) === userGradeNum;
+            });
+
+            // fallback إذا لم نجد أسئلة بصيغة الصف المحددة
+            if (pool.length < 5) {
+                pool = allQs.filter(q => !q.grade || q.grade.trim() === '');
+            }
+            // fallback أخير — كل الأسئلة
+            if (pool.length < 5) pool = allQs.slice();
+
+            if (pool.length < 5) throw new Error('not_enough');
+
+            // ── 2. منع التكرار عبر المبارزات (مستمر بالـ sessionStorage) ──
+            let freshPool = pool.filter(q => q.id && !_arenaUsedIds.has(q.id));
+
+            // إذا استُنفد بنك الأسئلة غير المستخدمة → امسح السجل وابدأ من جديد
+            if (freshPool.length < 5) {
+                _arenaUsedIds.clear();
+                freshPool = pool.slice();
+                showToast('♻️ تم تجديد بنك الأسئلة — جولة جديدة!', 2000);
+            }
+
+            // ── 3. خلط عشوائي حقيقي واختيار 5 أسئلة ──
+            const chosen = knuthShuffle(freshPool).slice(0, 5);
+            chosen.forEach(q => { if (q.id) _arenaUsedIds.add(q.id); });
+
+            arenaQs = chosen;
             currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
             updateArenaScoreBoard();
             renderArenaQuestion(arenaQs[0]);
+            updateHeroBroadcast(`⚔️ معركة حية: ${currentUser?.full_name} vs ${enemy.name}!`);
+
+        } catch(err) {
+            // ── fallback: أسئلة طارئة عامة ──
+            const _fallbackMsg = err?.message === 'not_enough'
+                ? `<h3 style="color:#f39c12;text-align:center;padding:20px;">⚠️ عدد أسئلة صفك غير كافٍ حالياً.<br><small style="opacity:0.6;">سيتم استخدام أسئلة عامة مؤقتاً</small></h3>`
+                : '';
+            if (_fallbackMsg) document.getElementById('battle-question-area').innerHTML = _fallbackMsg;
+
+            arenaQs = [
+                { question:'ما هو ناتج 5 × 6؟',               q_type:'mcq',        options:'30,25,35,20', answer:'30'   },
+                { question:'هل المثلث يحتوي على 3 أضلاع؟',     q_type:'true_false', options:'',            answer:'صواب' },
+                { question:'ما هو ناتج 100 ÷ 10؟',             q_type:'short',      options:'',            answer:'10'   },
+                { question:'مساحة المربع = طول الضلع × نفسه؟', q_type:'true_false', options:'',            answer:'صواب' },
+                { question:'ما هو ناتج 12 + 8؟',               q_type:'mcq',        options:'20,18,22,15', answer:'20'   }
+            ];
+            currentArenaQIndex = 0; myArenaScore = 0; enemyArenaScore = 0;
+            updateArenaScoreBoard();
+            setTimeout(() => renderArenaQuestion(arenaQs[0]), _fallbackMsg ? 1500 : 0);
         }
         window._currentEnemy = enemy;
     }
@@ -2657,9 +2752,10 @@
                 onkeypress="if(event.key==='Enter') submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">
                      <button class="nav-btn active shiny-btn" style="grid-column:1/-1;" onclick="submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">ضربة السيف ⚔️</button>`;
         } else {
-            q.options.split(',').forEach(opt => {
-                const o = opt.trim();
-                html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('${o.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}') ">${o}</button>`;
+            // ── دعم الفاصل | بجانب , ──
+            const _arenaSep = (q.options||'').includes('|') ? '|' : ',';
+            (q.options||'').split(_arenaSep).map(o=>o.trim()).filter(Boolean).forEach(opt => {
+                html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('${opt.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}') ">${opt}</button>`;
             });
         }
         html += `</div></div>`;
@@ -2703,7 +2799,8 @@
 
     function submitArenaAnswer(userAns, correctAns) {
         clearInterval(battleTimerInterval);
-        const isCorrect = userAns && userAns.trim() === correctAns.trim();
+        const _normA = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
+        const isCorrect = userAns !== null && userAns !== undefined && _normA(String(userAns)) === _normA(String(correctAns));
         if (isCorrect) {
             playSound(document.getElementById('correct-sfx'));
             myArenaScore++;
@@ -3650,12 +3747,16 @@
 
     /* تفعيل كود الاشتراك من البوابة */
     function activateSubCodePortal() {
-        const raw = (document.getElementById('portal-sub-code')?.value || '').trim().toUpperCase();
+        const raw = (document.getElementById('sub-code-input-portal')?.value || '').trim().toUpperCase();
         if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
         // إعادة التوجيه لدالة activateSubCode الرئيسية
         const inp = document.getElementById('sub-code-input');
         if (inp) { inp.value = raw; activateSubCode(); }
-        else { showToast('⚠️ افتح نافذة الاشتراك أولاً'); }
+        else {
+            // تفعيل مباشر دون الحاجة لفتح نافذة منفصلة
+            document.getElementById('sub-code-input-portal').value = raw;
+            activateSubCode();
+        }
     }
 
     // للتوافق مع الكود القديم
@@ -4273,6 +4374,82 @@
         showToast('👁️ وضع المراقبة — ' + student.full_name, 'success', 4000);
     });
 
+    /* ================================================================
+       DEVTOOLS PROTECTION — حماية من أدوات المطور
+    ================================================================ */
+    (function() {
+        // ── 1. تعطيل F12 وباقي اختصارات DevTools ──
+        document.addEventListener('keydown', function(e) {
+            // F12
+            if (e.key === 'F12' || e.keyCode === 123) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+            // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+            // Ctrl+U (عرض المصدر)
+            if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+            // Ctrl+S (حفظ الصفحة)
+            if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
+                e.preventDefault(); e.stopPropagation(); return false;
+            }
+        }, true);
+
+        // ── 2. تعطيل القائمة اليمنى (كليك يمين) ──
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault(); return false;
+        }, true);
+
+        // ── 3. كشف فتح DevTools عبر فرق الحجم ──
+        let _devOpen = false;
+        const _checkDev = () => {
+            const threshold = 160;
+            const widthDiff  = window.outerWidth  - window.innerWidth;
+            const heightDiff = window.outerHeight - window.innerHeight;
+            if (widthDiff > threshold || heightDiff > threshold) {
+                if (!_devOpen) {
+                    _devOpen = true;
+                    document.body.innerHTML =
+                        `<div style="display:flex;align-items:center;justify-content:center;
+                            height:100vh;background:#040d21;flex-direction:column;gap:20px;">
+                            <div style="font-size:5rem;">🔒</div>
+                            <h1 style="color:#d4af37;font-family:'Tajawal';font-size:2rem;text-align:center;">
+                                هذه المنطقة محظورة
+                            </h1>
+                            <p style="color:rgba(255,255,255,0.5);font-family:'Tajawal';">
+                                أغلق أدوات المطور وأعد تحميل الصفحة
+                            </p>
+                            <button onclick="location.reload()"
+                                style="background:linear-gradient(45deg,#bf953f,#fcf6ba);
+                                color:#000;border:none;padding:12px 30px;border-radius:12px;
+                                font-family:'Tajawal';font-size:1rem;font-weight:900;cursor:pointer;">
+                                🔄 إعادة التحميل
+                            </button>
+                        </div>`;
+                }
+            } else {
+                _devOpen = false;
+            }
+        };
+        setInterval(_checkDev, 1000);
+
+        // ── 4. تعطيل تحديد النص ──
+        document.addEventListener('selectstart', function(e) {
+            // نسمح بالتحديد داخل حقول الإدخال فقط
+            if (!['INPUT','TEXTAREA'].includes(e.target.tagName)) {
+                e.preventDefault(); return false;
+            }
+        });
+
+        // ── 5. تعطيل السحب والإفلات ──
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault(); return false;
+        });
+    })();
+
     window.onload = () => {
         initStars();
         populateAvatarGrid('avatar-selector', avatars[0]);
@@ -4525,7 +4702,7 @@
             ['صواب','خطأ'].forEach(opt => {
                 const b = document.createElement('button');
                 b.className = 'quiz-btn shiny-btn';
-                b.textContent = opt + (_qt==='صواب' ? ' ✅' : ' ❌');
+                b.textContent = opt + (opt === 'صواب' ? ' ✅' : ' ❌');
                 b.onclick = () => eliteCheckBattleAnswer(opt, q.answer);
                 optArea.appendChild(b);
             });
@@ -4549,7 +4726,7 @@
     }
 
     function eliteCheckBattleAnswer(user, correct) {
-        optArea = document.getElementById('elite-battle-options');
+        const optArea = document.getElementById('elite-battle-options');
         document.querySelectorAll('#elite-battle-options .quiz-btn, #elite-battle-options .nav-btn').forEach(b => b.disabled = true);
         const norm = s => (s||'').trim().replace(/\s+/g,' ');
         const isCorrect = norm(user) === norm(correct);
