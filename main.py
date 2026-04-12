@@ -1476,6 +1476,226 @@ async def add_teacher_admin(
     return {"status": "success", "message": f"تم إضافة المعلم {full_name}"}
 
 # ==========================================
+# --- 14. نظام التحضيرات الملكية ---
+# ==========================================
+# SQL لإنشاء الجدول في Supabase (نفّذه مرة واحدة):
+# CREATE TABLE lesson_preparations (
+#   id              BIGSERIAL PRIMARY KEY,
+#   grade           TEXT NOT NULL,
+#   semester        TEXT NOT NULL,
+#   unit            TEXT NOT NULL,
+#   lesson          TEXT NOT NULL,
+#   concepts        TEXT DEFAULT '',
+#   warm_up         TEXT DEFAULT '',
+#   activities      TEXT DEFAULT '',
+#   formative_eval  TEXT DEFAULT '',
+#   summative_eval  TEXT DEFAULT '',
+#   attachments     JSONB DEFAULT '[]',
+#   created_at      TIMESTAMPTZ DEFAULT NOW(),
+#   updated_at      TIMESTAMPTZ DEFAULT NOW(),
+#   UNIQUE(grade, semester, unit, lesson)
+# );
+
+
+@app.get("/api/preparations")
+async def get_preparation(grade: str, semester: str, unit: str, lesson: str):
+    """جلب تحضير درس محدد — متاح بدون مصادقة للعرض"""
+    try:
+        res = supabase.table("lesson_preparations").select("*") \
+            .eq("grade",    grade.strip()) \
+            .eq("semester", semester.strip()) \
+            .eq("unit",     unit.strip()) \
+            .eq("lesson",   lesson.strip()) \
+            .execute()
+        if res.data:
+            return res.data[0]
+        return {
+            "id": None, "concepts": "", "warm_up": "", "activities": "",
+            "formative_eval": "", "summative_eval": "", "attachments": []
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/admin/preparations")
+async def save_preparation(request: Request, admin=Depends(get_current_admin)):
+    """حفظ أو تحديث تحضير درس — يتطلب صلاحيات الأدمن"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=30, window_seconds=60):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة جداً")
+    try:
+        body = await request.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="صيغة الطلب غير صحيحة")
+
+    grade    = (body.get("grade",    "") or "").strip()
+    semester = (body.get("semester", "") or "").strip()
+    unit     = (body.get("unit",     "") or "").strip()
+    lesson   = (body.get("lesson",   "") or "").strip()
+
+    if not all([grade, semester, unit, lesson]):
+        raise HTTPException(status_code=400, detail="الصف والفصل والوحدة والدرس مطلوبة")
+
+    row = {
+        "grade":          grade,
+        "semester":       semester,
+        "unit":           unit,
+        "lesson":         lesson,
+        "concepts":       (body.get("concepts")       or "")[:5000],
+        "warm_up":        (body.get("warm_up")        or "")[:5000],
+        "activities":     (body.get("activities")     or "")[:10000],
+        "formative_eval": (body.get("formative_eval") or "")[:5000],
+        "summative_eval": (body.get("summative_eval") or "")[:5000],
+        "attachments":    body.get("attachments") or [],
+        "updated_at":     datetime.now(timezone.utc).isoformat(),
+    }
+
+    existing = supabase.table("lesson_preparations").select("id") \
+        .eq("grade", grade).eq("semester", semester) \
+        .eq("unit",  unit).eq("lesson",   lesson).execute()
+
+    if existing.data:
+        supabase.table("lesson_preparations") \
+            .update(row).eq("id", existing.data[0]["id"]).execute()
+        return {"status": "updated"}
+    else:
+        supabase.table("lesson_preparations").insert(row).execute()
+        return {"status": "created"}
+
+
+@app.post("/api/admin/preparations/attachment")
+async def upload_preparation_attachment(
+    file: UploadFile = File(...),
+    admin=Depends(get_current_admin)
+):
+    """رفع مرفق لتحضير الدرس (PDF، صورة، HTML، فيديو، SCORM)"""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="لم يُرسل ملف")
+
+    ext  = os.path.splitext(file.filename)[1].lower()
+    name = f"prep_{uuid.uuid4().hex}{ext}"
+    content_bytes = await file.read()
+
+    mime = file.content_type or "application/octet-stream"
+    if ext in [".zip", ".scorm"]:  mime = "application/zip"
+    elif ext in [".html", ".htm"]: mime = "text/html"
+
+    supabase.storage.from_("resources").upload(
+        path=name, file=content_bytes,
+        file_options={"content-type": mime}
+    )
+    url = supabase.storage.from_("resources").get_public_url(name)
+
+    file_type = "file"
+    if   ext in [".pdf"]:                                   file_type = "pdf"
+    elif ext in [".html", ".htm"]:                          file_type = "html"
+    elif ext in [".zip", ".scorm"]:                         file_type = "scorm"
+    elif ext in [".mp4", ".webm", ".ogg"]:                  file_type = "video"
+    elif ext in [".jpg", ".jpeg", ".png", ".gif", ".webp"]: file_type = "image"
+
+    return {"url": url, "name": file.filename, "type": file_type, "mime": mime}
+
+
+@app.delete("/api/admin/preparations/{prep_id}")
+async def delete_preparation(prep_id: int, admin=Depends(get_current_admin)):
+    """حذف تحضير درس كامل"""
+    supabase.table("lesson_preparations").delete().eq("id", prep_id).execute()
+    return {"status": "deleted"}
+
+
+
+# ==========================================
+# --- 15. اشتراك المعلمين ---
+# ==========================================
+
+@app.post("/api/teacher/subscription/activate")
+async def activate_teacher_subscription(
+    code:       str = Form(...),
+    teacher_id: Optional[int] = Form(default=None)
+):
+    """تفعيل كود اشتراك من قِبَل المعلم"""
+    code_upper = code.strip().upper()
+
+    res = supabase.table("subscription_codes").select("*").eq("code", code_upper).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="الكود غير موجود")
+
+    entry = res.data[0]
+
+    if entry.get("is_used"):
+        raise HTTPException(status_code=400, detail="هذا الكود مستخدَم مسبقاً")
+
+    # التحقق من نوع المستخدم — الكود يجب أن يكون للمعلم أو عاماً
+    user_type = entry.get("user_type", "student")
+    if user_type == "student":
+        raise HTTPException(status_code=403, detail="هذا الكود مخصص للطلاب فقط")
+
+    # حساب تاريخ الانتهاء
+    months = entry.get("months", 1)
+    if months == -1:
+        expiry = None
+    else:
+        now    = datetime.now(timezone.utc)
+        expiry = (now.replace(
+            month=(((now.month - 1) + months) % 12) + 1,
+            year=now.year + (((now.month - 1) + months) // 12)
+        )).isoformat()
+
+    update_data = {
+        "is_used":              True,
+        "used_at":              datetime.now(timezone.utc).isoformat(),
+        "activated_by_student": teacher_id,
+    }
+    supabase.table("subscription_codes").update(update_data).eq("id", entry["id"]).execute()
+
+    return {
+        "status": "success",
+        "months": months,
+        "expiry": expiry,
+        "note":   entry.get("note", "")
+    }
+
+
+@app.get("/api/teacher/subscription/check")
+async def check_teacher_subscription(teacher_id: int):
+    """التحقق من حالة اشتراك المعلم"""
+    try:
+        res = supabase.table("subscription_codes").select("*") \
+            .eq("activated_by_student", teacher_id) \
+            .eq("is_used", True) \
+            .eq("user_type", "teacher") \
+            .order("used_at", desc=True) \
+            .limit(1).execute()
+
+        if not res.data:
+            return {"active": False, "expiry": None, "months": 0}
+
+        entry  = res.data[0]
+        months = entry.get("months", 1)
+        expiry = None
+
+        if months == -1:
+            return {"active": True, "expiry": None, "months": -1, "label": "👑 دائم"}
+
+        used_at = entry.get("used_at")
+        if used_at:
+            from datetime import timezone as _tz
+            activated = datetime.fromisoformat(used_at.replace("Z", "+00:00"))
+            expiry_dt = activated.replace(
+                month=(((activated.month - 1) + months) % 12) + 1,
+                year=activated.year + (((activated.month - 1) + months) // 12)
+            )
+            now_utc = datetime.now(timezone.utc)
+            expiry  = expiry_dt.isoformat()
+            active  = expiry_dt > now_utc
+            return {"active": active, "expiry": expiry, "months": months}
+
+        return {"active": True, "expiry": None, "months": months}
+    except Exception as e:
+        return {"active": False, "expiry": None, "months": 0}
+
+
+# ==========================================
 # --- 13. تشغيل المحرك المركزي ---
 # ==========================================
 if __name__ == "__main__":

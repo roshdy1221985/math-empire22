@@ -1686,6 +1686,13 @@
                             </select>
                         </div>
                         <div>
+                            <label>نوع المستفيد 👤</label>
+                            <select id="code-user-type">
+                                <option value="student">👨‍🎓 للطلاب</option>
+                                <option value="teacher">👨‍🏫 للمعلمين</option>
+                            </select>
+                        </div>
+                        <div>
                             <label>ربط بطالب (اختياري)</label>
                             <select id="code-student-bind">
                                 <option value="">— غير مربوط (كود عام) —</option>
@@ -1730,6 +1737,7 @@
                                 <tr>
                                     <th style="padding:14px; text-align:right; color:var(--gold);">الكود</th>
                                     <th style="padding:14px; text-align:right; color:var(--gold);">النوع</th>
+                                    <th style="padding:14px; text-align:right; color:var(--gold);">المستفيد</th>
                                     <th style="padding:14px; text-align:right; color:var(--gold);">الطالب المربوط</th>
                                     <th style="padding:14px; text-align:right; color:var(--gold);">تاريخ الإنشاء</th>
                                     <th style="padding:14px; text-align:right; color:var(--gold);">الحالة</th>
@@ -4377,6 +4385,7 @@
         const months   = parseInt(document.getElementById('code-type-select').value);
         const bindRaw  = document.getElementById('code-student-bind').value;
         const note     = document.getElementById('code-batch-note').value.trim() || monthsLabel(months);
+        const userType = document.getElementById('code-user-type')?.value || 'student';
         const log      = getCodesLog();
         const nowISO   = new Date().toISOString();
         const batchId  = Date.now();
@@ -4397,6 +4406,7 @@
                 code,
                 months,
                 label: monthsLabel(months),
+                userType,
                 studentId,
                 studentName,
                 note,
@@ -4522,6 +4532,11 @@
                     </button>
                 </td>
                 <td style="padding:12px;">${e.label}</td>
+                <td style="padding:12px;">
+                    \${e.userType === 'teacher'
+                        ? '<span style=\"background:rgba(52,152,219,0.15);border:1px solid #3498db;color:#3498db;padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:bold;">👨‍🏫 معلم</span>'
+                        : '<span style=\"background:rgba(46,204,113,0.15);border:1px solid #2ecc71;color:#2ecc71;padding:3px 10px;border-radius:10px;font-size:0.78rem;font-weight:bold;">👨‍🎓 طالب</span>'}
+                </td>
                 <td style="padding:12px;">${e.studentName ? `<span style="color:var(--gold);">${esc(e.studentName)}</span><br><small style="opacity:0.5;">ID: ${e.studentId}</small>` : '<span style="opacity:0.4;">عام</span>'}</td>
                 <td style="padding:12px; font-size:0.85rem; opacity:0.7;">${new Date(e.createdAt).toLocaleString('ar-OM')}</td>
                 <td style="padding:12px;">
