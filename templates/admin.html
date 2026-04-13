@@ -28,14 +28,16 @@
             --nav-gray:   #95a5a6; --nav-gray-bg:   rgba(149,165,166,0.12);
         }
         /* ── nav color classes ── */
-        .nl-gold   { --nc: var(--nav-gold);   --nb: var(--nav-gold-bg);   }
-        .nl-blue   { --nc: var(--nav-blue);   --nb: var(--nav-blue-bg);   }
-        .nl-purple { --nc: var(--nav-purple); --nb: var(--nav-purple-bg); }
-        .nl-green  { --nc: var(--nav-green);  --nb: var(--nav-green-bg);  }
-        .nl-orange { --nc: var(--nav-orange); --nb: var(--nav-orange-bg); }
-        .nl-red    { --nc: var(--nav-red);    --nb: var(--nav-red-bg);    }
-        .nl-cyan   { --nc: var(--nav-cyan);   --nb: var(--nav-cyan-bg);   }
-        .nl-yellow { --nc: var(--nav-yellow); --nb: var(--nav-yellow-bg); }
+        .nl-gold   { --nc: var(--nav-gold);   --nb: var(--nav-gold-bg);   border-color:rgba(212,175,55,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-blue   { --nc: var(--nav-blue);   --nb: var(--nav-blue-bg);   border-color:rgba(52,152,219,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-purple { --nc: var(--nav-purple); --nb: var(--nav-purple-bg); border-color:rgba(155,89,182,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-green  { --nc: var(--nav-green);  --nb: var(--nav-green-bg);  border-color:rgba(46,204,113,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-orange { --nc: var(--nav-orange); --nb: var(--nav-orange-bg); border-color:rgba(230,126,34,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-red    { --nc: var(--nav-red);    --nb: var(--nav-red-bg);    border-color:rgba(231,76,60,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-cyan   { --nc: var(--nav-cyan);   --nb: var(--nav-cyan-bg);   border-color:rgba(26,188,156,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-yellow { --nc: var(--nav-yellow); --nb: var(--nav-yellow-bg); border-color:rgba(241,196,15,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   border-color:rgba(233,30,99,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   border-color:rgba(149,165,166,0.28) !important; color:rgba(255,255,255,0.9); }
         .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   }
         .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   }
 
@@ -102,8 +104,9 @@
             padding: 13px 18px; margin-bottom: 6px; border-radius: 14px; cursor: pointer;
             transition: all 0.35s cubic-bezier(0.34,1.56,0.64,1);
             display: flex; align-items: center; gap: 11px;
-            color: rgba(255,255,255,0.5); font-weight: 600; font-size: 0.9rem;
-            border: 1px solid transparent;
+            color: rgba(255,255,255,0.85); font-weight: 600; font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.03);
             position: relative; overflow: hidden;
         }
         .nav-link::before {
@@ -113,20 +116,20 @@
         }
         .nav-link i { font-size: 1rem; transition: transform 0.3s; flex-shrink:0; }
         .nav-link:hover {
-            background: rgba(212,175,55,0.07);
-            border-color: rgba(212,175,55,0.2);
-            color: rgba(212,175,55,0.85);
+            background: rgba(212,175,55,0.1);
+            border-color: rgba(212,175,55,0.35);
+            color: var(--gold);
             transform: translateX(-4px);
         }
         .nav-link:hover::before { opacity:1; }
-        .nav-link:hover i { transform: scale(1.15); }
+        .nav-link:hover i { transform: scale(1.15); color: var(--gold); }
         .nav-link.active {
-            background: rgba(212,175,55,0.12);
-            border-color: rgba(212,175,55,0.4);
+            background: rgba(212,175,55,0.15);
+            border-color: rgba(212,175,55,0.5);
             color: var(--gold);
             border-right: 3px solid var(--gold);
             transform: translateX(-3px);
-            box-shadow: 0 4px 16px rgba(212,175,55,0.1);
+            box-shadow: 0 4px 16px rgba(212,175,55,0.15), inset 0 0 20px rgba(212,175,55,0.04);
         }
         .nav-link.active::before { opacity:1; }
         .nav-link.active i { transform: scale(1.2); color: var(--gold); }
@@ -1857,14 +1860,99 @@
 
                     <label style="margin-top:18px;">1. 💡 المفاهيم الأساسية</label>
                     <textarea id="prep-concepts"   rows="3" placeholder="المفاهيم الأساسية للدرس..."></textarea>
+                    <div style="display:flex;gap:8px;margin-top:7px;margin-bottom:2px;">
+                        <button type="button" onclick="_prepCopyField('prep-concepts')"
+                            style="flex:1;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(52,152,219,0.22)'" onmouseout="this.style.background='rgba(52,152,219,0.1)'">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button type="button" onclick="_prepEditField('prep-concepts')"
+                            style="flex:1;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.1)'">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button type="button" onclick="_prepClearField('prep-concepts')"
+                            style="flex:1;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(231,76,60,0.22)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
                     <label>2. 🔥 التهيئة / التمهيد / التعلم القبلي</label>
                     <textarea id="prep-warmup"     rows="3" placeholder="كيف تستهل الدرس وتربطه بالمعرفة السابقة؟"></textarea>
+                    <div style="display:flex;gap:8px;margin-top:7px;margin-bottom:2px;">
+                        <button type="button" onclick="_prepCopyField('prep-warmup')"
+                            style="flex:1;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(52,152,219,0.22)'" onmouseout="this.style.background='rgba(52,152,219,0.1)'">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button type="button" onclick="_prepEditField('prep-warmup')"
+                            style="flex:1;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.1)'">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button type="button" onclick="_prepClearField('prep-warmup')"
+                            style="flex:1;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(231,76,60,0.22)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
                     <label>3. ⚙️ إجراءات سير الدرس / الأنشطة التدريسية</label>
                     <textarea id="prep-activities" rows="5" placeholder="الأنشطة والخطوات التفصيلية للدرس..."></textarea>
+                    <div style="display:flex;gap:8px;margin-top:7px;margin-bottom:2px;">
+                        <button type="button" onclick="_prepCopyField('prep-activities')"
+                            style="flex:1;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(52,152,219,0.22)'" onmouseout="this.style.background='rgba(52,152,219,0.1)'">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button type="button" onclick="_prepEditField('prep-activities')"
+                            style="flex:1;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.1)'">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button type="button" onclick="_prepClearField('prep-activities')"
+                            style="flex:1;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(231,76,60,0.22)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
                     <label>4. 📊 التقويم التكويني (أثناء الدرس)</label>
                     <textarea id="prep-formative"  rows="3" placeholder="أسئلة وأنشطة تقييم أثناء الشرح..."></textarea>
+                    <div style="display:flex;gap:8px;margin-top:7px;margin-bottom:2px;">
+                        <button type="button" onclick="_prepCopyField('prep-formative')"
+                            style="flex:1;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(52,152,219,0.22)'" onmouseout="this.style.background='rgba(52,152,219,0.1)'">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button type="button" onclick="_prepEditField('prep-formative')"
+                            style="flex:1;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.1)'">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button type="button" onclick="_prepClearField('prep-formative')"
+                            style="flex:1;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(231,76,60,0.22)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
                     <label>5. 🎯 التقويم الختامي</label>
                     <textarea id="prep-summative"  rows="3" placeholder="أسئلة وأنشطة تقييم ختامية..."></textarea>
+                    <div style="display:flex;gap:8px;margin-top:7px;margin-bottom:2px;">
+                        <button type="button" onclick="_prepCopyField('prep-summative')"
+                            style="flex:1;background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(52,152,219,0.22)'" onmouseout="this.style.background='rgba(52,152,219,0.1)'">
+                            <i class="fas fa-copy"></i> نسخ
+                        </button>
+                        <button type="button" onclick="_prepEditField('prep-summative')"
+                            style="flex:1;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.1)'">
+                            <i class="fas fa-edit"></i> تعديل
+                        </button>
+                        <button type="button" onclick="_prepClearField('prep-summative')"
+                            style="flex:1;background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:9px;cursor:pointer;font-family:'Cairo';font-size:0.8rem;transition:0.2s;"
+                            onmouseover="this.style.background='rgba(231,76,60,0.22)'" onmouseout="this.style.background='rgba(231,76,60,0.1)'">
+                            <i class="fas fa-trash"></i> حذف
+                        </button>
+                    </div>
 
                     <label>📎 مرفقات الدرس <span style="color:rgba(255,255,255,0.4);font-weight:400;font-size:0.8rem;">(PDF، صور، فيديو، HTML، SCORM)</span></label>
                     <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
@@ -1926,6 +2014,7 @@
                     </div>
                     <div id="prep-import-preview" style="display:none;margin-top:20px;">
                         <div id="prep-import-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:15px;"></div>
+                        <div id="prep-preview-table" style="display:none;margin-bottom:18px;"></div>
                         <div class="import-progress-wrap" id="prep-import-progress" style="display:none;">
                             <div class="import-progress-bar" id="prep-import-bar" style="width:0%;">0%</div>
                         </div>
@@ -2854,6 +2943,8 @@
         populateGradeDropdown('exam');
         // تهيئة cascade النخبة تلقائياً بعد تحميل المنهج
         eliteInitCascade();
+        // ── تهيئة قوائم التحضيرات فور تحميل المنهج ──
+        _initPrepGrades();
     }
 
     function resetDropdowns(prefix, parts) {
@@ -2981,7 +3072,18 @@
         allQuestions = await res.json();
 
         const totalQEl = document.getElementById('stat-total-q');
-        if(totalQEl) totalQEl.innerText = allQuestions.length;
+        if(totalQEl) {
+            const loaded = allQuestions.length;
+            totalQEl.innerText = loaded >= 1000 ? `${loaded}+` : loaded;
+            if (loaded >= 1000) {
+                authFetch('/api/admin/reports/full')
+                    .then(r => r && r.ok ? r.json() : null)
+                    .then(data => {
+                        if (data?.summary?.total_questions)
+                            totalQEl.innerText = Number(data.summary.total_questions).toLocaleString('ar-EG');
+                    }).catch(()=>{});
+            }
+        }
 
         // قراءة قيم الفلاتر الأربعة
         const gradeName  = document.getElementById('qf-grade')?.value  ?? 'all';
@@ -5993,36 +6095,67 @@
     let _prepImpRows = [];
 
     function _initPrepGrades() {
-        const curr = window._curriculum || [];
+        const curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length)
+                     ? fullCurriculum : (window._curriculum || []);
+        if (!curr.length) return;
         ['prep-grade','prep-edit-grade'].forEach(id => {
             const el = document.getElementById(id); if (!el) return;
+            const prev = el.value;
             el.innerHTML = '<option value="">-- اختر الصف --</option>' +
                 curr.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+            if (prev) el.value = prev;
         });
     }
-    setTimeout(() => { _initPrepGrades(); }, 2500);
 
     function _pUnits(g, s) {
-        const gObj = (window._curriculum||[]).find(x=>x.name===g);
-        return gObj?.semesters?.[s==='الفصل الأول'?0:1]?.units||[];
+        const curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length)
+                     ? fullCurriculum : (window._curriculum || []);
+        const gObj = curr.find(x=>x.name===g);
+        if (!gObj) return [];
+        // نبحث بالاسم أولاً (أكثر موثوقية)، ثم بالـ index احتياطياً
+        const byName = (gObj.semesters||[]).find(x=>x.name===s);
+        if (byName) return byName.units || [];
+        const byIdx  = (gObj.semesters||[])[s==='الفصل الأول'?0:1];
+        return byIdx?.units || [];
     }
     function _pLessons(g, s, u) {
         return (_pUnits(g,s).find(x=>x.name===u)?.lessons||[]).map(l=>typeof l==='object'?l.name:l);
     }
 
     function onPrepGradeChange() {
-        ['prep-semester','prep-unit','prep-lesson-sel'].forEach(id=>{
+        // نُفرّغ الوحدة والدرس
+        ['prep-unit','prep-lesson-sel'].forEach(id=>{
             const el=document.getElementById(id); if(el) el.innerHTML='<option value="">-- اختر أولاً --</option>';
         });
         const b=document.getElementById('prep-loaded-badge'); if(b) b.style.display='none';
+
+        // نملأ الفصل من fullCurriculum
+        const grade = document.getElementById('prep-grade').value;
+        const semSel = document.getElementById('prep-semester'); if(!semSel) return;
+        semSel.innerHTML = '<option value="">-- اختر الفصل --</option>';
+        if (!grade) return;
+        const curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length)
+                     ? fullCurriculum : (window._curriculum || []);
+        const gObj = curr.find(g => g.name === grade);
+        if (!gObj || !gObj.semesters) return;
+        gObj.semesters.forEach(s => {
+            semSel.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+        });
     }
     function onPrepSemesterChange() {
-        const g=document.getElementById('prep-grade').value, s=document.getElementById('prep-semester').value;
+        const g=document.getElementById('prep-grade').value;
+        const s=document.getElementById('prep-semester').value;
         const uSel=document.getElementById('prep-unit');
         document.getElementById('prep-lesson-sel').innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';
         if(!g||!s){uSel.innerHTML='<option value="">-- اختر الفصل أولاً --</option>';return;}
-        const units=_pUnits(g,s);
-        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+        const curr = (typeof fullCurriculum!=='undefined' && fullCurriculum.length)
+                     ? fullCurriculum : (window._curriculum||[]);
+        const gObj = curr.find(x=>x.name===g);
+        // نبحث عن الفصل بالاسم
+        const semObj = (gObj?.semesters||[]).find(x=>x.name===s);
+        const units  = semObj?.units || [];
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+
+            units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
     }
     function onPrepUnitChange() {
         const g=document.getElementById('prep-grade').value, s=document.getElementById('prep-semester').value, u=document.getElementById('prep-unit').value;
@@ -6111,14 +6244,27 @@
     function _rmPrepAtt(i){_prepAtts.splice(i,1);_renderPrepAtts();}
 
     function onPrepEditGradeChange(){
-        ['prep-edit-sem','prep-edit-unit','prep-edit-lesson'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">-- اختر أولاً --</option>';});
+        ['prep-edit-unit','prep-edit-lesson'].forEach(id=>{
+            const el=document.getElementById(id);if(el)el.innerHTML='<option value="">-- اختر أولاً --</option>';
+        });
+        const grade=document.getElementById('prep-edit-grade').value;
+        const semSel=document.getElementById('prep-edit-sem'); if(!semSel) return;
+        semSel.innerHTML='<option value="">-- اختر الفصل --</option>';
+        if(!grade) return;
+        const curr=(typeof fullCurriculum!=='undefined' && fullCurriculum.length)?fullCurriculum:(window._curriculum||[]);
+        const gObj=curr.find(g=>g.name===grade);
+        if(!gObj||!gObj.semesters) return;
+        gObj.semesters.forEach(s=>{ semSel.innerHTML+=`<option value="${s.name}">${s.name}</option>`; });
     }
     function onPrepEditSemChange(){
-        const g=document.getElementById('prep-edit-grade').value, s=document.getElementById('prep-edit-sem').value, uSel=document.getElementById('prep-edit-unit');
+        const g=document.getElementById('prep-edit-grade').value;
+        const s=document.getElementById('prep-edit-sem').value;
+        const uSel=document.getElementById('prep-edit-unit');
         document.getElementById('prep-edit-lesson').innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';
         if(!g||!s){uSel.innerHTML='<option value="">-- اختر الفصل أولاً --</option>';return;}
         const units=_pUnits(g,s);
-        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+
+            units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
     }
     function onPrepEditUnitChange(){
         const g=document.getElementById('prep-edit-grade').value, s=document.getElementById('prep-edit-sem').value, u=document.getElementById('prep-edit-unit').value, lSel=document.getElementById('prep-edit-lesson');
@@ -6184,16 +6330,65 @@
         const file=input.files[0]; if(!file) return;
         document.getElementById('prep-excel-filename').textContent='⏳ جاري قراءة الملف...';
         document.getElementById('prep-import-success').style.display='none';
+        const ptDiv=document.getElementById('prep-preview-table');
+        if(ptDiv) ptDiv.style.display='none';
         const reader=new FileReader();
         reader.onload=function(e){
             try{
                 if(typeof XLSX==='undefined'){showToast('⚠️ مكتبة SheetJS غير محملة','warning');return;}
                 const wb=XLSX.read(e.target.result,{type:'binary'}), ws=wb.Sheets[wb.SheetNames[0]];
-                const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
-                _prepImpRows=rows.filter(r=>r['الصف']&&r['الدرس']);
-                document.getElementById('prep-excel-filename').textContent=`✅ ${file.name} — ${_prepImpRows.length} تحضير`;
+                const rawRows=XLSX.utils.sheet_to_json(ws,{defval:''});
+                // ── دمج الصفوف المتعددة لنفس التحضير ──
+                const _cCols=['المفاهيم','التهيئة','الإجراءات','التقويم التكويني','التقويم الختامي'];
+                const _merged=[]; let _cur=null;
+                rawRows.forEach(row=>{
+                    if(row['الصف']&&row['الدرس']){
+                        if(_cur) _merged.push(_cur);
+                        _cur={...row};
+                    } else if(_cur){
+                        _cCols.forEach(k=>{
+                            const v=String(row[k]||'').trim();
+                            if(!v) return;
+                            _cur[k]=_cur[k]?(String(_cur[k]).trim()+'\n'+v):v;
+                        });
+                    }
+                });
+                if(_cur) _merged.push(_cur);
+                _prepImpRows=_merged.filter(r=>r['الصف']&&r['الدرس']);
+                const total=_prepImpRows.length, skipped=rawRows.length-total;
+                document.getElementById('prep-excel-filename').textContent=`✅ ${file.name} — ${total} تحضير`;
+
+                // إحصاء ملون
                 const stats=document.getElementById('prep-import-stats');
-                if(stats) stats.innerHTML=`<span style="background:rgba(212,175,55,0.15);border:1px solid var(--gold);border-radius:10px;padding:6px 14px;color:var(--gold);font-weight:bold;">إجمالي: ${_prepImpRows.length} تحضير</span>`;
+                if(stats) stats.innerHTML=`
+                    <span style="background:rgba(212,175,55,0.15);border:1px solid var(--gold);border-radius:10px;padding:6px 14px;color:var(--gold);font-weight:bold;">إجمالي: ${total} تحضير</span>
+                    ${skipped?`<span style="background:rgba(231,76,60,0.12);border:1px solid #e74c3c;border-radius:10px;padding:6px 14px;color:#e74c3c;font-size:0.82rem;">⚠️ ${skipped} سطر ناقص</span>`:''}
+                    <span style="background:rgba(46,204,113,0.12);border:1px solid #2ecc71;border-radius:10px;padding:6px 14px;color:#2ecc71;font-size:0.82rem;">✅ جاهز للاستيراد</span>`;
+
+                // جدول المعاينة — أول 10 سطور
+                if(ptDiv && total){
+                    const cols=['الصف','الفصل','الوحدة','الدرس','المفاهيم'];
+                    const sample=_prepImpRows.slice(0,10);
+                    ptDiv.innerHTML=`
+                        <div style="margin-bottom:8px;font-weight:bold;color:var(--gold);font-size:0.88rem;">
+                            <i class="fas fa-table"></i> معاينة أول ${sample.length} سطور من أصل ${total}
+                        </div>
+                        <div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,175,55,0.2);">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+                            <thead><tr style="background:rgba(212,175,55,0.1);">
+                                ${cols.map(h=>`<th style="padding:9px 12px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);white-space:nowrap;">${h}</th>`).join('')}
+                                <th style="padding:9px 12px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);">✔</th>
+                            </tr></thead>
+                            <tbody>${sample.map((r,i)=>{
+                                const ok=r['الصف']&&r['الفصل']&&r['الوحدة']&&r['الدرس'];
+                                return `<tr style="background:${i%2?'rgba(255,255,255,0.02)':'transparent'}">
+                                    ${cols.map(h=>`<td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${String(r[h]||'')}">${String(r[h]||'—').substring(0,35)}</td>`).join('')}
+                                    <td style="padding:8px 12px;border-bottom:1px solid rgba(255,255,255,0.04);text-align:center;">${ok?'<span style="color:#2ecc71;font-size:1rem;">✅</span>':'<span style="color:#e74c3c;font-size:1rem;">⚠️</span>'}</td>
+                                </tr>`;
+                            }).join('')}</tbody>
+                        </table></div>`;
+                    ptDiv.style.display='block';
+                }
                 const preview=document.getElementById('prep-import-preview');
                 if(preview) preview.style.display='block';
             } catch(err){showToast('❌ خطأ في قراءة الملف: '+err.message,'error');}
@@ -6224,6 +6419,32 @@
         showToast(errors?`⚠️ ${msg}`:`✅ ${msg}`,errors?'warning':'success');
         _prepImpRows=[];
         const preview=document.getElementById('prep-import-preview'); if(preview) preview.style.display='none';
+    }
+
+
+    /* ══ أزرار نسخ/تعديل/حذف — التحضيرات ══ */
+    function _prepCopyField(taId) {
+        const el = document.getElementById(taId);
+        if (!el || !el.value.trim()) { showToast('⚠️ الحقل فارغ', 'warning'); return; }
+        navigator.clipboard.writeText(el.value)
+            .then(() => showToast('✅ تم نسخ المحتوى', 'success'))
+            .catch(() => { el.select(); document.execCommand('copy'); showToast('✅ تم النسخ', 'success'); });
+    }
+    function _prepEditField(taId) {
+        const el = document.getElementById(taId); if (!el) return;
+        el.focus();
+        el.setSelectionRange(el.value.length, el.value.length);
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        el.style.borderColor = 'var(--gold)';
+        el.style.boxShadow   = '0 0 18px rgba(212,175,55,0.35)';
+        setTimeout(() => { el.style.borderColor = ''; el.style.boxShadow = ''; }, 2200);
+    }
+    function _prepClearField(taId) {
+        const el = document.getElementById(taId); if (!el) return;
+        if (!el.value.trim()) { showToast('الحقل فارغ بالفعل', 'warning'); return; }
+        if (!confirm('هل تريد حذف محتوى هذا الحقل؟')) return;
+        el.value = '';
+        showToast('🗑️ تم حذف المحتوى', 'warning');
     }
 
 </script>
