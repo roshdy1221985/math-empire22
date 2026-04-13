@@ -1169,6 +1169,7 @@
                     <span id="elite-req-badge" style="display:none;"></span>
                 </div>
                 <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
+                <div class="nav-link nl-blue" onclick="showSection('preparations-admin')"><i class="fas fa-book-open"></i> التحضيرات الملكية 📋</div>
                 <div class="nav-link nl-pink" onclick="showSection('monitor')"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
                 <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات 🔐</div>
                 <div class="nav-link nl-gray" onclick="showSection('personal-settings')"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
@@ -1825,6 +1826,133 @@
                         <button class="btn-gold" onclick="updateAdminPassword()">تحديث المفتاح الملكي 🗝️</button>
                     </div>
                 </div>
+            </section>
+
+            <!-- ══════════════════════════════════════════════════════
+                 التحضيرات الملكية — لوحة الأدمن
+            ══════════════════════════════════════════════════════ -->
+            <section id="preparations-admin" class="section">
+
+                <!-- بطاقة الإضافة / التعديل -->
+                <div class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-book-open"></i> التحضيرات الملكية 📋</h2>
+                        <button class="btn-import" onclick="togglePrepImportCard()" style="padding:12px 20px;font-size:0.95rem;">
+                            <i class="fas fa-file-excel" style="color:#2ecc71;"></i> استيراد من Excel
+                        </button>
+                    </div>
+
+                    <label>📖 تحديد مسار الدرس</label>
+                    <div class="cascade-grid">
+                        <div><label>📍 الصف</label><select id="prep-grade" onchange="onPrepGradeChange()"><option value="">-- اختر --</option></select></div>
+                        <div><label>📅 الفصل</label><select id="prep-semester" onchange="onPrepSemesterChange()"><option value="">-- اختر الصف أولاً --</option></select></div>
+                        <div><label>📦 الوحدة</label><select id="prep-unit" onchange="onPrepUnitChange()"><option value="">-- اختر الفصل أولاً --</option></select></div>
+                        <div><label>📖 الدرس</label><select id="prep-lesson-sel" onchange="onPrepLessonChange()"><option value="">-- اختر الوحدة أولاً --</option></select></div>
+                    </div>
+
+                    <div id="prep-loaded-badge" style="display:none;background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:10px 16px;color:#3498db;font-size:0.88rem;margin-top:10px;">
+                        <i class="fas fa-info-circle"></i> <span id="prep-loaded-text"></span>
+                        <button onclick="clearPrepForm()" style="float:left;background:transparent;border:none;color:#e74c3c;cursor:pointer;font-size:0.8rem;">✕ مسح</button>
+                    </div>
+
+                    <label style="margin-top:18px;">1. 💡 المفاهيم الأساسية</label>
+                    <textarea id="prep-concepts"   rows="3" placeholder="المفاهيم الأساسية للدرس..."></textarea>
+                    <label>2. 🔥 التهيئة / التمهيد / التعلم القبلي</label>
+                    <textarea id="prep-warmup"     rows="3" placeholder="كيف تستهل الدرس وتربطه بالمعرفة السابقة؟"></textarea>
+                    <label>3. ⚙️ إجراءات سير الدرس / الأنشطة التدريسية</label>
+                    <textarea id="prep-activities" rows="5" placeholder="الأنشطة والخطوات التفصيلية للدرس..."></textarea>
+                    <label>4. 📊 التقويم التكويني (أثناء الدرس)</label>
+                    <textarea id="prep-formative"  rows="3" placeholder="أسئلة وأنشطة تقييم أثناء الشرح..."></textarea>
+                    <label>5. 🎯 التقويم الختامي</label>
+                    <textarea id="prep-summative"  rows="3" placeholder="أسئلة وأنشطة تقييم ختامية..."></textarea>
+
+                    <label>📎 مرفقات الدرس <span style="color:rgba(255,255,255,0.4);font-weight:400;font-size:0.8rem;">(PDF، صور، فيديو، HTML، SCORM)</span></label>
+                    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+                        <label for="prep-attach-input" class="btn-import-outline" style="cursor:pointer;margin:0;padding:11px 20px;">
+                            <i class="fas fa-paperclip"></i> إرفاق ملف
+                        </label>
+                        <input type="file" id="prep-attach-input" style="display:none;" multiple
+                               accept=".pdf,.html,.htm,.zip,.scorm,.mp4,.webm,.jpg,.jpeg,.png,.gif,.webp"
+                               onchange="uploadPrepAttachment(this.files)">
+                        <span id="prep-attach-status" style="font-size:0.82rem;color:rgba(255,255,255,0.4);"></span>
+                    </div>
+                    <div class="import-progress-wrap" id="prep-attach-progress" style="display:none;margin-top:8px;">
+                        <div class="import-progress-bar" id="prep-attach-bar" style="width:0%;">0%</div>
+                    </div>
+                    <div id="prep-attach-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px;min-height:30px;"></div>
+
+                    <div style="display:flex;gap:12px;margin-top:22px;">
+                        <button class="btn-gold" style="flex:2;" onclick="saveAdminPreparation()">
+                            <i class="fas fa-save"></i> حفظ التحضير
+                        </button>
+                        <button onclick="clearPrepForm()" class="btn-action" style="flex:1;background:transparent;border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);padding:15px;">
+                            مسح النموذج
+                        </button>
+                    </div>
+                </div>
+
+                <!-- بطاقة الاستيراد من Excel -->
+                <div class="import-card" id="prep-import-card" style="display:none;">
+                    <div class="import-card-title">
+                        <i class="fas fa-file-excel" style="color:#2ecc71;font-size:2rem;filter:drop-shadow(0 0 8px rgba(46,204,113,0.4));"></i>
+                        <div>
+                            <div style="background:var(--gold-grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">بوابة استيراد التحضيرات من Excel</div>
+                            <div style="font-size:0.85rem;color:rgba(255,255,255,0.45);font-family:'Cairo';font-weight:400;margin-top:5px;-webkit-text-fill-color:rgba(255,255,255,0.45);">الأعمدة: الصف، الفصل، الوحدة، الدرس، المفاهيم، التهيئة، الإجراءات، التقويم التكويني، التقويم الختامي</div>
+                        </div>
+                    </div>
+                    <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:stretch;">
+                        <div style="flex:1;min-width:260px;background:rgba(0,0,0,0.3);border-radius:16px;padding:22px;border:1px solid rgba(212,175,55,0.15);">
+                            <p style="color:rgba(255,255,255,0.7);font-size:0.92rem;margin:0 0 14px;display:flex;align-items:center;gap:8px;">
+                                <span class="import-step-badge">١</span>
+                                <span>حمّل قالب التحضيرات وأدخل بياناتك</span>
+                            </p>
+                            <button class="btn-import-outline" onclick="downloadPrepTemplate()" style="width:100%;justify-content:center;">
+                                <i class="fas fa-download"></i> 📄 تحميل القالب
+                            </button>
+                        </div>
+                        <div style="flex:1;min-width:260px;background:rgba(0,0,0,0.3);border-radius:16px;padding:22px;border:1px solid rgba(46,204,113,0.2);">
+                            <p style="color:rgba(255,255,255,0.7);font-size:0.92rem;margin:0 0 14px;display:flex;align-items:center;gap:8px;">
+                                <span class="import-step-badge">٢</span>
+                                <span>ارفع ملف التحضيرات المكتمل</span>
+                            </p>
+                            <input type="file" id="prep-excel-input" accept=".xlsx,.xls" style="display:none;" onchange="handlePrepExcelFile(this)">
+                            <button class="btn-import" onclick="document.getElementById('prep-excel-input').click()" style="width:100%;justify-content:center;">
+                                <i class="fas fa-file-upload"></i> 📤 رفع ملف Excel
+                            </button>
+                            <p id="prep-excel-filename" style="color:rgba(255,255,255,0.4);font-size:0.82rem;margin:12px 0 0;">
+                                <i class="fas fa-info-circle"></i> يقبل .xlsx و .xls
+                            </p>
+                        </div>
+                    </div>
+                    <div id="prep-import-preview" style="display:none;margin-top:20px;">
+                        <div id="prep-import-stats" style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:15px;"></div>
+                        <div class="import-progress-wrap" id="prep-import-progress" style="display:none;">
+                            <div class="import-progress-bar" id="prep-import-bar" style="width:0%;">0%</div>
+                        </div>
+                        <button class="btn-import" onclick="startPrepImport()" style="width:100%;margin-top:16px;font-size:1.05rem;padding:16px;justify-content:center;display:flex;align-items:center;gap:10px;">
+                            <i class="fas fa-book-open"></i> تأكيد استيراد التحضيرات
+                        </button>
+                    </div>
+                    <div id="prep-import-success" style="display:none;margin-top:20px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.4);border-radius:14px;padding:18px;text-align:center;color:#2ecc71;font-weight:bold;">
+                        <i class="fas fa-check-circle" style="font-size:1.4rem;margin-left:10px;"></i>
+                        <span id="prep-import-success-text"></span>
+                    </div>
+                </div>
+
+                <!-- بطاقة تحميل تحضير للتعديل -->
+                <div class="card">
+                    <h3 style="color:var(--gold);margin-top:0;"><i class="fas fa-search"></i> تحميل تحضير موجود للتعديل</h3>
+                    <div class="cascade-grid">
+                        <div><label>📍 الصف</label><select id="prep-edit-grade" onchange="onPrepEditGradeChange()"><option value="">-- اختر --</option></select></div>
+                        <div><label>📅 الفصل</label><select id="prep-edit-sem" onchange="onPrepEditSemChange()"><option value="">-- اختر الصف أولاً --</option></select></div>
+                        <div><label>📦 الوحدة</label><select id="prep-edit-unit" onchange="onPrepEditUnitChange()"><option value="">-- اختر الفصل أولاً --</option></select></div>
+                        <div><label>📖 الدرس</label><select id="prep-edit-lesson" onchange="loadPrepForEdit()"><option value="">-- اختر الوحدة أولاً --</option></select></div>
+                    </div>
+                    <div id="prep-edit-result" style="min-height:50px;opacity:0.5;text-align:center;padding:20px;font-size:0.9rem;">
+                        اختر الدرس لتحميل تحضيره وتعديله
+                    </div>
+                </div>
+
             </section>
 
             <section id="reports" class="section">
@@ -5857,6 +5985,247 @@
     }
     // ── END ELITE EXCEL IMPORT ──
 
-    </script>
+    
+    /* ══════════════════════════════════════════════════════════
+       التحضيرات الملكية — Admin JS (إضافة فقط، لا تعارض)
+    ══════════════════════════════════════════════════════════ */
+    let _prepAtts  = [];
+    let _prepImpRows = [];
+
+    function _initPrepGrades() {
+        const curr = window._curriculum || [];
+        ['prep-grade','prep-edit-grade'].forEach(id => {
+            const el = document.getElementById(id); if (!el) return;
+            el.innerHTML = '<option value="">-- اختر الصف --</option>' +
+                curr.map(g => `<option value="${g.name}">${g.name}</option>`).join('');
+        });
+    }
+    setTimeout(() => { _initPrepGrades(); }, 2500);
+
+    function _pUnits(g, s) {
+        const gObj = (window._curriculum||[]).find(x=>x.name===g);
+        return gObj?.semesters?.[s==='الفصل الأول'?0:1]?.units||[];
+    }
+    function _pLessons(g, s, u) {
+        return (_pUnits(g,s).find(x=>x.name===u)?.lessons||[]).map(l=>typeof l==='object'?l.name:l);
+    }
+
+    function onPrepGradeChange() {
+        ['prep-semester','prep-unit','prep-lesson-sel'].forEach(id=>{
+            const el=document.getElementById(id); if(el) el.innerHTML='<option value="">-- اختر أولاً --</option>';
+        });
+        const b=document.getElementById('prep-loaded-badge'); if(b) b.style.display='none';
+    }
+    function onPrepSemesterChange() {
+        const g=document.getElementById('prep-grade').value, s=document.getElementById('prep-semester').value;
+        const uSel=document.getElementById('prep-unit');
+        document.getElementById('prep-lesson-sel').innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';
+        if(!g||!s){uSel.innerHTML='<option value="">-- اختر الفصل أولاً --</option>';return;}
+        const units=_pUnits(g,s);
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+    }
+    function onPrepUnitChange() {
+        const g=document.getElementById('prep-grade').value, s=document.getElementById('prep-semester').value, u=document.getElementById('prep-unit').value;
+        const lSel=document.getElementById('prep-lesson-sel');
+        if(!g||!s||!u){lSel.innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';return;}
+        const lessons=_pLessons(g,s,u);
+        lSel.innerHTML='<option value="">-- اختر الدرس --</option>'+lessons.map(l=>`<option value="${l}">${l}</option>`).join('');
+    }
+    async function onPrepLessonChange() {
+        const grade=document.getElementById('prep-grade').value, sem=document.getElementById('prep-semester').value;
+        const unit=document.getElementById('prep-unit').value, lesson=document.getElementById('prep-lesson-sel').value;
+        if(!grade||!lesson) return;
+        try {
+            const r=await fetch(`${API_URL}/api/preparations?grade=${encodeURIComponent(grade)}&semester=${encodeURIComponent(sem)}&unit=${encodeURIComponent(unit)}&lesson=${encodeURIComponent(lesson)}`);
+            const d=r.ok?await r.json():{};
+            if(d.id) {
+                document.getElementById('prep-concepts').value=d.concepts||'';
+                document.getElementById('prep-warmup').value=d.warm_up||'';
+                document.getElementById('prep-activities').value=d.activities||'';
+                document.getElementById('prep-formative').value=d.formative_eval||'';
+                document.getElementById('prep-summative').value=d.summative_eval||'';
+                _prepAtts=d.attachments||[]; _renderPrepAtts();
+                document.getElementById('prep-loaded-text').textContent=`تحضير محمّل: ${lesson}`;
+                document.getElementById('prep-loaded-badge').style.display='block';
+                showToast('📋 تم تحميل تحضير موجود — عدّله وحفظ','info');
+            } else {
+                document.getElementById('prep-loaded-badge').style.display='none';
+            }
+        } catch(e){}
+    }
+
+    async function saveAdminPreparation() {
+        const grade=document.getElementById('prep-grade').value.trim(), sem=document.getElementById('prep-semester').value.trim();
+        const unit=document.getElementById('prep-unit').value.trim(), lesson=document.getElementById('prep-lesson-sel').value.trim();
+        if(!grade||!sem||!unit||!lesson){showToast('⚠️ اختر الصف والفصل والوحدة والدرس أولاً','warning');return;}
+        const body={grade,semester:sem,unit,lesson,
+            concepts:document.getElementById('prep-concepts').value,
+            warm_up:document.getElementById('prep-warmup').value,
+            activities:document.getElementById('prep-activities').value,
+            formative_eval:document.getElementById('prep-formative').value,
+            summative_eval:document.getElementById('prep-summative').value,
+            attachments:_prepAtts};
+        const token=localStorage.getItem('adminToken')||'';
+        try {
+            const r=await fetch(`${API_URL}/api/admin/preparations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(body)});
+            if(r.ok){const d=await r.json();showToast(`✅ تم ${d.status==='updated'?'تحديث':'حفظ'} التحضير بنجاح`,'success');}
+            else {const e=await r.json().catch(()=>({}));showToast('❌ '+(e.detail||'خطأ في الحفظ'),'error');}
+        } catch(e){showToast('❌ خطأ في الاتصال','error');}
+    }
+
+    function clearPrepForm() {
+        ['prep-concepts','prep-warmup','prep-activities','prep-formative','prep-summative'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+        _prepAtts=[]; _renderPrepAtts();
+        const b=document.getElementById('prep-loaded-badge'); if(b) b.style.display='none';
+    }
+
+    async function uploadPrepAttachment(files) {
+        if(!files.length) return;
+        const bar=document.getElementById('prep-attach-bar'), wrap=document.getElementById('prep-attach-progress'), status=document.getElementById('prep-attach-status');
+        if(wrap) wrap.style.display='block';
+        const token=localStorage.getItem('adminToken')||'';
+        let done=0;
+        for(const file of files){
+            const fd=new FormData(); fd.append('file',file);
+            try{const r=await fetch(`${API_URL}/api/admin/preparations/attachment`,{method:'POST',headers:{'Authorization':`Bearer ${token}`},body:fd});
+                if(r.ok){const d=await r.json();_prepAtts.push({url:d.url,name:d.name,type:d.type});}}
+            catch(e){}
+            done++; const pct=Math.round((done/files.length)*100);
+            if(bar){bar.style.width=pct+'%';bar.textContent=pct+'%';}
+        }
+        setTimeout(()=>{if(wrap)wrap.style.display='none';},800);
+        if(status) status.textContent=`✅ رُفع ${done} ملف`;
+        _renderPrepAtts();
+        const inp=document.getElementById('prep-attach-input'); if(inp) inp.value='';
+    }
+    function _renderPrepAtts() {
+        const grid=document.getElementById('prep-attach-grid'); if(!grid) return;
+        const icons={pdf:'📄',html:'🌐',scorm:'📦',video:'🎬',image:'🖼️',file:'📎'};
+        if(!_prepAtts.length){grid.innerHTML='<div style="color:rgba(255,255,255,0.3);font-size:0.82rem;grid-column:1/-1;">لا توجد مرفقات بعد</div>';return;}
+        grid.innerHTML=_prepAtts.map((a,i)=>`<div style="background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;text-align:center;position:relative;">
+            <button onclick="_rmPrepAtt(${i})" style="position:absolute;top:4px;left:4px;background:rgba(231,76,60,0.2);border:none;color:#e74c3c;width:20px;height:20px;border-radius:50%;cursor:pointer;font-size:0.65rem;line-height:20px;">✕</button>
+            <div style="font-size:1.8rem;margin-bottom:4px;">${icons[a.type]||'📎'}</div>
+            <div style="font-size:0.72rem;color:rgba(255,255,255,0.7);word-break:break-all;">${a.name||'ملف'}</div>
+        </div>`).join('');
+    }
+    function _rmPrepAtt(i){_prepAtts.splice(i,1);_renderPrepAtts();}
+
+    function onPrepEditGradeChange(){
+        ['prep-edit-sem','prep-edit-unit','prep-edit-lesson'].forEach(id=>{const el=document.getElementById(id);if(el)el.innerHTML='<option value="">-- اختر أولاً --</option>';});
+    }
+    function onPrepEditSemChange(){
+        const g=document.getElementById('prep-edit-grade').value, s=document.getElementById('prep-edit-sem').value, uSel=document.getElementById('prep-edit-unit');
+        document.getElementById('prep-edit-lesson').innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';
+        if(!g||!s){uSel.innerHTML='<option value="">-- اختر الفصل أولاً --</option>';return;}
+        const units=_pUnits(g,s);
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>'+units.map(u=>`<option value="${u.name}">${u.name}</option>`).join('');
+    }
+    function onPrepEditUnitChange(){
+        const g=document.getElementById('prep-edit-grade').value, s=document.getElementById('prep-edit-sem').value, u=document.getElementById('prep-edit-unit').value, lSel=document.getElementById('prep-edit-lesson');
+        if(!g||!s||!u){lSel.innerHTML='<option value="">-- اختر الوحدة أولاً --</option>';return;}
+        lSel.innerHTML='<option value="">-- اختر الدرس --</option>'+_pLessons(g,s,u).map(l=>`<option value="${l}">${l}</option>`).join('');
+    }
+    async function loadPrepForEdit() {
+        const grade=document.getElementById('prep-edit-grade').value, sem=document.getElementById('prep-edit-sem').value;
+        const unit=document.getElementById('prep-edit-unit').value, lesson=document.getElementById('prep-edit-lesson').value;
+        const result=document.getElementById('prep-edit-result'); if(!result) return;
+        if(!grade||!lesson){result.innerHTML='<div style="opacity:0.5;text-align:center;padding:20px;">اختر الدرس لتحميل تحضيره</div>';return;}
+        result.innerHTML='<div style="text-align:center;opacity:0.5;padding:15px;">⏳ جاري التحميل...</div>';
+        try{
+            const r=await fetch(`${API_URL}/api/preparations?grade=${encodeURIComponent(grade)}&semester=${encodeURIComponent(sem)}&unit=${encodeURIComponent(unit)}&lesson=${encodeURIComponent(lesson)}`);
+            const d=r.ok?await r.json():{};
+            if(!d.id){result.innerHTML='<div style="opacity:0.5;text-align:center;padding:15px;">لا يوجد تحضير محفوظ لهذا الدرس</div>';return;}
+            document.getElementById('prep-grade').value=grade; onPrepGradeChange();
+            document.getElementById('prep-semester').value=sem; onPrepSemesterChange();
+            document.getElementById('prep-unit').value=unit; onPrepUnitChange();
+            document.getElementById('prep-lesson-sel').value=lesson;
+            document.getElementById('prep-concepts').value=d.concepts||'';
+            document.getElementById('prep-warmup').value=d.warm_up||'';
+            document.getElementById('prep-activities').value=d.activities||'';
+            document.getElementById('prep-formative').value=d.formative_eval||'';
+            document.getElementById('prep-summative').value=d.summative_eval||'';
+            _prepAtts=d.attachments||[]; _renderPrepAtts();
+            document.getElementById('prep-loaded-text').textContent=`تحضير محمّل: ${lesson}`;
+            document.getElementById('prep-loaded-badge').style.display='block';
+            result.innerHTML=`<div style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:12px 16px;color:#2ecc71;font-weight:bold;">✅ تم تحميل تحضير: <strong>${lesson}</strong> — عدّله من النموذج أعلاه</div>`;
+            showSection('preparations-admin'); window.scrollTo({top:0,behavior:'smooth'});
+        } catch(e){result.innerHTML='<div style="color:#e74c3c;text-align:center;padding:15px;">خطأ في التحميل</div>';}
+    }
+
+    function togglePrepImportCard(){
+        const card=document.getElementById('prep-import-card'); if(!card) return;
+        card.style.display=card.style.display==='none'?'block':'none';
+        if(card.style.display==='block') card.scrollIntoView({behavior:'smooth',block:'start'});
+    }
+
+    function downloadPrepTemplate() {
+        if(typeof XLSX === 'undefined') {
+            showToast('⚠️ مكتبة SheetJS غير محملة', 'warning');
+            return;
+        }
+        
+        const headers = ['الصف','الفصل','الوحدة','الدرس','المفاهيم','التهيئة','الإجراءات','التقويم التكويني','التقويم الختامي'];
+        
+        const sample = [
+            ['الصف الخامس','الفصل الأول','الوحدة الأولى','الدرس الأول','المفهوم 1 - المفهوم 2','نشاط تمهيدي...','خطوة 1 \\n خطوة 2','سؤال تكويني...','سؤال ختامي...']
+        ];
+        
+        const wb = XLSX.utils.book_new();
+        const ws = XLSX.utils.aoa_to_sheet([headers, ...sample]);
+        
+        ws['!cols'] = headers.map(() => ({ wch: 22 }));
+        XLSX.utils.book_append_sheet(wb, ws, 'التحضيرات');
+        XLSX.writeFile(wb, 'قالب_التحضيرات_الملكية.xlsx');
+        
+        showToast('✅ تم تحميل القالب', 'success');
+    }
+
+    function handlePrepExcelFile(input){
+        const file=input.files[0]; if(!file) return;
+        document.getElementById('prep-excel-filename').textContent='⏳ جاري قراءة الملف...';
+        document.getElementById('prep-import-success').style.display='none';
+        const reader=new FileReader();
+        reader.onload=function(e){
+            try{
+                if(typeof XLSX==='undefined'){showToast('⚠️ مكتبة SheetJS غير محملة','warning');return;}
+                const wb=XLSX.read(e.target.result,{type:'binary'}), ws=wb.Sheets[wb.SheetNames[0]];
+                const rows=XLSX.utils.sheet_to_json(ws,{defval:''});
+                _prepImpRows=rows.filter(r=>r['الصف']&&r['الدرس']);
+                document.getElementById('prep-excel-filename').textContent=`✅ ${file.name} — ${_prepImpRows.length} تحضير`;
+                const stats=document.getElementById('prep-import-stats');
+                if(stats) stats.innerHTML=`<span style="background:rgba(212,175,55,0.15);border:1px solid var(--gold);border-radius:10px;padding:6px 14px;color:var(--gold);font-weight:bold;">إجمالي: ${_prepImpRows.length} تحضير</span>`;
+                const preview=document.getElementById('prep-import-preview');
+                if(preview) preview.style.display='block';
+            } catch(err){showToast('❌ خطأ في قراءة الملف: '+err.message,'error');}
+        };
+        reader.readAsBinaryString(file);
+    }
+
+    async function startPrepImport(){
+        if(!_prepImpRows.length){showToast('⚠️ لا توجد بيانات','warning');return;}
+        const bar=document.getElementById('prep-import-bar'), prog=document.getElementById('prep-import-progress');
+        if(prog) prog.style.display='block';
+        const token=localStorage.getItem('adminToken')||'';
+        let done=0,errors=0;
+        for(const row of _prepImpRows){
+            const body={grade:String(row['الصف']||'').trim(),semester:String(row['الفصل']||'').trim(),unit:String(row['الوحدة']||'').trim(),lesson:String(row['الدرس']||'').trim(),
+                concepts:String(row['المفاهيم']||'').trim(),warm_up:String(row['التهيئة']||'').trim(),activities:String(row['الإجراءات']||'').trim(),
+                formative_eval:String(row['التقويم التكويني']||'').trim(),summative_eval:String(row['التقويم الختامي']||'').trim(),attachments:[]};
+            if(!body.grade||!body.lesson){errors++;done++;continue;}
+            try{const r=await fetch(`${API_URL}/api/admin/preparations`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${token}`},body:JSON.stringify(body)});if(!r.ok)errors++;}
+            catch(e){errors++;}
+            done++; const pct=Math.round((done/_prepImpRows.length)*100);
+            if(bar){bar.style.width=pct+'%';bar.textContent=pct+'%';}
+        }
+        setTimeout(()=>{if(prog)prog.style.display='none';},800);
+        const msg=`تم استيراد ${done-errors} تحضير${errors?` — ${errors} سطر تجاهلناه`:''}`;
+        document.getElementById('prep-import-success-text').textContent=msg;
+        document.getElementById('prep-import-success').style.display='block';
+        showToast(errors?`⚠️ ${msg}`:`✅ ${msg}`,errors?'warning':'success');
+        _prepImpRows=[];
+        const preview=document.getElementById('prep-import-preview'); if(preview) preview.style.display='none';
+    }
+
+</script>
 </body>
 </html>

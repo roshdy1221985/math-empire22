@@ -152,6 +152,8 @@
         .btn-exams:hover, .btn-exams.active { background:linear-gradient(45deg,#c0392b,#e74c3c); color:#fff; border-color:#fff; box-shadow:0 0 20px rgba(231,76,60,0.4); }
         .btn-sub { border-color:var(--gold); color:var(--gold); background:rgba(212,175,55,0.08); }
         .btn-sub:hover, .btn-sub.active { background:var(--gold-grad); color:#000; border-color:#fff; box-shadow:0 0 20px rgba(212,175,55,0.5); }
+        .btn-profile { border-color:#9b59b6; color:#9b59b6; background:rgba(155,89,182,0.08); }
+        .btn-profile:hover, .btn-profile.active { background:linear-gradient(45deg,#6c3483,#9b59b6); color:#fff; border-color:#fff; box-shadow:0 0 20px rgba(155,89,182,0.4); }
 
         .sidebar-bottom-logo {
             margin-top: auto; padding-top: 15px;
@@ -601,8 +603,11 @@
         <button class="nav-btn btn-bank shiny-btn" onclick="showSection('bank',this)">
             <span class="btn-icon">❓</span> <span>بنك الأسئلة</span>
         </button>
-        <button class="nav-btn btn-sub shiny-btn" onclick="showSection('subscription',this)">
-            <span class="btn-icon">👑</span> <span>الاشتراك الملكي</span>
+        <button class="nav-btn btn-sub shiny-btn" onclick="showSection('support',this)">
+            <span class="btn-icon">🛡️</span> <span>الدعم والاشتراك</span>
+        </button>
+        <button class="nav-btn btn-profile shiny-btn" onclick="showSection('profile',this)">
+            <span class="btn-icon">👤</span> <span>الملف الشخصي</span>
         </button>
     </nav>
 
@@ -635,9 +640,7 @@
         <div class="glass-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;position:relative;z-index:1;">
                 <h2 style="margin:0;font-size:1.7rem;">📋 التحضيرات الجاهزة</h2>
-                <button class="btn-gold-main shiny-btn" onclick="openEditOverlay()">
-                    <i class="fas fa-plus"></i> تحضير جديد / تعديل
-                </button>
+
             </div>
 
             <div class="selection-panel">
@@ -667,9 +670,7 @@
             <div id="prep-view-area" style="display:none;">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.18);position:relative;z-index:1;">
                     <h3 style="margin:0;" id="prep-lesson-title">—</h3>
-                    <button class="btn-gold-main shiny-btn" style="padding:9px 16px;font-size:0.85rem;" onclick="openEditOverlayForCurrent()">
-                        <i class="fas fa-edit"></i> تعديل
-                    </button>
+
                 </div>
                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;position:relative;z-index:1;" id="prep-boxes-grid">
                     <div class="prep-box" id="box-concepts">
@@ -809,34 +810,115 @@
         </div>
     </div>
 
-    <!-- ══ قسم الاشتراك الملكي ══ -->
-    <div id="section-subscription" class="section">
+    <!-- ══ قسم الدعم الفني والاشتراك ══ -->
+    <div id="section-support" class="section">
         <div class="glass-card">
-            <h2 style="font-size:1.7rem;">👑 الاشتراك الملكي</h2>
+            <h2 style="font-size:1.7rem;">🛡️ الدعم الفني والاشتراك الملكي</h2>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;position:relative;z-index:1;">
 
-            <!-- حالة الاشتراك -->
-            <div id="sub-status-box" style="text-align:center;padding:28px;background:rgba(0,0,0,0.3);border-radius:16px;border:1px solid rgba(212,175,55,0.2);margin-bottom:22px;position:relative;z-index:1;">
-                <div style="font-size:3rem;margin-bottom:10px;" id="sub-status-icon">⏳</div>
-                <div style="font-size:1.2rem;font-weight:900;" id="sub-status-label">جاري التحقق...</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.4);margin-top:6px;" id="sub-status-expiry"></div>
+                <!-- الدعم الفني -->
+                <div style="background:rgba(37,211,102,0.04);border:1px solid rgba(37,211,102,0.25);border-radius:18px;padding:24px;">
+                    <h2 style="color:#25D366;font-family:'Amiri';font-size:1.6rem;text-align:center;margin:0 0 18px;">💬 الدعم الفني</h2>
+                    <div style="display:flex;flex-direction:column;gap:14px;">
+                        <div onclick="window.open('https://api.whatsapp.com/send?phone=96878537653','_blank')"
+                             class="shiny-btn"
+                             style="background:rgba(37,211,102,0.08);border:1px solid rgba(37,211,102,0.35);border-radius:14px;padding:18px;text-align:center;cursor:pointer;transition:0.3s;"
+                             onmouseover="this.style.background='rgba(37,211,102,0.18)'"
+                             onmouseout="this.style.background='rgba(37,211,102,0.08)'">
+                            <div style="font-size:2.2rem;margin-bottom:8px;">📱</div>
+                            <div style="font-weight:bold;color:#25D366;margin-bottom:5px;">واتساب مباشر</div>
+                            <div style="font-size:0.8rem;opacity:0.7;">رد سريع من الأستاذ رشدي سيد</div>
+                            <div style="margin-top:12px;background:#25D366;color:#000;padding:8px 15px;border-radius:8px;font-weight:bold;font-size:0.88rem;">إرسال رسالة ←</div>
+                        </div>
+                        <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:18px;text-align:center;">
+                            <div style="font-size:2rem;margin-bottom:8px;">📜</div>
+                            <div style="font-weight:bold;color:var(--gold);margin-bottom:8px;">البريد الإلكتروني</div>
+                            <div style="color:rgba(255,255,255,0.7);font-size:0.88rem;margin-bottom:12px;">mathempire22@gmail.com</div>
+                            <button class="btn-gold-main shiny-btn" style="padding:8px 18px;font-size:0.85rem;width:100%;justify-content:center;"
+                                    onclick="window.location.href='mailto:mathempire22@gmail.com'">🚀 إرسال بريد</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- الاشتراك الملكي -->
+                <div style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.25);border-radius:18px;padding:24px;">
+                    <h2 style="color:var(--gold);font-family:'Amiri';font-size:1.6rem;text-align:center;margin:0 0 16px;">👑 الاشتراك الملكي</h2>
+
+                    <!-- حالة الاشتراك -->
+                    <div id="sub-status-box" style="text-align:center;padding:20px;background:rgba(0,0,0,0.3);border-radius:14px;border:1px solid rgba(212,175,55,0.2);margin-bottom:16px;">
+                        <div style="font-size:2.5rem;margin-bottom:8px;" id="sub-status-icon">⏳</div>
+                        <div style="font-size:1.1rem;font-weight:900;" id="sub-status-label">جاري التحقق...</div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.4);margin-top:5px;" id="sub-status-expiry"></div>
+                    </div>
+
+                    <!-- خطط الاشتراك -->
+                    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:12px 16px;">
+                            <div><div style="font-weight:900;color:var(--gold);">شهري</div><div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">تجديد كل 30 يوماً</div></div>
+                            <div style="font-family:'Amiri';font-size:1.2rem;font-weight:700;">2 ر.ع</div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,0.08);border:2px solid rgba(212,175,55,0.4);border-radius:12px;padding:12px 16px;">
+                            <div>
+                                <div style="font-weight:900;color:var(--gold);">ثلاثة أشهر &nbsp;<span style="background:var(--gold-grad);color:#000;font-size:0.7rem;padding:2px 8px;border-radius:8px;font-weight:900;">الأشهر</span></div>
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">توفير 17%</div>
+                            </div>
+                            <div style="font-family:'Amiri';font-size:1.2rem;font-weight:700;">5 ر.ع</div>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.2);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:12px 16px;">
+                            <div><div style="font-weight:900;color:var(--gold);">سنوي</div><div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">توفير 25%</div></div>
+                            <div style="font-family:'Amiri';font-size:1.2rem;font-weight:700;">18 ر.ع</div>
+                        </div>
+                    </div>
+
+                    <!-- كود الاشتراك -->
+                    <div style="border-top:1px solid rgba(212,175,55,0.2);padding-top:15px;">
+                        <p style="font-size:0.85rem;color:rgba(255,255,255,0.5);margin-bottom:8px;">أو أدخل كودك من الأستاذ رشدي:</p>
+                        <input type="text" id="sub-code-input"
+                               placeholder="ME-XXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
+                               oninput="this.value=this.value.toUpperCase()"
+                               onkeypress="if(event.key==='Enter')activateSubCode()"
+                               style="letter-spacing:1px;font-family:monospace;margin-bottom:10px;">
+                        <button class="btn-gold-main shiny-btn" onclick="activateSubCode()" style="width:100%;justify-content:center;">
+                            🔑 تفعيل الكود
+                        </button>
+                        <p style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:10px;text-align:center;line-height:1.6;">للاشتراك تواصل مع الأستاذ رشدي سيد عبر واتساب</p>
+                    </div>
+                </div>
             </div>
+        </div>
+    </div>
 
-            <!-- إدخال الكود -->
+    <!-- ══ الملف الشخصي ══ -->
+    <div id="section-profile" class="section">
+        <div class="glass-card">
+            <h2 style="font-size:1.7rem;">👤 الملف الشخصي</h2>
             <div style="position:relative;z-index:1;">
-                <label>🔑 كود الاشتراك</label>
-                <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <input type="text" id="sub-code-input"
-                           placeholder="ME-XXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX"
-                           oninput="this.value=this.value.toUpperCase()"
-                           onkeypress="if(event.key==='Enter')activateSubCode()"
-                           style="flex:1;min-width:200px;letter-spacing:1px;font-family:monospace;">
-                    <button class="btn-gold-main shiny-btn" onclick="activateSubCode()">
-                        <i class="fas fa-key"></i> تفعيل الكود
+                <div style="text-align:center;margin-bottom:28px;">
+                    <div style="width:110px;height:110px;margin:0 auto 14px;border-radius:50%;padding:3px;background:var(--gold-grad);box-shadow:0 0 20px rgba(212,175,55,0.4);">
+                        <img src="/static/teacher.jpg" style="width:100%;height:100%;border-radius:50%;object-fit:cover;border:3px solid var(--primary);"
+                             onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2275%22>👨‍🏫</text></svg>'">
+                    </div>
+                    <h2 style="color:var(--gold);font-family:'Amiri';margin:0 0 5px;font-size:1.8rem;" id="profile-name-display">—</h2>
+                    <p style="opacity:0.5;font-size:0.85rem;margin:0;">معلم رياضيات — إمبراطورية الرياضيات</p>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;margin-bottom:24px;">
+                    <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:18px;">
+                        <div style="color:var(--gold);font-size:0.82rem;font-weight:bold;margin-bottom:8px;"><i class="fas fa-user"></i> اسم المستخدم</div>
+                        <div id="profile-username" style="font-family:monospace;font-size:1rem;">—</div>
+                    </div>
+                    <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:18px;">
+                        <div style="color:var(--gold);font-size:0.82rem;font-weight:bold;margin-bottom:8px;"><i class="fas fa-crown"></i> حالة الاشتراك</div>
+                        <div id="profile-sub-status" style="font-size:0.95rem;">—</div>
+                    </div>
+                </div>
+                <div style="background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.15);border-radius:16px;padding:22px;">
+                    <h3 style="color:var(--gold);margin:0 0 16px;font-size:1.1rem;"><i class="fas fa-key"></i> تغيير كلمة المرور</h3>
+                    <input type="password" id="profile-new-pass" placeholder="كلمة المرور الجديدة" style="margin-bottom:10px;">
+                    <input type="password" id="profile-confirm-pass" placeholder="تأكيد كلمة المرور الجديدة" style="margin-bottom:14px;">
+                    <button class="btn-gold-main shiny-btn" onclick="changeTeacherPassword()" style="width:100%;justify-content:center;">
+                        <i class="fas fa-save"></i> حفظ كلمة المرور الجديدة
                     </button>
                 </div>
-                <p style="font-size:0.8rem;color:rgba(255,255,255,0.35);margin-top:8px;">
-                    احصل على كودك من الأستاذ رشدي سيد لتفعيل اشتراكك الملكي
-                </p>
             </div>
         </div>
     </div>
@@ -938,6 +1020,7 @@
         populateBankGrades();
         populateResGrades();
         checkSubStatus();
+        loadProfileSection();
     }
 
     async function loadCurriculum() {
@@ -953,8 +1036,9 @@
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('section-' + name).classList.add('active');
         if (el) el.classList.add('active');
-        if (name === 'exams')        loadExams();
-        if (name === 'subscription') checkSubStatus();
+        if (name === 'exams')    loadExams();
+        if (name === 'support')  checkSubStatus();
+        if (name === 'profile')  loadProfileSection();
     }
 
     /* ══ مساعدات المنهج ══ */
@@ -1527,6 +1611,62 @@
         // تفعيل التبويب الأول
         document.querySelector('.nav-btn.btn-prep').classList.add('active');
     };
+
+    /* ══ الملف الشخصي ══ */
+    function loadProfileSection() {
+        if (!teacherData) return;
+        const nameEl = document.getElementById('profile-name-display');
+        const userEl = document.getElementById('profile-username');
+        if (nameEl) nameEl.textContent = teacherData.full_name || 'أستاذ';
+        if (userEl) userEl.textContent  = teacherData.username  || '—';
+        const subEl = document.getElementById('profile-sub-status');
+        if (!subEl) return;
+        const cached = sessionStorage.getItem('teacherSub');
+        if (cached) {
+            try {
+                const sub = JSON.parse(cached);
+                if (sub.active) {
+                    let html = '<span style="color:#2ecc71;font-weight:bold;">✅ نشط</span>';
+                    if (sub.expiry) {
+                        const d    = new Date(sub.expiry);
+                        const diff = Math.ceil((d - new Date()) / (1000*60*60*24));
+                        html += ` <span style="opacity:0.6;font-size:0.82rem;">— حتى ${d.toLocaleDateString('ar-SA')} (${diff} يوم)</span>`;
+                    } else if (sub.months === -1) {
+                        html += ' <span style="opacity:0.6;font-size:0.82rem;">♾️ دائم</span>';
+                    }
+                    subEl.innerHTML = html;
+                } else {
+                    subEl.innerHTML = '<span style="color:#e74c3c;">🔒 غير مفعّل</span>';
+                }
+            } catch(e) { subEl.innerHTML = '<span style="opacity:0.5;">—</span>'; }
+        } else {
+            subEl.innerHTML = '<span style="opacity:0.5;">جاري التحقق...</span>';
+            checkSubStatus();
+        }
+    }
+
+    async function changeTeacherPassword() {
+        const np = document.getElementById('profile-new-pass')?.value?.trim();
+        const cp = document.getElementById('profile-confirm-pass')?.value?.trim();
+        if (!np || !cp) { toast('⚠️ أدخل كلمة المرور الجديدة وتأكيدها', false); return; }
+        if (np !== cp)  { toast('⚠️ كلمتا المرور غير متطابقتين', false); return; }
+        if (np.length < 6) { toast('⚠️ كلمة المرور يجب أن تكون 6 أحرف على الأقل', false); return; }
+        const fd = new FormData();
+        fd.append('username', teacherData?.username || '');
+        fd.append('new_password', np);
+        try {
+            const r = await fetch(`${API_URL}/api/teacher/change_password`, { method:'POST', body:fd });
+            if (r.ok) {
+                toast('✅ تم تحديث كلمة المرور بنجاح');
+                document.getElementById('profile-new-pass').value     = '';
+                document.getElementById('profile-confirm-pass').value = '';
+            } else {
+                const d = await r.json().catch(() => ({}));
+                toast('❌ ' + (d.detail || 'خطأ في التحديث'), false);
+            }
+        } catch(e) { toast('❌ خطأ في الاتصال', false); }
+    }
+
 </script>
 </body>
 </html>
