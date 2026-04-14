@@ -28,16 +28,16 @@
             --nav-gray:   #95a5a6; --nav-gray-bg:   rgba(149,165,166,0.12);
         }
         /* ── nav color classes ── */
-        .nl-gold   { --nc: var(--nav-gold);   --nb: var(--nav-gold-bg);   border-color:rgba(212,175,55,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-blue   { --nc: var(--nav-blue);   --nb: var(--nav-blue-bg);   border-color:rgba(52,152,219,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-purple { --nc: var(--nav-purple); --nb: var(--nav-purple-bg); border-color:rgba(155,89,182,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-green  { --nc: var(--nav-green);  --nb: var(--nav-green-bg);  border-color:rgba(46,204,113,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-orange { --nc: var(--nav-orange); --nb: var(--nav-orange-bg); border-color:rgba(230,126,34,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-red    { --nc: var(--nav-red);    --nb: var(--nav-red-bg);    border-color:rgba(231,76,60,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-cyan   { --nc: var(--nav-cyan);   --nb: var(--nav-cyan-bg);   border-color:rgba(26,188,156,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-yellow { --nc: var(--nav-yellow); --nb: var(--nav-yellow-bg); border-color:rgba(241,196,15,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   border-color:rgba(233,30,99,0.28) !important; color:rgba(255,255,255,0.9); }
-        .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   border-color:rgba(149,165,166,0.28) !important; color:rgba(255,255,255,0.9); }
+        .nl-gold   { --nc: var(--nav-gold);   --nb: var(--nav-gold-bg);   border-color:rgba(212,175,55,0.35) !important; color:var(--gold) !important; }
+        .nl-blue   { --nc: var(--nav-blue);   --nb: var(--nav-blue-bg);   border-color:rgba(52,152,219,0.35) !important; color:var(--gold) !important; }
+        .nl-purple { --nc: var(--nav-purple); --nb: var(--nav-purple-bg); border-color:rgba(155,89,182,0.35) !important; color:var(--gold) !important; }
+        .nl-green  { --nc: var(--nav-green);  --nb: var(--nav-green-bg);  border-color:rgba(46,204,113,0.35) !important; color:var(--gold) !important; }
+        .nl-orange { --nc: var(--nav-orange); --nb: var(--nav-orange-bg); border-color:rgba(230,126,34,0.35) !important; color:var(--gold) !important; }
+        .nl-red    { --nc: var(--nav-red);    --nb: var(--nav-red-bg);    border-color:rgba(231,76,60,0.35) !important; color:var(--gold) !important; }
+        .nl-cyan   { --nc: var(--nav-cyan);   --nb: var(--nav-cyan-bg);   border-color:rgba(26,188,156,0.35) !important; color:var(--gold) !important; }
+        .nl-yellow { --nc: var(--nav-yellow); --nb: var(--nav-yellow-bg); border-color:rgba(241,196,15,0.35) !important; color:var(--gold) !important; }
+        .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   border-color:rgba(233,30,99,0.35) !important; color:var(--gold) !important; }
+        .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   border-color:rgba(149,165,166,0.35) !important; color:var(--gold) !important; }
         .nl-pink   { --nc: var(--nav-pink);   --nb: var(--nav-pink-bg);   }
         .nl-gray   { --nc: var(--nav-gray);   --nb: var(--nav-gray-bg);   }
 
@@ -426,6 +426,9 @@
         .rate-limit-overlay h2 { color:var(--red); font-family:'Amiri'; font-size:2.5rem; }
         .rate-limit-overlay p { color:rgba(255,255,255,0.7); max-width:450px; text-align:center; }
         #activity-timer { color:var(--gold); font-size:1.2rem; font-weight:bold; }
+        .ext-tab { padding:10px 20px;border-radius:12px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.9rem;transition:0.25s;background:var(--glass);border:1px solid var(--border);color:rgba(255,255,255,0.6); }
+        .ext-tab:hover { color:var(--gold);border-color:rgba(212,175,55,0.4); }
+        .ext-tab.on,.ext-tab.active { background:rgba(212,175,55,0.12);border-color:rgba(212,175,55,0.5);color:var(--gold); }
     </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1173,6 +1176,8 @@
                 </div>
                 <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
                 <div class="nav-link nl-blue" onclick="showSection('preparations-admin')"><i class="fas fa-book-open"></i> التحضيرات الملكية 📋</div>
+                <div class="nav-link nl-purple" onclick="showSection('ai-extractor')"><i class="fas fa-robot"></i> مُستخلِص التحضيرات 🤖</div>
+                <div class="nav-link nl-cyan" onclick="showSection('ai-questions')"><i class="fas fa-brain"></i> مولّد الأسئلة بالذكاء 🧠</div>
                 <div class="nav-link nl-pink" onclick="showSection('monitor')"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
                 <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات 🔐</div>
                 <div class="nav-link nl-gray" onclick="showSection('personal-settings')"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
@@ -2498,6 +2503,289 @@
 
             </section>
 
+
+            <!-- ══════════════════════════════════════════════
+                 مُستخلِص التحضيرات — ثلاث طرق
+            ══════════════════════════════════════════════ -->
+            <section id="ai-extractor" class="section">
+                <div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+                    <button class="ext-tab on" id="tab-file"   onclick="switchExtTab('file')">📄 رفع ملف</button>
+                    <button class="ext-tab"    id="tab-manual" onclick="switchExtTab('manual')">✍️ إدخال يدوي</button>
+                    <button class="ext-tab"    id="tab-gemini" onclick="switchExtTab('gemini')">✨ Gemini AI</button>
+                </div>
+
+                <!-- TAB FILE -->
+                <div id="ext-panel-file">
+                    <div class="card">
+                        <h2 style="color:var(--gold);margin:0 0 18px;"><i class="fas fa-file-upload"></i> استخراج من Excel أو Word</h2>
+                        <div id="ext-drop-zone" style="border:2px dashed rgba(212,175,55,0.4);border-radius:16px;padding:44px;text-align:center;cursor:pointer;transition:0.3s;background:rgba(0,0,0,0.2);"
+                             onclick="document.getElementById('ext-file-input').click()"
+                             ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+                             ondragleave="this.style.borderColor='rgba(212,175,55,0.4)'"
+                             ondrop="handleExtDrop(event)">
+                            <div style="font-size:2.8rem;margin-bottom:14px;">📂</div>
+                            <div style="font-weight:bold;color:var(--gold);margin-bottom:6px;">اسحب الملف هنا أو انقر للاختيار</div>
+                            <div style="font-size:0.82rem;color:rgba(255,255,255,0.35);">Excel (.xlsx / .xls) · Word (.docx)</div>
+                            <div class="dz-name" id="ext-file-name" style="margin-top:12px;color:#2ecc71;font-size:0.88rem;font-weight:bold;display:none;"></div>
+                        </div>
+                        <input type="file" id="ext-file-input" style="display:none;" accept=".xlsx,.xls,.docx" onchange="handleExtFileSelect(this)">
+                        <button class="btn-gold" onclick="runFileExtraction()" id="ext-extract-btn" style="width:100%;margin-top:16px;padding:15px;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;">
+                            <i class="fas fa-magic"></i> استخراج التحضيرات
+                        </button>
+                    </div>
+                </div>
+
+                <!-- TAB MANUAL -->
+                <div id="ext-panel-manual" style="display:none;">
+                    <div class="card">
+                        <h2 style="color:var(--gold);margin:0 0 18px;"><i class="fas fa-edit"></i> إدخال تحضير يدوي</h2>
+                        <div class="cascade-grid">
+                            <div><label>📍 الصف</label><select id="man-grade" onchange="onManGradeChange()"><option value="">-- اختر --</option></select></div>
+                            <div><label>📅 الفصل</label><select id="man-semester" onchange="onManSemChange()"><option value="">-- اختر الصف --</option></select></div>
+                            <div><label>📦 الوحدة</label><select id="man-unit" onchange="onManUnitChange()"><option value="">-- اختر الفصل --</option></select></div>
+                            <div><label>📖 الدرس</label><select id="man-lesson"><option value="">-- اختر الوحدة --</option></select></div>
+                        </div>
+                        <label>💡 المفاهيم</label><textarea id="man-concepts" rows="2" placeholder="المفاهيم الأساسية..."></textarea>
+                        <label>🔥 التهيئة</label><textarea id="man-warmup" rows="3" placeholder="نشاط التهيئة..."></textarea>
+                        <label>⚙️ الإجراءات</label><textarea id="man-activities" rows="5" placeholder="إجراءات سير الدرس..."></textarea>
+                        <label>📊 التقويم التكويني</label><textarea id="man-formative" rows="2" placeholder="التقويم أثناء الدرس..."></textarea>
+                        <label>🎯 التقويم الختامي</label><textarea id="man-summative" rows="2" placeholder="مهمة أدائية ختامية..."></textarea>
+                        <div style="display:flex;gap:12px;margin-top:18px;flex-wrap:wrap;">
+                            <button class="btn-gold" onclick="addManualToQueue()" style="flex:2;padding:14px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="fas fa-plus"></i> إضافة للقائمة</button>
+                            <button onclick="saveManualDirect()" style="flex:1;background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);color:#3498db;padding:14px;border-radius:14px;cursor:pointer;font-family:'Cairo';font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;" onmouseover="this.style.background='rgba(52,152,219,0.25)'" onmouseout="this.style.background='rgba(52,152,219,0.12)'"><i class="fas fa-save"></i> حفظ مباشر</button>
+                        </div>
+                        <div id="man-queue-info" style="display:none;margin-top:12px;background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.2);border-radius:10px;padding:12px;font-size:0.88rem;color:rgba(255,255,255,0.6);"></div>
+                    </div>
+                </div>
+
+                <!-- TAB GEMINI - مُثري ومفصّل -->
+                <div id="ext-panel-gemini" style="display:none;">
+                    <div class="card">
+                        <h2 style="color:var(--gold);margin:0 0 6px;"><i class="fas fa-robot" style="color:#4285f4;"></i> استخلاص وإثراء التحضيرات بـ Gemini</h2>
+                        <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;margin:0 0 18px;">ارفع الكتاب المدرسي — Gemini يستخلص ويُثري كل قسم باستراتيجيات وأنشطة وأمثلة محلولة وألعاب تعليمية مفصّلة</p>
+
+                        <!-- مفتاح API -->
+                        <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px;margin-bottom:14px;">
+                            <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
+                            <div style="display:flex;gap:10px;margin-top:6px;">
+                                <input type="password" id="gemini-key" placeholder="AIza..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
+                                <button onclick="document.getElementById('gemini-key').type=document.getElementById('gemini-key').type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                            </div>
+                            <p style="font-size:0.78rem;color:rgba(155,89,182,0.6);margin-top:6px;">احصل عليه مجاناً من <strong>aistudio.google.com</strong></p>
+                        </div>
+
+                        <!-- بيانات الكتاب -->
+                        <div class="cascade-grid" style="margin-bottom:14px;">
+                            <div><label>📍 الصف</label><select id="gem-grade"></select></div>
+                            <div><label>📅 الفصل</label><select id="gem-semester"><option value="الفصل الأول">الفصل الأول</option><option value="الفصل الثاني" selected>الفصل الثاني</option></select></div>
+                            <div><label>📦 الوحدة / الموضوع</label><input type="text" id="gem-unit" placeholder="مثال: القياس"></div>
+                        </div>
+
+                        <!-- رفع الكتاب -->
+                        <div id="gem-drop-zone" style="border:2px dashed rgba(66,133,244,0.4);border-radius:16px;padding:36px;text-align:center;cursor:pointer;transition:0.3s;background:rgba(66,133,244,0.03);"
+                             onclick="document.getElementById('gem-file-input').click()"
+                             ondragover="event.preventDefault();this.style.borderColor='#4285f4';this.style.background='rgba(66,133,244,0.08)'"
+                             ondragleave="this.style.borderColor='rgba(66,133,244,0.4)';this.style.background='rgba(66,133,244,0.03)'"
+                             ondrop="handleGemDrop(event)">
+                            <div style="font-size:2.5rem;margin-bottom:10px;">📚</div>
+                            <div style="font-weight:bold;color:#4285f4;margin-bottom:4px;">ارفع الكتاب المدرسي هنا</div>
+                            <div style="font-size:0.8rem;color:rgba(255,255,255,0.35);">PDF · صور (JPG/PNG/WebP) — حتى 20 MB</div>
+                            <div id="gem-file-name" style="margin-top:10px;color:#2ecc71;font-size:0.85rem;font-weight:bold;display:none;"></div>
+                        </div>
+                        <input type="file" id="gem-file-input" style="display:none;" accept=".pdf,.jpg,.jpeg,.png,.webp" onchange="handleGemFileSelect(this)">
+
+                        <!-- خيارات الإثراء -->
+                        <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(212,175,55,0.15);border-radius:14px;padding:14px;margin:14px 0;">
+                            <div style="font-weight:bold;color:var(--gold);font-size:0.88rem;margin-bottom:10px;">⚙️ خيارات الإثراء والتفصيل</div>
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:8px;">
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-cambridge" checked style="width:auto;"> معايير كامبريدج (CPA)
+                                </label>
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-games" checked style="width:auto;"> ألعاب تعليمية مفصّلة
+                                </label>
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-examples" checked style="width:auto;"> أمثلة محلولة خطوة بخطوة
+                                </label>
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-strategies" checked style="width:auto;"> استراتيجيات تدريسية متنوعة
+                                </label>
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-reallife" checked style="width:auto;"> ربط بسياق حياتي واقعي
+                                </label>
+                                <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.75);margin:0;background:rgba(255,255,255,0.03);border-radius:10px;padding:8px 10px;border:1px solid rgba(255,255,255,0.07);">
+                                    <input type="checkbox" id="gem-detailed" checked style="width:auto;"> تفصيل كامل (لا اختصار)
+                                </label>
+                            </div>
+                        </div>
+
+                        <button class="btn-gold" onclick="runGeminiExtraction()" id="gem-extract-btn" style="width:100%;padding:15px;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;">
+                            <i class="fas fa-magic"></i> استخلاص وإثراء التحضيرات
+                        </button>
+
+                        <!-- تقدم -->
+                        <div class="card" id="gem-progress-card" style="display:none;margin-top:16px;background:rgba(66,133,244,0.05);border:1px solid rgba(66,133,244,0.2);">
+                            <div style="text-align:center;padding:16px;">
+                                <div style="font-size:2.5rem;margin-bottom:10px;animation:pulse 1.5s infinite;">✨</div>
+                                <h3 style="color:#4285f4;margin:0 0 6px;" id="gem-prog-title">Gemini يعمل...</h3>
+                                <p style="color:rgba(255,255,255,0.45);font-size:0.82rem;" id="gem-prog-msg">يقرأ الكتاب ويُنتج تحضيرات مُثرية...</p>
+                                <div class="import-progress-wrap" style="margin:12px 0;"><div class="import-progress-bar" id="gem-prog-bar" style="width:0%;background:linear-gradient(90deg,#4285f4,#34a853);">0%</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QUEUE -->
+                <div class="card" id="ext-queue-card" style="display:none;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="color:var(--gold);margin:0;"><i class="fas fa-list-check"></i> التحضيرات المستخرجة</h3>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;" id="ext-queue-stats"></div>
+                    </div>
+                    <div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,175,55,0.2);margin-bottom:16px;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.8rem;">
+                            <thead><tr style="background:rgba(212,175,55,0.1);">
+                                <th style="padding:9px 12px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:120px;">الدرس</th>
+                                <th style="padding:9px 12px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:130px;">التهيئة</th>
+                                <th style="padding:9px 12px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:180px;">الإجراءات</th>
+                                <th style="padding:9px 12px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:130px;">التقويم الختامي</th>
+                                <th style="padding:9px 12px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);width:44px;">✔</th>
+                                <th style="padding:9px 12px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);width:40px;">✕</th>
+                            </tr></thead>
+                            <tbody id="ext-queue-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <button class="btn-gold" onclick="saveQueueToDatabase()" id="queue-save-btn" style="flex:2;min-width:180px;padding:14px;font-size:1rem;display:flex;align-items:center;justify-content:center;gap:10px;"><i class="fas fa-database"></i> حفظ الكل في المنصة</button>
+                        <button onclick="exportQueueToExcel()" style="flex:1;min-width:130px;background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:14px;border-radius:14px;cursor:pointer;font-family:'Cairo';font-weight:bold;display:flex;align-items:center;justify-content:center;gap:8px;transition:0.2s;" onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.12)'"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+                        <button onclick="clearExtQueue()" style="background:transparent;border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:14px 18px;border-radius:14px;cursor:pointer;font-family:'Cairo';font-size:0.85rem;transition:0.2s;" onmouseover="this.style.background='rgba(231,76,60,0.12)'" onmouseout="this.style.background='transparent'">مسح الكل</button>
+                    </div>
+                    <div id="queue-save-progress" style="display:none;margin-top:14px;">
+                        <div class="import-progress-wrap"><div class="import-progress-bar" id="queue-save-bar" style="width:0%;">0%</div></div>
+                        <div id="queue-save-msg" style="text-align:center;margin-top:8px;font-size:0.82rem;color:rgba(255,255,255,0.4);"></div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ══ مولّد الأسئلة بالذكاء الاصطناعي ══ -->
+            <section id="ai-questions" class="section">
+                <div class="card" style="margin-bottom:18px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-brain"></i> مولّد الأسئلة بالذكاء الاصطناعي 🧠</h2>
+                        <span style="background:rgba(26,188,156,0.15);border:1px solid rgba(26,188,156,0.3);color:#1abc9c;padding:5px 14px;border-radius:10px;font-size:0.82rem;font-weight:bold;">Gemini 2.0 Flash</span>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.45);font-size:0.86rem;margin:10px 0 0;">ارفع كتاباً أو ملف PDF — Gemini يقرأه ويُولّد أسئلة متنوعة لجميع المستويات ثم يضخّها مباشرة في بنك التحديات</p>
+                </div>
+
+                <!-- مفتاح Gemini -->
+                <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.25);margin-bottom:18px;">
+                    <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
+                    <div style="display:flex;gap:10px;margin-top:8px;">
+                        <input type="password" id="aqg-key" placeholder="AIzaSy..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
+                        <button onclick="var i=document.getElementById('aqg-key');i.type=i.type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                    </div>
+                    <p style="font-size:0.76rem;color:rgba(155,89,182,0.55);margin-top:6px;">احصل عليه مجاناً من <strong>aistudio.google.com</strong></p>
+                </div>
+
+                <!-- بيانات المصدر والمنهج -->
+                <div class="card" style="margin-bottom:18px;">
+                    <h3 style="color:var(--gold);margin:0 0 16px;font-size:1rem;"><i class="fas fa-book-open"></i> مصدر الأسئلة والربط بالمنهج</h3>
+                    <label>📚 رفع الكتاب / ملف PDF</label>
+                    <div id="aqg-drop" style="border:2px dashed rgba(26,188,156,0.4);border-radius:14px;padding:36px;text-align:center;cursor:pointer;transition:0.3s;background:rgba(26,188,156,0.03);margin-bottom:14px;"
+                         onclick="document.getElementById('aqg-file').click()"
+                         ondragover="event.preventDefault();this.style.borderColor='#1abc9c';this.style.background='rgba(26,188,156,0.08)'"
+                         ondragleave="this.style.borderColor='rgba(26,188,156,0.4)';this.style.background='rgba(26,188,156,0.03)'"
+                         ondrop="aqgDrop(event)">
+                        <div style="font-size:2.2rem;margin-bottom:10px;">📄</div>
+                        <div style="font-weight:bold;color:#1abc9c;margin-bottom:4px;">اسحب الملف هنا أو انقر</div>
+                        <div style="font-size:0.79rem;color:rgba(255,255,255,0.3);">PDF · صور (JPG/PNG) · حتى 20 MB</div>
+                        <div id="aqg-fname" style="margin-top:10px;color:#2ecc71;font-size:0.85rem;font-weight:bold;display:none;"></div>
+                    </div>
+                    <input type="file" id="aqg-file" style="display:none;" accept=".pdf,.jpg,.jpeg,.png,.webp" onchange="aqgSetFile(this.files[0])">
+
+                    <div class="cascade-grid" style="margin-bottom:14px;">
+                        <div><label>📍 الصف</label><select id="aqg-grade" onchange="aqgGradeChange()"><option value="">-- اختر --</option></select></div>
+                        <div><label>📅 الفصل</label><select id="aqg-semester" onchange="aqgSemChange()"><option value="">-- اختر الصف --</option></select></div>
+                        <div><label>📦 الوحدة</label><select id="aqg-unit" onchange="aqgUnitChange()"><option value="">-- اختر الفصل --</option></select></div>
+                        <div><label>📖 الدرس <span style="color:rgba(255,255,255,0.3);font-size:0.75rem;">(اختياري)</span></label><select id="aqg-lesson"><option value="">-- كل الدروس --</option></select></div>
+                    </div>
+
+                    <div style="background:rgba(0,0,0,0.2);border:1px solid rgba(26,188,156,0.15);border-radius:12px;padding:14px;">
+                        <div style="font-weight:bold;color:#1abc9c;font-size:0.86rem;margin-bottom:12px;">⚙️ إعدادات التوليد</div>
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:12px;">
+                            <div><label>🔢 عدد الأسئلة لكل درس</label>
+                                <select id="aqg-count"><option value="5">5 أسئلة</option><option value="10" selected>10 أسئلة</option><option value="15">15 سؤال</option><option value="20">20 سؤال</option></select></div>
+                            <div><label>📊 المادة</label><input type="text" id="aqg-subject" value="رياضيات" placeholder="رياضيات"></div>
+                        </div>
+                        <label style="margin-bottom:8px;display:block;">🎯 أنواع الأسئلة</label>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);">
+                                <input type="checkbox" id="aqg-mcq" checked style="width:auto;"> اختيار متعدد
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);">
+                                <input type="checkbox" id="aqg-tf" checked style="width:auto;"> صح وخطأ
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);">
+                                <input type="checkbox" id="aqg-short" checked style="width:auto;"> إجابة قصيرة
+                            </label>
+                        </div>
+                        <label style="margin-bottom:8px;display:block;">⭐ مستويات الصعوبة</label>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);"><input type="checkbox" id="aqg-easy" checked style="width:auto;"> سهل</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);"><input type="checkbox" id="aqg-med" checked style="width:auto;"> متوسط</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;background:rgba(255,255,255,0.03);border-radius:9px;padding:7px 12px;border:1px solid rgba(255,255,255,0.08);"><input type="checkbox" id="aqg-hard" checked style="width:auto;"> صعب</label>
+                            <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.83rem;color:rgba(212,175,55,0.9);margin:0;background:rgba(212,175,55,0.06);border-radius:9px;padding:7px 12px;border:1px solid rgba(212,175,55,0.25);"><input type="checkbox" id="aqg-elite" style="width:auto;"> نخبة ملكية 👑</label>
+                        </div>
+                        <label style="display:flex;align-items:center;gap:7px;cursor:pointer;font-size:0.83rem;color:rgba(255,255,255,0.7);margin:0;">
+                            <input type="checkbox" id="aqg-bloom" checked style="width:auto;"> توزيع على مستويات بلوم الست
+                        </label>
+                    </div>
+                </div>
+
+                <button class="btn-gold" onclick="runAqGen()" id="aqg-btn" style="width:100%;padding:15px;font-size:1rem;margin-bottom:18px;display:flex;align-items:center;justify-content:center;gap:10px;">
+                    <i class="fas fa-magic"></i> توليد الأسئلة بالذكاء الاصطناعي
+                </button>
+
+                <div id="aqg-prog-card" style="display:none;" class="card">
+                    <div style="text-align:center;padding:14px;">
+                        <div style="font-size:2.5rem;margin-bottom:12px;animation:pulse 1.5s infinite;">🧠</div>
+                        <h3 style="color:#1abc9c;margin:0 0 6px;" id="aqg-prog-title">Gemini يقرأ الكتاب...</h3>
+                        <p style="color:rgba(255,255,255,0.45);font-size:0.82rem;" id="aqg-prog-msg">يُحلّل المحتوى ويُولّد الأسئلة...</p>
+                        <div class="import-progress-wrap" style="margin:12px 0;"><div class="import-progress-bar" id="aqg-prog-bar" style="width:0%;background:linear-gradient(90deg,#1abc9c,#3498db);">0%</div></div>
+                    </div>
+                </div>
+
+                <div id="aqg-results" style="display:none;" class="card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="color:var(--gold);margin:0;"><i class="fas fa-list-check"></i> الأسئلة المولّدة</h3>
+                        <div id="aqg-stats" style="display:flex;gap:8px;flex-wrap:wrap;"></div>
+                    </div>
+                    <div style="overflow-x:auto;border-radius:12px;border:1px solid rgba(212,175,55,0.2);margin-bottom:16px;">
+                        <table style="width:100%;border-collapse:collapse;font-size:0.79rem;">
+                            <thead><tr style="background:rgba(212,175,55,0.1);">
+                                <th style="padding:9px 10px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:80px;">الدرس</th>
+                                <th style="padding:9px 10px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:180px;">السؤال</th>
+                                <th style="padding:9px 10px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:140px;">الخيارات</th>
+                                <th style="padding:9px 10px;text-align:right;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);min-width:80px;">الإجابة</th>
+                                <th style="padding:9px 10px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);width:60px;">النوع</th>
+                                <th style="padding:9px 10px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);width:55px;">صعوبة</th>
+                                <th style="padding:9px 10px;text-align:center;color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.2);width:38px;">✕</th>
+                            </tr></thead>
+                            <tbody id="aqg-tbody"></tbody>
+                        </table>
+                    </div>
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                        <button class="btn-gold" onclick="aqgSaveAll()" id="aqg-save-btn" style="flex:2;min-width:180px;padding:14px;font-size:0.98rem;display:flex;align-items:center;justify-content:center;gap:10px;"><i class="fas fa-database"></i> ضخ الكل في بنك التحديات</button>
+                        <button onclick="aqgExportExcel()" style="flex:1;min-width:130px;background:rgba(46,204,113,0.12);border:1px solid rgba(46,204,113,0.3);color:#2ecc71;padding:14px;border-radius:14px;cursor:pointer;font-family:'Cairo';font-weight:bold;transition:0.2s;display:flex;align-items:center;justify-content:center;gap:8px;" onmouseover="this.style.background='rgba(46,204,113,0.22)'" onmouseout="this.style.background='rgba(46,204,113,0.12)'"><i class="fas fa-file-excel"></i> تصدير Excel</button>
+                        <button onclick="aqgReset()" style="background:transparent;border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);padding:14px 18px;border-radius:14px;cursor:pointer;font-family:'Cairo';font-size:0.85rem;transition:0.2s;" onmouseover="this.style.borderColor='var(--gold)';this.style.color='var(--gold)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.15)';this.style.color='rgba(255,255,255,0.5)'">🔄 توليد جديد</button>
+                    </div>
+                    <div id="aqg-save-prog" style="display:none;margin-top:14px;">
+                        <div class="import-progress-wrap"><div class="import-progress-bar" id="aqg-save-bar" style="width:0%;">0%</div></div>
+                        <div id="aqg-save-msg" style="text-align:center;margin-top:8px;font-size:0.82rem;color:rgba(255,255,255,0.4);"></div>
+                    </div>
+                </div>
+            </section>
+
 </main>
     </div>
 
@@ -2595,6 +2883,10 @@
         if (id === 'sub-codes') {
             loadStudentsIntoCodeSelect();
             renderCodesLog();
+        }
+        if (id === 'ai-extractor' || id === 'ai-questions') {
+            if (typeof _initExtGrades === 'function') _initExtGrades();
+            if (typeof _initAqgGrades === 'function') _initAqgGrades();
         }
     }
 
@@ -2945,6 +3237,10 @@
         eliteInitCascade();
         // ── تهيئة قوائم التحضيرات فور تحميل المنهج ──
         _initPrepGrades();
+        // ── تهيئة قوائم المُستخلِص ──
+        _initExtGrades();
+        // ── تهيئة قوائم مولّد الأسئلة ──
+        if(typeof _initAqgGrades==='function') _initAqgGrades();
     }
 
     function resetDropdowns(prefix, parts) {
@@ -2954,26 +3250,7 @@
         });
     }
 
-    function autoSelectCascade(prefix, lessonName) {
-        for (let g = 0; g < fullCurriculum.length; g++) {
-            for (let s = 0; s < fullCurriculum[g].semesters.length; s++) {
-                for (let u = 0; u < fullCurriculum[g].semesters[s].units.length; u++) {
-                    for (let l = 0; l < fullCurriculum[g].semesters[s].units[u].lessons.length; l++) {
-                        if (fullCurriculum[g].semesters[s].units[u].lessons[l].name === lessonName) {
-                            const gEl = document.getElementById(`${prefix}-grade`); if(gEl) gEl.value = g;
-                            updateSemesters(prefix);
-                            const tEl = document.getElementById(`${prefix}-term`);  if(tEl) tEl.value = s;
-                            updateUnits(prefix);
-                            const uEl = document.getElementById(`${prefix}-unit`);  if(uEl) uEl.value = u;
-                            updateLessons(prefix);
-                            const lEl = document.getElementById(`${prefix}-lesson`); if(lEl) lEl.value = lessonName;
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
+    
 
     // ─── Dashboard ──────────────────────────────────────────────────────────────
     async function loadDashboard() {
@@ -6445,6 +6722,532 @@
         if (!confirm('هل تريد حذف محتوى هذا الحقل؟')) return;
         el.value = '';
         showToast('🗑️ تم حذف المحتوى', 'warning');
+    }
+
+
+    /* ══════════════════════════════════════════════════════════
+       مُستخلِص التحضيرات — ثلاث طرق
+    ══════════════════════════════════════════════════════════ */
+    var _extQueue=[],_extFile=null,_gemFile=null,_gemFileMime='';
+
+    function switchExtTab(tab){
+        ['file','manual','gemini'].forEach(function(t){
+            var btn=document.getElementById('tab-'+t);
+            var panel=document.getElementById('ext-panel-'+t);
+            if(btn)btn.classList.toggle('on',t===tab);
+            if(btn)btn.classList.toggle('active',t===tab);
+            if(panel)panel.style.display=t===tab?'block':'none';
+        });
+    }
+
+    function _initExtGrades(){
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gemSel=document.getElementById('gem-grade');
+        var manSel=document.getElementById('man-grade');
+        var opts='<option value="">-- اختر الصف --</option>'+curr.map(function(g){return'<option value="'+g.name+'">'+g.name+'</option>';}).join('');
+        if(gemSel)gemSel.innerHTML=opts;
+        if(manSel)manSel.innerHTML=opts;
+        var gk=localStorage.getItem('geminiKey');
+        var kEl=document.getElementById('gemini-key');
+        if(gk&&kEl)kEl.value=gk;
+    }
+
+    /* ── Manual cascade ── */
+    function onManGradeChange(){
+        var g=document.getElementById('man-grade').value;
+        var sSel=document.getElementById('man-semester');
+        ['man-unit','man-lesson'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='<option value="">-- اختر أولاً --</option>';});
+        sSel.innerHTML='<option value="">-- اختر الفصل --</option>';
+        if(!g)return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        (gObj&&gObj.semesters||[]).forEach(function(s){sSel.innerHTML+='<option value="'+s.name+'">'+s.name+'</option>';});
+    }
+    function onManSemChange(){
+        var g=document.getElementById('man-grade').value,s=document.getElementById('man-semester').value;
+        var uSel=document.getElementById('man-unit');
+        document.getElementById('man-lesson').innerHTML='<option value="">-- اختر الوحدة --</option>';
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>';
+        if(!g||!s)return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        var semObj=(gObj&&gObj.semesters||[]).find(function(x){return x.name===s;});
+        (semObj&&semObj.units||[]).forEach(function(u){uSel.innerHTML+='<option value="'+u.name+'">'+u.name+'</option>';});
+    }
+    function onManUnitChange(){
+        var g=document.getElementById('man-grade').value,s=document.getElementById('man-semester').value,u=document.getElementById('man-unit').value;
+        var lSel=document.getElementById('man-lesson');
+        lSel.innerHTML='<option value="">-- اختر الدرس --</option>';
+        if(!g||!s||!u)return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        var semObj=(gObj&&gObj.semesters||[]).find(function(x){return x.name===s;});
+        var uObj=(semObj&&semObj.units||[]).find(function(x){return x.name===u;});
+        (uObj&&uObj.lessons||[]).forEach(function(l){var n=typeof l==='object'?l.name:l;lSel.innerHTML+='<option value="'+n+'">'+n+'</option>';});
+    }
+
+    /* ── File drop ── */
+    function handleExtDrop(e){e.preventDefault();var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)_setExtFile(f);}
+    function handleExtFileSelect(input){var f=input.files&&input.files[0];if(f)_setExtFile(f);}
+    function _setExtFile(f){_extFile=f;var nm=document.getElementById('ext-file-name');nm.textContent='✅ '+f.name+' ('+(f.size/1024).toFixed(0)+' KB)';nm.style.display='block';showToast('✅ '+f.name,'success');}
+    function handleGemDrop(e){e.preventDefault();var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)_setGemFile(f);}
+    function handleGemFileSelect(input){var f=input.files&&input.files[0];if(f)_setGemFile(f);}
+    function _setGemFile(f){_gemFile=f;_gemFileMime=f.type||'image/jpeg';var nm=document.getElementById('gem-file-name');nm.textContent='✅ '+f.name;nm.style.display='block';}
+
+    /* ── File extraction ── */
+    function runFileExtraction(){
+        if(!_extFile){showToast('⚠️ اختر ملفاً أولاً','warning');return;}
+        var ext=_extFile.name.split('.').pop().toLowerCase();
+        var btn=document.getElementById('ext-extract-btn');
+        btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الاستخراج...';
+        if(['xlsx','xls'].indexOf(ext)>=0){
+            _extractFromExcel(_extFile).then(function(ls){
+                if(!ls.length){showToast('⚠️ لم يُعثر على تحضيرات','warning');return;}
+                ls.forEach(function(l){_extQueue.push(l);});
+                _renderExtQueue(); showToast('✅ تم استخراج '+ls.length+' تحضير','success');
+            }).catch(function(e){showToast('❌ '+e.message,'error');})
+            .finally(function(){btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> استخراج التحضيرات';});
+        } else {
+            showToast('⚠️ xlsx/xls مدعوم — للـ docx استخدم Gemini','warning');
+            btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> استخراج التحضيرات';
+        }
+    }
+    function _extractFromExcel(file){
+        return new Promise(function(res,rej){
+            var reader=new FileReader();
+            reader.onload=function(e){
+                try{
+                    var wb=XLSX.read(e.target.result,{type:'binary'}),ws=wb.Sheets[wb.SheetNames[0]];
+                    var raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+                    var cc=['المفاهيم','التهيئة','الإجراءات','التقويم التكويني','التقويم الختامي'];
+                    var mg=[],cur=null;
+                    raw.forEach(function(row){
+                        if(row['الصف']&&row['الدرس']){if(cur)mg.push(cur);cur=Object.assign({},row);}
+                        else if(cur){cc.forEach(function(k){var v=String(row[k]||'').trim();if(v)cur[k]=cur[k]?(String(cur[k]).trim()+'\n'+v):v;});}
+                    });
+                    if(cur)mg.push(cur);
+                    res(mg.filter(function(r){return r['الصف']&&r['الدرس'];}).map(function(r){
+                        return{grade:r['الصف']||'',semester:r['الفصل']||'',unit:r['الوحدة']||'',lesson:r['الدرس']||'',
+                            concepts:r['المفاهيم']||'',warm_up:r['التهيئة']||'',activities:r['الإجراءات']||'',
+                            formative_eval:r['التقويم التكويني']||'',summative_eval:r['التقويم الختامي']||''};
+                    }));
+                }catch(er){rej(new Error('خطأ Excel: '+er.message));}
+            };
+            reader.readAsBinaryString(file);
+        });
+    }
+
+    /* ── Manual add ── */
+    function addManualToQueue(){
+        var grade=document.getElementById('man-grade').value;
+        var semester=document.getElementById('man-semester').value;
+        var unit=document.getElementById('man-unit').value;
+        var lesson=document.getElementById('man-lesson').value;
+        if(!grade||!semester||!unit||!lesson){showToast('⚠️ اختر الصف والفصل والوحدة والدرس','warning');return;}
+        _extQueue.push({grade:grade,semester:semester,unit:unit,lesson:lesson,
+            concepts:document.getElementById('man-concepts').value,
+            warm_up:document.getElementById('man-warmup').value,
+            activities:document.getElementById('man-activities').value,
+            formative_eval:document.getElementById('man-formative').value,
+            summative_eval:document.getElementById('man-summative').value});
+        ['man-concepts','man-warmup','man-activities','man-formative','man-summative'].forEach(function(id){var el=document.getElementById(id);if(el)el.value='';});
+        _renderExtQueue();
+        var info=document.getElementById('man-queue-info');
+        if(info){info.style.display='block';info.textContent='✅ أُضيف "'+lesson+'" — القائمة: '+_extQueue.length+' تحضير';}
+        showToast('✅ تمت الإضافة — المجموع: '+_extQueue.length,'success');
+    }
+    async function saveManualDirect(){
+        var grade=document.getElementById('man-grade').value;
+        var semester=document.getElementById('man-semester').value;
+        var unit=document.getElementById('man-unit').value;
+        var lesson=document.getElementById('man-lesson').value;
+        if(!grade||!semester||!unit||!lesson){showToast('⚠️ اختر المسار كاملاً','warning');return;}
+        var body={grade:grade,semester:semester,unit:unit,lesson:lesson,
+            concepts:document.getElementById('man-concepts').value,
+            warm_up:document.getElementById('man-warmup').value,
+            activities:document.getElementById('man-activities').value,
+            formative_eval:document.getElementById('man-formative').value,
+            summative_eval:document.getElementById('man-summative').value,attachments:[]};
+        try{
+            var r=await authFetch('/api/admin/preparations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+            if(r&&r.ok)showToast('✅ تم الحفظ في المنصة مباشرة','success');
+            else showToast('❌ خطأ في الحفظ','error');
+        }catch(e){showToast('❌ خطأ في الاتصال','error');}
+    }
+
+    /* ── Gemini مُثري ── */
+    async function runGeminiExtraction(){
+        var key=document.getElementById('gemini-key').value.trim();
+        if(!key){showToast('⚠️ أدخل مفتاح Gemini API','warning');return;}
+        if(!_gemFile){showToast('⚠️ ارفع ملف الكتاب','warning');return;}
+        var btn=document.getElementById('gem-extract-btn');
+        var prog=document.getElementById('gem-progress-card');
+        btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الاستخلاص والإثراء...';
+        prog.style.display='block';
+        function setPg(pct,msg){
+            var b=document.getElementById('gem-prog-bar'),m=document.getElementById('gem-prog-msg');
+            if(b){b.style.width=pct+'%';b.textContent=pct+'%';}
+            if(m)m.textContent=msg;
+            if(pct===100)document.getElementById('gem-prog-title').textContent='✅ اكتمل الاستخلاص!';
+        }
+        try{
+            setPg(15,'يحوّل الكتاب...');
+            var base64=await new Promise(function(res,rej){
+                var r=new FileReader();
+                r.onload=function(e){res(e.target.result.split(',')[1]);};
+                r.onerror=function(){rej(new Error('فشل قراءة الملف'));};
+                r.readAsDataURL(_gemFile);
+            });
+            var grade    = document.getElementById('gem-grade').value    || 'حدده من الكتاب';
+            var semester = document.getElementById('gem-semester').value  || 'الفصل الثاني';
+            var unit     = document.getElementById('gem-unit').value      || 'حددها من الكتاب';
+            var cam      = document.getElementById('gem-cambridge')?.checked;
+            var gam      = document.getElementById('gem-games')?.checked;
+            var examples = document.getElementById('gem-examples')?.checked;
+            var strat    = document.getElementById('gem-strategies')?.checked;
+            var real     = document.getElementById('gem-reallife')?.checked;
+            var detailed = document.getElementById('gem-detailed')?.checked;
+
+            setPg(30,'يبني البرومبت الإثرائي...');
+
+            var prompt = 'أنت خبير تربوي متخصص في مناهج الرياضيات لسلاسل كامبريدج الدولية. مهمتك استخلاص وإثراء تحضير متكامل لكل درس في الكتاب المرفق. الصف: ' + grade + ' — الفصل: ' + semester + ' — الوحدة: ' + unit + '. أخرج فقط JSON صالح دون أي نص قبله أو بعده: {"lessons":[{"grade":"","semester":"","unit":"","lesson":"","concepts":"","warm_up":"","activities":"","formative_eval":"","summative_eval":""}]}. ';
+
+            prompt += 'تعليمات كل حقل: ';
+            prompt += '【concepts】قائمة المفاهيم الرياضية مع تعريف مختصر لكل مفهوم وربطه بمفهوم سابق. ';
+            prompt += '【warm_up】نشاط تمهيدي كامل (5-7 دقائق) مع أسئلة تحفيزية واضحة وخطوات تنفيذ. ';
+
+            if(cam) prompt += '【activities】استخدم نموذج كامبريدج الثلاثي: أولاً المحسوس (Concrete) بأدوات حقيقية، ثم البصري (Pictorial) بالرسم، ثم المجرد (Abstract) بالرموز. ';
+            else    prompt += '【activities】فصّل مراحل الدرس: شرح ← استكشاف جماعي ← تطبيق فردي. ';
+
+            if(strat)    prompt += 'أضف لكل مرحلة استراتيجية تدريسية بالاسم (Think-Pair-Share، جيجسو، السبورة البيضاء، إلخ) مع وصف تنفيذها. ';
+            if(gam)      prompt += 'أضف لعبة تعليمية مفصّلة لكل درس: اسمها، هدفها، طريقة اللعب خطوة بخطوة، المواد المطلوبة. ';
+            if(examples) prompt += 'في الإجراءات أضف مثالاً محلولاً كاملاً خطوة بخطوة مع شرح سبب كل خطوة. ';
+            if(real)     prompt += 'اربط كل درس بسياق حياتي واقعي من البيئة العُمانية أو الخليجية. ';
+            if(detailed) prompt += 'لا تختصر أي حقل — كل حقل يجب أن يكون شاملاً وقابلاً للتطبيق مباشرة في الفصل. ';
+
+            prompt += '【formative_eval】ثلاثة أساليب تقييم أثناء الدرس مع أسئلة نموذجية لكل أسلوب. ';
+            prompt += '【summative_eval】مهمة أدائية ختامية كاملة في سياق حياتي مع نموذج الإجابة المتوقعة. ';
+            prompt += 'القاعدة الحتمية: صف واحد لكل درس — كل النص مدمج داخل الخلية بأسطر.';
+
+            var ext=_gemFile.name.split('.').pop().toLowerCase(), isPdf=ext==='pdf';
+            var mime=isPdf?'application/pdf':(_gemFileMime||'image/jpeg');
+            var model=isPdf?'gemini-2.0-flash':'gemini-2.0-flash';
+
+            setPg(50,'Gemini يقرأ الكتاب ويُثري التحضيرات...');
+
+            var _gModels=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-2.0-flash-lite','gemini-2.0-flash'];
+            var resp=null, data=null;
+            for(var _gmi=0;_gmi<_gModels.length;_gmi++){
+                setPg(50+Math.round(_gmi*10),'يجرب '+_gModels[_gmi]+'...');
+                try{
+                    resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_gModels[_gmi]+':generateContent?key='+key,
+                        {method:'POST',headers:{'Content-Type':'application/json'},
+                         body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:8000,temperature:0.3}})});
+                    if(resp.ok){ data=await resp.json(); break; }
+                    var errJ=await resp.json().catch(function(){return{};});
+                    var eMsg=(errJ.error&&errJ.error.message)||'';
+                    if(eMsg.indexOf('quota')!==-1||eMsg.indexOf('Quota')!==-1) continue;
+                    throw new Error(eMsg||'HTTP '+resp.status);
+                }catch(fe){ if(_gmi===_gModels.length-1) throw fe; }
+            }
+            if(!data) throw new Error('تجاوزت الحصة في كل الموديلات — انتظر قليلاً أو استخدم مفتاح API مدفوع');
+            setPg(80,'تحليل ومعالجة النتائج...');
+            var rawText=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
+
+            var jm=rawText.match(/\{[\s\S]*"lessons"[\s\S]*\}/);
+            if(!jm) throw new Error('لم يتمكن Gemini من إنتاج JSON صالح — جرب إضافة بيانات الصف والوحدة');
+            var parsed=JSON.parse(jm[0]), lessons=parsed.lessons||[];
+            if(!lessons.length) throw new Error('لم يجد Gemini دروساً — تأكد من رفع الكتاب بوضوح');
+
+            setPg(100,'اكتمل الاستخلاص!');
+            lessons.forEach(function(l){_extQueue.push(l);});
+            setTimeout(function(){
+                prog.style.display='none';
+                _renderExtQueue();
+                showToast('✅ Gemini استخلص وأثرى '+lessons.length+' تحضير','success');
+            },800);
+
+        }catch(e){
+            prog.style.display='none';
+            showToast('❌ '+e.message,'error');
+        }finally{
+            btn.disabled=false;
+            btn.innerHTML='<i class="fas fa-magic"></i> استخلاص وإثراء التحضيرات';
+        }
+    }
+
+    /* ── Queue render ── */
+    var _EXT_TD='padding:9px 12px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;';
+    function _renderExtQueue(){
+        var card=document.getElementById('ext-queue-card');
+        if(!_extQueue.length){if(card)card.style.display='none';return;}
+        if(card)card.style.display='block';
+        var complete=_extQueue.filter(function(l){return l.lesson&&l.activities;}).length;
+        var stats=document.getElementById('ext-queue-stats');
+        if(stats)stats.innerHTML='<span style="background:rgba(212,175,55,0.15);border:1px solid var(--gold);border-radius:10px;padding:5px 12px;color:var(--gold);font-weight:bold;font-size:0.82rem;">'+_extQueue.length+' درس</span> <span style="background:rgba(46,204,113,0.12);border:1px solid #2ecc71;border-radius:10px;padding:5px 12px;color:#2ecc71;font-size:0.82rem;">'+complete+' مكتمل</span>';
+        var tbody=document.getElementById('ext-queue-tbody');
+        tbody.innerHTML=_extQueue.map(function(l,i){
+            var ok=l.lesson&&(l.activities||l.warm_up);
+            var bg=i%2?'rgba(255,255,255,0.02)':'transparent';
+            var icon=ok?'<span style="color:#2ecc71;">✅</span>':'<span style="color:#f39c12;">⚠️</span>';
+            var del='<button onclick="_extDelRow('+i+')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.65rem;">✕</button>';
+            return '<tr style="background:'+bg+'">'+
+                '<td style="'+_EXT_TD+'font-weight:bold;color:var(--gold);font-size:0.79rem;max-width:120px;">'+esc(l.lesson||'—')+'<br><span style="color:rgba(255,255,255,0.35);font-weight:400;font-size:0.72rem;">'+esc(l.grade||'')+' '+esc(l.unit||'')+'</span></td>'+
+                '<td style="'+_EXT_TD+'font-size:0.75rem;max-width:130px;white-space:pre-wrap;">'+esc((l.warm_up||'').substring(0,70))+(l.warm_up&&l.warm_up.length>70?'...':'')+'</td>'+
+                '<td style="'+_EXT_TD+'font-size:0.75rem;max-width:180px;white-space:pre-wrap;">'+esc((l.activities||'').substring(0,90))+(l.activities&&l.activities.length>90?'...':'')+'</td>'+
+                '<td style="'+_EXT_TD+'font-size:0.75rem;max-width:130px;white-space:pre-wrap;">'+esc((l.summative_eval||'').substring(0,70))+(l.summative_eval&&l.summative_eval.length>70?'...':'')+'</td>'+
+                '<td style="'+_EXT_TD+'text-align:center;">'+icon+'</td>'+
+                '<td style="'+_EXT_TD+'text-align:center;">'+del+'</td></tr>';
+        }).join('');
+    }
+    function _extDelRow(i){_extQueue.splice(i,1);_renderExtQueue();}
+    function clearExtQueue(){_extQueue=[];_renderExtQueue();showToast('تم مسح القائمة','warning');}
+
+    /* ── Queue save/export ── */
+    async function saveQueueToDatabase(){
+        if(!_extQueue.length){showToast('⚠️ القائمة فارغة','warning');return;}
+        var btn=document.getElementById('queue-save-btn'),prog=document.getElementById('queue-save-progress');
+        var bar=document.getElementById('queue-save-bar'),msgEl=document.getElementById('queue-save-msg');
+        btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+        prog.style.display='block';
+        var done=0,errors=0;
+        for(var L of _extQueue){
+            var body=Object.assign({},L,{attachments:[]});
+            if(!body.lesson){errors++;done++;continue;}
+            try{var r=await authFetch('/api/admin/preparations',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r||!r.ok)errors++;}
+            catch(e){errors++;}
+            done++;var pct=Math.round((done/_extQueue.length)*100);
+            if(bar){bar.style.width=pct+'%';bar.textContent=pct+'%';}
+            if(msgEl)msgEl.textContent=done+' / '+_extQueue.length;
+        }
+        btn.disabled=false;btn.innerHTML='<i class="fas fa-database"></i> حفظ الكل في المنصة';
+        setTimeout(function(){prog.style.display='none';},800);
+        var msg='تم حفظ '+(done-errors)+' تحضير'+(errors?' — '+errors+' خطأ':'');
+        showToast(errors?'⚠️ '+msg:'✅ '+msg,errors?'warning':'success');
+        if(!errors){_extQueue=[];_renderExtQueue();}
+    }
+    function exportQueueToExcel(){
+        if(typeof XLSX==='undefined'){showToast('⚠️ مكتبة SheetJS غير محملة','warning');return;}
+        if(!_extQueue.length){showToast('⚠️ القائمة فارغة','warning');return;}
+        var H=['الصف','الفصل','الوحدة','الدرس','المفاهيم','التهيئة','الإجراءات','التقويم التكويني','التقويم الختامي'];
+        var rows=_extQueue.map(function(L){return[L.grade||'',L.semester||'',L.unit||'',L.lesson||'',L.concepts||'',L.warm_up||'',L.activities||'',L.formative_eval||'',L.summative_eval||''];});
+        var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet([H].concat(rows));
+        ws['!cols']=[14,14,20,30,25,36,46,36,36].map(function(w){return{wch:w};});
+        XLSX.utils.book_append_sheet(wb,ws,'التحضيرات');
+        XLSX.writeFile(wb,'تحضيرات_مستخلصة.xlsx');
+        showToast('✅ تم تصدير Excel','success');
+    }
+
+    /* ── init hook ── */
+
+
+    /* ══ مولّد الأسئلة بالذكاء الاصطناعي ══ */
+    var _aqgFile=null, _aqgMime='', _aqgQuestions=[];
+
+    function _initAqgGrades(){
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var sel=document.getElementById('aqg-grade'); if(!sel) return;
+        sel.innerHTML='<option value="">-- اختر --</option>'+curr.map(function(g){return'<option value="'+g.name+'">'+g.name+'</option>';}).join('');
+        var gk=localStorage.getItem('geminiKey'); var kEl=document.getElementById('aqg-key');
+        if(gk&&kEl)kEl.value=gk;
+    }
+    function aqgGradeChange(){
+        var g=document.getElementById('aqg-grade').value;
+        var sSel=document.getElementById('aqg-semester');
+        ['aqg-unit','aqg-lesson'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML='<option value="">-- اختر --</option>';});
+        sSel.innerHTML='<option value="">-- اختر الفصل --</option>';
+        if(!g) return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        (gObj&&gObj.semesters||[]).forEach(function(s){sSel.innerHTML+='<option value="'+s.name+'">'+s.name+'</option>';});
+    }
+    function aqgSemChange(){
+        var g=document.getElementById('aqg-grade').value,s=document.getElementById('aqg-semester').value;
+        var uSel=document.getElementById('aqg-unit');
+        document.getElementById('aqg-lesson').innerHTML='<option value="">-- كل الدروس --</option>';
+        uSel.innerHTML='<option value="">-- اختر الوحدة --</option>';
+        if(!g||!s) return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        var semObj=(gObj&&gObj.semesters||[]).find(function(x){return x.name===s;});
+        (semObj&&semObj.units||[]).forEach(function(u){uSel.innerHTML+='<option value="'+u.name+'">'+u.name+'</option>';});
+    }
+    function aqgUnitChange(){
+        var g=document.getElementById('aqg-grade').value,s=document.getElementById('aqg-semester').value,u=document.getElementById('aqg-unit').value;
+        var lSel=document.getElementById('aqg-lesson');
+        lSel.innerHTML='<option value="">-- كل الدروس --</option>';
+        if(!g||!s||!u) return;
+        var curr=(typeof fullCurriculum!=='undefined'&&fullCurriculum.length)?fullCurriculum:[];
+        var gObj=curr.find(function(x){return x.name===g;});
+        var semObj=(gObj&&gObj.semesters||[]).find(function(x){return x.name===s;});
+        var uObj=(semObj&&semObj.units||[]).find(function(x){return x.name===u;});
+        (uObj&&uObj.lessons||[]).forEach(function(l){var n=typeof l==='object'?l.name:l;lSel.innerHTML+='<option value="'+n+'">'+n+'</option>';});
+    }
+    function aqgDrop(e){e.preventDefault();var f=e.dataTransfer&&e.dataTransfer.files[0];if(f)aqgSetFile(f);}
+    function aqgSetFile(f){
+        if(!f)return; _aqgFile=f; _aqgMime=f.type||'image/jpeg';
+        var lbl=document.getElementById('aqg-fname');
+        lbl.textContent='✅ '+f.name+' ('+(f.size/1024).toFixed(0)+' KB)'; lbl.style.display='block';
+        showToast('✅ '+f.name,'success');
+    }
+    async function runAqGen(){
+        var key=document.getElementById('aqg-key').value.trim();
+        if(!key){showToast('⚠️ أدخل مفتاح Gemini API','warning');return;}
+        if(!_aqgFile){showToast('⚠️ ارفع ملف الكتاب أولاً','warning');return;}
+        var grade   =document.getElementById('aqg-grade').value||'';
+        var semester=document.getElementById('aqg-semester').value||'';
+        var unit    =document.getElementById('aqg-unit').value||'';
+        var lesson  =document.getElementById('aqg-lesson').value||'';
+        var subject =document.getElementById('aqg-subject').value||'رياضيات';
+        var count   =parseInt(document.getElementById('aqg-count').value)||10;
+        if(!grade){showToast('⚠️ اختر الصف على الأقل','warning');return;}
+        var btn=document.getElementById('aqg-btn');
+        var prog=document.getElementById('aqg-prog-card');
+        btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التوليد...';
+        prog.style.display='block'; document.getElementById('aqg-results').style.display='none';
+        function _aqgSetPg(pct,msg){
+            var b=document.getElementById('aqg-prog-bar'),m=document.getElementById('aqg-prog-msg');
+            if(b){b.style.width=pct+'%';b.textContent=pct+'%';} if(m)m.textContent=msg;
+            if(pct===100)document.getElementById('aqg-prog-title').textContent='✅ اكتمل التوليد!';
+        }
+        try{
+            setPg(15,'يحوّل الملف...');
+            var base64=await new Promise(function(res,rej){
+                var r=new FileReader(); r.onload=function(e){res(e.target.result.split(',')[1]);};
+                r.onerror=function(){rej(new Error('فشل قراءة الملف'));}; r.readAsDataURL(_aqgFile);
+            });
+            var hasMcq=document.getElementById('aqg-mcq').checked;
+            var hasTf=document.getElementById('aqg-tf').checked;
+            var hasShort=document.getElementById('aqg-short').checked;
+            var hasEasy=document.getElementById('aqg-easy').checked;
+            var hasMed=document.getElementById('aqg-med').checked;
+            var hasHard=document.getElementById('aqg-hard').checked;
+            var hasElite=document.getElementById('aqg-elite').checked;
+            var hasBloom=document.getElementById('aqg-bloom').checked;
+            var types=[]; if(hasMcq)types.push('choice'); if(hasTf)types.push('true_false'); if(hasShort)types.push('short');
+            if(!types.length)types=['choice','true_false','short'];
+            var diffs=[]; if(hasEasy)diffs.push('easy'); if(hasMed)diffs.push('medium'); if(hasHard)diffs.push('hard'); if(hasElite)diffs.push('elite');
+            if(!diffs.length)diffs=['easy','medium','hard'];
+            var scope=lesson?'"'+lesson+'"':(unit?'"'+unit+'"':'كل الدروس');
+            var prompt='أنت خبير تربوي في الرياضيات. قرأت الكتاب المرفق وعليك توليد '+count+' سؤالاً لـ'+scope+'. الصف: '+grade+(semester?' الفصل: '+semester:'')+' المادة: '+subject+'. أنواع الأسئلة: '+types.join('، ')+'. مستويات الصعوبة: '+diffs.join('، ')+'.';
+            if(hasBloom)prompt+=' وزّع على مستويات بلوم الست.';
+            prompt+=' للـ choice: 4 خيارات مفصولة بـ | والإجابة نص الخيار الصحيح. للـ true_false: الإجابة "صح" أو "خطأ". للـ short: إجابة قصيرة. أسئلة النخبة تحدٍّ حقيقي.';
+            prompt+=' أخرج JSON فقط: {"questions":[{"lesson":"","q_type":"choice","question":"","options":"","answer":"","difficulty":"medium","is_elite":false}]}';
+            var ext=_aqgFile.name.split('.').pop().toLowerCase(),isPdf=ext==='pdf';
+            var mime=isPdf?'application/pdf':_aqgMime;
+            setPg(40,'Gemini يُولّد الأسئلة...');
+            // نُجرّب موديلات متعددة تلقائياً عند تجاوز الحصة
+            var _models=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-2.0-flash-lite','gemini-2.0-flash'];
+            var resp=null, data=null;
+            for(var _mi=0;_mi<_models.length;_mi++){
+                setPg(40+Math.round(_mi*10),'يجرب موديل '+_models[_mi]+'...');
+                try{
+                    resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_models[_mi]+':generateContent?key='+key,
+                        {method:'POST',headers:{'Content-Type':'application/json'},
+                         body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:8000,temperature:0.4}})});
+                    if(resp.ok){ data=await resp.json(); break; }
+                    var errJ=await resp.json().catch(function(){return{};});
+                    var errMsg=(errJ.error&&errJ.error.message)||'';
+                    if(errMsg.indexOf('quota')!==-1||errMsg.indexOf('Quota')!==-1||errMsg.indexOf('429')!==-1){
+                        continue; // جرّب الموديل التالي
+                    }
+                    throw new Error(errMsg||'HTTP '+resp.status);
+                }catch(fetchErr){
+                    if(_mi===_models.length-1) throw fetchErr;
+                }
+            }
+            if(!data) throw new Error('تجاوزت الحصة في كل الموديلات — انتظر قليلاً أو استخدم مفتاح API مدفوع');
+            setPg(80,'معالجة النتائج...');
+            var raw=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
+            var jm=raw.match(/\{[\s\S]*"questions"[\s\S]*\}/);
+            if(!jm)throw new Error('لم يتمكن Gemini من إنتاج JSON — تأكد من وضوح الملف وبيانات الصف');
+            var parsed=JSON.parse(jm[0]); _aqgQuestions=parsed.questions||[];
+            if(!_aqgQuestions.length)throw new Error('لم يُولّد Gemini أسئلة — جرب رفع ملف أوضح');
+            _aqgQuestions.forEach(function(q){
+                q._grade=grade; q._semester=semester; q._unit=unit; q._subject=subject;
+                if(q.is_elite===true||q.difficulty==='elite'){q.is_elite='true';q.difficulty='hard';}
+                else{q.is_elite='false';}
+            });
+            setPg(100,'اكتمل!');
+            setTimeout(function(){prog.style.display='none';aqgRenderResults();},600);
+        }catch(e){prog.style.display='none';showToast('❌ '+e.message,'error');}
+        finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> توليد الأسئلة بالذكاء الاصطناعي';}
+    }
+    var _AQG_TD='padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;';
+    function aqgRenderResults(){
+        var res=document.getElementById('aqg-results'); res.style.display='block';
+        var stats=document.getElementById('aqg-stats');
+        var byType={};
+        _aqgQuestions.forEach(function(q){byType[q.q_type]=(byType[q.q_type]||0)+1;});
+        var sh='<span style="background:rgba(212,175,55,0.15);border:1px solid var(--gold);border-radius:10px;padding:4px 12px;color:var(--gold);font-weight:bold;font-size:0.8rem;">'+_aqgQuestions.length+' سؤال</span>';
+        Object.keys(byType).forEach(function(t){
+            var label=t==='choice'?'اختياري':t==='true_false'?'صح/خطأ':'قصير';
+            sh+=' <span style="background:rgba(52,152,219,0.12);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:4px 10px;color:#3498db;font-size:0.78rem;">'+label+': '+byType[t]+'</span>';
+        });
+        if(stats)stats.innerHTML=sh;
+        var tbody=document.getElementById('aqg-tbody');
+        tbody.innerHTML=_aqgQuestions.map(function(q,i){
+            var bg=i%2?'rgba(255,255,255,0.02)':'transparent';
+            var tl=q.q_type==='choice'?'🔘':q.q_type==='true_false'?'✅':'✍️';
+            var dc=q.difficulty==='easy'?'#2ecc71':q.difficulty==='medium'?'#f39c12':'#e74c3c';
+            var del='<button onclick="aqgDelQ('+i+')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.62rem;">✕</button>';
+            var opts=(q.options||'').replace(/\|/g,' | ');
+            return '<tr style="background:'+bg+'">'+
+                '<td style="'+_AQG_TD+'color:var(--gold);font-size:0.76rem;max-width:90px;font-weight:bold;">'+esc(q.lesson||'—')+'</td>'+
+                '<td style="'+_AQG_TD+'max-width:200px;font-size:0.78rem;line-height:1.5;">'+esc(q.question||'')+'</td>'+
+                '<td style="'+_AQG_TD+'max-width:150px;font-size:0.73rem;color:rgba(255,255,255,0.55);">'+esc(opts.substring(0,80))+'</td>'+
+                '<td style="'+_AQG_TD+'font-size:0.76rem;color:#2ecc71;font-weight:bold;max-width:80px;">'+esc(q.answer||'')+'</td>'+
+                '<td style="'+_AQG_TD+'text-align:center;font-size:1rem;">'+tl+'</td>'+
+                '<td style="'+_AQG_TD+'text-align:center;font-size:0.72rem;font-weight:bold;color:'+dc+';">'+esc(q.difficulty||'')+'</td>'+
+                '<td style="'+_AQG_TD+'text-align:center;">'+del+'</td></tr>';
+        }).join('');
+    }
+    function aqgDelQ(i){_aqgQuestions.splice(i,1);aqgRenderResults();}
+    async function aqgSaveAll(){
+        if(!_aqgQuestions.length){showToast('⚠️ لا توجد أسئلة','warning');return;}
+        var btn=document.getElementById('aqg-save-btn');
+        var prog=document.getElementById('aqg-save-prog');
+        var bar=document.getElementById('aqg-save-bar');
+        var msgEl=document.getElementById('aqg-save-msg');
+        btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الضخ...';
+        prog.style.display='block';
+        if(bar){bar.style.width='30%';bar.textContent='30%';}
+        if(msgEl)msgEl.textContent='إرسال '+_aqgQuestions.length+' سؤال...';
+        try{
+            var payload=_aqgQuestions.map(function(q){return{
+                grade:q._grade||'',lesson:q.lesson||q._unit||'',subject:q._subject||'رياضيات',
+                q_type:q.q_type||'choice',question:q.question||'',options:q.options||'',
+                answer:q.answer||'',is_elite:q.is_elite||'false',difficulty:q.difficulty||'medium'};});
+            var r=await authFetch('/api/admin/questions/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questions:payload})});
+            if(bar){bar.style.width='100%';bar.textContent='100%';}
+            if(r&&r.ok){
+                var res=await r.json();
+                var msg='تم ضخ '+res.inserted+' سؤال'+(res.errors?' — '+res.errors+' خطأ':'');
+                showToast(res.errors?'⚠️ '+msg:'✅ '+msg,res.errors?'warning':'success');
+                if(!res.errors){_aqgQuestions=[];document.getElementById('aqg-results').style.display='none';}
+            } else showToast('❌ فشل الضخ','error');
+        }catch(e){showToast('❌ '+e.message,'error');}
+        btn.disabled=false; btn.innerHTML='<i class="fas fa-database"></i> ضخ الكل في بنك التحديات';
+        setTimeout(function(){prog.style.display='none';},900);
+    }
+    function aqgExportExcel(){
+        if(typeof XLSX==='undefined'){showToast('⚠️ SheetJS غير محملة','warning');return;}
+        if(!_aqgQuestions.length){showToast('⚠️ لا توجد أسئلة','warning');return;}
+        var H=['الصف','الفصل','الوحدة','الدرس','نوع التحدي','السؤال','الخيارات','الإجابة','الصعوبة','نخبة'];
+        var rows=_aqgQuestions.map(function(q){return[q._grade||'',q._semester||'',q._unit||'',q.lesson||'',q.q_type||'choice',q.question||'',q.options||'',q.answer||'',q.difficulty||'medium',q.is_elite==='true'?'نعم':'لا'];});
+        var wb=XLSX.utils.book_new(),ws=XLSX.utils.aoa_to_sheet([H].concat(rows));
+        ws['!cols']=[10,10,14,22,12,40,30,20,10,8].map(function(w){return{wch:w};});
+        XLSX.utils.book_append_sheet(wb,ws,'الأسئلة');
+        XLSX.writeFile(wb,'أسئلة_مولّدة.xlsx');
+        showToast('✅ تم تصدير Excel','success');
+    }
+    function aqgReset(){
+        _aqgFile=null; _aqgQuestions=[];
+        document.getElementById('aqg-file').value='';
+        document.getElementById('aqg-fname').style.display='none';
+        document.getElementById('aqg-results').style.display='none';
+        document.getElementById('aqg-prog-card').style.display='none';
+        showToast('تم الإعادة','warning');
     }
 
 </script>

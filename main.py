@@ -436,6 +436,45 @@ async def delete_question(q_id: int, admin=Depends(get_current_admin)):
     supabase.table("questions").delete().eq("id", q_id).execute()
     return {"status": "success"}
 
+
+@app.post("/api/admin/questions/bulk")
+async def bulk_add_questions(request: Request, admin=Depends(get_current_admin)):
+    """ضخ دفعة أسئلة مولّدة بالذكاء الاصطناعي دفعة واحدة — أسرع من الإرسال الفردي"""
+    body = await request.json()
+    questions = body.get("questions", [])
+    if not questions:
+        raise HTTPException(status_code=400, detail="لا توجد أسئلة في الطلب")
+    inserted = 0
+    errors   = 0
+    for q in questions:
+        try:
+            row = {
+                "grade":    str(q.get("grade",    "") or "").strip(),
+                "lesson":   str(q.get("lesson",   "") or "").strip(),
+                "subject":  str(q.get("subject",  "رياضيات") or "رياضيات").strip(),
+                "q_type":   str(q.get("q_type",   "choice") or "choice").strip(),
+                "question": str(q.get("question", "") or "").strip(),
+                "options":  str(q.get("options",  "") or "").strip(),
+                "answer":   str(q.get("answer",   "") or "").strip(),
+                "image_url": "",
+            }
+            if not row["question"] or not row["answer"]:
+                errors += 1
+                continue
+            is_elite_val = str(q.get("is_elite", "false")).lower().strip()
+            if is_elite_val not in ("false", "0", "no", ""):
+                row["is_elite"]   = True
+                row["difficulty"] = str(q.get("difficulty", "hard") or "hard").strip()
+            else:
+                diff = str(q.get("difficulty", "") or "").strip()
+                if diff in ("easy", "medium", "hard"):
+                    row["difficulty"] = diff
+            supabase.table("questions").insert(row).execute()
+            inserted += 1
+        except Exception:
+            errors += 1
+    return {"inserted": inserted, "errors": errors, "total": len(questions)}
+
 @app.get("/api/admin/questions")
 async def get_all_questions(admin=Depends(get_current_admin)):
     """جلب الأسئلة كاملةً للأدمن فقط (مع الإجابات)"""
