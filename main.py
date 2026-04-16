@@ -374,6 +374,8 @@ async def get_full_structure():
 @app.post("/api/admin/questions")
 async def add_question(
     grade:      str         = Form(...),
+    semester:   str         = Form(default=""),
+    unit:       str         = Form(default=""),
     lesson:     str         = Form(...),
     subject:    str         = Form(...),
     q_type:     str         = Form(...),
@@ -394,6 +396,8 @@ async def add_question(
 
     row = {
         "grade":    grade,
+        "semester": semester,
+        "unit":     unit,
         "lesson":   lesson,
         "subject":  subject,
         "q_type":   q_type,
@@ -408,17 +412,32 @@ async def add_question(
         row["is_elite"]   = True
         row["difficulty"] = difficulty.strip() or "hard"
 
-    supabase.table("questions").insert(row).execute()
+    try:
+        supabase.table("questions").insert(row).execute()
+    except Exception as e:
+        # fallback: لو الأعمدة الجديدة ما موجودة بعد، نحذفها ونعيد المحاولة
+        if "semester" in str(e) or "unit" in str(e) or "column" in str(e).lower():
+            row.pop("semester", None)
+            row.pop("unit", None)
+            supabase.table("questions").insert(row).execute()
+        else:
+            raise
     return {"status": "success"}
 
 @app.put("/api/admin/questions/{q_id}")
 async def update_question(
-    q_id: int, grade: str=Form(...), lesson: str=Form(...), subject: str=Form(...), 
+    q_id: int,
+    grade: str=Form(...),
+    semester: str=Form(default=""),
+    unit: str=Form(default=""),
+    lesson: str=Form(...),
+    subject: str=Form(...),
     q_type: str=Form(...), question: str=Form(...), options: str=Form(""), 
     answer: str=Form(...), image: UploadFile=File(None), admin=Depends(get_current_admin)
 ):
     update_data = {
-        "grade": grade, "lesson": lesson, "subject": subject, "q_type": q_type, 
+        "grade": grade, "semester": semester, "unit": unit,
+        "lesson": lesson, "subject": subject, "q_type": q_type, 
         "question": question, "options": options, "answer": answer
     }
     
@@ -428,7 +447,16 @@ async def update_question(
         supabase.storage.from_("resources").upload(path=img_name, file=content, file_options={"content-type": image.content_type})
         update_data["image_url"] = supabase.storage.from_("resources").get_public_url(img_name)
 
-    supabase.table("questions").update(update_data).eq("id", q_id).execute()
+    try:
+        supabase.table("questions").update(update_data).eq("id", q_id).execute()
+    except Exception as e:
+        # fallback: لو الأعمدة الجديدة ما موجودة
+        if "semester" in str(e) or "unit" in str(e) or "column" in str(e).lower():
+            update_data.pop("semester", None)
+            update_data.pop("unit", None)
+            supabase.table("questions").update(update_data).eq("id", q_id).execute()
+        else:
+            raise
     return {"status": "success"}
 
 @app.delete("/api/admin/questions/{q_id}")
@@ -450,6 +478,8 @@ async def bulk_add_questions(request: Request, admin=Depends(get_current_admin))
         try:
             row = {
                 "grade":    str(q.get("grade",    "") or "").strip(),
+                "semester": str(q.get("semester", "") or "").strip(),
+                "unit":     str(q.get("unit",    "") or "").strip(),
                 "lesson":   str(q.get("lesson",   "") or "").strip(),
                 "subject":  str(q.get("subject",  "رياضيات") or "رياضيات").strip(),
                 "q_type":   str(q.get("q_type",   "choice") or "choice").strip(),
@@ -469,8 +499,18 @@ async def bulk_add_questions(request: Request, admin=Depends(get_current_admin))
                 diff = str(q.get("difficulty", "") or "").strip()
                 if diff in ("easy", "medium", "hard"):
                     row["difficulty"] = diff
-            supabase.table("questions").insert(row).execute()
-            inserted += 1
+            try:
+                supabase.table("questions").insert(row).execute()
+                inserted += 1
+            except Exception as e:
+                # fallback: الأعمدة الجديدة ما موجودة
+                if "semester" in str(e) or "unit" in str(e) or "column" in str(e).lower():
+                    row.pop("semester", None)
+                    row.pop("unit", None)
+                    supabase.table("questions").insert(row).execute()
+                    inserted += 1
+                else:
+                    errors += 1
         except Exception:
             errors += 1
     return {"inserted": inserted, "errors": errors, "total": len(questions)}
@@ -631,23 +671,111 @@ async def create_exam(
     exam_time: str=Form(...), target_lesson: str=Form(...), duration: int=Form(...),
     exam_type: str=Form(default="ملحمة أسبوعية"), num_questions: int=Form(default=10), 
     points_per_q: int=Form(default=10), target_q_type: str=Form(default="all"),
+    notif_lifetime_hours: int=Form(default=72),
     admin=Depends(get_current_admin)
 ):
-    supabase.table("exams").insert({
+    # حساب تاريخ انتهاء صلاحية الإشعار (0 = دائم)
+    expires_at = None
+    if notif_lifetime_hours and notif_lifetime_hours > 0:
+        expires_at = (datetime.now(timezone.utc) + timedelta(hours=notif_lifetime_hours)).isoformat()
+
+    payload = {
         "title": title, "exam_type": exam_type, "exam_date": exam_date, "exam_time": exam_time, 
         "target_lesson": target_lesson, "duration": duration, "num_questions": num_questions, 
-        "points_per_q": points_per_q, "target_q_type": target_q_type
-    }).execute()
+        "points_per_q": points_per_q, "target_q_type": target_q_type,
+        "notif_lifetime_hours": notif_lifetime_hours,
+        "expires_at": expires_at
+    }
+    try:
+        supabase.table("exams").insert(payload).execute()
+    except Exception as e:
+        # لو الأعمدة الجديدة غير موجودة في DB بعد، نُحاول بدون
+        err_msg = str(e).lower()
+        if "notif_lifetime_hours" in err_msg or "expires_at" in err_msg or "column" in err_msg:
+            payload.pop("notif_lifetime_hours", None)
+            payload.pop("expires_at", None)
+            supabase.table("exams").insert(payload).execute()
+        else:
+            raise
     return {"status": "success"}
 
 @app.get("/api/exams/upcoming")
-async def get_upcoming_exams():
+async def get_upcoming_exams(student_id: Optional[int] = None, username: Optional[str] = None):
     res = supabase.table("exams").select("*").order("id", desc=True).execute()
-    return res.data if res.data else []
+    exams = res.data if res.data else []
+
+    if not exams:
+        return []
+
+    now = datetime.now(timezone.utc)
+
+    # 1) فلترة الاختبارات منتهية الصلاحية (expires_at سابق للوقت الحالي)
+    active_exams = []
+    for e in exams:
+        exp = e.get("expires_at")
+        if exp:
+            try:
+                # Supabase يُرجع ISO string — نُحوّل لـ datetime
+                exp_dt = datetime.fromisoformat(exp.replace("Z", "+00:00"))
+                if exp_dt < now:
+                    continue  # منتهي
+            except Exception:
+                pass
+        active_exams.append(e)
+
+    # 2) لو فيه student_id أو username، نستبعد الاختبارات المكتملة
+    sid = student_id
+    if not sid and username:
+        st = supabase.table("students").select("id").eq("username", username).execute()
+        if st.data:
+            sid = st.data[0]["id"]
+
+    if sid:
+        try:
+            done = supabase.table("exam_completions").select("exam_id").eq("student_id", sid).execute()
+            done_ids = {r["exam_id"] for r in (done.data or [])}
+            active_exams = [e for e in active_exams if e["id"] not in done_ids]
+        except Exception:
+            # لو الجدول لسه ما اتعمل — ما نكسر الـ endpoint
+            pass
+
+    return active_exams
 
 @app.delete("/api/admin/exams/{exam_id}")
 async def delete_exam(exam_id: int, admin=Depends(get_current_admin)):
     supabase.table("exams").delete().eq("id", exam_id).execute()
+    return {"status": "success"}
+
+# ─── تسجيل إكمال الاختبار (لإخفائه من إشعارات الطالب) ───
+@app.post("/api/student/exam_completed")
+async def mark_exam_completed(
+    exam_id: int = Form(...),
+    student_id: int = Form(...)
+):
+    # تحقق من وجود الطالب والاختبار
+    st = supabase.table("students").select("id").eq("id", student_id).execute()
+    if not st.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    ex = supabase.table("exams").select("id").eq("id", exam_id).execute()
+    if not ex.data:
+        raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+
+    try:
+        # upsert: لو موجود مسبقاً ما نكرّره
+        existing = supabase.table("exam_completions").select("id")\
+            .eq("exam_id", exam_id).eq("student_id", student_id).execute()
+        if not existing.data:
+            supabase.table("exam_completions").insert({
+                "exam_id": exam_id,
+                "student_id": student_id,
+                "completed_at": datetime.now(timezone.utc).isoformat()
+            }).execute()
+    except Exception as e:
+        # لو الجدول غير موجود، نُعيد رسالة واضحة
+        raise HTTPException(
+            status_code=500,
+            detail=f"جدول exam_completions غير متوفر — شغّل migration أولاً: {e}"
+        )
     return {"status": "success"}
 
 # ==========================================

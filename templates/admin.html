@@ -1226,6 +1226,12 @@
                         </div>
                     </div>
 
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+                        <div id="stats-last-updated" style="color:rgba(255,255,255,0.4);font-size:0.85rem;"></div>
+                        <button onclick="refreshAllStats()" id="btn-refresh-stats" style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.4);color:var(--gold);padding:8px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.9rem;transition:0.2s;">
+                            🔄 تحديث الإحصائيات
+                        </button>
+                    </div>
                     <div class="stats-grid" id="stats-grid-main">
                         <div class="stat-box">
                             <div>👥 إجمالي الرعية (الطلاب)</div>
@@ -1555,6 +1561,35 @@
                         </div>
                     </div>
 
+                    <!-- 🔧 أداة إصلاح الأسئلة اليتيمة (بدون درس) -->
+                    <div id="orphan-fixer" style="display:none; background:rgba(231,76,60,0.08); border:1px solid rgba(231,76,60,0.3); border-radius:12px; padding:15px; margin-bottom:20px;">
+                        <h4 style="color:#e74c3c; margin:0 0 10px 0;">⚠️ إصلاح الأسئلة بدون درس</h4>
+                        <p style="color:rgba(255,255,255,0.7); font-size:0.9rem; margin:0 0 12px 0;">
+                            وجدت <b id="orphan-count" style="color:#e74c3c;">0</b> سؤال بدون درس محدد. اختر درساً أدناه وانقل كل الأسئلة اليتيمة إليه:
+                        </p>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:end;">
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:0.85rem;">📍 الصف</label>
+                                <select id="fix-grade" onchange="fixerGradeChange()"><option value="">-- اختر --</option></select>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:0.85rem;">📅 الفصل</label>
+                                <select id="fix-semester" onchange="fixerSemChange()"><option value="">-- اختر الصف --</option></select>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:0.85rem;">📦 الوحدة</label>
+                                <select id="fix-unit" onchange="fixerUnitChange()"><option value="">-- اختر الفصل --</option></select>
+                            </div>
+                            <div style="flex:1; min-width:150px;">
+                                <label style="font-size:0.85rem;">📖 الدرس</label>
+                                <select id="fix-lesson"><option value="">-- اختر الوحدة --</option></select>
+                            </div>
+                            <button onclick="fixOrphanQuestions()" style="background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                🔧 إصلاح الآن
+                            </button>
+                        </div>
+                    </div>
+
                     <table>
                         <thead><tr><th>السؤال / التحدي</th><th>النوع</th><th>مرفق</th><th>إجراءات ملكية</th></tr></thead>
                         <tbody id="questions-table-body"></tbody>
@@ -1643,6 +1678,18 @@
                         <div><label>⏰ الوقت</label><input type="time" id="exam-time"></div>
                         <div><label>⏱️ المدة (دقيقة)</label><input type="number" id="exam-duration" value="30"></div>
                         <div><label>🔢 عدد الأسئلة</label><input type="number" id="exam-num-q" value="10" min="1"></div>
+                        <div>
+                            <label>🕒 مدة ظهور الإشعار للطالب</label>
+                            <select id="exam-notif-lifetime" style="font-family:'Cairo';">
+                                <option value="6">6 ساعات</option>
+                                <option value="12">12 ساعة</option>
+                                <option value="24">يوم كامل (24 ساعة)</option>
+                                <option value="48">يومين (48 ساعة)</option>
+                                <option value="72" selected>3 أيام (72 ساعة)</option>
+                                <option value="168">أسبوع</option>
+                                <option value="0">دائم (حتى الإكمال)</option>
+                            </select>
+                        </div>
                         <div>
                             <label>🎯 نوع التحديات المستهدفة</label>
                             <select id="exam-q-type">
@@ -2564,14 +2611,47 @@
                         <h2 style="color:var(--gold);margin:0 0 6px;"><i class="fas fa-robot" style="color:#4285f4;"></i> استخلاص وإثراء التحضيرات بـ Gemini</h2>
                         <p style="color:rgba(255,255,255,0.45);font-size:0.85rem;margin:0 0 18px;">ارفع الكتاب المدرسي — Gemini يستخلص ويُثري كل قسم باستراتيجيات وأنشطة وأمثلة محلولة وألعاب تعليمية مفصّلة</p>
 
-                        <!-- مفتاح API -->
+                        <!-- اختيار المزود + مفتاح API -->
                         <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.25);border-radius:14px;padding:16px;margin-bottom:14px;">
-                            <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
-                            <div style="display:flex;gap:10px;margin-top:6px;">
-                                <input type="password" id="gemini-key" placeholder="AIza..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
-                                <button onclick="document.getElementById('gemini-key').type=document.getElementById('gemini-key').type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                            <!-- تبويبات المزود -->
+                            <div style="display:flex;gap:8px;margin-bottom:12px;">
+                                <button id="gem-prov-gemini" onclick="gemSwitchProvider('gemini')" style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.83rem;background:rgba(66,133,244,0.2);border:2px solid rgba(66,133,244,0.7);color:#4285f4;transition:0.2s;">
+                                    <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" style="width:14px;height:14px;vertical-align:middle;margin-left:4px;" onerror="this.style.display='none'"> Gemini
+                                </button>
+                                <button id="gem-prov-grok" onclick="gemSwitchProvider('grok')" style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.83rem;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);transition:0.2s;">
+                                    𝕏 Grok
+                                </button>
                             </div>
-                            <p style="font-size:0.78rem;color:rgba(155,89,182,0.6);margin-top:6px;">احصل عليه مجاناً من <strong>aistudio.google.com</strong></p>
+                            <!-- Gemini key -->
+                            <div id="gem-key-gemini-wrap">
+                                <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
+                                <div style="display:flex;gap:10px;margin-top:6px;">
+                                    <input type="password" id="gemini-key" placeholder="AIza..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
+                                    <button onclick="document.getElementById('gemini-key').type=document.getElementById('gemini-key').type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                                </div>
+                                <p style="font-size:0.78rem;color:rgba(155,89,182,0.6);margin-top:6px;">مجاناً من <strong>aistudio.google.com</strong> — يجرّب: Gemini 2.5 Flash ← 2.0 Flash ← 1.5 Flash</p>
+                            </div>
+                            <!-- Grok key -->
+                            <div id="gem-key-grok-wrap" style="display:none;">
+                                <label style="color:#aaa;">🔑 مفتاح Grok API (xAI)</label>
+                                <div style="display:flex;gap:10px;margin-top:6px;">
+                                    <input type="password" id="gem-grok-key" placeholder="xai-..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('grokKey',this.value)">
+                                    <button onclick="var i=document.getElementById('gem-grok-key');i.type=i.type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                                </div>
+                                <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;" id="gem-grok-model-wrap">
+                                    <label style="font-size:0.78rem;color:rgba(255,255,255,0.5);align-self:center;">الموديل:</label>
+                                    <select id="gem-grok-model" style="flex:1;font-size:0.82rem;background:rgba(0,0,0,0.4);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 10px;">
+                                        <option value="grok-4-latest" selected>grok-4-latest (الأحدث ⭐)</option>
+                                        <option value="grok-4">grok-4 (رؤية + 256K context)</option>
+                                        <option value="grok-4-1-fast">grok-4-1-fast (سريع + 2M context)</option>
+                                        <option value="grok-3">grok-3 (الأقوى القديم)</option>
+                                        <option value="grok-3-fast">grok-3-fast (سريع)</option>
+                                        <option value="grok-3-mini">grok-3-mini (خفيف)</option>
+                                        <option value="grok-3-mini-fast">grok-3-mini-fast (الأسرع)</option>
+                                    </select>
+                                </div>
+                                <p style="font-size:0.78rem;color:rgba(200,200,200,0.5);margin-top:6px;">احصل على المفتاح من <strong>console.x.ai</strong> — ملاحظة: Grok لا يدعم رفع الملفات مباشرة، سيُرسَل نص الطلب فقط</p>
+                            </div>
                         </div>
 
                         <!-- بيانات الكتاب -->
@@ -2672,19 +2752,52 @@
                 <div class="card" style="margin-bottom:18px;">
                     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;">
                         <h2 style="color:var(--gold);margin:0;"><i class="fas fa-brain"></i> مولّد الأسئلة بالذكاء الاصطناعي 🧠</h2>
-                        <span style="background:rgba(26,188,156,0.15);border:1px solid rgba(26,188,156,0.3);color:#1abc9c;padding:5px 14px;border-radius:10px;font-size:0.82rem;font-weight:bold;">Gemini 2.0 Flash</span>
+                        <span style="background:rgba(26,188,156,0.15);border:1px solid rgba(26,188,156,0.3);color:#1abc9c;padding:5px 14px;border-radius:10px;font-size:0.82rem;font-weight:bold;">Gemini · Grok</span>
                     </div>
                     <p style="color:rgba(255,255,255,0.45);font-size:0.86rem;margin:10px 0 0;">ارفع كتاباً أو ملف PDF — Gemini يقرأه ويُولّد أسئلة متنوعة لجميع المستويات ثم يضخّها مباشرة في بنك التحديات</p>
                 </div>
 
-                <!-- مفتاح Gemini -->
+                <!-- اختيار المزود + مفتاح API -->
                 <div class="card" style="background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.25);margin-bottom:18px;">
-                    <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
-                    <div style="display:flex;gap:10px;margin-top:8px;">
-                        <input type="password" id="aqg-key" placeholder="AIzaSy..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
-                        <button onclick="var i=document.getElementById('aqg-key');i.type=i.type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                    <!-- تبويبات المزود -->
+                    <div style="display:flex;gap:8px;margin-bottom:12px;">
+                        <button id="aqg-prov-gemini" onclick="aqgSwitchProvider('gemini')" style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.83rem;background:rgba(26,188,156,0.2);border:2px solid rgba(26,188,156,0.7);color:#1abc9c;transition:0.2s;">
+                            <img src="https://www.gstatic.com/lamda/images/gemini_sparkle_v002_d4735304ff6292a690345.svg" style="width:14px;height:14px;vertical-align:middle;margin-left:4px;" onerror="this.style.display='none'"> Gemini
+                        </button>
+                        <button id="aqg-prov-grok" onclick="aqgSwitchProvider('grok')" style="flex:1;padding:9px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.83rem;background:rgba(255,255,255,0.04);border:2px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.5);transition:0.2s;">
+                            𝕏 Grok
+                        </button>
                     </div>
-                    <p style="font-size:0.76rem;color:rgba(155,89,182,0.55);margin-top:6px;">احصل عليه مجاناً من <strong>aistudio.google.com</strong></p>
+                    <!-- Gemini key -->
+                    <div id="aqg-key-gemini-wrap">
+                        <label style="color:#9b59b6;">🔑 مفتاح Gemini API</label>
+                        <div style="display:flex;gap:10px;margin-top:8px;">
+                            <input type="password" id="aqg-key" placeholder="AIzaSy..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('geminiKey',this.value)">
+                            <button onclick="var i=document.getElementById('aqg-key');i.type=i.type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                        </div>
+                        <p style="font-size:0.76rem;color:rgba(155,89,182,0.55);margin-top:6px;">مجاناً من <strong>aistudio.google.com</strong> — يجرّب: Gemini 2.5 Flash ← 2.0 Flash ← 1.5 Flash</p>
+                    </div>
+                    <!-- Grok key -->
+                    <div id="aqg-key-grok-wrap" style="display:none;">
+                        <label style="color:#aaa;">🔑 مفتاح Grok API (xAI)</label>
+                        <div style="display:flex;gap:10px;margin-top:8px;">
+                            <input type="password" id="aqg-grok-key" placeholder="xai-..." style="flex:1;font-family:monospace;" oninput="localStorage.setItem('grokKey',this.value)">
+                            <button onclick="var i=document.getElementById('aqg-grok-key');i.type=i.type==='password'?'text':'password'" style="background:rgba(255,255,255,0.06);border:1px solid var(--border);color:rgba(255,255,255,0.6);padding:10px 14px;border-radius:10px;cursor:pointer;">👁</button>
+                        </div>
+                        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                            <label style="font-size:0.78rem;color:rgba(255,255,255,0.5);align-self:center;">الموديل:</label>
+                            <select id="aqg-grok-model" style="flex:1;font-size:0.82rem;background:rgba(0,0,0,0.4);color:#fff;border:1px solid rgba(255,255,255,0.2);border-radius:8px;padding:6px 10px;">
+                                <option value="grok-4-latest" selected>grok-4-latest (الأحدث ⭐)</option>
+                                <option value="grok-4">grok-4 (رؤية + 256K context)</option>
+                                <option value="grok-4-1-fast">grok-4-1-fast (سريع + 2M context)</option>
+                                <option value="grok-3">grok-3 (الأقوى القديم)</option>
+                                <option value="grok-3-fast">grok-3-fast (سريع)</option>
+                                <option value="grok-3-mini">grok-3-mini (خفيف)</option>
+                                <option value="grok-3-mini-fast">grok-3-mini-fast (الأسرع)</option>
+                            </select>
+                        </div>
+                        <p style="font-size:0.76rem;color:rgba(200,200,200,0.5);margin-top:6px;">احصل على المفتاح من <strong>console.x.ai</strong> — ملاحظة: Grok لا يدعم رفع الملفات مباشرة، سيُرسَل نص الطلب فقط</p>
+                    </div>
                 </div>
 
                 <!-- بيانات المصدر والمنهج -->
@@ -2850,13 +2963,34 @@
     // ─── Auth ───────────────────────────────────────────────────────────────────
     async function authFetch(endpoint, options = {}) {
         const token = localStorage.getItem('adminToken');
-        if (!token) return logout();
-        options.headers = { ...options.headers, 'Authorization': `Bearer ${token}` };
+        if (!token) {
+            console.warn('[authFetch] لا يوجد توكن — تحويل لشاشة الدخول');
+            logout();
+            return null;
+        }
+        options.headers = { ...(options.headers || {}), 'Authorization': `Bearer ${token}` };
         try {
             const res = await fetch(`${API_URL}${endpoint}`, options);
-            if (res.status === 401) logout();
+            if (res.status === 401) {
+                console.warn('[authFetch] 401 Unauthorized على', endpoint, '— الجلسة منتهية');
+                // إظهار رسالة للمستخدم قبل الخروج
+                if (typeof showToast === 'function') {
+                    showToast('⚠️ انتهت صلاحية الجلسة — يرجى تسجيل الدخول مجدداً', 'warning', 4000);
+                }
+                setTimeout(() => logout(), 1500);
+                return null;
+            }
+            if (res.status === 403) {
+                if (typeof showToast === 'function') {
+                    showToast('🚫 ليس لديك صلاحية لهذا الإجراء', 'error', 4000);
+                }
+                return null;
+            }
             return res;
-        } catch (e) { console.error("API Error:", e); return null; }
+        } catch (e) {
+            console.error("API Error:", e);
+            return null;
+        }
     }
 
     async function checkLogin() {
@@ -3254,27 +3388,59 @@
 
     // ─── Dashboard ──────────────────────────────────────────────────────────────
     async function loadDashboard() {
-        const res = await fetch(`${API_URL}/api/leaderboard`);
-        if(!res.ok) return;
-        const data = await res.json();
         const totalStudentsEl = document.getElementById('stat-total-students');
         const topStudentEl    = document.getElementById('stat-top-student');
         const topXpEl         = document.getElementById('stat-top-xp');
-        if(totalStudentsEl) totalStudentsEl.innerText = data.length;
-        if(data.length > 0) {
-            if(topStudentEl) topStudentEl.innerText = data[0].student_name;
-            if(topXpEl)      topXpEl.innerText      = `${data[0].total_points} XP`;
-        }
-        const tbody = document.getElementById('students-table-body');
-        if(tbody) {
-            tbody.innerHTML = data.map(s => `
-                <tr>
-                    <td><strong>${esc(s.student_name)}</strong></td>
-                    <td>${esc(s.grade || 'غير محدد')}</td>
-                    <td>${esc(s.total_points)}</td>
-                    <td><button class="btn-action btn-xp" onclick="giveRoyalGrant('${esc(s.student_name)}')"><i class="fas fa-medal"></i> منح XP 🏅</button></td>
-                    <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${esc(s.student_name)}')">تقرير 📊</button></td>
-                </tr>`).join('');
+
+        try {
+            // نحاول أولاً الحصول على إحصائيات شاملة من الـ backend
+            let fullStats = null;
+            try {
+                const statsRes = await authFetch('/api/admin/reports/full');
+                if(statsRes && statsRes.ok) fullStats = await statsRes.json();
+            } catch(e) {}
+
+            const res = await fetch(`${API_URL}/api/leaderboard`);
+            if(!res.ok){
+                if(totalStudentsEl) totalStudentsEl.innerText = '—';
+                return;
+            }
+            const data = await res.json();
+
+            // عدد الطلاب: نفضّل الرقم من fullStats لو موجود (أدق)
+            let totalStudents = data.length;
+            if(fullStats?.summary?.total_students !== undefined)
+                totalStudents = Number(fullStats.summary.total_students);
+
+            if(totalStudentsEl) totalStudentsEl.innerText = Number(totalStudents).toLocaleString('ar-EG');
+
+            // بطل الأرقام: نرتّب محلياً للتأكد (حتى لو السيرفر رجّع غير مرتّب)
+            const sorted = [...data].sort((a,b) =>
+                Number(b.total_points||0) - Number(a.total_points||0)
+            );
+
+            if(sorted.length > 0 && Number(sorted[0].total_points||0) > 0) {
+                if(topStudentEl) topStudentEl.innerText = sorted[0].student_name;
+                if(topXpEl)      topXpEl.innerText = `${Number(sorted[0].total_points||0).toLocaleString('ar-EG')} XP`;
+            } else {
+                if(topStudentEl) topStudentEl.innerText = '— لا يوجد بعد —';
+                if(topXpEl)      topXpEl.innerText = '0 XP';
+            }
+
+            const tbody = document.getElementById('students-table-body');
+            if(tbody) {
+                tbody.innerHTML = sorted.map(s => `
+                    <tr>
+                        <td><strong>${esc(s.student_name)}</strong></td>
+                        <td>${esc(s.grade || 'غير محدد')}</td>
+                        <td>${esc(s.total_points)}</td>
+                        <td><button class="btn-action btn-xp" onclick="giveRoyalGrant('${esc(s.student_name)}')"><i class="fas fa-medal"></i> منح XP 🏅</button></td>
+                        <td><button class="btn-action" style="background:var(--gold); color:#000;" onclick="viewStudentReport('${esc(s.student_name)}')">تقرير 📊</button></td>
+                    </tr>`).join('');
+            }
+        } catch(e) {
+            console.error('[loadDashboard]', e);
+            if(totalStudentsEl) totalStudentsEl.innerText = '—';
         }
     }
 
@@ -3351,15 +3517,8 @@
         const totalQEl = document.getElementById('stat-total-q');
         if(totalQEl) {
             const loaded = allQuestions.length;
-            totalQEl.innerText = loaded >= 1000 ? `${loaded}+` : loaded;
-            if (loaded >= 1000) {
-                authFetch('/api/admin/reports/full')
-                    .then(r => r && r.ok ? r.json() : null)
-                    .then(data => {
-                        if (data?.summary?.total_questions)
-                            totalQEl.innerText = Number(data.summary.total_questions).toLocaleString('ar-EG');
-                    }).catch(()=>{});
-            }
+            // نعرض الرقم الفعلي الكامل (مش 1000+)
+            totalQEl.innerText = Number(loaded).toLocaleString('ar-EG');
         }
 
         // قراءة قيم الفلاتر الأربعة
@@ -3368,45 +3527,83 @@
         const uIdx       = document.getElementById('qf-unit')?.value   ?? 'all';
         const lessonName = document.getElementById('qf-lesson')?.value ?? 'all';
 
-        // بناء مجموعة الدروس المسموح بها
-        let allowedLessons = null; // null = الكل
+        // دالة تطبيع للمقارنة (تتجاهل المسافات الزائدة)
+        const norm = s => String(s || '').trim().replace(/\s+/g, ' ');
 
-        if (lessonName !== 'all') {
-            allowedLessons = new Set([lessonName]);
-        } else if (uIdx !== 'all') {
+        // استخراج أسماء الفصل والوحدة من fullCurriculum حسب الفهارس المختارة
+        let semesterName = null, unitName = null;
+        if (gradeName !== 'all') {
             const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj?.semesters[sIdx]?.units[uIdx]) {
-                allowedLessons = new Set(gradeObj.semesters[sIdx].units[uIdx].lessons.map(l => l.name));
-            }
-        } else if (sIdx !== 'all') {
-            const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj?.semesters[sIdx]) {
-                allowedLessons = new Set(
-                    gradeObj.semesters[sIdx].units.flatMap(u => u.lessons.map(l => l.name))
-                );
-            }
-        } else if (gradeName !== 'all') {
-            const gradeObj = fullCurriculum.find(g => g.name === gradeName);
-            if (gradeObj) {
-                allowedLessons = new Set(
-                    gradeObj.semesters.flatMap(s => s.units.flatMap(u => u.lessons.map(l => l.name)))
-                );
+            if (gradeObj && sIdx !== 'all' && gradeObj.semesters[sIdx]) {
+                semesterName = gradeObj.semesters[sIdx].name;
+                if (uIdx !== 'all' && gradeObj.semesters[sIdx].units[uIdx]) {
+                    unitName = gradeObj.semesters[sIdx].units[uIdx].name;
+                }
             }
         }
 
-        const filtered = allowedLessons
-            ? allQuestions.filter(q => allowedLessons.has(q.lesson))
-            : allQuestions;
+        // فلترة ذكية — نستخدم الأعمدة الجديدة (semester, unit) إذا موجودة،
+        // وإلا نرجع للفلترة القديمة القائمة على أسماء الدروس من fullCurriculum
+        let filtered = allQuestions;
 
+        if (gradeName !== 'all') {
+            filtered = filtered.filter(q => norm(q.grade) === norm(gradeName));
+        }
+
+        if (semesterName) {
+            filtered = filtered.filter(q => {
+                // لو العمود موجود في السؤال، نقارن مباشرة
+                if (q.semester && String(q.semester).trim()) {
+                    return norm(q.semester) === norm(semesterName);
+                }
+                // fallback: نحاول نطابق عبر الدرس
+                const gradeObj = fullCurriculum.find(g => g.name === gradeName);
+                const semObj = gradeObj?.semesters.find(s => s.name === semesterName);
+                if (!semObj) return true; // لا نستبعد لو ما قدرنا نتحقق
+                const lessonsInSem = new Set(
+                    semObj.units.flatMap(u => u.lessons.map(l => norm(l.name)))
+                );
+                return lessonsInSem.has(norm(q.lesson));
+            });
+        }
+
+        if (unitName) {
+            filtered = filtered.filter(q => {
+                if (q.unit && String(q.unit).trim()) {
+                    return norm(q.unit) === norm(unitName);
+                }
+                // fallback: عبر الدرس
+                const gradeObj = fullCurriculum.find(g => g.name === gradeName);
+                const semObj = gradeObj?.semesters.find(s => s.name === semesterName);
+                const uObj = semObj?.units.find(u => u.name === unitName);
+                if (!uObj) return true;
+                const lessonsInUnit = new Set(uObj.lessons.map(l => norm(l.name)));
+                return lessonsInUnit.has(norm(q.lesson));
+            });
+        }
+
+        if (lessonName !== 'all') {
+            filtered = filtered.filter(q => norm(q.lesson) === norm(lessonName));
+        }
+
+        // تجميع حسب الدرس — الأسئلة اللي بدون درس تحت "غير مصنفة"
         const grouped = filtered.reduce((acc, q) => {
-            acc[q.lesson] = acc[q.lesson] || [];
-            acc[q.lesson].push(q);
+            const key = (q.lesson && String(q.lesson).trim()) || '⚠️ غير مصنّفة (بدون درس)';
+            acc[key] = acc[key] || [];
+            acc[key].push(q);
             return acc;
         }, {});
 
         let htmlStr = '';
+        // معلومة تشخيصية في الأعلى
+        htmlStr += `<tr><td colspan="4" style="background:rgba(212,175,55,0.08);color:var(--gold);padding:10px;font-size:0.85rem;">
+            📊 إجمالي الأسئلة في قاعدة البيانات: <b>${allQuestions.length}</b> |
+            المعروض حسب الفلتر: <b>${filtered.length}</b>
+            ${allQuestions.length > filtered.length ? ` | <span style="color:#e74c3c;">⚠️ ${allQuestions.length - filtered.length} سؤال لم يطابق الفلتر</span>` : ''}
+        </td></tr>`;
+
         for (const [lbl, qs] of Object.entries(grouped)) {
-            htmlStr += `<tr class="group-header"><td colspan="4">📖 وحدة الدرس: ${esc(lbl)}</td></tr>`;
+            htmlStr += `<tr class="group-header"><td colspan="4">📖 وحدة الدرس: ${esc(lbl)} <span style="color:rgba(255,255,255,0.5);font-size:0.85rem;">(${qs.length})</span></td></tr>`;
             qs.forEach(q => {
                 const preview = esc(String(q.question || '').substring(0, 50));
                 const hasMore = String(q.question || '').length > 50 ? '...' : '';
@@ -3424,9 +3621,29 @@
         }
         const qTableBody = document.getElementById('questions-table-body');
         if(qTableBody) {
-            if(Object.keys(grouped).length === 0)
-                htmlStr = "<tr><td colspan='4' style='text-align:center;'>لا توجد تحديات محفوظة لهذا المسار.</td></tr>";
+            if(filtered.length === 0)
+                htmlStr = `<tr><td colspan='4' style='text-align:center;padding:20px;'>
+                    ${allQuestions.length === 0
+                        ? 'لا توجد أسئلة في قاعدة البيانات.'
+                        : `⚠️ لا توجد أسئلة مطابقة لهذا الفلتر (إجمالي ${allQuestions.length} سؤال في قاعدة البيانات — جرب اختيار "جميع الصفوف" لرؤيتها جميعاً)`}
+                </td></tr>`;
             qTableBody.innerHTML = htmlStr;
+
+            // عرض أو إخفاء أداة إصلاح الأسئلة بدون درس
+            var orphans = allQuestions.filter(function(q){ return !q.lesson || !String(q.lesson).trim(); });
+            var fixerBox = document.getElementById('orphan-fixer');
+            var orphanCountEl = document.getElementById('orphan-count');
+            if(fixerBox){
+                if(orphans.length > 0){
+                    fixerBox.style.display = 'block';
+                    if(orphanCountEl) orphanCountEl.textContent = orphans.length;
+                    // تهيئة القوائم لو لسه فاضية
+                    var fg = document.getElementById('fix-grade');
+                    if(fg && fg.options.length <= 1) initOrphanFixer();
+                } else {
+                    fixerBox.style.display = 'none';
+                }
+            }
         }
     }
 
@@ -3602,6 +3819,8 @@
         fd.append('num_questions', document.getElementById('exam-num-q').value);
         fd.append('target_q_type', document.getElementById('exam-q-type').value);
         fd.append('points_per_q',  10);
+        // مدة ظهور الإشعار للطالب (بالساعات — 0 = دائم)
+        fd.append('notif_lifetime_hours', document.getElementById('exam-notif-lifetime').value || '72');
         try {
             const res = await authFetch('/api/admin/exams', { method: 'POST', body: fd });
             if(res && res.ok) {
@@ -4227,11 +4446,11 @@
             if(qfGrade)        qfGrade.innerHTML        += `<option value="${gNameEsc}">${gNameEsc}</option>`;
             if(notifGrade)     notifGrade.innerHTML     += `<option value="${gNameEsc}">${gNameEsc}</option>`;
 
-            g.semesters.forEach(s => s.units.forEach(u => { totalLessons += u.lessons.length; }));
+            (g.semesters||[]).forEach(s => (s.units||[]).forEach(u => { totalLessons += (u.lessons||[]).length; }));
         });
 
         const totalLessonsEl = document.getElementById('stat-total-lessons');
-        if (totalLessonsEl) totalLessonsEl.innerText = totalLessons;
+        if (totalLessonsEl) totalLessonsEl.innerText = Number(totalLessons).toLocaleString('ar-EG');
 
         const qfTerm   = document.getElementById('qf-term');
         const qfUnit   = document.getElementById('qf-unit');
@@ -4305,20 +4524,23 @@
     // ██ ٣. تحميل بيانات المعلمين ██
     // ══════════════════════════════════════════════════════════════════════════
     async function loadTeachersStats() {
+        const countEl = document.getElementById('stat-total-teachers');
+        const detailEl = document.getElementById('stat-teachers-detail');
         try {
             const res = await authFetch('/api/admin/teachers');
             if (!res || !res.ok) {
-                document.getElementById('stat-total-teachers').innerText = '—';
-                document.getElementById('stat-teachers-detail').innerText = 'مسار غير متاح';
+                if(countEl) countEl.innerText = '—';
+                if(detailEl) detailEl.innerText = 'مسار غير متاح';
                 return;
             }
             const data = await res.json();
-            const count = Array.isArray(data) ? data.length : (data.total || data.count || 0);
-            document.getElementById('stat-total-teachers').innerText = count;
-            document.getElementById('stat-teachers-detail').innerText = count > 0 ? `${count} معلم مسجّل` : 'لا يوجد معلمون بعد';
+            const count = Array.isArray(data) ? data.length : (Number(data.total) || Number(data.count) || 0);
+            if(countEl) countEl.innerText = Number(count).toLocaleString('ar-EG');
+            if(detailEl) detailEl.innerText = count > 0 ? `${count} معلم مسجّل` : 'لا يوجد معلمون بعد';
         } catch(e) {
-            document.getElementById('stat-total-teachers').innerText = '—';
-            document.getElementById('stat-teachers-detail').innerText = 'تحقق من الـ API';
+            console.error('[loadTeachersStats]', e);
+            if(countEl) countEl.innerText = '—';
+            if(detailEl) detailEl.innerText = 'تحقق من الـ API';
         }
     }
 
@@ -4327,6 +4549,24 @@
     // ══════════════════════════════════════════════════════════════════════════
     let notifHistory = JSON.parse(localStorage.getItem('notifHistory') || '[]');
     let selectedNotifType = 'announcement';
+
+    // ── تحديث عداد الإشعارات من السيرفر (أدق من localStorage) ──
+    async function refreshNotifCount() {
+        const el = document.getElementById('stat-total-notifs');
+        if(!el) return;
+        try {
+            const res = await authFetch('/api/notifications?grade=all');
+            if(res && res.ok){
+                const data = await res.json();
+                if(Array.isArray(data)){
+                    el.innerText = Number(data.length).toLocaleString('ar-EG');
+                    return;
+                }
+            }
+        } catch(e){}
+        // fallback على localStorage
+        el.innerText = Number(notifHistory.length).toLocaleString('ar-EG');
+    }
 
     async function openNotifModal() {
         document.getElementById('notif-modal').style.display = 'flex';
@@ -4435,8 +4675,8 @@
             if (notifHistory.length > 50) notifHistory.pop();
             localStorage.setItem('notifHistory', JSON.stringify(notifHistory));
             notifSentCount++;
-            const el = document.getElementById('stat-total-notifs');
-            if (el) el.innerText = notifSentCount;
+            // تحديث من السيرفر للحصول على العدد الدقيق
+            refreshNotifCount();
 
             if (res && res.ok) {
                 showToast(`📡 تم إرسال الإشعار لـ${grade === 'all' ? ' جميع الصفوف' : ' ' + grade}`, 'success', 5000);
@@ -4818,6 +5058,30 @@
     // ══════════════════════════════════════════════════════════════════════════
     // ██ ٦. loadAllData المحدّث ██
     // ══════════════════════════════════════════════════════════════════════════
+    async function refreshAllStats() {
+        const btn = document.getElementById('btn-refresh-stats');
+        const tsEl = document.getElementById('stats-last-updated');
+        if(btn){ btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحديث...'; }
+        try {
+            await loadCurriculum();
+            await Promise.all([
+                loadDashboard(),
+                loadQuestions(),
+                loadTeachersStats(),
+                refreshNotifCount()
+            ]);
+            if(tsEl){
+                const now = new Date();
+                tsEl.innerText = '🕐 آخر تحديث: ' + now.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            }
+            if(typeof showToast === 'function') showToast('✅ تم تحديث الإحصائيات', 'success');
+        } catch(e){
+            console.error('[refreshAllStats]', e);
+            if(typeof showToast === 'function') showToast('⚠️ فشل التحديث — ' + e.message, 'warning');
+        }
+        if(btn){ btn.disabled = false; btn.innerHTML = '🔄 تحديث الإحصائيات'; }
+    }
+
     async function loadAllData() {
         await loadCurriculum();
         await Promise.all([
@@ -4826,13 +5090,27 @@
             loadPDFs(),
             loadScheduledExams(),
             loadAdminResources(),
-            loadTeachersStats()
+            loadTeachersStats(),
+            refreshNotifCount()
         ]);
-        // تحديث عداد الإشعارات المرسلة من التاريخ المحلي
-        const el = document.getElementById('stat-total-notifs');
-        if (el) el.innerText = notifHistory.length;
-        // Auto-refresh الإحصائيات كل 5 دقائق
-        setInterval(() => { loadDashboard(); loadTeachersStats(); }, 5 * 60 * 1000);
+        // أول تحديث لختم الوقت
+        const tsEl = document.getElementById('stats-last-updated');
+        if(tsEl){
+            const now = new Date();
+            tsEl.innerText = '🕐 آخر تحديث: ' + now.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+        }
+        // Auto-refresh الإحصائيات كل 2 دقيقة
+        setInterval(() => {
+            loadDashboard();
+            loadTeachersStats();
+            refreshNotifCount();
+            loadQuestions();
+            const tsEl2 = document.getElementById('stats-last-updated');
+            if(tsEl2){
+                const now = new Date();
+                tsEl2.innerText = '🕐 آخر تحديث: ' + now.toLocaleTimeString('ar-EG', {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+            }
+        }, 2 * 60 * 1000);
     }
 
     // ══════════════════════════════════════════════════════════════════════════
@@ -6875,11 +7153,138 @@
         }catch(e){showToast('❌ خطأ في الاتصال','error');}
     }
 
-    /* ── Gemini مُثري ── */
+    /* ── provider switchers ── */
+    var _gemProvider='gemini', _aqgProvider='gemini';
+    function gemSwitchProvider(p){
+        _gemProvider=p;
+        var gBtn=document.getElementById('gem-prov-gemini'),xBtn=document.getElementById('gem-prov-grok');
+        var gWrap=document.getElementById('gem-key-gemini-wrap'),xWrap=document.getElementById('gem-key-grok-wrap');
+        if(p==='gemini'){
+            gBtn.style.background='rgba(66,133,244,0.2)';gBtn.style.border='2px solid rgba(66,133,244,0.7)';gBtn.style.color='#4285f4';
+            xBtn.style.background='rgba(255,255,255,0.04)';xBtn.style.border='2px solid rgba(255,255,255,0.15)';xBtn.style.color='rgba(255,255,255,0.5)';
+            gWrap.style.display='';xWrap.style.display='none';
+        }else{
+            xBtn.style.background='rgba(255,255,255,0.15)';xBtn.style.border='2px solid rgba(255,255,255,0.6)';xBtn.style.color='#fff';
+            gBtn.style.background='rgba(255,255,255,0.04)';gBtn.style.border='2px solid rgba(255,255,255,0.15)';gBtn.style.color='rgba(255,255,255,0.5)';
+            xWrap.style.display='';gWrap.style.display='none';
+            var sk=localStorage.getItem('grokKey');if(sk)document.getElementById('gem-grok-key').value=sk;
+        }
+    }
+    function aqgSwitchProvider(p){
+        _aqgProvider=p;
+        var gBtn=document.getElementById('aqg-prov-gemini'),xBtn=document.getElementById('aqg-prov-grok');
+        var gWrap=document.getElementById('aqg-key-gemini-wrap'),xWrap=document.getElementById('aqg-key-grok-wrap');
+        if(p==='gemini'){
+            gBtn.style.background='rgba(26,188,156,0.2)';gBtn.style.border='2px solid rgba(26,188,156,0.7)';gBtn.style.color='#1abc9c';
+            xBtn.style.background='rgba(255,255,255,0.04)';xBtn.style.border='2px solid rgba(255,255,255,0.15)';xBtn.style.color='rgba(255,255,255,0.5)';
+            gWrap.style.display='';xWrap.style.display='none';
+        }else{
+            xBtn.style.background='rgba(255,255,255,0.15)';xBtn.style.border='2px solid rgba(255,255,255,0.6)';xBtn.style.color='#fff';
+            gBtn.style.background='rgba(255,255,255,0.04)';gBtn.style.border='2px solid rgba(255,255,255,0.15)';gBtn.style.color='rgba(255,255,255,0.5)';
+            xWrap.style.display='';gWrap.style.display='none';
+            var sk=localStorage.getItem('grokKey');if(sk)document.getElementById('aqg-grok-key').value=sk;
+        }
+    }
+
+    /* ── helper: call Grok API ── */
+    /* ── مستخرج JSON مقاوم للأخطاء ── */
+    function _extractJSON(raw, expectedKey) {
+        if (!raw || typeof raw !== 'string') return null;
+        var s = raw.trim();
+
+        // إزالة code fences ```json ... ```
+        s = s.replace(/^```(?:json)?\s*/i, '').replace(/\s*```\s*$/, '');
+
+        // محاولة 1: parse مباشر (لو response_format=json_object)
+        try { return JSON.parse(s); } catch(e) {}
+
+        // محاولة 2: regex يلتقط أول { ... } متوازن
+        var startIdx = s.indexOf('{');
+        if (startIdx === -1) return null;
+        var depth = 0, inStr = false, esc = false, endIdx = -1;
+        for (var i = startIdx; i < s.length; i++) {
+            var ch = s[i];
+            if (esc) { esc = false; continue; }
+            if (ch === '\\') { esc = true; continue; }
+            if (ch === '"') { inStr = !inStr; continue; }
+            if (inStr) continue;
+            if (ch === '{') depth++;
+            else if (ch === '}') {
+                depth--;
+                if (depth === 0) { endIdx = i; break; }
+            }
+        }
+        if (endIdx !== -1) {
+            var candidate = s.substring(startIdx, endIdx + 1);
+            try { return JSON.parse(candidate); } catch(e) {}
+            // محاولة إصلاح اقتطاع: نضيف أقواس إغلاق ناقصة
+            try { return JSON.parse(candidate + ']}'); } catch(e) {}
+            try { return JSON.parse(candidate + '}'); } catch(e) {}
+        }
+
+        // محاولة 3: regex قديم على expectedKey
+        if (expectedKey) {
+            var re = new RegExp('\\{[\\s\\S]*"' + expectedKey + '"[\\s\\S]*\\}');
+            var m = s.match(re);
+            if (m) {
+                try { return JSON.parse(m[0]); } catch(e) {}
+            }
+        }
+        return null;
+    }
+
+    async function _callGrok(apiKey, model, systemMsg, userMsg, fileData){
+        // fileData اختياري: {base64, mime, name}  — لو موجود نرسله كـ vision content
+        var userContent;
+        if (fileData && fileData.base64 && fileData.mime) {
+            // Grok vision models تدعم image_url بصيغة data URI
+            var isImage = /^image\//.test(fileData.mime);
+            if (isImage) {
+                userContent = [
+                    { type: 'text', text: userMsg },
+                    { type: 'image_url', image_url: { url: 'data:' + fileData.mime + ';base64,' + fileData.base64, detail: 'high' } }
+                ];
+            } else {
+                // PDF أو غيره: Grok لسه ما يدعم PDF مباشر عبر vision — ننبه المستخدم في userMsg
+                userContent = userMsg + '\n\n⚠️ ملاحظة: الملف المرفق (' + (fileData.name||'') + ') من نوع ' + fileData.mime + ' — استخدم معرفتك العامة بالمنهج.';
+            }
+        } else {
+            userContent = userMsg;
+        }
+
+        var resp = await fetch('https://api.x.ai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Bearer ' + apiKey
+            },
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: 'system', content: systemMsg },
+                    { role: 'user',   content: userContent }
+                ],
+                max_tokens: 16000,
+                temperature: 0.4,
+                response_format: { type: 'json_object' }  // نجبر Grok على إخراج JSON صالح
+            })
+        });
+        var txt = await resp.text();
+        var json = {};
+        try { json = JSON.parse(txt); } catch(e) {}
+        if (!resp.ok) {
+            throw new Error((json.error && (json.error.message || json.error.code)) || ('HTTP ' + resp.status + ' — ' + txt.substring(0, 200)));
+        }
+        return json.choices && json.choices[0] && json.choices[0].message && json.choices[0].message.content || '';
+    }
+
+    /* ── Gemini/Grok مُثري التحضيرات ── */
     async function runGeminiExtraction(){
-        var key=document.getElementById('gemini-key').value.trim();
-        if(!key){showToast('⚠️ أدخل مفتاح Gemini API','warning');return;}
-        if(!_gemFile){showToast('⚠️ ارفع ملف الكتاب','warning');return;}
+        var useGrok=(_gemProvider==='grok');
+        var key=useGrok?document.getElementById('gem-grok-key').value.trim():document.getElementById('gemini-key').value.trim();
+        if(!key){showToast('⚠️ أدخل مفتاح '+(useGrok?'Grok':'Gemini')+' API','warning');return;}
+        if(!useGrok&&!_gemFile){showToast('⚠️ ارفع ملف الكتاب','warning');return;}
+        if(useGrok&&!_gemFile){showToast('⚠️ ارفع ملف الكتاب (سيُستخدم اسمه كمرجع مع Grok)','warning');return;}
         var btn=document.getElementById('gem-extract-btn');
         var prog=document.getElementById('gem-progress-card');
         btn.disabled=true;btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري الاستخلاص والإثراء...';
@@ -6931,45 +7336,56 @@
 
             var ext=_gemFile.name.split('.').pop().toLowerCase(), isPdf=ext==='pdf';
             var mime=isPdf?'application/pdf':(_gemFileMime||'image/jpeg');
-            var model=isPdf?'gemini-2.0-flash':'gemini-2.0-flash';
 
-            setPg(50,'Gemini يقرأ الكتاب ويُثري التحضيرات...');
-
-            var _gModels=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-2.0-flash-lite','gemini-2.0-flash'];
-            var resp=null, data=null;
-            for(var _gmi=0;_gmi<_gModels.length;_gmi++){
-                setPg(50+Math.round(_gmi*10),'يجرب '+_gModels[_gmi]+'...');
-                try{
-                    resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_gModels[_gmi]+':generateContent?key='+key,
-                        {method:'POST',headers:{'Content-Type':'application/json'},
-                         body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:8000,temperature:0.3}})});
-                    if(resp.ok){ data=await resp.json(); break; }
-                    var errJ=await resp.json().catch(function(){return{};});
-                    var eMsg=(errJ.error&&errJ.error.message)||'';
-                    if(eMsg.indexOf('quota')!==-1||eMsg.indexOf('Quota')!==-1) continue;
-                    throw new Error(eMsg||'HTTP '+resp.status);
-                }catch(fe){ if(_gmi===_gModels.length-1) throw fe; }
+            var rawText='';
+            if(useGrok){
+                setPg(50,'Grok يُثري التحضيرات...');
+                var grokModel=document.getElementById('gem-grok-model').value||'grok-4-latest';
+                var sysMsg='أنت خبير تربوي متخصص في مناهج الرياضيات. أخرج JSON صالح فقط دون أي نص إضافي.';
+                var userMsg=prompt;
+                // نمرّر بيانات الملف عشان Grok يشوف المحتوى (لو صورة)
+                rawText=await _callGrok(key,grokModel,sysMsg,userMsg,{base64:base64,mime:mime,name:_gemFile.name});
+                setPg(80,'معالجة نتائج Grok...');
+            }else{
+                setPg(50,'Gemini يقرأ الكتاب ويُثري التحضيرات...');
+                var _gModels=['gemini-2.5-flash','gemini-2.5-pro','gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-flash-latest','gemini-1.5-flash'];
+                var resp=null, gdata=null, gLastErr='';
+                for(var _gmi=0;_gmi<_gModels.length;_gmi++){
+                    setPg(50+Math.round(_gmi*5),'يجرب '+_gModels[_gmi]+'...');
+                    try{
+                        resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_gModels[_gmi]+':generateContent?key='+key,
+                            {method:'POST',headers:{'Content-Type':'application/json'},
+                             body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:16000,responseMimeType:"application/json",temperature:0.3}})});
+                        var rTxt=await resp.text(); var rJson={}; try{rJson=JSON.parse(rTxt);}catch(pe){}
+                        if(resp.ok){ gdata=rJson; break; }
+                        var eMsg=(rJson.error&&rJson.error.message)||('HTTP '+resp.status);
+                        gLastErr=eMsg;
+                        if(eMsg.indexOf('quota')!==-1||eMsg.indexOf('Quota')!==-1||resp.status===429||resp.status===503) continue;
+                        throw new Error(eMsg);
+                    }catch(fe){ gLastErr=fe.message||String(fe); if(_gmi===_gModels.length-1) throw new Error(gLastErr); }
+                }
+                if(!gdata) throw new Error('تجاوزت الحصة في كل الموديلات — '+gLastErr);
+                rawText=gdata.candidates&&gdata.candidates[0]&&gdata.candidates[0].content&&gdata.candidates[0].content.parts&&gdata.candidates[0].content.parts[0]&&gdata.candidates[0].content.parts[0].text||'';
+                setPg(80,'تحليل ومعالجة النتائج...');
             }
-            if(!data) throw new Error('تجاوزت الحصة في كل الموديلات — انتظر قليلاً أو استخدم مفتاح API مدفوع');
-            setPg(80,'تحليل ومعالجة النتائج...');
-            var rawText=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
 
-            var jm=rawText.match(/\{[\s\S]*"lessons"[\s\S]*\}/);
-            if(!jm) throw new Error('لم يتمكن Gemini من إنتاج JSON صالح — جرب إضافة بيانات الصف والوحدة');
-            var parsed=JSON.parse(jm[0]), lessons=parsed.lessons||[];
-            if(!lessons.length) throw new Error('لم يجد Gemini دروساً — تأكد من رفع الكتاب بوضوح');
+            var parsed=_extractJSON(rawText,'lessons');
+            if(!parsed) throw new Error('لم يتمكن '+(useGrok?'Grok':'Gemini')+' من إنتاج JSON صالح — جرب إضافة بيانات الصف والوحدة');
+            var lessons=parsed.lessons||[];
+            if(!lessons.length) throw new Error('لم يجد '+(useGrok?'Grok':'Gemini')+' دروساً — تأكد من رفع الكتاب بوضوح');
 
             setPg(100,'اكتمل الاستخلاص!');
             lessons.forEach(function(l){_extQueue.push(l);});
             setTimeout(function(){
                 prog.style.display='none';
                 _renderExtQueue();
-                showToast('✅ Gemini استخلص وأثرى '+lessons.length+' تحضير','success');
+                showToast('✅ '+(useGrok?'Grok':'Gemini')+' استخلص وأثرى '+lessons.length+' تحضير','success');
             },800);
 
         }catch(e){
             prog.style.display='none';
-            showToast('❌ '+e.message,'error');
+            showToast('❌ '+( e.message||String(e)),'error');
+            console.error('[GeminiExtraction]',e);
         }finally{
             btn.disabled=false;
             btn.innerHTML='<i class="fas fa-magic"></i> استخلاص وإثراء التحضيرات';
@@ -7091,8 +7507,9 @@
         showToast('✅ '+f.name,'success');
     }
     async function runAqGen(){
-        var key=document.getElementById('aqg-key').value.trim();
-        if(!key){showToast('⚠️ أدخل مفتاح Gemini API','warning');return;}
+        var useGrok=(_aqgProvider==='grok');
+        var key=useGrok?document.getElementById('aqg-grok-key').value.trim():document.getElementById('aqg-key').value.trim();
+        if(!key){showToast('⚠️ أدخل مفتاح '+(useGrok?'Grok':'Gemini')+' API','warning');return;}
         if(!_aqgFile){showToast('⚠️ ارفع ملف الكتاب أولاً','warning');return;}
         var grade   =document.getElementById('aqg-grade').value||'';
         var semester=document.getElementById('aqg-semester').value||'';
@@ -7105,7 +7522,7 @@
         var prog=document.getElementById('aqg-prog-card');
         btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin"></i> جاري التوليد...';
         prog.style.display='block'; document.getElementById('aqg-results').style.display='none';
-        function _aqgSetPg(pct,msg){
+        function setPg(pct,msg){
             var b=document.getElementById('aqg-prog-bar'),m=document.getElementById('aqg-prog-msg');
             if(b){b.style.width=pct+'%';b.textContent=pct+'%';} if(m)m.textContent=msg;
             if(pct===100)document.getElementById('aqg-prog-title').textContent='✅ اكتمل التوليد!';
@@ -7131,46 +7548,111 @@
             var scope=lesson?'"'+lesson+'"':(unit?'"'+unit+'"':'كل الدروس');
             var prompt='أنت خبير تربوي في الرياضيات. قرأت الكتاب المرفق وعليك توليد '+count+' سؤالاً لـ'+scope+'. الصف: '+grade+(semester?' الفصل: '+semester:'')+' المادة: '+subject+'. أنواع الأسئلة: '+types.join('، ')+'. مستويات الصعوبة: '+diffs.join('، ')+'.';
             if(hasBloom)prompt+=' وزّع على مستويات بلوم الست.';
-            prompt+=' للـ choice: 4 خيارات مفصولة بـ | والإجابة نص الخيار الصحيح. للـ true_false: الإجابة "صح" أو "خطأ". للـ short: إجابة قصيرة. أسئلة النخبة تحدٍّ حقيقي.';
-            prompt+=' أخرج JSON فقط: {"questions":[{"lesson":"","q_type":"choice","question":"","options":"","answer":"","difficulty":"medium","is_elite":false}]}';
+            prompt+=' القواعد الحتمية — التزم بها دون استثناء:';
+            prompt+=' 1) للـ choice: أنتج 4 خيارات فقط مفصولة بفاصلة إنجليزية "," بين كل خيار والذي يليه (مثال: "12, 15, 18, 20")، ولا تستخدم | أو / أو - أو الفاصلة العربية ، كفواصل، واجعل الإجابة نص الخيار الصحيح تماماً كما كتبته في الخيارات.';
+            prompt+=' 2) للـ true_false: الإجابة كلمة واحدة فقط "صح" أو "خطأ".';
+            prompt+=' 3) للـ short: السؤال يجب أن يطلب قيمة عددية، والإجابة يجب أن تكون رقماً فقط (مثل 5 أو 3.14 أو 1/2) دون أي كلمات أو وحدات أو شروحات.';
+            prompt+=' 4) لا تُولّد أي نوع آخر من الأسئلة غير الثلاثة المذكورة. أسئلة النخبة تحدٍّ حقيقي لكن ضمن نفس الأنواع الثلاثة.';
+            prompt+=' 5) 🔴 إلزامي: حقل "lesson" في كل سؤال يجب أن يكون اسم الدرس الفعلي من الكتاب (مثل: "الكسور العشرية"، "جمع الأعداد"). لا تتركه فارغاً أبداً.';
+            if(lesson) prompt+=' استخدم القيمة "'+lesson+'" في حقل lesson لكل الأسئلة.';
+            else if(unit) prompt+=' استخدم اسم الدرس المناسب من الوحدة "'+unit+'".';
+            prompt+=' أخرج JSON فقط دون أي نص إضافي: {"questions":[{"lesson":"","q_type":"choice","question":"","options":"","answer":"","difficulty":"medium","is_elite":false}]}';
+
             var ext=_aqgFile.name.split('.').pop().toLowerCase(),isPdf=ext==='pdf';
             var mime=isPdf?'application/pdf':_aqgMime;
-            setPg(40,'Gemini يُولّد الأسئلة...');
-            // نُجرّب موديلات متعددة تلقائياً عند تجاوز الحصة
-            var _models=['gemini-1.5-flash-latest','gemini-1.5-flash','gemini-2.0-flash-lite','gemini-2.0-flash'];
-            var resp=null, data=null;
-            for(var _mi=0;_mi<_models.length;_mi++){
-                setPg(40+Math.round(_mi*10),'يجرب موديل '+_models[_mi]+'...');
-                try{
-                    resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_models[_mi]+':generateContent?key='+key,
-                        {method:'POST',headers:{'Content-Type':'application/json'},
-                         body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:8000,temperature:0.4}})});
-                    if(resp.ok){ data=await resp.json(); break; }
-                    var errJ=await resp.json().catch(function(){return{};});
-                    var errMsg=(errJ.error&&errJ.error.message)||'';
-                    if(errMsg.indexOf('quota')!==-1||errMsg.indexOf('Quota')!==-1||errMsg.indexOf('429')!==-1){
-                        continue; // جرّب الموديل التالي
-                    }
-                    throw new Error(errMsg||'HTTP '+resp.status);
-                }catch(fetchErr){
-                    if(_mi===_models.length-1) throw fetchErr;
+            var raw='';
+
+            if(useGrok){
+                setPg(40,'Grok يُولّد الأسئلة...');
+                var grokM=document.getElementById('aqg-grok-model').value||'grok-4-latest';
+                raw=await _callGrok(key,grokM,'أنت خبير تربوي في الرياضيات. أخرج JSON صالح فقط دون أي نص إضافي.',
+                    prompt,{base64:base64,mime:mime,name:_aqgFile.name});
+                setPg(80,'معالجة نتائج Grok...');
+            }else{
+                setPg(40,'Gemini يُولّد الأسئلة...');
+                var _models=['gemini-2.5-flash','gemini-2.5-pro','gemini-2.0-flash','gemini-2.0-flash-lite','gemini-1.5-flash-latest','gemini-1.5-flash'];
+                var resp=null,adata=null,aLastErr='';
+                for(var _mi=0;_mi<_models.length;_mi++){
+                    setPg(40+Math.round(_mi*7),'يجرب موديل '+_models[_mi]+'...');
+                    try{
+                        resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+_models[_mi]+':generateContent?key='+key,
+                            {method:'POST',headers:{'Content-Type':'application/json'},
+                             body:JSON.stringify({contents:[{parts:[{inline_data:{mime_type:mime,data:base64}},{text:prompt}]}],generationConfig:{maxOutputTokens:16000,responseMimeType:"application/json",temperature:0.4}})});
+                        var rTxt=await resp.text(); var rJson={}; try{rJson=JSON.parse(rTxt);}catch(pe){}
+                        if(resp.ok){ adata=rJson; break; }
+                        var errMsg=(rJson.error&&rJson.error.message)||('HTTP '+resp.status);
+                        aLastErr=errMsg;
+                        if(errMsg.indexOf('quota')!==-1||errMsg.indexOf('Quota')!==-1||resp.status===429||resp.status===503) continue;
+                        throw new Error(errMsg);
+                    }catch(fetchErr){ aLastErr=fetchErr.message||String(fetchErr); if(_mi===_models.length-1) throw new Error(aLastErr); }
                 }
+                if(!adata) throw new Error('تجاوزت الحصة في كل الموديلات — '+aLastErr);
+                raw=adata.candidates&&adata.candidates[0]&&adata.candidates[0].content&&adata.candidates[0].content.parts&&adata.candidates[0].content.parts[0]&&adata.candidates[0].content.parts[0].text||'';
+                setPg(80,'معالجة النتائج...');
             }
-            if(!data) throw new Error('تجاوزت الحصة في كل الموديلات — انتظر قليلاً أو استخدم مفتاح API مدفوع');
-            setPg(80,'معالجة النتائج...');
-            var raw=data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts&&data.candidates[0].content.parts[0]&&data.candidates[0].content.parts[0].text||'';
-            var jm=raw.match(/\{[\s\S]*"questions"[\s\S]*\}/);
-            if(!jm)throw new Error('لم يتمكن Gemini من إنتاج JSON — تأكد من وضوح الملف وبيانات الصف');
-            var parsed=JSON.parse(jm[0]); _aqgQuestions=parsed.questions||[];
-            if(!_aqgQuestions.length)throw new Error('لم يُولّد Gemini أسئلة — جرب رفع ملف أوضح');
+
+            var parsed=_extractJSON(raw,'questions');
+            if(!parsed)throw new Error('لم يتمكن '+(useGrok?'Grok':'Gemini')+' من إنتاج JSON — تأكد من وضوح الملف وبيانات الصف');
+            _aqgQuestions=parsed.questions||[];
+            if(!_aqgQuestions.length)throw new Error('لم يُولّد '+(useGrok?'Grok':'Gemini')+' أسئلة — جرب رفع ملف أوضح');
             _aqgQuestions.forEach(function(q){
                 q._grade=grade; q._semester=semester; q._unit=unit; q._subject=subject;
                 if(q.is_elite===true||q.difficulty==='elite'){q.is_elite='true';q.difficulty='hard';}
                 else{q.is_elite='false';}
+
+                // ═══ تنظيف وتوحيد الحقول حسب الضوابط ═══
+                q.q_type = (q.q_type||'choice').toLowerCase().trim();
+                // أي نوع غير مدعوم → choice
+                if(!['choice','true_false','short'].includes(q.q_type)) q.q_type='choice';
+
+                if(q.q_type==='choice'){
+                    // توحيد الفواصل: أي فاصل (| أو / أو ; أو ،) → ", " (فاصلة إنجليزية)
+                    var opts = String(q.options||'')
+                        .replace(/\s*[|;\/]\s*/g, ', ')       // | ; /  →  ,
+                        .replace(/\s*،\s*/g, ', ')             // ، عربية  →  ,
+                        .replace(/\s*,\s*/g, ', ')             // توحيد المسافات حول ,
+                        .replace(/,\s*,/g, ',')                 // إزالة فواصل مكررة
+                        .replace(/^,\s*|\s*,$/g, '')           // إزالة فاصلة في البداية/النهاية
+                        .trim();
+                    q.options = opts;
+                    q.answer = String(q.answer||'').trim();
+                }
+                else if(q.q_type==='true_false'){
+                    q.options = '';
+                    // توحيد الإجابة
+                    var ans = String(q.answer||'').trim().toLowerCase();
+                    if(['true','t','yes','نعم','صحيح','صح','correct','1'].includes(ans)) q.answer='صح';
+                    else if(['false','f','no','لا','خطأ','غير صحيح','incorrect','0'].includes(ans)) q.answer='خطأ';
+                    else q.answer = (ans==='خطأ'?'خطأ':'صح');
+                }
+                else if(q.q_type==='short'){
+                    q.options = '';
+                    // استخراج الرقم فقط من الإجابة
+                    var rawAns = String(q.answer||'').trim();
+                    // إبقاء الأرقام والنقاط والكسور والإشارات فقط (عربي وإنجليزي)
+                    var numMatch = rawAns.match(/-?[\d٠-٩]+([.,\/][\d٠-٩]+)?/);
+                    if(numMatch){
+                        // تحويل الأرقام العربية إلى إنجليزية
+                        var arabicNums = {'٠':'0','١':'1','٢':'2','٣':'3','٤':'4','٥':'5','٦':'6','٧':'7','٨':'8','٩':'9'};
+                        q.answer = numMatch[0].replace(/[٠-٩]/g, function(d){return arabicNums[d];}).replace(',','.');
+                    } else {
+                        q.answer = rawAns; // نتركها كما هي لو ما فيها رقم (المعلم يصححها)
+                    }
+                }
             });
+
+            // فلترة الأسئلة غير الصالحة
+            _aqgQuestions = _aqgQuestions.filter(function(q){
+                if(!q.question||!q.question.trim()) return false;
+                if(q.q_type==='choice' && (!q.options||q.options.split(',').length<2)) return false;
+                if(!q.answer||!String(q.answer).trim()) return false;
+                return true;
+            });
+
+            if(!_aqgQuestions.length) throw new Error('الأسئلة المُولّدة فشلت في التحقق — حاول مجدداً');
             setPg(100,'اكتمل!');
             setTimeout(function(){prog.style.display='none';aqgRenderResults();},600);
-        }catch(e){prog.style.display='none';showToast('❌ '+e.message,'error');}
+        }catch(e){prog.style.display='none';showToast('❌ '+(e.message||String(e)),'error');console.error('[AQGen]',e);}
         finally{btn.disabled=false;btn.innerHTML='<i class="fas fa-magic"></i> توليد الأسئلة بالذكاء الاصطناعي';}
     }
     var _AQG_TD='padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.04);vertical-align:top;';
@@ -7191,7 +7673,7 @@
             var tl=q.q_type==='choice'?'🔘':q.q_type==='true_false'?'✅':'✍️';
             var dc=q.difficulty==='easy'?'#2ecc71':q.difficulty==='medium'?'#f39c12':'#e74c3c';
             var del='<button onclick="aqgDelQ('+i+')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.62rem;">✕</button>';
-            var opts=(q.options||'').replace(/\|/g,' | ');
+            var opts=(q.options||'').replace(/\|/g,', ').replace(/\s*،\s*/g,', ').replace(/\s*,\s*/g,', ');
             return '<tr style="background:'+bg+'">'+
                 '<td style="'+_AQG_TD+'color:var(--gold);font-size:0.76rem;max-width:90px;font-weight:bold;">'+esc(q.lesson||'—')+'</td>'+
                 '<td style="'+_AQG_TD+'max-width:200px;font-size:0.78rem;line-height:1.5;">'+esc(q.question||'')+'</td>'+
@@ -7203,8 +7685,139 @@
         }).join('');
     }
     function aqgDelQ(i){_aqgQuestions.splice(i,1);aqgRenderResults();}
+    /* ═══════ أداة إصلاح الأسئلة بدون درس ═══════ */
+    function fixerGradeChange(){
+        var g = document.getElementById('fix-grade').value;
+        var sSel = document.getElementById('fix-semester');
+        ['fix-unit','fix-lesson'].forEach(function(id){
+            var el = document.getElementById(id);
+            if(el) el.innerHTML = '<option value="">-- اختر --</option>';
+        });
+        if(!g){sSel.innerHTML='<option value="">-- اختر الصف --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var sems = gObj ? (gObj.semesters||[]) : [];
+        sSel.innerHTML = '<option value="">-- اختر الفصل --</option>' +
+            sems.map(function(s,i){return '<option value="'+i+'">'+s.name+'</option>';}).join('');
+    }
+    function fixerSemChange(){
+        var g = document.getElementById('fix-grade').value;
+        var sIdx = document.getElementById('fix-semester').value;
+        var uSel = document.getElementById('fix-unit');
+        document.getElementById('fix-lesson').innerHTML = '<option value="">-- اختر الوحدة --</option>';
+        if(!g || sIdx==='') {uSel.innerHTML='<option value="">-- اختر الفصل --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var units = gObj && gObj.semesters[sIdx] ? (gObj.semesters[sIdx].units||[]) : [];
+        uSel.innerHTML = '<option value="">-- اختر الوحدة --</option>' +
+            units.map(function(u,i){return '<option value="'+i+'">'+u.name+'</option>';}).join('');
+    }
+    function fixerUnitChange(){
+        var g = document.getElementById('fix-grade').value;
+        var sIdx = document.getElementById('fix-semester').value;
+        var uIdx = document.getElementById('fix-unit').value;
+        var lSel = document.getElementById('fix-lesson');
+        if(!g || sIdx==='' || uIdx==='') {lSel.innerHTML='<option value="">-- اختر الوحدة --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var lessons = gObj && gObj.semesters[sIdx] && gObj.semesters[sIdx].units[uIdx]
+                      ? (gObj.semesters[sIdx].units[uIdx].lessons||[]) : [];
+        lSel.innerHTML = '<option value="">-- اختر الدرس --</option>' +
+            lessons.map(function(l){return '<option value="'+l.name+'">'+l.name+'</option>';}).join('');
+    }
+
+    async function fixOrphanQuestions(){
+        var grade  = document.getElementById('fix-grade').value;
+        var sIdx   = document.getElementById('fix-semester').value;
+        var uIdx   = document.getElementById('fix-unit').value;
+        var lesson = document.getElementById('fix-lesson').value;
+        if(!grade || !lesson){
+            showToast('⚠️ اختر الصف والدرس أولاً','warning');
+            return;
+        }
+
+        // الحصول على أسماء الفصل والوحدة من fullCurriculum
+        var gradeObj = fullCurriculum.find(function(g){return g.name === grade;});
+        var semesterName = '', unitName = '';
+        if(gradeObj && sIdx !== '' && gradeObj.semesters[sIdx]){
+            semesterName = gradeObj.semesters[sIdx].name;
+            if(uIdx !== '' && gradeObj.semesters[sIdx].units[uIdx]){
+                unitName = gradeObj.semesters[sIdx].units[uIdx].name;
+            }
+        }
+
+        // اجمع الأسئلة اليتيمة من allQuestions
+        var orphans = (typeof allQuestions !== 'undefined' ? allQuestions : []).filter(function(q){
+            return !q.lesson || !String(q.lesson).trim();
+        });
+
+        if(!orphans.length){
+            showToast('✅ لا توجد أسئلة بدون درس','success');
+            document.getElementById('orphan-fixer').style.display = 'none';
+            return;
+        }
+
+        if(!confirm('هل تريد نقل ' + orphans.length + ' سؤال إلى:\n\n' +
+                    'الصف: ' + grade + '\n' +
+                    'الفصل: ' + (semesterName || '(غير محدد)') + '\n' +
+                    'الوحدة: ' + (unitName || '(غير محدد)') + '\n' +
+                    'الدرس: ' + lesson)) return;
+
+        var ok = 0, fail = 0;
+        for(var i = 0; i < orphans.length; i++){
+            var q = orphans[i];
+            try{
+                var fd = new FormData();
+                fd.append('grade', grade);
+                fd.append('semester', semesterName);
+                fd.append('unit', unitName);
+                fd.append('lesson', lesson);
+                fd.append('subject', q.subject || 'رياضيات');
+                fd.append('q_type', q.q_type || 'choice');
+                fd.append('question', q.question || '');
+                fd.append('options', q.options || '');
+                fd.append('answer', q.answer || '');
+                var r = await authFetch('/api/admin/questions/' + q.id, {
+                    method: 'PUT',
+                    body: fd
+                });
+                if(r && r.ok) ok++; else fail++;
+            }catch(e){ fail++; }
+        }
+
+        showToast('✅ تم إصلاح ' + ok + ' سؤال' + (fail ? ' (فشل ' + fail + ')' : ''), fail ? 'warning' : 'success');
+        await loadQuestions();
+    }
+
+    // تهيئة قوائم أداة الإصلاح عند فتح قسم البنك
+    function initOrphanFixer(){
+        var sel = document.getElementById('fix-grade');
+        if(!sel) return;
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        sel.innerHTML = '<option value="">-- اختر الصف --</option>' +
+            curr.map(function(g){return '<option value="'+g.name+'">'+g.name+'</option>';}).join('');
+    }
+
     async function aqgSaveAll(){
         if(!_aqgQuestions.length){showToast('⚠️ لا توجد أسئلة','warning');return;}
+
+        // قراءة الدرس المختار من الفورم كـ fallback للأسئلة اللي بدون درس
+        var selectedLesson = document.getElementById('aqg-lesson').value || '';
+        var selectedUnit   = document.getElementById('aqg-unit').value   || '';
+
+        // فحص الأسئلة بدون درس
+        var missingLesson = _aqgQuestions.filter(function(q){
+            return !q.lesson || !String(q.lesson).trim();
+        }).length;
+
+        if(missingLesson > 0 && !selectedLesson){
+            var ok = confirm('⚠️ يوجد '+missingLesson+' سؤال بدون درس محدد.\n\n' +
+                'لم تختر درساً في الفورم. هل تريد حفظهم بحقل درس فارغ؟\n\n' +
+                '⛔ إلغاء: ارجع واختر الدرس أولاً\n' +
+                '✅ موافق: احفظ بدرس فارغ (غير مُوصى به)');
+            if(!ok) return;
+        }
+
         var btn=document.getElementById('aqg-save-btn');
         var prog=document.getElementById('aqg-save-prog');
         var bar=document.getElementById('aqg-save-bar');
@@ -7214,10 +7827,27 @@
         if(bar){bar.style.width='30%';bar.textContent='30%';}
         if(msgEl)msgEl.textContent='إرسال '+_aqgQuestions.length+' سؤال...';
         try{
-            var payload=_aqgQuestions.map(function(q){return{
-                grade:q._grade||'',lesson:q.lesson||q._unit||'',subject:q._subject||'رياضيات',
-                q_type:q.q_type||'choice',question:q.question||'',options:q.options||'',
-                answer:q.answer||'',is_elite:q.is_elite||'false',difficulty:q.difficulty||'medium'};});
+            var payload=_aqgQuestions.map(function(q){
+                // ترتيب fallback للدرس: درس السؤال نفسه ← الدرس المختار في الفورم ← الوحدة
+                var lessonValue = (q.lesson && String(q.lesson).trim())
+                                  || selectedLesson
+                                  || q._unit
+                                  || selectedUnit
+                                  || '';
+                return{
+                    grade:q._grade||'',
+                    semester:q._semester||'',
+                    unit:q._unit||selectedUnit||'',
+                    lesson:lessonValue,
+                    subject:q._subject||'رياضيات',
+                    q_type:q.q_type||'choice',
+                    question:q.question||'',
+                    options:q.options||'',
+                    answer:q.answer||'',
+                    is_elite:q.is_elite||'false',
+                    difficulty:q.difficulty||'medium'
+                };
+            });
             var r=await authFetch('/api/admin/questions/bulk',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({questions:payload})});
             if(bar){bar.style.width='100%';bar.textContent='100%';}
             if(r&&r.ok){

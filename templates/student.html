@@ -6,7 +6,7 @@
     ============================================================ -->
     <link rel="manifest" href="/manifest.json">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>إمبراطورية الرياضيات | الأستاذ رشدي سيد</title>
     <meta name="description" content="منصة تعليمية تفاعلية لمادة الرياضيات بطابع ملكي – تحديات، مبارزات، شهادات، وخريطة طريق أسبوعية. الأستاذ رشدي سيد – سلطنة عُمان.">
     <meta name="keywords" content="رياضيات, تعليم, منصة تعليمية, سلطنة عُمان, تحديات, اختبارات, ألعاب تعليمية, رشدي سيد">
@@ -929,6 +929,25 @@
         .elite-diff-olympic { color:#f39c12; font-weight:700; }
         .elite-arena-vs { font-family:'Amiri',serif; font-size:3rem; color:#f39c12; text-shadow:0 0 20px #f39c12; animation:pulse 1s infinite alternate; }
         #view-elite { display:none; }
+
+        /* ═══════════ MOBILE FRIENDLY ═══════════ */
+        @media (max-width: 900px) {
+            * {
+                -webkit-user-select: auto !important;
+                user-select: auto !important;
+                -webkit-touch-callout: default !important;
+            }
+            input, select, textarea { font-size: 16px !important; }
+            button, .btn { min-height: 42px; }
+            table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            img, video, canvas { max-width: 100%; height: auto; }
+        }
+        @media (max-width: 500px) {
+            body { font-size: 14px; }
+            h1 { font-size: 1.4rem !important; }
+            h2 { font-size: 1.2rem !important; }
+            h3 { font-size: 1.05rem !important; }
+        }
 </style>
 </head>
 <body>
@@ -2906,12 +2925,42 @@
 
     async function checkUpcomingExams() {
         try {
-            const res = await fetch(`${API_URL}/api/exams/upcoming`);
+            // نرسل student_id للسيرفر عشان يفلتر الاختبارات المكتملة تلقائياً
+            let url = `${API_URL}/api/exams/upcoming`;
+            if (currentUser && currentUser.id) {
+                url += `?student_id=${encodeURIComponent(currentUser.id)}`;
+            } else if (currentUser && currentUser.username) {
+                url += `?username=${encodeURIComponent(currentUser.username)}`;
+            }
+            const res = await fetch(url);
             if (!res.ok) throw new Error('no connection');
             const exams = await res.json();
+
             if (exams.length > 0) {
-                scheduledExamData = exams[0];
-                showExamNotification();
+                // تصفية الاختبارات المكتملة أو المنتهية لهذا الطالب
+                const username = (currentUser && currentUser.username) || 'anon';
+                const completedKey = 'completedExams_' + username;
+                const completed = JSON.parse(localStorage.getItem(completedKey) || '{}');
+                const now = Date.now();
+
+                // نفلتر: نستبعد الاختبارات المكتملة أو اللي انتهت صلاحيتها
+                const pending = exams.filter(e => {
+                    const entry = completed[e.id];
+                    if (!entry) return true; // لم يُكمَل → يظهر
+                    // لو الطالب خلصه → لا يظهر
+                    if (entry.completed) return false;
+                    // لو منتهي الصلاحية (hideAt) → لا يظهر
+                    if (entry.hideAt && now >= entry.hideAt) return false;
+                    return true;
+                });
+
+                if (pending.length > 0) {
+                    scheduledExamData = pending[0];
+                    showExamNotification();
+                } else {
+                    document.getElementById('exam-notification').style.display = 'none';
+                    scheduledExamData = null;
+                }
             } else {
                 document.getElementById('exam-notification').style.display = 'none';
                 scheduledExamData = null;
@@ -2925,10 +2974,57 @@
     function showExamNotification() {
         if (!scheduledExamData) return;
         const notifBox = document.getElementById('exam-notification');
+
+        // حساب "عمر" الإشعار (كم مرة شاف الطالب الإشعار)
+        const username = (currentUser && currentUser.username) || 'anon';
+        const completedKey = 'completedExams_' + username;
+        const completed = JSON.parse(localStorage.getItem(completedKey) || '{}');
+        const entry = completed[scheduledExamData.id] || {};
+
+        // لو هذه أول مرة يشوف الإشعار، نسجل وقت أول مشاهدة
+        if (!entry.firstSeenAt) {
+            entry.firstSeenAt = Date.now();
+            // أولوية: notif_lifetime_hours من السيرفر، ثم fallback 72 ساعة
+            const lifetimeHrs = Number(scheduledExamData.notif_lifetime_hours);
+            if (lifetimeHrs === 0) {
+                entry.hideAt = 0; // دائم حتى الإكمال
+            } else {
+                const hrs = lifetimeHrs > 0 ? lifetimeHrs : 72;
+                entry.hideAt = entry.firstSeenAt + (hrs * 60 * 60 * 1000);
+            }
+            completed[scheduledExamData.id] = entry;
+            localStorage.setItem(completedKey, JSON.stringify(completed));
+        }
+
+        // حساب الوقت المتبقي لعرضه
+        const remainingMs = entry.hideAt ? (entry.hideAt - Date.now()) : -1;
+        const remainingHrs = remainingMs > 0 ? Math.floor(remainingMs / (60 * 60 * 1000)) : 0;
+
         document.getElementById('exam-notification-text').innerHTML =
-            `تجهّز يا بطل! لديك <b style="color:white; background:#ff5e5e; padding:3px 8px; border-radius:5px;">${scheduledExamData.title} (${scheduledExamData.exam_type})</b><br><br>المدة: <span style="color:#ffeb3b;">${scheduledExamData.duration} دقيقة</span> | الأسئلة: ${scheduledExamData.num_questions}`;
+            `تجهّز يا بطل! لديك <b style="color:white; background:#ff5e5e; padding:3px 8px; border-radius:5px;">${scheduledExamData.title} (${scheduledExamData.exam_type})</b><br><br>` +
+            `المدة: <span style="color:#ffeb3b;">${scheduledExamData.duration} دقيقة</span> | الأسئلة: ${scheduledExamData.num_questions}` +
+            (remainingHrs > 0 ? `<br><small style="color:rgba(255,255,255,0.6);font-size:0.85rem;">⏱️ يختفي هذا الإشعار خلال ${remainingHrs} ساعة</small>` : '') +
+            `<br><button onclick="dismissExamNotification()" style="margin-top:15px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.8);padding:6px 16px;border-radius:8px;cursor:pointer;font-family:'Cairo';font-size:0.85rem;">✕ إخفاء هذا الإشعار</button>`;
+
         notifBox.style.display = 'block';
         document.getElementById('start-exam-btn').style.display = 'block';
+    }
+
+    // دالة جديدة: إخفاء الإشعار يدوياً من الطالب (مؤقتاً — يظهر بعد 6 ساعات)
+    function dismissExamNotification() {
+        if (!scheduledExamData || !currentUser) {
+            document.getElementById('exam-notification').style.display = 'none';
+            return;
+        }
+        const completedKey = 'completedExams_' + currentUser.username;
+        const completed = JSON.parse(localStorage.getItem(completedKey) || '{}');
+        const entry = completed[scheduledExamData.id] || {};
+        // الإخفاء المؤقت: 6 ساعات
+        entry.hideAt = Date.now() + (6 * 60 * 60 * 1000);
+        completed[scheduledExamData.id] = entry;
+        localStorage.setItem(completedKey, JSON.stringify(completed));
+        document.getElementById('exam-notification').style.display = 'none';
+        scheduledExamData = null;
     }
 
     function startScheduledExam() {
@@ -3287,6 +3383,32 @@
             confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
         }
         document.getElementById('exam-notification').style.display = 'none';
+
+        // ═══ تسجيل إكمال الاختبار ═══
+        // عشان ما يظهر مرة ثانية للطالب حتى بعد refresh
+        if (scheduledExamData && scheduledExamData.id && currentUser) {
+            // 1) تسجيل محلي (fallback فوري)
+            const completedKey = 'completedExams_' + currentUser.username;
+            const completed = JSON.parse(localStorage.getItem(completedKey) || '{}');
+            completed[scheduledExamData.id] = {
+                completed: true,
+                completedAt: Date.now(),
+                title: scheduledExamData.title
+            };
+            localStorage.setItem(completedKey, JSON.stringify(completed));
+
+            // 2) تسجيل على السيرفر (عشان يتزامن عبر الأجهزة)
+            try {
+                const fd = new FormData();
+                fd.append('exam_id', scheduledExamData.id);
+                fd.append('student_id', currentUser.id);
+                fetch(`${API_URL}/api/student/exam_completed`, {
+                    method: 'POST',
+                    body: fd
+                }).catch(() => {}); // فشل صامت — localStorage كفى
+            } catch(e) {}
+        }
+
         scheduledExamData = null;
     }
 
@@ -4375,70 +4497,47 @@
     });
 
     /* ================================================================
-       DEVTOOLS PROTECTION — حماية من أدوات المطور
+       DEVTOOLS PROTECTION — معطّلة على الموبايل + بدون شاشة حظر
     ================================================================ */
     (function() {
-        // ── 1. تعطيل F12 وباقي اختصارات DevTools ──
+        // كشف الموبايل — لو موبايل، نتخطى الحماية كلها
+        const _isMobile =
+            /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i.test(navigator.userAgent) ||
+            ('ontouchstart' in window) ||
+            (navigator.maxTouchPoints > 0) ||
+            window.innerWidth < 1024;
+
+        if (_isMobile) {
+            // على الموبايل: ما نطبق أي حماية
+            return;
+        }
+
+        // ── 1. تعطيل F12 وباقي اختصارات DevTools (ديسكتوب فقط) ──
         document.addEventListener('keydown', function(e) {
-            // F12
             if (e.key === 'F12' || e.keyCode === 123) {
                 e.preventDefault(); e.stopPropagation(); return false;
             }
-            // Ctrl+Shift+I / Ctrl+Shift+J / Ctrl+Shift+C
             if (e.ctrlKey && e.shiftKey && ['I','i','J','j','C','c'].includes(e.key)) {
                 e.preventDefault(); e.stopPropagation(); return false;
             }
-            // Ctrl+U (عرض المصدر)
             if (e.ctrlKey && (e.key === 'u' || e.key === 'U')) {
                 e.preventDefault(); e.stopPropagation(); return false;
             }
-            // Ctrl+S (حفظ الصفحة)
             if (e.ctrlKey && (e.key === 's' || e.key === 'S')) {
                 e.preventDefault(); e.stopPropagation(); return false;
             }
         }, true);
 
-        // ── 2. تعطيل القائمة اليمنى (كليك يمين) ──
+        // ── 2. تعطيل القائمة اليمنى (ديسكتوب فقط) ──
         document.addEventListener('contextmenu', function(e) {
             e.preventDefault(); return false;
         }, true);
 
-        // ── 3. كشف فتح DevTools عبر فرق الحجم ──
-        let _devOpen = false;
-        const _checkDev = () => {
-            const threshold = 160;
-            const widthDiff  = window.outerWidth  - window.innerWidth;
-            const heightDiff = window.outerHeight - window.innerHeight;
-            if (widthDiff > threshold || heightDiff > threshold) {
-                if (!_devOpen) {
-                    _devOpen = true;
-                    document.body.innerHTML =
-                        `<div style="display:flex;align-items:center;justify-content:center;
-                            height:100vh;background:#040d21;flex-direction:column;gap:20px;">
-                            <div style="font-size:5rem;">🔒</div>
-                            <h1 style="color:#d4af37;font-family:'Tajawal';font-size:2rem;text-align:center;">
-                                هذه المنطقة محظورة
-                            </h1>
-                            <p style="color:rgba(255,255,255,0.5);font-family:'Tajawal';">
-                                أغلق أدوات المطور وأعد تحميل الصفحة
-                            </p>
-                            <button onclick="location.reload()"
-                                style="background:linear-gradient(45deg,#bf953f,#fcf6ba);
-                                color:#000;border:none;padding:12px 30px;border-radius:12px;
-                                font-family:'Tajawal';font-size:1rem;font-weight:900;cursor:pointer;">
-                                🔄 إعادة التحميل
-                            </button>
-                        </div>`;
-                }
-            } else {
-                _devOpen = false;
-            }
-        };
-        setInterval(_checkDev, 1000);
+        // ── 3. كشف DevTools شِيل — كان يسبب false positives ──
+        // (تم حذف الشاشة السوداء "هذه المنطقة محظورة")
 
         // ── 4. تعطيل تحديد النص ──
         document.addEventListener('selectstart', function(e) {
-            // نسمح بالتحديد داخل حقول الإدخال فقط
             if (!['INPUT','TEXTAREA'].includes(e.target.tagName)) {
                 e.preventDefault(); return false;
             }
