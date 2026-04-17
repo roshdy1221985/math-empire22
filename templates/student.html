@@ -1551,6 +1551,33 @@
     const API_BASE = window.location.origin;
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
 
+    /* ════════════════════════════════════════════════════════
+       فحص الإجابة عبر السيرفر (أمان: الإجابة مش محلياً)
+       يعيد: { is_correct, correct_answer }
+    ════════════════════════════════════════════════════════ */
+    async function checkAnswerServer(questionId, studentAnswer) {
+        try {
+            const res = await fetch(`${API_URL}/api/student/check_answer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question_id: questionId,
+                    student_answer: String(studentAnswer || '')
+                })
+            });
+            if (!res.ok) throw new Error('server_check_failed');
+            const data = await res.json();
+            return {
+                is_correct: Boolean(data.is_correct),
+                correct_answer: String(data.correct_answer || '')
+            };
+        } catch (e) {
+            _warn('[checkAnswerServer] خطأ:', e);
+            // fallback: لو السيرفر ما رد، نعتبر الإجابة صحيحة (أفضل من خسارة الطالب لنقاطه)
+            return { is_correct: true, correct_answer: String(studentAnswer || ''), offline: true };
+        }
+    }
+
     let isExamMode        = false;
     let examTimerInterval = null;
     let scheduledExamData = null;
@@ -2816,17 +2843,30 @@
         showToast('🧙‍♂️ تم خصم 50 XP للتلميح الملكي!');
     }
 
-    function submitArenaAnswer(userAns, correctAns) {
+    async function submitArenaAnswer(userAns, correctAns) {
         clearInterval(battleTimerInterval);
-        const _normA = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
-        const isCorrect = userAns !== null && userAns !== undefined && _normA(String(userAns)) === _normA(String(correctAns));
+
+        // فحص عبر السيرفر للأمان والدقة
+        const q = arenaQs[currentArenaQIndex];
+        let isCorrect, correctFromServer;
+        if (q && q.id && userAns !== null && userAns !== undefined) {
+            const verdict = await checkAnswerServer(q.id, userAns);
+            isCorrect = verdict.is_correct;
+            correctFromServer = verdict.correct_answer || correctAns || '';
+        } else {
+            // fallback (انقضاء الوقت أو سؤال بدون id)
+            const _normA = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
+            isCorrect = userAns !== null && userAns !== undefined && _normA(String(userAns)) === _normA(String(correctAns));
+            correctFromServer = correctAns;
+        }
+
         if (isCorrect) {
             playSound(document.getElementById('correct-sfx'));
             myArenaScore++;
             document.getElementById('arena-options-area').innerHTML = `<h2 style='grid-column:1/-1; color:#00ff00;'>إصابة قاتلة! ✅</h2>`;
         } else {
             playSound(document.getElementById('wrong-sfx'));
-            document.getElementById('arena-options-area').innerHTML = `<h2 style='grid-column:1/-1; color:#ff5e5e;'>طاشت ضربتك! ❌ الصحيح: ${correctAns}</h2>`;
+            document.getElementById('arena-options-area').innerHTML = `<h2 style='grid-column:1/-1; color:#ff5e5e;'>طاشت ضربتك! ❌ الصحيح: ${correctFromServer}</h2>`;
         }
         if (Math.random() < 0.55) enemyArenaScore++;
         updateArenaScoreBoard();
@@ -3265,14 +3305,24 @@
     const phrasesCorrect = ['كفو يا الذيب! 🐺','بيض الله وجهك! ✨','إجابة سلطانية! 👑','ما شاء الله، عبقري! 🌟'];
     const phrasesWrong   = ['حاول يا بطل! 💪','قريبة! ركز شوي 🧐','تعلم من خطأك وانهض! 🛡️'];
 
-    function checkAnswer(user, correct) {
+    async function checkAnswer(user, correct) {
         document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);
         const f = document.getElementById('feedback');
         const q = challengeState.qs[challengeState.index];
 
-        // مقارنة مرنة: تجاهل فراغات + حالة الأحرف
-        const normalize = s => (s||'').trim().replace(/\s+/g,' ');
-        if (normalize(user) === normalize(correct)) {
+        // فحص الإجابة عبر السيرفر (الإجابة الصحيحة تبقى آمنة)
+        let verdict;
+        if (q && q.id) {
+            verdict = await checkAnswerServer(q.id, user);
+            // نستخدم الإجابة الصحيحة المرتجعة من السيرفر للعرض فقط
+            correct = verdict.correct_answer || correct || '';
+        } else {
+            // fallback للأسئلة اللي ليس لها id (نادر)
+            const normalize = s => (s||'').trim().replace(/\s+/g,' ');
+            verdict = { is_correct: normalize(user) === normalize(correct), correct_answer: correct };
+        }
+
+        if (verdict.is_correct) {
             playSound(document.getElementById('correct-sfx'));
             f.innerHTML = `<span style="color:#00ff00;">${phrasesCorrect[Math.floor(Math.random() * phrasesCorrect.length)]}</span>`;
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
@@ -3288,7 +3338,7 @@
                 localStorage.setItem('mathHero', JSON.stringify(currentUser));
                 updateAllStudentsList(currentUser);
                 document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = false);
-                f.innerHTML = `<span style="color:#ffeb3b;">🔄 الفرصة الثانية! حاول مجدداً — الإجابة بدأت بـ "${correct.charAt(0)}"</span>`;
+                f.innerHTML = `<span style="color:#ffeb3b;">🔄 الفرصة الثانية! حاول مجدداً — الإجابة بدأت بـ "${(correct||'').charAt(0)}"</span>`;
                 showToast('🔄 استُهلكت الفرصة الثانية! حاول مرة أخرى.');
                 return;
             }
@@ -4824,14 +4874,26 @@
         }
     }
 
-    function eliteCheckBattleAnswer(user, correct) {
+    async function eliteCheckBattleAnswer(user, correct) {
         const optArea = document.getElementById('elite-battle-options');
         document.querySelectorAll('#elite-battle-options .quiz-btn, #elite-battle-options .nav-btn').forEach(b => b.disabled = true);
-        const norm = s => (s||'').trim().replace(/\s+/g,' ');
-        const isCorrect = norm(user) === norm(correct);
+
+        // فحص عبر السيرفر
+        const q = eliteBattleQs[eliteBattleIdx];
+        let isCorrect, correctFromServer;
+        if (q && q.id) {
+            const verdict = await checkAnswerServer(q.id, user);
+            isCorrect = verdict.is_correct;
+            correctFromServer = verdict.correct_answer || correct || '';
+        } else {
+            const norm = s => (s||'').trim().replace(/\s+/g,' ');
+            isCorrect = norm(user) === norm(correct);
+            correctFromServer = correct;
+        }
+
         document.getElementById('elite-battle-feedback').innerHTML =
             isCorrect ? '<span style="color:#2ecc71;font-size:1.3rem;">✅ إجابة صحيحة! +10 XP نخبة</span>'
-                      : `<span style="color:#e74c3c;">❌ خطأ — الصحيح: <strong style="color:#fff;">${correct}</strong></span>`;
+                      : `<span style="color:#e74c3c;">❌ خطأ — الصحيح: <strong style="color:#fff;">${correctFromServer}</strong></span>`;
         if (isCorrect) {
             eliteMyScore += 10;
             document.getElementById('elite-p1-score').textContent = eliteMyScore;

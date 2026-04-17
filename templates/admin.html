@@ -1590,6 +1590,54 @@
                         </div>
                     </div>
 
+                    <!-- 🗑️ أداة الحذف الجماعي -->
+                    <details id="bulk-delete-box" style="background:rgba(231,76,60,0.06); border:1px solid rgba(231,76,60,0.35); border-radius:14px; padding:0; margin-bottom:20px; overflow:hidden;">
+                        <summary style="cursor:pointer; padding:14px 18px; font-family:'Cairo'; font-weight:bold; color:#e74c3c; display:flex; align-items:center; gap:10px; user-select:none;">
+                            <span style="font-size:1.2rem;">🗑️</span>
+                            <span>أداة الحذف الجماعي للأسئلة</span>
+                            <span style="margin-inline-start:auto; font-size:0.8rem; color:rgba(255,255,255,0.5); font-weight:normal;">اضغط للفتح</span>
+                        </summary>
+                        <div style="padding:16px 18px 18px; border-top:1px solid rgba(231,76,60,0.2);">
+                            <p style="color:rgba(255,255,255,0.7); font-size:0.88rem; margin:0 0 14px; line-height:1.6;">
+                                ⚠️ اختر مسار الحذف بالتدرج. كلما حدّدت أكثر، كان النطاق أضيق.
+                                <br><b style="color:var(--gold);">مثال:</b> اختر الصف فقط → يحذف كل أسئلة الصف. اختر الصف + الدرس → يحذف أسئلة الدرس فقط.
+                            </p>
+
+                            <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:10px; margin-bottom:14px;">
+                                <div>
+                                    <label style="font-size:0.85rem;">📍 الصف <span style="color:#e74c3c;">*</span></label>
+                                    <select id="bd-grade" onchange="bdGradeChange()"><option value="">-- اختر --</option></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85rem;">📅 الفصل <span style="color:rgba(255,255,255,0.4);">(اختياري)</span></label>
+                                    <select id="bd-semester" onchange="bdSemChange()"><option value="">-- كل الفصول --</option></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85rem;">📦 الوحدة <span style="color:rgba(255,255,255,0.4);">(اختياري)</span></label>
+                                    <select id="bd-unit" onchange="bdUnitChange()"><option value="">-- كل الوحدات --</option></select>
+                                </div>
+                                <div>
+                                    <label style="font-size:0.85rem;">📖 الدرس <span style="color:rgba(255,255,255,0.4);">(اختياري)</span></label>
+                                    <select id="bd-lesson"><option value="">-- كل الدروس --</option></select>
+                                </div>
+                            </div>
+
+                            <div id="bd-preview" style="display:none; background:rgba(0,0,0,0.3); border:1px solid rgba(231,76,60,0.3); border-radius:10px; padding:12px; margin-bottom:12px; font-size:0.88rem;"></div>
+
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button onclick="bdPreview()" style="flex:1; min-width:140px; background:rgba(52,152,219,0.15); border:1px solid rgba(52,152,219,0.5); color:#3498db; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                    👁️ معاينة قبل الحذف
+                                </button>
+                                <button onclick="bdDelete()" id="bd-delete-btn" disabled style="flex:1; min-width:140px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold; opacity:0.5;">
+                                    🗑️ حذف نهائي
+                                </button>
+                            </div>
+                            <div style="margin-top:8px; font-size:0.75rem; color:rgba(255,255,255,0.4); text-align:center;">
+                                زر الحذف يتفعّل بعد المعاينة — ستُطلب كلمة مرور الأدمن للتأكيد
+                            </div>
+                        </div>
+                    </details>
+
                     <table>
                         <thead><tr><th>السؤال / التحدي</th><th>النوع</th><th>مرفق</th><th>إجراءات ملكية</th></tr></thead>
                         <tbody id="questions-table-body"></tbody>
@@ -3644,6 +3692,10 @@
                     fixerBox.style.display = 'none';
                 }
             }
+
+            // تهيئة أداة الحذف الجماعي (دائماً)
+            var bdSel = document.getElementById('bd-grade');
+            if(bdSel && bdSel.options.length <= 1) bdInitGrades();
         }
     }
 
@@ -6321,6 +6373,23 @@
                 if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
             } catch(e) {}
             // آخر نشاط
+            // دالة عرض "منذ X" بدلاً من تاريخ كامل
+            const relTime = (iso) => {
+                if(!iso) return '<span style="color:#888;">لم يدخل بعد</span>';
+                const now = Date.now();
+                const then = new Date(iso).getTime();
+                const diff = Math.max(0, now - then);
+                const mins = Math.floor(diff / 60000);
+                if(mins < 1)   return '<span style="color:#2ecc71;">● الآن</span>';
+                if(mins < 60)  return '<span style="color:#2ecc71;">منذ '+mins+' دقيقة</span>';
+                const hrs = Math.floor(mins / 60);
+                if(hrs < 24)   return '<span style="color:#f39c12;">منذ '+hrs+' ساعة</span>';
+                const days = Math.floor(hrs / 24);
+                if(days < 7)   return '<span style="color:#e67e22;">منذ '+days+' يوم</span>';
+                if(days < 30)  return '<span style="color:#e74c3c;">منذ '+Math.floor(days/7)+' أسبوع</span>';
+                return '<span style="color:#95a5a6;">'+new Date(iso).toLocaleDateString('ar-OM')+'</span>';
+            };
+
             const recent = data.sort((a,b) => (b.last_active||b.created_at||'') > (a.last_active||a.created_at||'') ? 1 : -1).slice(0,5);
             const elR = document.getElementById('dash-recent-activity');
             if (elR && recent.length) {
@@ -6333,8 +6402,8 @@
                             <div style="font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.full_name||'')}</div>
                             <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${esc(s.grade||'')} · ${esc(s.username||'')}</div>
                         </div>
-                        <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);flex-shrink:0;">
-                            ${s.last_active ? new Date(s.last_active).toLocaleString('ar-OM') : 'غير محدد'}
+                        <div style="font-size:0.75rem;flex-shrink:0;font-weight:bold;">
+                            ${relTime(s.last_active)}
                         </div>
                     </div>`).join('');
             }
@@ -7724,6 +7793,215 @@
                       ? (gObj.semesters[sIdx].units[uIdx].lessons||[]) : [];
         lSel.innerHTML = '<option value="">-- اختر الدرس --</option>' +
             lessons.map(function(l){return '<option value="'+l.name+'">'+l.name+'</option>';}).join('');
+    }
+
+    /* ═══════ أداة الحذف الجماعي للأسئلة ═══════ */
+    function bdInitGrades(){
+        var sel = document.getElementById('bd-grade');
+        if(!sel) return;
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        sel.innerHTML = '<option value="">-- اختر الصف --</option>' +
+            curr.map(function(g){return '<option value="'+esc(g.name)+'">'+esc(g.name)+'</option>';}).join('');
+    }
+
+    function bdGradeChange(){
+        var g = document.getElementById('bd-grade').value;
+        var sSel = document.getElementById('bd-semester');
+        ['bd-unit','bd-lesson'].forEach(function(id){
+            var el = document.getElementById(id);
+            if(el) el.innerHTML = '<option value="">-- الكل --</option>';
+        });
+        document.getElementById('bd-preview').style.display = 'none';
+        document.getElementById('bd-delete-btn').disabled = true;
+        document.getElementById('bd-delete-btn').style.opacity = '0.5';
+        if(!g){sSel.innerHTML='<option value="">-- كل الفصول --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var sems = gObj ? (gObj.semesters||[]) : [];
+        sSel.innerHTML = '<option value="">-- كل الفصول --</option>' +
+            sems.map(function(s,i){return '<option value="'+i+'">'+esc(s.name)+'</option>';}).join('');
+    }
+
+    function bdSemChange(){
+        var g = document.getElementById('bd-grade').value;
+        var sIdx = document.getElementById('bd-semester').value;
+        var uSel = document.getElementById('bd-unit');
+        document.getElementById('bd-lesson').innerHTML = '<option value="">-- كل الدروس --</option>';
+        document.getElementById('bd-preview').style.display = 'none';
+        document.getElementById('bd-delete-btn').disabled = true;
+        document.getElementById('bd-delete-btn').style.opacity = '0.5';
+        if(!g || sIdx===''){uSel.innerHTML='<option value="">-- كل الوحدات --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var units = gObj && gObj.semesters[sIdx] ? (gObj.semesters[sIdx].units||[]) : [];
+        uSel.innerHTML = '<option value="">-- كل الوحدات --</option>' +
+            units.map(function(u,i){return '<option value="'+i+'">'+esc(u.name)+'</option>';}).join('');
+    }
+
+    function bdUnitChange(){
+        var g = document.getElementById('bd-grade').value;
+        var sIdx = document.getElementById('bd-semester').value;
+        var uIdx = document.getElementById('bd-unit').value;
+        var lSel = document.getElementById('bd-lesson');
+        document.getElementById('bd-preview').style.display = 'none';
+        document.getElementById('bd-delete-btn').disabled = true;
+        document.getElementById('bd-delete-btn').style.opacity = '0.5';
+        if(!g || sIdx==='' || uIdx===''){lSel.innerHTML='<option value="">-- كل الدروس --</option>';return;}
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === g;});
+        var lessons = gObj && gObj.semesters[sIdx] && gObj.semesters[sIdx].units[uIdx]
+                      ? (gObj.semesters[sIdx].units[uIdx].lessons||[]) : [];
+        lSel.innerHTML = '<option value="">-- كل الدروس --</option>' +
+            lessons.map(function(l){return '<option value="'+esc(l.name)+'">'+esc(l.name)+'</option>';}).join('');
+    }
+
+    function _bdCollectFilter(){
+        var grade = document.getElementById('bd-grade').value;
+        if(!grade){showToast('⚠️ اختر الصف على الأقل','warning');return null;}
+
+        var sIdx = document.getElementById('bd-semester').value;
+        var uIdx = document.getElementById('bd-unit').value;
+        var lesson = document.getElementById('bd-lesson').value || '';
+
+        // استخراج أسماء الفصل والوحدة من fullCurriculum
+        var semesterName = '', unitName = '';
+        var curr = (typeof fullCurriculum !== 'undefined' && fullCurriculum.length) ? fullCurriculum : [];
+        var gObj = curr.find(function(x){return x.name === grade;});
+        if(gObj && sIdx !== '' && gObj.semesters[sIdx]){
+            semesterName = gObj.semesters[sIdx].name;
+            if(uIdx !== '' && gObj.semesters[sIdx].units[uIdx]){
+                unitName = gObj.semesters[sIdx].units[uIdx].name;
+            }
+        }
+        return {grade:grade, semester:semesterName, unit:unitName, lesson:lesson};
+    }
+
+    async function bdPreview(){
+        var f = _bdCollectFilter();
+        if(!f) return;
+
+        var pwd = prompt('🔒 أدخل كلمة مرور الأدمن للمعاينة:');
+        if(!pwd) return;
+
+        var box = document.getElementById('bd-preview');
+        box.innerHTML = '<div style="color:var(--gold);"><i class="fas fa-spinner fa-spin"></i> جاري الفحص...</div>';
+        box.style.display = 'block';
+
+        try{
+            var fd = new FormData();
+            fd.append('admin_password', pwd);
+            fd.append('grade', f.grade);
+            fd.append('semester', f.semester);
+            fd.append('unit', f.unit);
+            fd.append('lesson', f.lesson);
+            fd.append('dry_run', 'true');
+
+            var r = await authFetch('/api/admin/questions/bulk_delete', {method:'POST', body:fd});
+            if(!r){ box.innerHTML = '<span style="color:#e74c3c;">❌ فشل الاتصال</span>'; return; }
+            if(r.status === 403){
+                box.innerHTML = '<span style="color:#e74c3c;">❌ كلمة مرور الأدمن خاطئة</span>';
+                return;
+            }
+            if(!r.ok){
+                var err = await r.json().catch(function(){return{detail:'خطأ غير معروف'};});
+                box.innerHTML = '<span style="color:#e74c3c;">❌ '+esc(err.detail||'فشل')+'</span>';
+                return;
+            }
+
+            var data = await r.json();
+            var count = data.count || 0;
+            var filterDesc = 'الصف: <b>'+esc(f.grade)+'</b>';
+            if(f.semester) filterDesc += ' • الفصل: <b>'+esc(f.semester)+'</b>';
+            if(f.unit)     filterDesc += ' • الوحدة: <b>'+esc(f.unit)+'</b>';
+            if(f.lesson)   filterDesc += ' • الدرس: <b>'+esc(f.lesson)+'</b>';
+
+            if(count === 0){
+                box.innerHTML = '<div style="color:#f39c12;">⚠️ لا توجد أسئلة مطابقة لهذا الفلتر.<br><small>'+filterDesc+'</small></div>';
+                document.getElementById('bd-delete-btn').disabled = true;
+                document.getElementById('bd-delete-btn').style.opacity = '0.5';
+                return;
+            }
+
+            var sample = '';
+            (data.preview||[]).forEach(function(q){
+                sample += '<div style="padding:4px 0; border-bottom:1px dashed rgba(255,255,255,0.08); font-size:0.82rem;">'
+                       +'<b style="color:var(--gold);">['+esc(q.lesson||'—')+']</b> '
+                       +esc(q.question||'')+'</div>';
+            });
+
+            box.innerHTML =
+                '<div style="margin-bottom:8px;"><span style="color:#e74c3c; font-size:1.1rem; font-weight:bold;">🗑️ '+count+' سؤال</span> '
+              + '<span style="color:rgba(255,255,255,0.7);">سيتم حذفها</span></div>'
+              + '<div style="color:rgba(255,255,255,0.6); font-size:0.85rem; margin-bottom:8px;">'+filterDesc+'</div>'
+              + (sample ? '<div style="color:rgba(255,255,255,0.7); margin-top:8px;"><b>عيّنة:</b>'+sample+'</div>' : '');
+
+            // تفعيل زر الحذف بعد معاينة ناجحة
+            var btn = document.getElementById('bd-delete-btn');
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.dataset.pwd = pwd; // نخزّن كلمة المرور بشكل مؤقت لتجنب طلبها مرتين
+            btn.dataset.count = count;
+        }catch(e){
+            box.innerHTML = '<span style="color:#e74c3c;">❌ '+esc(e.message||'خطأ غير متوقع')+'</span>';
+        }
+    }
+
+    async function bdDelete(){
+        var f = _bdCollectFilter();
+        if(!f) return;
+        var btn = document.getElementById('bd-delete-btn');
+        var pwd = btn.dataset.pwd;
+        var count = btn.dataset.count;
+        if(!pwd){showToast('⚠️ اضغط "معاينة" أولاً','warning');return;}
+
+        var filterDesc = 'الصف: '+f.grade;
+        if(f.semester) filterDesc += '\nالفصل: '+f.semester;
+        if(f.unit)     filterDesc += '\nالوحدة: '+f.unit;
+        if(f.lesson)   filterDesc += '\nالدرس: '+f.lesson;
+
+        if(!confirm('⚠️ تأكيد الحذف النهائي\n\n'
+                  + 'عدد الأسئلة: '+count+'\n\n'+filterDesc+'\n\n'
+                  + 'هذا الإجراء غير قابل للتراجع. استمر؟')) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+
+        try{
+            var fd = new FormData();
+            fd.append('admin_password', pwd);
+            fd.append('grade', f.grade);
+            fd.append('semester', f.semester);
+            fd.append('unit', f.unit);
+            fd.append('lesson', f.lesson);
+            fd.append('dry_run', 'false');
+
+            var r = await authFetch('/api/admin/questions/bulk_delete', {method:'POST', body:fd});
+            if(!r || !r.ok){
+                var err = r ? await r.json().catch(function(){return{detail:'خطأ'};}) : {detail:'فشل الاتصال'};
+                showToast('❌ '+(err.detail||'فشل الحذف'),'error');
+                btn.disabled = false;
+                btn.innerHTML = '🗑️ حذف نهائي';
+                return;
+            }
+
+            var data = await r.json();
+            showToast('✅ تم حذف '+data.deleted+' سؤال بنجاح','success');
+
+            // تنظيف الواجهة
+            document.getElementById('bd-preview').style.display = 'none';
+            btn.dataset.pwd = '';
+            btn.dataset.count = '';
+            btn.disabled = true;
+            btn.style.opacity = '0.5';
+            btn.innerHTML = '🗑️ حذف نهائي';
+
+            // إعادة تحميل الأسئلة
+            await loadQuestions();
+        }catch(e){
+            showToast('❌ '+(e.message||'خطأ'),'error');
+            btn.disabled = false;
+            btn.innerHTML = '🗑️ حذف نهائي';
+        }
     }
 
     async function fixOrphanQuestions(){

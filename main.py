@@ -309,6 +309,15 @@ async def login_student(request: Request, username: str = Form(...), password: s
             )
 
         user.pop('password', None)
+
+        # ═══ تحديث last_active للطالب ═══
+        try:
+            supabase.table("students").update({
+                "last_active": datetime.now(timezone.utc).isoformat()
+            }).eq("id", user["id"]).execute()
+        except Exception:
+            pass  # الحقل قد لا يكون موجوداً في جداول قديمة
+
         # إنشاء JWT للطالب
         token = create_access_token({
             "sub":   str(user["id"]),
@@ -527,6 +536,108 @@ async def update_question(
 async def delete_question(q_id: int, admin=Depends(get_current_admin)):
     supabase.table("questions").delete().eq("id", q_id).execute()
     return {"status": "success"}
+
+
+@app.post("/api/admin/questions/bulk_delete")
+async def bulk_delete_questions(
+    request: Request,
+    admin=Depends(get_current_admin)
+):
+    """
+    حذف أسئلة بالجملة حسب الفلتر الملكي.
+    يتطلب كلمة مرور الأدمن كحماية إضافية لأن العملية مدمّرة.
+
+    Body (form-urlencoded):
+      - admin_password (إلزامي): كلمة مرور الأدمن للتأكيد
+      - grade          (إلزامي): اسم الصف — نرفض الحذف بدونه لمنع مسح كامل
+      - semester       (اختياري): اسم الفصل
+      - unit           (اختياري): اسم الوحدة
+      - lesson         (اختياري): اسم الدرس
+      - dry_run        (اختياري): "true" لعدّ الأسئلة فقط دون حذف (معاينة)
+    """
+    body = await request.form()
+    admin_pass = body.get("admin_password", "")
+    grade      = (body.get("grade") or "").strip()
+    semester   = (body.get("semester") or "").strip()
+    unit       = (body.get("unit") or "").strip()
+    lesson     = (body.get("lesson") or "").strip()
+    dry_run    = str(body.get("dry_run", "")).lower() in ("true", "1", "yes")
+
+    # حماية 1: كلمة مرور الأدمن مطلوبة
+    if not admin_pass or admin_pass != ADMIN_PASSWORD:
+        raise HTTPException(status_code=403, detail="كلمة مرور الأدمن خاطئة")
+
+    # حماية 2: الصف إلزامي — لا يُسمح بحذف كل الأسئلة دفعة واحدة عن طريق الخطأ
+    if not grade:
+        raise HTTPException(status_code=400, detail="يجب تحديد الصف على الأقل")
+
+    # بناء الاستعلام مع كل صيغ الصف (السادس / 6 / الصف السادس …)
+    variants = _grade_variants(grade)
+    if not variants:
+        variants = [grade]
+
+    # عدّ الأسئلة المطابقة لكل صيغة ثم دمجها
+    matched_ids = set()
+    matched_preview = []
+    for v in variants:
+        q = supabase.table("questions").select("id, grade, semester, unit, lesson, question")\
+            .eq("grade", v.strip())
+        if semester:
+            q = q.eq("semester", semester)
+        if unit:
+            q = q.eq("unit", unit)
+        if lesson:
+            q = q.eq("lesson", lesson)
+        try:
+            res = q.execute()
+        except Exception:
+            # لو الأعمدة semester/unit لسه ما انضافت لقاعدة البيانات، نرجع للدرس فقط
+            q2 = supabase.table("questions").select("id, grade, lesson, question")\
+                .eq("grade", v.strip())
+            if lesson:
+                q2 = q2.eq("lesson", lesson)
+            res = q2.execute()
+        for row in (res.data or []):
+            if row["id"] not in matched_ids:
+                matched_ids.add(row["id"])
+                if len(matched_preview) < 5:
+                    matched_preview.append({
+                        "id": row["id"],
+                        "lesson": row.get("lesson", ""),
+                        "question": (row.get("question") or "")[:80]
+                    })
+
+    count = len(matched_ids)
+
+    if dry_run:
+        return {
+            "status": "preview",
+            "count": count,
+            "preview": matched_preview,
+            "filter": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+        }
+
+    if count == 0:
+        return {"status": "empty", "deleted": 0, "message": "لا توجد أسئلة مطابقة"}
+
+    # الحذف الفعلي — على دفعات من 50 لتجنّب تجاوز حدود Supabase
+    ids_list = list(matched_ids)
+    deleted = 0
+    for i in range(0, len(ids_list), 50):
+        batch = ids_list[i:i+50]
+        try:
+            supabase.table("questions").delete().in_("id", batch).execute()
+            deleted += len(batch)
+        except Exception as e:
+            # نكمل حتى لو فشلت دفعة
+            print(f"[bulk_delete] فشلت دفعة: {e}")
+
+    return {
+        "status": "success",
+        "deleted": deleted,
+        "requested": count,
+        "filter": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+    }
 
 
 @app.post("/api/admin/questions/bulk")
@@ -978,7 +1089,28 @@ async def save_result(
         "score": score,
         "total": total
     }).execute()
+
+    # ═══ تحديث last_active للطالب عند حفظ النتيجة ═══
+    try:
+        supabase.table("students").update({
+            "last_active": datetime.now(timezone.utc).isoformat()
+        }).eq("id", student_id).execute()
+    except Exception:
+        pass
+
     return {"status": "success"}
+
+@app.post("/api/student/heartbeat")
+async def student_heartbeat(student_id: int = Form(...)):
+    """تحديث last_active للطالب — يُستدعى من العميل كل دقيقة أثناء النشاط"""
+    try:
+        supabase.table("students").update({
+            "last_active": datetime.now(timezone.utc).isoformat()
+        }).eq("id", student_id).execute()
+        return {"status": "ok"}
+    except Exception:
+        return {"status": "skipped"}
+
 
 @app.get("/api/leaderboard")
 async def get_lb():
