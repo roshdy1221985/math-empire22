@@ -2,6 +2,7 @@ import os
 import uuid
 import random
 from datetime import datetime, timedelta, timezone
+from dateutil.relativedelta import relativedelta
 from typing import Optional, List
 from urllib.parse import unquote
 
@@ -57,12 +58,24 @@ if not SECRET_KEY:
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480
 
-# بيانات الاتصال بـ Supabase — من متغيرات البيئة
-SUPABASE_URL = os.getenv("SUPABASE_URL", "https://xlgttngreiuihutjrlev.supabase.co")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhsZ3R0bmdyZWl1aWh1dGpybGV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQxMTY0OTgsImV4cCI6MjA4OTY5MjQ5OH0.4Il0UbMK0a2e-2B-OyB1uoyZ6mIv2cP1NeRCM-0fTKw")
+# بيانات الاتصال بـ Supabase — من متغيرات البيئة (إلزامي)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+if not SUPABASE_URL or not SUPABASE_KEY:
+    raise RuntimeError(
+        "❌ SUPABASE_URL و SUPABASE_KEY يجب تعيينهما في متغيرات البيئة. "
+        "اذهب إلى Render Dashboard → Environment → أضفهما."
+    )
 
-# كلمة مرور الأدمن — من متغيرات البيئة
-ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Roshdy@2026")
+# كلمة مرور الأدمن — من متغيرات البيئة (إلزامي)
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD")
+if not ADMIN_PASSWORD:
+    raise RuntimeError(
+        "❌ ADMIN_PASSWORD يجب تعيينه في متغيرات البيئة. "
+        "اذهب إلى Render Dashboard → Environment → أضفها."
+    )
+if len(ADMIN_PASSWORD) < 8:
+    raise RuntimeError("❌ ADMIN_PASSWORD يجب أن تكون 8 أحرف على الأقل.")
 
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -89,6 +102,41 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Frame-Options"]           = "SAMEORIGIN"
     response.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"]        = "geolocation=(), camera=(), microphone=()"
+
+    # ═══ Content Security Policy ═══
+    # نسمح بالـ CDNs المستخدمة فعلاً + Supabase + fonts.googleapis.com + unsafe-inline/eval
+    # (unsafe-inline ضروري بسبب كثرة inline scripts/styles في الملفات الحالية)
+    csp_directives = [
+        "default-src 'self'",
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' "
+            "https://cdnjs.cloudflare.com "
+            "https://cdn.jsdelivr.net "
+            "https://unpkg.com "
+            "https://generativelanguage.googleapis.com "
+            "https://api.x.ai",
+        "style-src 'self' 'unsafe-inline' "
+            "https://fonts.googleapis.com "
+            "https://cdnjs.cloudflare.com",
+        "font-src 'self' data: "
+            "https://fonts.gstatic.com "
+            "https://cdnjs.cloudflare.com",
+        "img-src 'self' data: blob: https:",
+        "media-src 'self' data: blob: https:",
+        "connect-src 'self' "
+            "https://*.supabase.co "
+            "https://generativelanguage.googleapis.com "
+            "https://api.x.ai "
+            "wss: ws:",
+        "frame-ancestors 'self'",
+        "base-uri 'self'",
+        "form-action 'self'",
+    ]
+    response.headers["Content-Security-Policy"] = "; ".join(csp_directives)
+
+    # HSTS — فقط للـ HTTPS (Render يستخدم HTTPS)
+    if request.url.scheme == "https":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+
     return response
 
 # Rate Limiter — يدوي في الذاكرة، لا يحتاج تسجيل
@@ -195,10 +243,17 @@ async def register_teacher(full_name: str=Form(...), username: str=Form(...), pa
     return {"status": "success"}
 
 @app.post("/api/teacher/login")
-async def teacher_login(username: str = Form(...), password: str = Form(...)):
+async def teacher_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    # Rate limiting (كما في admin/student login)
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(f"teacher_login:{ip}", max_calls=10, window_seconds=60):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة — انتظر دقيقة")
+
     res = supabase.table("teachers").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
-        return {"status": "success", "user": res.data[0]}
+        # ═══ نسخة نظيفة من بيانات المعلم بدون كلمة المرور ═══
+        user_clean = {k: v for k, v in res.data[0].items() if k != 'password'}
+        return {"status": "success", "user": user_clean}
 
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
@@ -244,6 +299,15 @@ async def login_student(request: Request, username: str = Form(...), password: s
     res = supabase.table("students").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         user = res.data[0]
+
+        # ═══ فحص is_active: الحسابات المعطلة تُمنع من الدخول ═══
+        # نعتبر الحساب نشطاً افتراضياً إذا ما كان الحقل موجوداً (للتوافق مع القديم)
+        if user.get('is_active') is False:
+            raise HTTPException(
+                status_code=403,
+                detail="🚫 حسابك معطّل حالياً. تواصل مع الأستاذ رشدي لإعادة التفعيل."
+            )
+
         user.pop('password', None)
         # إنشاء JWT للطالب
         token = create_access_token({
@@ -564,6 +628,7 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     - يدعم جميع صيغ اسم الصف (الصف السادس / 6 / السادس)
     - إذا أُرسل lesson يُفلتر به، وإلا يُرجع كل أسئلة الصف
     - يُرجع الأسئلة حتى لو لم يكن هناك منهج مبني (للأسئلة القديمة)
+    - الإجابات تُفحص عبر /api/student/check_answer فقط (لا تُرسل للعميل)
     """
     variants = _grade_variants(grade)
 
@@ -573,11 +638,12 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     # إذا لم تتوفر أي صيغة — أرجع كل الأسئلة (fallback للأسئلة القديمة)
     search_variants = variants if variants else [grade] if grade else []
 
+    # ═══ حقول آمنة فقط — بدون answer ═══
+    SAFE_FIELDS = "id, grade, lesson, subject, q_type, question, options, image_url"
+
     for v in search_variants:
         v_stripped = v.strip()
-        query = supabase.table("questions").select(
-            "id, grade, lesson, subject, q_type, question, options, answer, image_url"
-        ).eq("grade", v_stripped)
+        query = supabase.table("questions").select(SAFE_FIELDS).eq("grade", v_stripped)
         if lesson:
             query = query.ilike("lesson", lesson.strip())
         res = query.execute()
@@ -589,9 +655,8 @@ async def get_questions_for_student(grade: str, lesson: str = ""):
     # إذا لم نجد شيئاً وكان lesson محدداً — جرّب بحث جزئي في lesson
     if not all_questions and lesson:
         for v in search_variants:
-            res = supabase.table("questions").select(
-                "id, grade, lesson, subject, q_type, question, options, answer, image_url"
-            ).eq("grade", v).ilike("lesson", f"%{lesson.strip()}%").execute()
+            res = supabase.table("questions").select(SAFE_FIELDS)\
+                .eq("grade", v).ilike("lesson", f"%{lesson.strip()}%").execute()
             for q in (res.data or []):
                 if q["id"] not in seen_ids:
                     seen_ids.add(q["id"])
@@ -1057,11 +1122,43 @@ class ArenaConnectionManager:
 arena_manager = ArenaConnectionManager()
 
 @app.websocket("/api/arena/ws/{student_name}/{grade}")
-async def arena_websocket(websocket: WebSocket, student_name: str, grade: str):
+async def arena_websocket(websocket: WebSocket, student_name: str, grade: str, token: Optional[str] = None):
+    """
+    WebSocket Arena — يقبل توكن JWT اختياري كـ query parameter (?token=...)
+    - لو التوكن موجود وصحيح: نستخدم بيانات الـ JWT (أكثر أماناً)
+    - لو مش موجود: نقبل الاسم من URL للتوافق مع العملاء القدامى (سنُهمل هذا المسار لاحقاً)
+    """
     # نقوم بفك تشفير الأسماء والصفوف التي قد تحتوي على مسافات
     clean_name = unquote(student_name)
     clean_grade = unquote(grade)
-    
+    verified = False
+
+    # محاولة التحقق من التوكن إن وُجد
+    if token:
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            if payload.get("role") == "student":
+                sid = payload.get("sub")
+                if sid:
+                    # جلب البيانات الحقيقية من DB لاستبدال الاسم/الصف القادم من URL
+                    try:
+                        st = supabase.table("students").select("full_name,grade,is_active")\
+                             .eq("id", int(sid)).execute()
+                        if st.data:
+                            # منع الحسابات المعطلة من الدخول للساحة
+                            if st.data[0].get("is_active") is False:
+                                await websocket.close(code=1008, reason="account_disabled")
+                                return
+                            clean_name = st.data[0].get("full_name", clean_name)
+                            clean_grade = st.data[0].get("grade", clean_grade)
+                            verified = True
+                    except Exception:
+                        pass
+        except JWTError:
+            # توكن غير صالح — نرفض الاتصال
+            await websocket.close(code=1008, reason="invalid_token")
+            return
+
     await arena_manager.connect(websocket, clean_name, clean_grade)
     try:
         while True:
@@ -1146,14 +1243,13 @@ async def activate_subscription_code(
     if entry.get("student_id") and student_id and entry["student_id"] != student_id:
         raise HTTPException(status_code=403, detail="هذا الكود مخصص لطالب آخر")
     
-    # حساب تاريخ الانتهاء
+    # حساب تاريخ الانتهاء — باستخدام relativedelta لتجنب مشكلة ديسمبر
     months = entry.get("months", 1)
     if months == -1:
         expiry = None
     else:
         now = datetime.now(timezone.utc)
-        expiry = (now.replace(month=((now.month - 1 + months) % 12) + 1,
-                              year=now.year + ((now.month - 1 + months) // 12))).isoformat()
+        expiry = (now + relativedelta(months=months)).isoformat()
     
     # تحديث الكود كمستخدَم
     update_data = {
@@ -1427,19 +1523,38 @@ async def get_elite_questions(grade: str = "", lesson: str = ""):
 
 @app.get("/api/elite/leaderboard")
 async def elite_leaderboard():
-    """ترتيب الفائقين"""
+    """ترتيب الفائقين — استعلام واحد بدلاً من N+1"""
+    # ═══ 1) جلب كل طلاب النخبة (استعلام واحد) ═══
     res = supabase.table("students").select(
         "id,full_name,grade,school_name,avatar_url"
     ).eq("is_elite", True).execute()
     students = res.data or []
+
+    if not students:
+        return []
+
+    # ═══ 2) جلب كل النتائج لهم دفعة واحدة (استعلام واحد باستخدام in_) ═══
+    student_ids = [st["id"] for st in students]
+    all_results = supabase.table("results").select("student_id,score,total")\
+        .in_("student_id", student_ids).execute().data or []
+
+    # ═══ 3) تجميع النتائج حسب الطالب في الذاكرة ═══
+    results_by_student = {}
+    for r in all_results:
+        sid = r.get("student_id")
+        if sid is None:
+            continue
+        results_by_student.setdefault(sid, []).append(r)
+
+    # ═══ 4) بناء لوحة الترتيب ═══
     board = []
     for st in students:
-        r = supabase.table("results").select("score,total")             .eq("student_id", st["id"]).execute()
-        results = r.data or []
-        total_correct = sum(x["score"] for x in results)
-        total_q       = sum(x["total"] for x in results if x["total"] > 0)
+        results = results_by_student.get(st["id"], [])
+        total_correct = sum(x.get("score", 0) or 0 for x in results)
+        total_q = sum(x.get("total", 0) or 0 for x in results if (x.get("total") or 0) > 0)
         accuracy = round((total_correct / total_q * 100)) if total_q > 0 else 0
         board.append({**st, "xp": total_correct, "accuracy": accuracy, "tests": len(results)})
+
     board.sort(key=lambda x: (-x["xp"], -x["accuracy"]))
     return board[:50]
 

@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>بوابة إمبراطورية الرياضيات | أ. رشدي سيد</title>
     <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
@@ -79,6 +79,28 @@
             transform: rotate(45deg); transition: 0.5s; pointer-events: none;
         }
         .gate-card:hover::before { left: 0; top: 0; }
+
+        /* ═══════════ MOBILE RESPONSIVE ═══════════ */
+        @media (max-width: 768px) {
+            .welcome-text { font-size: 1.1rem; margin-bottom: 25px; }
+            .gate-grid { gap: 18px; }
+            .gate-card { padding: 28px 16px; border-radius: 22px; }
+            .gate-icon { font-size: 3.5rem; margin-bottom: 14px; }
+            .gate-card h2 { font-size: 1.7rem; }
+            .gate-card p { font-size: 0.95rem; margin-top: 8px; }
+        }
+        @media (max-width: 480px) {
+            .gate-grid { grid-template-columns: 1fr; gap: 14px; }
+            .gate-card { padding: 22px 14px; }
+            .gate-icon { font-size: 3rem; }
+            .gate-card h2 { font-size: 1.5rem; }
+            .welcome-text { font-size: 1rem; margin-bottom: 20px; }
+        }
+        /* احترام تفضيل تقليل الحركة */
+        @media (prefers-reduced-motion: reduce) {
+            .gate-card, .gate-card::before { transition: none !important; }
+            .gate-card:hover { transform: none; }
+        }
     </style>
 </head>
 <body>
@@ -150,7 +172,11 @@
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             particles = [];
-            for(let i=0; i<90; i++) {
+            // تقليل عدد الجزيئات على الموبايل + احترام تفضيل تقليل الحركة
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const isMobile = window.innerWidth < 768;
+            const count = reduceMotion ? 0 : (isMobile ? 35 : 90);
+            for(let i=0; i<count; i++) {
                 particles.push({
                     x: Math.random() * canvas.width,
                     y: Math.random() * canvas.height,
