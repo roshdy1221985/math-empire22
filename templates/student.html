@@ -1037,6 +1037,48 @@
             h3 { font-size: 1.05rem !important; }
         }
 
+        /* ═══ بطاقات الداشبورد المربعة ═══ */
+        .insights-square {
+            padding: 16px !important;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            transition: transform 0.2s, box-shadow 0.2s;
+            flex: none !important;
+        }
+        .insights-square:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+        }
+        .insights-square h3 {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        /* على الجوال: عمود واحد */
+        @media (max-width: 640px) {
+            #dashboard-insights-grid { grid-template-columns: 1fr !important; }
+            .insights-square { min-height: auto; }
+        }
+
+        /* ═══ لحظة الفخر — Pride Moment ═══ */
+        @keyframes prideFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes prideFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes prideZoomIn  {
+            0%   { transform: scale(0.2) rotate(-15deg); opacity: 0; }
+            60%  { transform: scale(1.15) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0); opacity: 1; }
+        }
+        @keyframes prideSparkle {
+            0%, 100% { transform: scale(1) rotate(0); }
+            50%      { transform: scale(1.15) rotate(8deg); }
+        }
+        @keyframes prideGlow {
+            from { text-shadow: 0 0 30px currentColor, 0 0 60px currentColor; }
+            to   { text-shadow: 0 0 60px currentColor, 0 0 120px currentColor, 0 0 200px currentColor; }
+        }
+
         /* ═══ تايمر التحدي ═══ */
         .challenge-timer {
             display: flex;
@@ -1399,6 +1441,11 @@
             <span class="btn-icon">🏆</span><span class="sidebar-label">ديوان المجد والكنوز</span>
         </button>
 
+        <!-- مجموعة الدراسة -->
+        <button class="nav-btn shiny-btn btn-clan" id="btn-clan" onclick="openClanHub()">
+            <span class="btn-icon">⚔️</span><span class="sidebar-label">قبيلتك</span>
+        </button>
+
         <!-- الدعم والاشتراك مدمجان -->
         <button class="nav-btn shiny-btn btn-citizens" id="btn-citizens" onclick="openCitizensPortal()">
             <span class="btn-icon">🛡️</span><span class="sidebar-label">الدعم الفني والاشتراك</span>
@@ -1455,38 +1502,73 @@
 
         <!-- VIEW: DASHBOARD -->
         <div id="view-dashboard">
-            <!-- DAILY QUESTS -->
-            <div id="daily-quests" class="tilt-card" style="margin-bottom:30px; border-color:#28a745; background:rgba(40,167,69,0.05); display:none;">
-                <h3 style="color:#28a745; font-family:'Amiri'; margin:0 0 15px 0;">🎯 المهمة اليومية للإمبراطور الصغير</h3>
-                <div id="quest-content" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:15px;">
-                    <div>
-                        <span id="quest-text" style="font-weight:bold; font-size:1.1rem;">جاري تحميل مهمتك القتالية...</span><br>
-                        <span id="quest-reward" style="color:var(--gold); font-size:0.9rem;">المكافأة: 50 XP 💎</span>
-                    </div>
-                    <button id="claim-reward-btn" class="nav-btn active shiny-btn" style="max-width:150px;" onclick="claimQuestXP()">استلام الجائزة 🏆</button>
-                </div>
-            </div>
-
-            <!-- EXAM NOTIFICATION -->
-            <div id="exam-notification" class="tilt-card alert-box" style="display:none; margin-bottom:30px;">
+            <!-- EXAM NOTIFICATION — كامل العرض (مهم) -->
+            <div id="exam-notification" class="tilt-card alert-box" style="display:none; margin-bottom:20px;">
                 <h3 style="color:#ffeb3b; margin:0 0 10px 0; font-family:'Amiri'; font-size:1.8rem;">🔔 إشعار ملكي هام!</h3>
                 <div id="exam-notification-text" style="font-size:1.2rem; font-weight:bold; line-height:1.6; margin-bottom:20px;"></div>
                 <button id="start-exam-btn" class="nav-btn active shiny-btn" style="font-size:1.3rem; padding:15px; margin:0 auto; max-width:300px; display:none;" onclick="startScheduledExam()">⏳ ابدأ الاختبار في وضع ملء الشاشة!</button>
             </div>
 
-            <!-- QUESTION OF THE DAY — سؤال اليوم ═══════════════ -->
-            <div id="qotd-card" class="tilt-card" style="margin-bottom:24px; display:none; background:linear-gradient(135deg,rgba(52,152,219,0.12),rgba(155,89,182,0.08)); border-color:rgba(52,152,219,0.4);">
-                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-                    <div style="font-size:2rem;filter:drop-shadow(0 0 8px rgba(52,152,219,0.5));">🌟</div>
-                    <div>
-                        <h3 style="color:#5dade2;font-family:'Amiri';margin:0;font-size:1.25rem;">سؤال اليوم الملكي</h3>
-                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);" id="qotd-date">—</div>
+            <!-- ═══ 4 بطاقات مربعة في شبكة متجاورة ═══ -->
+            <div id="dashboard-insights-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-bottom:24px;">
+
+                <!-- DAILY QUEST -->
+                <div id="daily-quests" class="tilt-card insights-square" style="margin:0; border-color:#28a745; background:linear-gradient(135deg,rgba(40,167,69,0.1),rgba(40,167,69,0.03)); display:none;">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="font-size:1.8rem;">🎯</div>
+                        <div>
+                            <h3 style="color:#28a745;font-family:'Amiri';margin:0;font-size:1.1rem;">المهمة اليومية</h3>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">للإمبراطور الصغير</div>
+                        </div>
                     </div>
-                    <div id="qotd-badge" style="margin-inline-start:auto;background:rgba(46,204,113,0.2);border:1px solid #2ecc71;border-radius:10px;padding:4px 12px;font-size:0.78rem;color:#2ecc71;display:none;">✅ أجبت اليوم!</div>
+                    <div id="quest-content" style="display:flex; flex-direction:column; gap:10px;">
+                        <div>
+                            <div id="quest-text" style="font-weight:bold; font-size:0.95rem; line-height:1.5; margin-bottom:4px;">جاري تحميل مهمتك...</div>
+                            <div id="quest-reward" style="color:var(--gold); font-size:0.82rem;">المكافأة: 50 XP 💎</div>
+                        </div>
+                        <button id="claim-reward-btn" class="nav-btn active shiny-btn" style="margin:0; padding:9px 16px; font-size:0.88rem;" onclick="claimQuestXP()">استلام الجائزة 🏆</button>
+                    </div>
                 </div>
-                <p id="qotd-question" style="font-size:1.15rem;font-weight:bold;margin:0 0 16px;line-height:1.6;">جاري تحميل السؤال...</p>
-                <div id="qotd-options" style="display:flex;flex-direction:column;gap:8px;"></div>
-                <div id="qotd-feedback" style="margin-top:12px;font-weight:bold;font-size:1.1rem;text-align:center;min-height:28px;"></div>
+
+                <!-- QOTD -->
+                <div id="qotd-card" class="tilt-card insights-square" style="margin:0; display:none; background:linear-gradient(135deg,rgba(52,152,219,0.12),rgba(155,89,182,0.08)); border-color:rgba(52,152,219,0.4);">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="font-size:1.8rem;filter:drop-shadow(0 0 8px rgba(52,152,219,0.5));">🌟</div>
+                        <div style="flex:1;min-width:0;">
+                            <h3 style="color:#5dade2;font-family:'Amiri';margin:0;font-size:1.1rem;">سؤال اليوم</h3>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);" id="qotd-date">—</div>
+                        </div>
+                        <div id="qotd-badge" style="background:rgba(46,204,113,0.2);border:1px solid #2ecc71;border-radius:8px;padding:2px 8px;font-size:0.68rem;color:#2ecc71;display:none;flex-shrink:0;">✅</div>
+                    </div>
+                    <p id="qotd-question" style="font-size:0.95rem;font-weight:bold;margin:0 0 10px;line-height:1.5;">جاري التحميل...</p>
+                    <div id="qotd-options" style="display:flex;flex-direction:column;gap:6px;"></div>
+                    <div id="qotd-feedback" style="margin-top:8px;font-weight:bold;font-size:0.88rem;text-align:center;min-height:20px;"></div>
+                </div>
+
+                <!-- WEEKLY REPORT -->
+                <div id="weekly-report-card" class="tilt-card insights-square" style="margin:0; display:none; background:linear-gradient(135deg,rgba(46,204,113,0.1),rgba(52,152,219,0.06)); border-color:rgba(46,204,113,0.4);">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="font-size:1.8rem;">📊</div>
+                        <div>
+                            <h3 style="color:#2ecc71;font-family:'Amiri';margin:0;font-size:1.1rem;">تقرير الأسبوع</h3>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);" id="weekly-report-range">—</div>
+                        </div>
+                    </div>
+                    <div id="weekly-report-body" style="font-size:0.88rem;">جارٍ حساب التقرير...</div>
+                </div>
+
+                <!-- LEARNING STYLE -->
+                <div id="learning-style-card" class="tilt-card insights-square" style="margin:0; display:none; background:linear-gradient(135deg,rgba(155,89,182,0.1),rgba(233,30,99,0.06)); border-color:rgba(155,89,182,0.4);">
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <div style="font-size:1.8rem;">🧠</div>
+                        <div>
+                            <h3 style="color:#bb86fc;font-family:'Amiri';margin:0;font-size:1.1rem;">أسلوبك</h3>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">في التعلّم</div>
+                        </div>
+                    </div>
+                    <div id="learning-style-body" style="font-size:0.88rem;">جارٍ التحليل...</div>
+                </div>
+
             </div>
 
             <!-- PROFILE CARD — تصميم جديد -->
@@ -2124,6 +2206,142 @@
         }
     }
 
+    /* ════════════════════════════════════════════════════════
+       👥 مجموعة الدراسة (القبيلة) — صفحة كاملة
+       كل طالب يُعيّن عشوائياً بناءً على اسم المستخدم
+       المجموعات تتنافس جماعياً عبر مجموع XP
+    ════════════════════════════════════════════════════════ */
+    async function openClanHub() {
+        if (isExamMode) return;
+        if (!currentUser) { alert('سجّل دخولك أولاً'); return; }
+        toggleLoader(true);
+        setActiveButton('btn-clan');
+        switchView('other');
+
+        const myClan = CLANS.find(c => c.id === currentUser.clanId);
+        if (!myClan) {
+            toggleLoader(false);
+            document.getElementById('other-content-area').innerHTML = '<h2 style="text-align:center;padding:60px;">لم يتم تعيين قبيلة بعد</h2>';
+            return;
+        }
+
+        // جلب كل الطلاب لحساب مجاميع القبائل
+        let allStudents = [];
+        try {
+            const res = await fetch(`${API_URL}/api/leaderboard`);
+            if (res.ok) {
+                const lb = await res.json();
+                allStudents = lb.map(s => ({
+                    full_name: s.student_name,
+                    xp: s.total_points || 0,
+                    avatar_url: s.avatar_url
+                }));
+            }
+        } catch(e) {}
+
+        // fallback محلي
+        if (!allStudents.length) {
+            const local = JSON.parse(localStorage.getItem('allMathHeroes') || '[]');
+            allStudents = local.map(h => ({ full_name: h.full_name || h.username, xp: h.xp || 0, avatar_url: h.avatar_url, username: h.username }));
+        }
+
+        // تعيين قبيلة لكل طالب
+        allStudents.forEach(s => {
+            const name = s.username || s.full_name || '';
+            s.clanId = assignClan(name).id;
+        });
+
+        // حساب مجموع XP لكل قبيلة + عدد الأعضاء
+        const clanStats = {};
+        CLANS.forEach(c => clanStats[c.id] = { ...c, totalXp: 0, members: 0, topMembers: [] });
+        allStudents.forEach(s => {
+            if (clanStats[s.clanId]) {
+                clanStats[s.clanId].totalXp += s.xp;
+                clanStats[s.clanId].members += 1;
+                clanStats[s.clanId].topMembers.push(s);
+            }
+        });
+
+        // ترتيب الأعضاء داخل كل قبيلة
+        Object.values(clanStats).forEach(c => {
+            c.topMembers.sort((a,b) => b.xp - a.xp);
+        });
+
+        // ترتيب القبائل
+        const clanRanking = Object.values(clanStats).sort((a,b) => b.totalXp - a.totalXp);
+        const myRank = clanRanking.findIndex(c => c.id === myClan.id) + 1;
+        const medal = ['🥇','🥈','🥉'][myRank - 1] || '#' + myRank;
+
+        toggleLoader(false);
+
+        const myMembers = clanStats[myClan.id].topMembers.slice(0, 10);
+        const myPosInClan = myMembers.findIndex(m => (m.username||m.full_name) === (currentUser.username||currentUser.full_name)) + 1;
+
+        let html = `
+        <div style="text-align:center; margin-bottom:24px;">
+            <h1 style="color:${myClan.color}; font-family:'Amiri'; font-size:3rem; filter:drop-shadow(0 0 15px ${myClan.color}88); margin:0;">
+                ${myClan.icon} ${myClan.name}
+            </h1>
+            <p style="opacity:0.7; margin:5px 0;">قبيلتك — المركز ${medal} من ${CLANS.length}</p>
+        </div>
+
+        <!-- ═══ بطاقات القبائل الثلاث للمقارنة ═══ -->
+        <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:15px; margin-bottom:30px;">
+            ${clanRanking.map((c, i) => {
+                const rankMedal = ['🥇','🥈','🥉'][i] || (i+1);
+                const isMine = c.id === myClan.id;
+                return `<div style="background:${isMine ? c.bg : 'rgba(255,255,255,0.03)'}; border:${isMine ? '2px solid ' + c.color : '1px solid rgba(255,255,255,0.1)'}; border-radius:16px; padding:18px; position:relative; ${isMine ? 'box-shadow:0 0 24px ' + c.color + '44;' : ''}">
+                    ${isMine ? `<div style="position:absolute;top:-10px;right:14px;background:${c.color};color:#fff;padding:3px 12px;border-radius:10px;font-size:0.7rem;font-weight:bold;">قبيلتك</div>` : ''}
+                    <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+                        <div style="font-size:2.2rem;">${c.icon}</div>
+                        <div>
+                            <div style="font-weight:900; color:${c.color}; font-family:'Amiri'; font-size:1.15rem;">${c.name}</div>
+                            <div style="font-size:0.75rem; color:rgba(255,255,255,0.5);">${c.members} مقاتل</div>
+                        </div>
+                        <div style="margin-right:auto; font-size:1.8rem;">${rankMedal}</div>
+                    </div>
+                    <div style="font-size:1.8rem; font-weight:900; color:${c.color}; text-align:center;">${c.totalXp.toLocaleString('ar-EG')} XP</div>
+                </div>`;
+            }).join('')}
+        </div>
+
+        <!-- ═══ أفضل 10 أعضاء في قبيلتك ═══ -->
+        <div style="background:${myClan.bg}; border:1px solid ${myClan.color}; border-radius:18px; padding:20px; margin-bottom:24px;">
+            <h3 style="color:${myClan.color}; font-family:'Amiri'; margin:0 0 14px; font-size:1.4rem;">⚔️ أبطال ${myClan.name}</h3>
+            ${myMembers.length === 0 ? '<p style="text-align:center;opacity:0.5;padding:20px;">لا يوجد أعضاء بعد</p>' :
+            myMembers.map((m, i) => {
+                const isMe = (m.username||m.full_name) === (currentUser.username||currentUser.full_name);
+                return `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); ${isMe?'background:rgba(212,175,55,0.08);border-radius:10px;padding-left:10px;padding-right:10px;':''}">
+                    <div style="width:32px; height:32px; border-radius:50%; background:${myClan.bg}; border:1.5px solid ${myClan.color}; display:flex;align-items:center;justify-content:center; font-weight:900; color:${myClan.color};">${i+1}</div>
+                    <img src="${m.avatar_url || '/static/avatars/king.jpg'}" style="width:40px;height:40px;border-radius:50%;border:2px solid ${myClan.color};object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                    <div style="flex:1; min-width:0;">
+                        <div style="font-weight:bold; color:${isMe?'#f39c12':'#fff'}; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.full_name||'')}${isMe?' (أنت)':''}</div>
+                    </div>
+                    <div style="color:${myClan.color}; font-weight:900; font-size:1.05rem;">${m.xp} XP</div>
+                </div>`;
+            }).join('')}
+        </div>
+
+        <!-- ═══ رسالة تحفيز ═══ -->
+        <div style="text-align:center; background:rgba(212,175,55,0.08); border:1px dashed rgba(212,175,55,0.4); border-radius:14px; padding:16px; margin-bottom:20px;">
+            ${myRank === 1
+                ? `<div style="font-size:1.1rem; color:var(--gold); font-weight:bold;">🏆 قبيلتك في الصدارة! استمروا في التألق</div>`
+                : `<div style="color:rgba(255,255,255,0.8);">💪 قبيلتك بحاجة إليك! اكسب المزيد من XP لتتصدّروا</div>
+                   <div style="font-size:0.88rem; color:rgba(255,255,255,0.55); margin-top:6px;">
+                       الفرق عن المركز الأول: <strong style="color:#f39c12;">${(clanRanking[0].totalXp - myClan.totalXp).toLocaleString('ar-EG')} XP</strong>
+                   </div>`
+            }
+            ${myPosInClan > 0 ? `<div style="font-size:0.82rem; color:rgba(255,255,255,0.5); margin-top:8px;">ترتيبك داخل القبيلة: <strong style="color:${myClan.color};">#${myPosInClan}</strong></div>` : ''}
+        </div>
+
+        <div style="text-align:center; margin-top:20px;">
+            <button class="nav-btn shiny-btn active" style="max-width:250px; margin:0 auto;" onclick="openHome()">🏠 عودة للرئيسية</button>
+        </div>`;
+
+        document.getElementById('other-content-area').innerHTML = html;
+        initTiltEffect();
+    }
+
     /* ================================================================
        PARENT CODE
     ================================================================ */
@@ -2186,6 +2404,9 @@
         setActiveButton('btn-home');
         // ═══ سؤال اليوم ═══
         initQuestionOfTheDay();
+        // ═══ تقرير الأسبوع + أسلوب التعلم ═══
+        renderWeeklyReport();
+        renderLearningStyle();
         if (currentUser) {
             const avatar = currentUser.avatar_url || avatars[0];
             const avatarEl = document.getElementById('main-profile-avatar');
@@ -2237,11 +2458,18 @@
         const quest = QUESTS[dayIndex % QUESTS.length];
         const questKey = 'quest_claimed_' + currentUser.username + '_' + new Date().toDateString();
         const claimed = localStorage.getItem(questKey);
+
+        // ═══ لو المهمة مُستلَمة اليوم → لا نعرض الكارد إطلاقاً ═══
+        if (claimed) {
+            questBox.style.display = 'none';
+            return;
+        }
+
         document.getElementById('quest-text').textContent = quest.text;
         document.getElementById('quest-reward').textContent = 'المكافأة: ' + quest.reward + ' XP 💎';
         const btn = document.getElementById('claim-reward-btn');
-        if (claimed) { btn.textContent = '✅ تم الاستلام'; btn.disabled = true; }
-        else { btn.textContent = 'استلام الجائزة 🏆'; btn.disabled = false; }
+        btn.textContent = 'استلام الجائزة 🏆';
+        btn.disabled = false;
         questBox.style.display = 'block';
     }
     function claimQuestXP() {
@@ -2257,6 +2485,21 @@
         showToast('🏆 تم استلام ' + quest.reward + ' XP كمكافأة يومية!');
         document.getElementById('claim-reward-btn').textContent = '✅ تم الاستلام';
         document.getElementById('claim-reward-btn').disabled = true;
+
+        // ═══ إخفاء كارد المهمة اليومية بعد 2.5 ثانية ═══
+        setTimeout(() => {
+            const questBox = document.getElementById('daily-quests');
+            if (!questBox) return;
+            questBox.style.transition = 'opacity 0.5s, transform 0.5s, max-height 0.6s, margin 0.4s, padding 0.4s';
+            questBox.style.opacity = '0';
+            questBox.style.transform = 'scale(0.95) translateY(-10px)';
+            questBox.style.maxHeight = '0';
+            questBox.style.marginBottom = '0';
+            questBox.style.paddingTop = '0';
+            questBox.style.paddingBottom = '0';
+            questBox.style.overflow = 'hidden';
+            setTimeout(() => { questBox.style.display = 'none'; }, 600);
+        }, 2500);
     }
 
     /* ================================================================
@@ -2623,10 +2866,79 @@
             lesson:        challengeState.lesson,
             date:          new Date().toLocaleDateString('ar-SA')
         });
-        // Keep last 50 mistakes
         if (currentUser.mistakes.length > 50) currentUser.mistakes = currentUser.mistakes.slice(-50);
+
+        // ═══ Adaptive Learning: سجّل الضعف ═══
+        _recordAdaptiveWeakness(challengeState.lesson, questionObj.q_type);
+
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
         updateAllStudentsList(currentUser);
+    }
+
+    /* ════════════════════════════════════════════════════
+       🎯 Adaptive Learning — خريطة التعلّم التكيّفية
+       يتتبع نقاط الضعف حسب الدرس + نوع السؤال
+       ويعطي وزناً أعلى للأسئلة من المواضيع الضعيفة
+    ════════════════════════════════════════════════════ */
+    const ADAPTIVE_DECAY = 0.95;
+
+    function _adaptiveKey() {
+        return 'adaptive_' + (currentUser?.username || 'guest');
+    }
+
+    function _recordAdaptiveWeakness(lesson, qType) {
+        if (!currentUser || !lesson) return;
+        const key = _adaptiveKey();
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!data[lesson]) data[lesson] = { errors: 0, correct: 0, types: {} };
+        data[lesson].errors += 1;
+        data[lesson].lastError = Date.now();
+        if (qType) data[lesson].types[qType] = (data[lesson].types[qType] || 0) + 1;
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function _recordAdaptiveSuccess(lesson, qType) {
+        if (!currentUser || !lesson) return;
+        const key = _adaptiveKey();
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+        if (!data[lesson]) data[lesson] = { errors: 0, correct: 0, types: {} };
+        data[lesson].correct += 1;
+        data[lesson].lastSuccess = Date.now();
+        if (qType) {
+            if (!data[lesson].typeCorrect) data[lesson].typeCorrect = {};
+            data[lesson].typeCorrect[qType] = (data[lesson].typeCorrect[qType] || 0) + 1;
+        }
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // حساب "وزن الضعف" لكل درس
+    function _getAdaptiveWeights() {
+        if (!currentUser) return {};
+        const data = JSON.parse(localStorage.getItem(_adaptiveKey()) || '{}');
+        const weights = {};
+        Object.entries(data).forEach(([lesson, stats]) => {
+            const total = (stats.errors || 0) + (stats.correct || 0);
+            if (total === 0) return;
+            const errorRate = stats.errors / total;
+            // decay — الأخطاء القديمة تقل أهميتها
+            const daysSince = stats.lastError ? (Date.now() - stats.lastError) / 86400000 : 30;
+            const recency = Math.max(0.3, Math.pow(ADAPTIVE_DECAY, daysSince / 7));
+            weights[lesson] = errorRate * recency;
+        });
+        return weights;
+    }
+
+    // ترتيب الأسئلة التكيّفي — الأسئلة من الدروس الضعيفة تأخذ score أعلى
+    function applyAdaptiveWeighting(questions) {
+        const weights = _getAdaptiveWeights();
+        if (Object.keys(weights).length === 0) return knuthShuffle(questions);
+
+        const scored = questions.map(q => ({
+            q,
+            score: Math.random() + (weights[q.lesson] || 0) * 2
+        }));
+        scored.sort((a, b) => b.score - a.score);
+        return scored.map(s => s.q);
     }
 
     function clearMistakes() {
@@ -3313,17 +3625,17 @@
 
         const _aqt = (q.q_type||'').toLowerCase().replace('_','');
         if (_aqt === 'truefalse' || _aqt === 'tf' || _aqt === 'true_false') {
-            html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('صواب','${q.answer}')">صواب ✅</button>
-                     <button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('خطأ','${q.answer}')">خطأ ❌</button>`;
+            html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('صواب',${q.id||0},true)">صواب ✅</button>
+                     <button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('خطأ',${q.id||0},true)">خطأ ❌</button>`;
         } else if (_aqt === 'short' || _aqt === 'essay') {
             html += `<input type="text" id="arena-short" class="short-answer-input" style="grid-column:1/-1;" placeholder="اكتب إجابتك هنا"
-                onkeypress="if(event.key==='Enter') submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">
-                     <button class="nav-btn active shiny-btn" style="grid-column:1/-1;" onclick="submitArenaAnswer(document.getElementById('arena-short').value,'${q.answer}')">ضربة السيف ⚔️</button>`;
+                onkeypress="if(event.key==='Enter') submitArenaAnswer(document.getElementById('arena-short').value,${q.id||0},true)">
+                     <button class="nav-btn active shiny-btn" style="grid-column:1/-1;" onclick="submitArenaAnswer(document.getElementById('arena-short').value,${q.id||0},true)">ضربة السيف ⚔️</button>`;
         } else {
             // ── دعم الفاصل | بجانب , ──
             const _arenaSep = (q.options||'').includes('|') ? '|' : ',';
             (q.options||'').split(_arenaSep).map(o=>o.trim()).filter(Boolean).forEach(opt => {
-                html += `<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer('${opt.replace(/'/g,"\\'")}','${q.answer.replace(/'/g,"\\'")}') ">${opt}</button>`;
+                html += '<button class="quiz-btn shiny-btn" onclick="submitArenaAnswer(\'' + opt.replace(/'/g,"\\'") + '\',' + (q.id||0) + ',true)">' + opt + '</button>';
             });
         }
         html += `</div></div>`;
@@ -3343,7 +3655,7 @@
                 timerEl.style.color       = time <= 10 ? '#ff0000' : '#ff5e5e';
                 timerEl.style.borderColor = time <= 10 ? '#ff0000' : '#ff5e5e';
             }
-            if (time <= 0) { clearInterval(battleTimerInterval); submitArenaAnswer(null, q.answer); }
+            if (time <= 0) { clearInterval(battleTimerInterval); submitArenaAnswer(null, q.id||0, true); }
         }, 1000);
     }
 
@@ -3381,20 +3693,26 @@
         showToast('🧙‍♂️ تم خصم 50 XP للتلميح الملكي!');
     }
 
-    async function submitArenaAnswer(userAns, correctAns) {
+    async function submitArenaAnswer(userAns, qIdOrCorrect, useServerCheck) {
         clearInterval(battleTimerInterval);
 
-        // فحص عبر السيرفر للأمان والدقة
+        // فحص عبر السيرفر دائماً للأمان
         const q = arenaQs[currentArenaQIndex];
         let isCorrect, correctFromServer;
-        if (q && q.id && userAns !== null && userAns !== undefined) {
-            const verdict = await checkAnswerServer(q.id, userAns);
+
+        // qId يأتي إما من q.id أو من المعامل الثاني
+        const questionId = (q && q.id) ? q.id : (typeof qIdOrCorrect === 'number' ? qIdOrCorrect : null);
+
+        if (questionId && userAns !== null && userAns !== undefined) {
+            const verdict = await checkAnswerServer(questionId, userAns);
             isCorrect = verdict.is_correct;
-            correctFromServer = verdict.correct_answer || correctAns || '';
+            correctFromServer = verdict.correct_answer || '';
         } else {
-            // fallback (انقضاء الوقت أو سؤال بدون id)
+            // fallback: انقضاء الوقت أو أسئلة طارئة بدون id
             const _normA = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
-            isCorrect = userAns !== null && userAns !== undefined && _normA(String(userAns)) === _normA(String(correctAns));
+            const correctAns = typeof qIdOrCorrect === 'string' ? qIdOrCorrect : '';
+            isCorrect = userAns !== null && userAns !== undefined &&
+                        _normA(String(userAns)) === _normA(correctAns);
             correctFromServer = correctAns;
         }
 
@@ -3712,7 +4030,8 @@
                         resumeData = null;
                     }
                 } else {
-                    filtered = knuthShuffle(filtered);
+                    // ═══ Adaptive Learning: ترتيب ذكي يرفع الأسئلة من المواضيع الضعيفة ═══
+                    filtered = applyAdaptiveWeighting(filtered);
                 }
             }
             challengeState.qs            = filtered;
@@ -3838,34 +4157,35 @@
         const _isTF    = _qt === 'truefalse' || _qt === 'tf' || _qt === 'true_false';
 
         if (_isShort) {
-            const _ans = (q.answer||'').replace(/'/g,"\\'");
+            // نمرر q.id — الفحص يتم عبر السيرفر في checkAnswer
+            const _qid = q.id || 0;
             optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input"
                 placeholder="اكتب إجابتك هنا..." autocomplete="off"
-                onkeypress="if(event.key==='Enter'){event.preventDefault();submitShortAnswer('${_ans}');}">
+                onkeypress="if(event.key==='Enter'){event.preventDefault();checkAnswer(this.value,${_qid});}">
                 <button class="nav-btn active shiny-btn" style="margin-top:12px;"
-                    onclick="submitShortAnswer('${_ans}')">إرسال الإجابة ✅</button>`;
+                    onclick="checkAnswer(document.getElementById('short-answer-input').value,${_qid})">إرسال الإجابة ✅</button>`;
             setTimeout(()=>document.getElementById('short-answer-input')?.focus(), 80);
         } else if (_isTF) {
-            optArea.innerHTML = `<button class="quiz-btn shiny-btn" onclick="checkAnswer('صواب','${q.answer}')">صواب ✅</button>
-                <button class="quiz-btn shiny-btn" onclick="checkAnswer('خطأ','${q.answer}')">خطأ ❌</button>`;
+            const _qid = q.id || 0;
+            optArea.innerHTML = `<button class="quiz-btn shiny-btn" onclick="checkAnswer('صواب',${_qid})">صواب ✅</button>
+                <button class="quiz-btn shiny-btn" onclick="checkAnswer('خطأ',${_qid})">خطأ ❌</button>`;
         } else {
             const _sep  = (q.options||'').includes('|') ? '|' : ',';
             const _opts = (q.options||'').split(_sep).map(o=>o.trim()).filter(o=>o.length>0);
+            const _qid  = q.id || 0;
             if (_opts.length === 0) {
-                const _ans = (q.answer||'').replace(/'/g,"\\'");
                 optArea.innerHTML = `<input type="text" id="short-answer-input" class="short-answer-input"
                     placeholder="اكتب إجابتك هنا..." autocomplete="off"
-                    onkeypress="if(event.key==='Enter'){event.preventDefault();submitShortAnswer('${_ans}');}">
+                    onkeypress="if(event.key==='Enter'){event.preventDefault();checkAnswer(this.value,${_qid});}">
                     <button class="nav-btn active shiny-btn" style="margin-top:12px;"
-                        onclick="submitShortAnswer('${_ans}')">إرسال الإجابة ✅</button>`;
+                        onclick="checkAnswer(document.getElementById('short-answer-input').value,${_qid})">إرسال الإجابة ✅</button>`;
                 setTimeout(()=>document.getElementById('short-answer-input')?.focus(), 80);
             } else {
                 _opts.forEach(opt => {
                     const _o   = opt.trim();
-                    const _oEs = _o.replace(/'/g,"\\'");
-                    const _aEs = (q.answer||'').replace(/'/g,"\\'");
+                    const _oEs = _o.replace(/'/g,"\'");
                     optArea.innerHTML += `<button class="quiz-btn shiny-btn"
-                        onclick="checkAnswer('${_oEs}','${_aEs}')">${_o}</button>`;
+                        onclick="checkAnswer('${_oEs}',${_qid})">${_o}</button>`;
                 });
             }
         }
@@ -3967,41 +4287,60 @@
             const btns = document.querySelectorAll('#options-area .quiz-btn');
             let removed = 0;
             btns.forEach(btn => {
-                if (removed < 2 && btn.textContent.trim() !== q.answer) { btn.style.opacity = '0.2'; btn.disabled = true; removed++; }
+                if (removed < 2) { btn.style.opacity = '0.2'; btn.disabled = true; removed++; }
             });
             showToast('🧙‍♂️ تم حذف إجابتين خاطئتين!');
         } else {
             const display = document.getElementById('hint-display');
-            if (display) display.innerHTML = ` <span class="hint-box" style="display:inline-block; margin-right:10px;">💡 الإجابة تبدأ بـ "${q.answer.charAt(0)}"</span>`;
+            if (display) {
+                // نجلب الحرف الأول من السيرفر بأمان
+                if (q.id) {
+                    checkAnswerServer(q.id, '__hint_probe__').then(v => {
+                        const ca = v.correct_answer || '';
+                        display.innerHTML = `<span class="hint-box" style="display:inline-block; margin-right:10px;">💡 الإجابة تبدأ بـ "${ca.charAt(0)}" وتحتوي على ${ca.length} حرف/رقم.</span>`;
+                    });
+                } else {
+                    display.innerHTML = '<span class="hint-box">💡 لا يوجد تلميح متاح</span>';
+                }
+            }
         }
     }
 
-    function submitShortAnswer(correct) {
+    function submitShortAnswer(qIdOrCorrect) {
         const val = document.getElementById('short-answer-input')?.value;
         if (!val || !val.trim()) { showToast('⚠️ يرجى كتابة الإجابة!'); return; }
         document.getElementById('short-answer-input').disabled = true;
-        checkAnswer(val.trim(), correct.trim());
+        checkAnswer(val.trim(), qIdOrCorrect);
     }
 
     const phrasesCorrect = ['كفو يا الذيب! 🐺','بيض الله وجهك! ✨','إجابة سلطانية! 👑','ما شاء الله، عبقري! 🌟'];
     const phrasesWrong   = ['حاول يا بطل! 💪','قريبة! ركز شوي 🧐','تعلم من خطأك وانهض! 🛡️'];
 
-    async function checkAnswer(user, correct) {
-        _stopChallengeTimer(); // أوقف التايمر فور الإجابة
+    async function checkAnswer(user, qIdOrCorrect) {
+        // qIdOrCorrect: رقم = id السؤال (فحص عبر السيرفر) | نص = fallback للأسئلة القديمة
+        _stopChallengeTimer();
         document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);
         const f = document.getElementById('feedback');
         const q = challengeState.qs[challengeState.index];
 
-        // فحص الإجابة عبر السيرفر (الإجابة الصحيحة تبقى آمنة)
         let verdict;
-        if (q && q.id) {
-            verdict = await checkAnswerServer(q.id, user);
-            // نستخدم الإجابة الصحيحة المرتجعة من السيرفر للعرض فقط
-            correct = verdict.correct_answer || correct || '';
+        let correct = '';
+
+        // تحديد الـ id للفحص
+        const questionId = (q && q.id) ? q.id
+                         : (typeof qIdOrCorrect === 'number' && qIdOrCorrect > 0) ? qIdOrCorrect
+                         : null;
+
+        if (questionId) {
+            verdict = await checkAnswerServer(questionId, user);
+            correct = verdict.correct_answer || '';
         } else {
-            // fallback للأسئلة اللي ليس لها id (نادر)
-            const normalize = s => (s||'').trim().replace(/\s+/g,' ');
-            verdict = { is_correct: normalize(user) === normalize(correct), correct_answer: correct };
+            // fallback: مقارنة محلية (أسئلة طارئة offline بدون id)
+            const correctLocal = typeof qIdOrCorrect === 'string' ? qIdOrCorrect : '';
+            const normalize = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
+            const isC = normalize(user) === normalize(correctLocal);
+            verdict = { is_correct: isC, correct_answer: correctLocal, offline: true };
+            correct = correctLocal;
         }
 
         if (verdict.is_correct) {
@@ -4010,8 +4349,9 @@
             confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
             challengeState.correct++;
             challengeState.answersStatus[challengeState.index] = true;
-            // إلغاء الفرصة الثانية عند الإجابة الصحيحة
             challengeState._secondChanceUsed = false;
+            // ═══ Adaptive: سجّل النجاح ═══
+            if (q) _recordAdaptiveSuccess(challengeState.lesson, q.q_type);
         } else {
             // فرصة ثانية: إذا كانت لديه ولم تُستخدم بعد لهذا السؤال
             if (currentUser && currentUser.hasSecondChance && !challengeState._secondChanceUsed) {
@@ -4094,18 +4434,20 @@
             certHtml = `<div style="margin:20px 0; padding:20px; border:2px solid var(--gold); border-radius:15px; background:rgba(212,175,55,0.1);">
                 <h2 style="color:var(--gold); margin-top:0;">🎉 نجاح مبهر! نتيجتك ${percentage}%</h2>
                 <p style="color:#fff; font-size:1.2rem; margin-bottom:0;">أنت تستحق الشهادة الملكية بجدارة!</p></div>`;
-            buttonsHtml = `<div style="display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;">
-                <button class="nav-btn active shiny-btn" style="width:auto; padding:15px 30px; font-size:1.1rem; background:linear-gradient(45deg,#bf953f,#fcf6ba); color:#000; border:2px solid #fff;" onclick="showCertificateInNewWindow()">📜 الشهادة الملكية</button>
-                <button class="nav-btn shiny-btn" style="width:auto; padding:15px 30px; font-size:1.1rem;" onclick="openCurriculum()">📚 العودة للخريطة</button>
-                <button class="nav-btn shiny-btn" style="width:auto; padding:12px 20px; font-size:1rem; opacity:0.7;" onclick="startChallenge(challengeState.lesson)">🔄 إعادة الدرس</button>
+            buttonsHtml = `<div style="display:flex; justify-content:center; gap:12px; margin-top:20px; flex-wrap:wrap;">
+                <button class="nav-btn active shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem; background:linear-gradient(45deg,#bf953f,#fcf6ba); color:#000; border:2px solid #fff;" onclick="showCertificateInNewWindow()">📜 الشهادة الملكية</button>
+                <button class="nav-btn shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; border:none;" onclick="shareResultImage(${challengeState.correct}, ${challengeState.qs.length}, ${percentage}, ${pointsEarned})">📤 شارك إنجازك</button>
+                <button class="nav-btn shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem;" onclick="openCurriculum()">📚 الخريطة</button>
+                <button class="nav-btn shiny-btn" style="width:auto; padding:11px 18px; font-size:0.9rem; opacity:0.7;" onclick="startChallenge(challengeState.lesson)">🔄 إعادة</button>
             </div>`;
         } else {
             certHtml = `<div style="margin:20px 0; padding:20px; border:1px dashed #ff5e5e; border-radius:15px; background:rgba(220,53,69,0.05);">
                 <h2 style="color:#ff5e5e; margin:0;">نتيجتك ${percentage}%</h2>
                 <p style="color:var(--gold); font-size:1.1rem; margin-top:10px;">(تحتاج 85% للشهادة — حاول مرة أخرى! 💪)</p></div>`;
-            buttonsHtml = `<div style="display:flex; justify-content:center; gap:15px; margin-top:20px; flex-wrap:wrap;">
-                <button class="nav-btn active shiny-btn" style="width:auto; padding:15px 30px; font-size:1.1rem; background:linear-gradient(45deg,#bf953f,#fcf6ba); color:#000;" onclick="startChallenge(challengeState.lesson)">🔄 إعادة الدرس</button>
-                <button class="nav-btn shiny-btn" style="width:auto; padding:15px 30px; font-size:1.1rem;" onclick="openCurriculum()">📚 العودة للخريطة</button>
+            buttonsHtml = `<div style="display:flex; justify-content:center; gap:12px; margin-top:20px; flex-wrap:wrap;">
+                <button class="nav-btn active shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem; background:linear-gradient(45deg,#bf953f,#fcf6ba); color:#000;" onclick="startChallenge(challengeState.lesson)">🔄 إعادة الدرس</button>
+                <button class="nav-btn shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem; background:linear-gradient(135deg,#25D366,#128C7E); color:#fff; border:none;" onclick="shareResultImage(${challengeState.correct}, ${challengeState.qs.length}, ${percentage}, ${pointsEarned})">📤 شارك محاولتك</button>
+                <button class="nav-btn shiny-btn" style="width:auto; padding:13px 24px; font-size:1rem;" onclick="openCurriculum()">📚 العودة للخريطة</button>
             </div>`;
         }
 
@@ -4175,6 +4517,15 @@
 
         if (pct >= 85) {
             progress[lessonName] = 'done';
+            // ═══ لحظة فخر عند الإتقان 100% ═══
+            if (pct === 100 && oldPct < 100) {
+                setTimeout(() => triggerPrideMoment({
+                    type: 'perfect',
+                    title: '💯 إتقان تامّ!',
+                    subtitle: 'حلّلتَ كل أسئلة: ' + lessonName,
+                    color: '#2ecc71'
+                }), 600);
+            }
         } else if (pct >= 50 && progress[lessonName] !== 'done') {
             progress[lessonName] = 'weak';
         }
@@ -4219,6 +4570,226 @@
        — يُحفظ في localStorage (هل أجاب الطالب اليوم؟)
        — يظهر في الداشبورد الرئيسي فقط
     ════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════
+       📊 تقرير الأسبوع
+       يحسب من history المحلي + adaptive data
+    ════════════════════════════════════════════════════════ */
+    function renderWeeklyReport() {
+        if (!currentUser) return;
+        const card = document.getElementById('weekly-report-card');
+        const body = document.getElementById('weekly-report-body');
+        const range = document.getElementById('weekly-report-range');
+        if (!card || !body) return;
+
+        // آخر 7 أيام
+        const now = Date.now();
+        const WEEK_MS = 7 * 86400000;
+        const weekAgo = now - WEEK_MS;
+
+        const history = currentUser.history || [];
+        const weekHistory = history.filter(h => {
+            if (!h.date) return false;
+            const d = new Date(h.date).getTime();
+            return !isNaN(d) && d >= weekAgo;
+        });
+
+        // XP الأسبوع
+        const weekXp = getSeasonXP();
+
+        // عدد التحديات + متوسط النسبة
+        const challenges = weekHistory.length;
+        const avgPct = challenges > 0
+            ? Math.round(weekHistory.reduce((sum, h) => sum + (h.percentage || h.pct || 0), 0) / challenges)
+            : 0;
+
+        // أفضل درس + أصعب درس في الأسبوع
+        const lessonScores = {};
+        weekHistory.forEach(h => {
+            const l = h.lesson || 'غير محدد';
+            if (!lessonScores[l]) lessonScores[l] = { total: 0, count: 0 };
+            lessonScores[l].total += (h.percentage || h.pct || 0);
+            lessonScores[l].count += 1;
+        });
+        const lessonsAvg = Object.entries(lessonScores).map(([l,s]) => ({
+            lesson: l, avg: Math.round(s.total / s.count)
+        })).sort((a,b) => b.avg - a.avg);
+
+        const bestLesson = lessonsAvg[0];
+        const worstLesson = lessonsAvg.length > 1 ? lessonsAvg[lessonsAvg.length - 1] : null;
+
+        // التاريخ
+        const from = new Date(weekAgo);
+        const to = new Date(now);
+        const fmt = d => d.toLocaleDateString('ar-EG', { day:'numeric', month:'short' });
+        range.textContent = `${fmt(from)} → ${fmt(to)}`;
+
+        // إذا ما فيه نشاط
+        if (challenges === 0) {
+            body.innerHTML = `<div style="text-align:center; padding:14px; color:rgba(255,255,255,0.5); font-size:0.88rem;">
+                <div style="font-size:2rem; margin-bottom:6px;">🌱</div>
+                لم تبدأ أي تحدي هذا الأسبوع — ابدأ اليوم!
+            </div>`;
+            card.style.display = 'block';
+            return;
+        }
+
+        // HTML التقرير
+        let html = `
+            <!-- الإحصائيات الرئيسية -->
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:12px;">
+                <div style="text-align:center; background:rgba(46,204,113,0.08); border:1px solid rgba(46,204,113,0.25); border-radius:10px; padding:8px 4px;">
+                    <div style="font-size:1.4rem; font-weight:900; color:#2ecc71;">${weekXp}</div>
+                    <div style="font-size:0.68rem; color:rgba(255,255,255,0.5);">XP الأسبوع</div>
+                </div>
+                <div style="text-align:center; background:rgba(52,152,219,0.08); border:1px solid rgba(52,152,219,0.25); border-radius:10px; padding:8px 4px;">
+                    <div style="font-size:1.4rem; font-weight:900; color:#5dade2;">${challenges}</div>
+                    <div style="font-size:0.68rem; color:rgba(255,255,255,0.5);">تحدي</div>
+                </div>
+                <div style="text-align:center; background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.25); border-radius:10px; padding:8px 4px;">
+                    <div style="font-size:1.4rem; font-weight:900; color:#f39c12;">${avgPct}%</div>
+                    <div style="font-size:0.68rem; color:rgba(255,255,255,0.5);">المتوسط</div>
+                </div>
+            </div>`;
+
+        if (bestLesson && bestLesson.avg >= 70) {
+            html += `<div style="background:rgba(46,204,113,0.08); border-radius:8px; padding:8px 10px; margin-bottom:6px; font-size:0.82rem;">
+                <span style="color:#2ecc71;">⭐ الأقوى:</span>
+                <strong style="color:#fff;">${esc(bestLesson.lesson)}</strong>
+                <span style="color:rgba(255,255,255,0.5); font-size:0.75rem;"> (${bestLesson.avg}%)</span>
+            </div>`;
+        }
+        if (worstLesson && worstLesson.avg < 70 && worstLesson !== bestLesson) {
+            html += `<div style="background:rgba(231,76,60,0.08); border-radius:8px; padding:8px 10px; font-size:0.82rem;">
+                <span style="color:#e74c3c;">⚠️ يحتاج تركيز:</span>
+                <strong style="color:#fff;">${esc(worstLesson.lesson)}</strong>
+                <span style="color:rgba(255,255,255,0.5); font-size:0.75rem;"> (${worstLesson.avg}%)</span>
+            </div>`;
+        }
+
+        body.innerHTML = html;
+        card.style.display = 'block';
+    }
+
+    /* ════════════════════════════════════════════════════════
+       🧠 تحليل أسلوب التعلم
+       بناءً على البيانات التكيّفية، نحدد قوته ونوع السؤال المفضل
+    ════════════════════════════════════════════════════════ */
+    function renderLearningStyle() {
+        if (!currentUser) return;
+        const card = document.getElementById('learning-style-card');
+        const body = document.getElementById('learning-style-body');
+        if (!card || !body) return;
+
+        const history = currentUser.history || [];
+        // لا نعرض الميزة إذا عدد التحديات قليل (< 3)
+        if (history.length < 3) {
+            body.innerHTML = `<div style="text-align:center; padding:14px; color:rgba(255,255,255,0.5); font-size:0.85rem;">
+                <div style="font-size:2rem; margin-bottom:6px;">🔍</div>
+                أكمل 3 تحديات على الأقل لنحلل أسلوبك
+                <div style="font-size:0.72rem; margin-top:6px; color:rgba(255,255,255,0.35);">(${history.length}/3 مكتملة)</div>
+            </div>`;
+            card.style.display = 'block';
+            return;
+        }
+
+        // تحليل بيانات adaptive
+        const data = JSON.parse(localStorage.getItem(_adaptiveKey()) || '{}');
+        const typeStats = { mcq:{c:0,t:0}, true_false:{c:0,t:0}, short:{c:0,t:0}, essay:{c:0,t:0} };
+
+        Object.values(data).forEach(lessonStats => {
+            if (lessonStats.typeCorrect) {
+                Object.entries(lessonStats.typeCorrect).forEach(([type, count]) => {
+                    const key = type.replace('_','').toLowerCase();
+                    const normKey = key === 'truefalse' ? 'true_false' : key;
+                    if (typeStats[normKey]) {
+                        typeStats[normKey].c += count;
+                        typeStats[normKey].t += count;
+                    }
+                });
+            }
+            if (lessonStats.types) {
+                Object.entries(lessonStats.types).forEach(([type, count]) => {
+                    const key = type.replace('_','').toLowerCase();
+                    const normKey = key === 'truefalse' ? 'true_false' : key;
+                    if (typeStats[normKey]) typeStats[normKey].t += count;
+                });
+            }
+        });
+
+        // حساب نسبة النجاح لكل نوع
+        const typeRates = Object.entries(typeStats)
+            .filter(([k, s]) => s.t > 0)
+            .map(([k, s]) => ({ type: k, rate: s.c / s.t, total: s.t }));
+
+        if (typeRates.length === 0) {
+            body.innerHTML = `<div style="text-align:center; padding:14px; color:rgba(255,255,255,0.5); font-size:0.85rem;">
+                لا توجد بيانات كافية بعد
+            </div>`;
+            card.style.display = 'block';
+            return;
+        }
+
+        typeRates.sort((a,b) => b.rate - a.rate);
+        const best = typeRates[0];
+        const worst = typeRates[typeRates.length - 1];
+
+        const typeLabels = {
+            'mcq': { name: 'الاختيار من متعدد', icon: '🔤', desc: 'تستخرج الإجابات بدقة' },
+            'true_false': { name: 'الصواب والخطأ', icon: '⚡', desc: 'تحكم تحليلي سريع' },
+            'short': { name: 'الإجابة القصيرة', icon: '✍️', desc: 'تفكير حسابي مستقل' },
+            'essay': { name: 'الإجابة المقالية', icon: '📝', desc: 'شرح تفصيلي ممتاز' }
+        };
+
+        // نصيحة بناءً على الأسلوب
+        const tips = {
+            'mcq': 'جرّب أسئلة الإجابة القصيرة لتقوية فهمك العميق',
+            'true_false': 'تحدَّ نفسك بأسئلة الاختيار لتطوير مقارنة الخيارات',
+            'short': 'تفوّقك في الحل المستقل رائع — استمر وحاول المقالات',
+            'essay': 'لديك قدرة على الشرح — استخدمها في المواضيع الصعبة'
+        };
+
+        const bestInfo = typeLabels[best.type] || { name: best.type, icon: '🎯', desc: '' };
+        const worstInfo = typeLabels[worst.type] || { name: worst.type, icon: '🎯' };
+
+        let html = `
+            <!-- نقطة القوة -->
+            <div style="background:rgba(155,89,182,0.1); border-radius:10px; padding:10px; margin-bottom:8px;">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                    <span style="font-size:1.3rem;">${bestInfo.icon}</span>
+                    <span style="color:#bb86fc; font-weight:bold; font-size:0.88rem;">قوّتك:</span>
+                    <span style="color:#fff; font-weight:bold;">${bestInfo.name}</span>
+                    <span style="margin-inline-start:auto; color:#2ecc71; font-size:0.85rem; font-weight:bold;">${Math.round(best.rate * 100)}%</span>
+                </div>
+                <div style="font-size:0.78rem; color:rgba(255,255,255,0.6);">${bestInfo.desc}</div>
+            </div>`;
+
+        // عرض كل الأنواع كأشرطة
+        html += `<div style="display:flex; flex-direction:column; gap:5px; margin-bottom:10px;">`;
+        typeRates.forEach(t => {
+            const info = typeLabels[t.type] || { name: t.type, icon: '▪️' };
+            const pct = Math.round(t.rate * 100);
+            const color = pct >= 75 ? '#2ecc71' : pct >= 50 ? '#f39c12' : '#e74c3c';
+            html += `
+                <div style="display:flex; align-items:center; gap:8px; font-size:0.78rem;">
+                    <span style="width:60px; color:rgba(255,255,255,0.7);">${info.icon} ${info.name.slice(0, 8)}</span>
+                    <div style="flex:1; height:6px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:${pct}%; background:${color}; border-radius:99px;"></div>
+                    </div>
+                    <span style="color:${color}; font-weight:bold; width:36px; text-align:left;">${pct}%</span>
+                </div>`;
+        });
+        html += `</div>`;
+
+        // النصيحة
+        html += `
+            <div style="background:rgba(52,152,219,0.08); border:1px dashed rgba(52,152,219,0.3); border-radius:10px; padding:8px 10px; font-size:0.8rem; color:rgba(255,255,255,0.8);">
+                💡 ${tips[best.type] || 'استمر في التنوع لتطوير كل مهاراتك'}
+            </div>`;
+
+        body.innerHTML = html;
+        card.style.display = 'block';
+    }
+
     async function initQuestionOfTheDay() {
         if (!currentUser) return;
         const card = document.getElementById('qotd-card');
@@ -4255,13 +4826,8 @@
         const badgeEl = document.getElementById('qotd-badge');
 
         if (alreadyAnswered) {
-            // أجاب سابقاً — اعرض نتيجته
-            badgeEl.style.display = 'block';
-            optsEl.innerHTML = '';
-            const was = JSON.parse(alreadyAnswered);
-            feedEl.innerHTML = was.correct
-                ? `<span style="color:#2ecc71;">✅ أجبت بشكل صحيح — +50 XP 🌟</span>`
-                : `<span style="color:#e74c3c;">❌ أخطأت — جرّب غداً سؤالاً جديداً!</span>`;
+            // أجاب سابقاً — أخفِ الكارد بالكامل حتى اليوم التالي
+            card.style.display = 'none';
             return;
         }
 
@@ -4291,38 +4857,77 @@
                 updateStudentXP(50);
                 if ('vibrate' in navigator) navigator.vibrate([50,30,50]);
                 confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 } });
+                showToast('🌟 أحسنت! +50 XP', 2500);
             } else {
                 feedEl.innerHTML = `<span style="color:#e74c3c;">❌ للأسف خطأ — حاول غداً!</span>`;
+                showToast('❌ خطأ — جرّب غداً', 2500);
             }
+
+            // ═══ إخفاء الكارد بعد 2.5 ثانية مع تأثير ═══
+            setTimeout(() => {
+                card.style.transition = 'opacity 0.5s, transform 0.5s, max-height 0.6s, margin 0.4s, padding 0.4s';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95) translateY(-10px)';
+                card.style.maxHeight = '0';
+                card.style.marginBottom = '0';
+                card.style.paddingTop = '0';
+                card.style.paddingBottom = '0';
+                card.style.overflow = 'hidden';
+                setTimeout(() => { card.style.display = 'none'; }, 600);
+            }, 2500);
         };
+
+        // ═══ جعل answerQotd متاحة عالمياً قبل رسم HTML ═══
+        window.answerQotd = answerQotd;
 
         if (_isTF) {
             optsEl.innerHTML = `
-                <button onclick="(async()=>await answerQotd('صواب'))()" style="background:rgba(46,204,113,0.15);border:1px solid #2ecc71;color:#2ecc71;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;">صواب ✅</button>
-                <button onclick="(async()=>await answerQotd('خطأ'))()"  style="background:rgba(231,76,60,0.15);border:1px solid #e74c3c;color:#e74c3c;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;">خطأ ❌</button>`;
+                <button class="qotd-btn" data-answer="صواب" style="background:rgba(46,204,113,0.15);border:1px solid #2ecc71;color:#2ecc71;padding:12px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;flex:1;min-width:140px;">صواب ✅</button>
+                <button class="qotd-btn" data-answer="خطأ" style="background:rgba(231,76,60,0.15);border:1px solid #e74c3c;color:#e74c3c;padding:12px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;flex:1;min-width:140px;">خطأ ❌</button>`;
+            // تغيير التخطيط إلى flex-row للـ TF
+            optsEl.style.flexDirection = 'row';
+            optsEl.style.flexWrap = 'wrap';
         } else if (_qt === 'short' || _qt === 'essay') {
+            optsEl.style.flexDirection = 'column';
             optsEl.innerHTML = `
                 <div style="display:flex;gap:8px;">
                     <input id="qotd-input" type="text" placeholder="اكتب إجابتك..." autocomplete="off"
-                        style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(52,152,219,0.4);border-radius:10px;padding:10px 14px;color:#fff;font-family:'Cairo';font-size:0.95rem;"
-                        onkeypress="if(event.key==='Enter'){const v=this.value.trim();if(v)(async()=>await answerQotd(v))();}">
-                    <button onclick="const v=document.getElementById('qotd-input')?.value?.trim();if(v)(async()=>await answerQotd(v))()"
-                        style="background:linear-gradient(135deg,#3498db,#2980b9);border:none;color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;">إرسال ✅</button>
+                        style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(52,152,219,0.4);border-radius:10px;padding:10px 14px;color:#fff;font-family:'Cairo';font-size:0.95rem;">
+                    <button id="qotd-submit-btn" style="background:linear-gradient(135deg,#3498db,#2980b9);border:none;color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;">إرسال ✅</button>
                 </div>`;
-            setTimeout(() => document.getElementById('qotd-input')?.focus(), 100);
+            const inp = document.getElementById('qotd-input');
+            const btn = document.getElementById('qotd-submit-btn');
+            const submit = () => { const v = inp?.value?.trim(); if (v) answerQotd(v); };
+            if (btn) btn.addEventListener('click', submit);
+            if (inp) {
+                inp.addEventListener('keypress', e => { if (e.key === 'Enter') submit(); });
+                setTimeout(() => inp.focus(), 100);
+            }
         } else {
             const opts = (q.options||'').split(_sep).map(o=>o.trim()).filter(Boolean);
             // نخلط الخيارات بناءً على التاريخ (ثابت لكل يوم)
             const shuffled = [...opts].sort((a,b) => ((a+todayKey).length % 7) - ((b+todayKey).length % 7));
+            optsEl.style.flexDirection = 'column';
             optsEl.innerHTML = shuffled.map(opt => `
-                <button onclick="(async()=>await answerQotd('${opt.replace(/'/g,"\\'")}'))()"
-                    style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.35);color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-size:0.92rem;text-align:right;transition:all 0.2s;"
-                    onmouseover="this.style.background='rgba(52,152,219,0.25)'"
-                    onmouseout="this.style.background='rgba(52,152,219,0.1)'">${opt}</button>`).join('');
+                <button class="qotd-btn" data-answer="${opt.replace(/"/g,'&quot;')}"
+                    style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.35);color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-size:0.92rem;text-align:right;transition:all 0.2s;">${esc(opt)}</button>`).join('');
         }
 
-        // جعل answerQotd متاحة للأزرار
-        window.answerQotd = answerQotd;
+        // ═══ event listeners للأزرار (بدل inline onclick) ═══
+        optsEl.querySelectorAll('.qotd-btn').forEach(btn => {
+            btn.addEventListener('click', () => answerQotd(btn.dataset.answer));
+            btn.addEventListener('mouseover', () => {
+                if (!btn.disabled) btn.style.background = 'rgba(52,152,219,0.25)';
+            });
+            btn.addEventListener('mouseout', () => {
+                if (!btn.disabled) {
+                    const color = btn.dataset.answer === 'صواب' ? 'rgba(46,204,113,0.15)'
+                                : btn.dataset.answer === 'خطأ' ? 'rgba(231,76,60,0.15)'
+                                : 'rgba(52,152,219,0.1)';
+                    btn.style.background = color;
+                }
+            });
+        });
     }
 
     function initRealtimeChannels() {
@@ -4399,6 +5004,221 @@
         try { await fetch(`${API_URL}/api/student/results`, { method: 'POST', body: fd }); } catch {}
     }
 
+    /* ════════════════════════════════════════════════════
+       📤 مشاركة النتيجة كصورة (Canvas → PNG → WhatsApp)
+    ════════════════════════════════════════════════════ */
+    async function shareResultImage(correct, total, percentage, xpEarned) {
+        const name = currentUser?.full_name || 'البطل';
+        const grade = currentUser?.grade || '';
+        const lesson = challengeState.lesson || '';
+        const avatarUrl = currentUser?.avatar_url || '/static/avatars/king.jpg';
+
+        // ═══ إنشاء Canvas ═══
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+
+        // 1. خلفية متدرجة فاخرة
+        const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1080);
+        bgGrad.addColorStop(0, '#0f0c29');
+        bgGrad.addColorStop(0.5, '#302b63');
+        bgGrad.addColorStop(1, '#24243e');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 1080, 1080);
+
+        // 2. زخارف نجمية (نقاط ذهبية عشوائية)
+        ctx.fillStyle = 'rgba(212, 175, 55, 0.3)';
+        for (let i = 0; i < 80; i++) {
+            const x = Math.random() * 1080;
+            const y = Math.random() * 1080;
+            const r = Math.random() * 3 + 1;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // 3. إطار ذهبي
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 6;
+        ctx.strokeRect(30, 30, 1020, 1020);
+        ctx.strokeStyle = 'rgba(212,175,55,0.4)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(50, 50, 980, 980);
+
+        // 4. العنوان "إمبراطورية الرياضيات"
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 44px "Amiri", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('👑 إمبراطورية الرياضيات 👑', 540, 140);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.6)';
+        ctx.font = '26px "Cairo", sans-serif';
+        ctx.fillText('الأستاذ رشدي سيد', 540, 185);
+
+        // 5. خط فاصل ذهبي
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(150, 215);
+        ctx.lineTo(930, 215);
+        ctx.stroke();
+
+        // 6. محاولة رسم الأفاتار (قد يفشل بسبب CORS — نستخدم دائرة ذهبية كـ fallback)
+        const drawAvatarFallback = () => {
+            ctx.beginPath();
+            ctx.arc(540, 340, 90, 0, Math.PI * 2);
+            const avatarGrad = ctx.createRadialGradient(540, 340, 10, 540, 340, 90);
+            avatarGrad.addColorStop(0, '#fcf6ba');
+            avatarGrad.addColorStop(1, '#bf953f');
+            ctx.fillStyle = avatarGrad;
+            ctx.fill();
+            ctx.strokeStyle = '#d4af37';
+            ctx.lineWidth = 5;
+            ctx.stroke();
+            ctx.font = 'bold 80px serif';
+            ctx.fillStyle = '#1a1a2e';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('👑', 540, 345);
+            ctx.textBaseline = 'alphabetic';
+        };
+
+        await new Promise((resolve) => {
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            img.onload = () => {
+                try {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(540, 340, 90, 0, Math.PI * 2);
+                    ctx.closePath();
+                    ctx.clip();
+                    ctx.drawImage(img, 450, 250, 180, 180);
+                    ctx.restore();
+                    ctx.strokeStyle = '#d4af37';
+                    ctx.lineWidth = 5;
+                    ctx.beginPath();
+                    ctx.arc(540, 340, 90, 0, Math.PI * 2);
+                    ctx.stroke();
+                } catch(e) { drawAvatarFallback(); }
+                resolve();
+            };
+            img.onerror = () => { drawAvatarFallback(); resolve(); };
+            img.src = avatarUrl.startsWith('http') ? avatarUrl : (window.location.origin + avatarUrl);
+            // مهلة 2 ثانية — لو الصورة ما حُمّلت، استخدم fallback
+            setTimeout(() => { if (!img.complete) { drawAvatarFallback(); resolve(); } }, 2000);
+        });
+
+        // 7. اسم الطالب + الصف
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 48px "Cairo", sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(name, 540, 480);
+
+        ctx.fillStyle = 'rgba(212,175,55,0.8)';
+        ctx.font = '24px "Cairo", sans-serif';
+        ctx.fillText(grade, 540, 520);
+
+        // 8. بطاقة النتيجة (مستطيل داخلي)
+        const cardY = 560;
+        ctx.fillStyle = 'rgba(212,175,55,0.08)';
+        ctx.strokeStyle = 'rgba(212,175,55,0.4)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(140, cardY, 800, 340, 20);
+        else ctx.rect(140, cardY, 800, 340);
+        ctx.fill();
+        ctx.stroke();
+
+        // 9. اسم الدرس
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '22px "Cairo", sans-serif';
+        ctx.fillText('الدرس المُنجَز', 540, cardY + 50);
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 34px "Amiri", serif';
+        const lessonShort = lesson.length > 40 ? lesson.slice(0, 40) + '...' : lesson;
+        ctx.fillText(lessonShort, 540, cardY + 95);
+
+        // 10. النسبة الكبيرة
+        const color = percentage >= 85 ? '#2ecc71' : percentage >= 50 ? '#f39c12' : '#e74c3c';
+        ctx.fillStyle = color;
+        ctx.font = 'bold 140px "Cairo", sans-serif';
+        ctx.fillText(percentage + '%', 540, cardY + 240);
+
+        // 11. سطر الإحصائيات
+        ctx.fillStyle = 'rgba(255,255,255,0.85)';
+        ctx.font = '26px "Cairo", sans-serif';
+        ctx.fillText(`${correct} من ${total} إجابة صحيحة  •  +${xpEarned} XP`, 540, cardY + 295);
+
+        // 12. الهاشتاق أسفل الصورة
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 32px "Amiri", serif';
+        const hashtag = percentage >= 85 ? '🏆 بطل إمبراطورية الرياضيات' :
+                        percentage >= 50 ? '⚔️ في طريقي للمجد' : '💪 التحدي مستمر';
+        ctx.fillText(hashtag, 540, 970);
+
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.font = '20px "Cairo", sans-serif';
+        ctx.fillText(new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' }), 540, 1010);
+
+        // ═══ تحويل لـ Blob ومحاولة المشاركة ═══
+        canvas.toBlob(async (blob) => {
+            if (!blob) { showToast('❌ فشل توليد الصورة'); return; }
+
+            const file = new File([blob], 'math-empire-result.png', { type: 'image/png' });
+            const shareText = `🏆 حقّقتُ ${percentage}% في درس "${lesson}" على إمبراطورية الرياضيات!\n\n#الأستاذ_رشدي_سيد #إمبراطورية_الرياضيات`;
+
+            // Web Share API إذا كان متاحاً (يشتغل على الجوال في الغالب)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                try {
+                    await navigator.share({
+                        files: [file],
+                        title: 'إنجازي في الرياضيات',
+                        text: shareText,
+                    });
+                    return;
+                } catch(e) { /* المستخدم ألغى أو فشلت — نعرض modal بديل */ }
+            }
+
+            // Fallback: عرض modal لتنزيل الصورة + زر WhatsApp
+            _showShareModal(blob, shareText);
+        }, 'image/png', 0.95);
+    }
+
+    function _showShareModal(blob, text) {
+        const url = URL.createObjectURL(blob);
+        const existing = document.getElementById('share-modal-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'share-modal-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);';
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(160deg,#1a1a2e,#040d21);border:2px solid var(--gold);border-radius:22px;padding:24px;max-width:480px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(212,175,55,0.3);">
+                <div style="font-size:2.8rem;margin-bottom:6px;">📤</div>
+                <h2 style="color:var(--gold);font-family:'Amiri';margin:0 0 16px;">شارك إنجازك</h2>
+                <img src="${url}" style="width:100%;max-width:360px;border-radius:14px;border:2px solid rgba(212,175,55,0.3);margin-bottom:18px;" alt="النتيجة">
+                <div style="display:flex;flex-direction:column;gap:10px;">
+                    <a href="https://wa.me/?text=${encodeURIComponent(text)}" target="_blank" rel="noopener"
+                        style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#25D366,#128C7E);color:#fff;text-decoration:none;padding:13px;border-radius:12px;font-weight:bold;font-family:'Cairo';">
+                        💬 مشاركة النص على واتساب
+                    </a>
+                    <a href="${url}" download="math-empire-result.png"
+                        style="display:flex;align-items:center;justify-content:center;gap:8px;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;text-decoration:none;padding:13px;border-radius:12px;font-weight:bold;font-family:'Cairo';">
+                        💾 تحميل الصورة لجهازك
+                    </a>
+                    <button onclick="document.getElementById('share-modal-overlay').remove(); URL.revokeObjectURL('${url}');"
+                        style="background:transparent;color:rgba(255,255,255,0.6);border:1px solid rgba(255,255,255,0.2);padding:11px;border-radius:12px;cursor:pointer;font-family:'Cairo';margin-top:4px;">
+                        ✖ إغلاق
+                    </button>
+                </div>
+                <p style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:14px 0 0;">💡 احفظ الصورة ثم شاركها على واتساب مباشرة</p>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    }
+
     function showCertificateInNewWindow() {
         const certWindow = window.open('', '_blank', 'width=900,height=750');
         const name = currentUser?.full_name || 'بطل الرياضيات';
@@ -4458,6 +5278,9 @@
         localStorage.setItem('mathHero', JSON.stringify(currentUser));
         updateAllStudentsList(currentUser);
         animateXP(oldXp, newXp);
+
+        // ═══ تحديث XP الموسم الأسبوعي ═══
+        if (finalXp > 0) addSeasonXP(finalXp);
     }
 
     const RANK_LEVELS = [
@@ -4533,8 +5356,185 @@
         overlay.style.display = 'flex';
         confetti({ particleCount: 400, spread: 120, origin: { y: 0.5 } });
         playSound(document.getElementById('win-sfx'));
+
+        // ═══ لحظة الفخر عند الترقية ═══
+        triggerPrideMoment({
+            type: 'level_up',
+            title: '🎖️ ترقية عظيمة!',
+            subtitle: newTitle,
+            color: '#d4af37'
+        });
     }
     function closeLevelUp() { document.getElementById('level-up-overlay').style.display = 'none'; }
+
+    /* ════════════════════════════════════════════════════════
+       🎬 لحظة الفخر — Canvas Animation كامل الشاشة
+       يُطلَق عند: ترقية مستوى، إتمام درس بـ 100%، أول مركز،
+       10 انتصارات متتالية، إلخ
+    ════════════════════════════════════════════════════════ */
+    function triggerPrideMoment(opts = {}) {
+        const {
+            type = 'achievement',
+            title = '🏆 إنجاز عظيم!',
+            subtitle = '',
+            color = '#d4af37',
+            duration = 4500
+        } = opts;
+
+        // Check if Pride Moments غير معطّلة في الإعدادات
+        if (localStorage.getItem('prideMomentDisabled') === '1') return;
+
+        // إزالة أي موشن سابق
+        const existing = document.getElementById('pride-moment-overlay');
+        if (existing) existing.remove();
+
+        const overlay = document.createElement('div');
+        overlay.id = 'pride-moment-overlay';
+        overlay.style.cssText = `
+            position:fixed; inset:0; z-index:99998;
+            background:radial-gradient(circle at center, rgba(0,0,0,0.85), rgba(0,0,0,0.98));
+            display:flex; align-items:center; justify-content:center;
+            animation: prideFadeIn 0.4s ease;
+            cursor:pointer;
+        `;
+
+        // Canvas للـ animation
+        const canvas = document.createElement('canvas');
+        canvas.id = 'pride-canvas';
+        canvas.style.cssText = 'position:absolute; inset:0; width:100%; height:100%;';
+        canvas.width  = window.innerWidth;
+        canvas.height = window.innerHeight;
+        overlay.appendChild(canvas);
+
+        // محتوى نصّي مركزي
+        const content = document.createElement('div');
+        content.style.cssText = `
+            position:relative; z-index:10; text-align:center;
+            animation: prideZoomIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        `;
+        content.innerHTML = `
+            <div style="font-size:8rem; filter:drop-shadow(0 0 40px ${color}); margin-bottom:10px; animation: prideSparkle 2s ease-in-out infinite;">
+                ${type === 'level_up' ? '🎖️' : type === 'perfect' ? '💯' : type === 'first_place' ? '👑' : '🏆'}
+            </div>
+            <h1 style="font-family:'Amiri',serif; color:${color}; font-size:4rem; margin:0 0 10px; text-shadow:0 0 30px ${color}88; animation: prideGlow 2s ease-in-out infinite alternate;">
+                ${title}
+            </h1>
+            ${subtitle ? `<p style="font-family:'Cairo',sans-serif; color:#fff; font-size:1.6rem; margin:0 0 30px; opacity:0.9;">${subtitle}</p>` : ''}
+            <p style="color:rgba(255,255,255,0.5); font-size:0.9rem; margin-top:40px;">
+                اضغط في أي مكان للمتابعة
+            </p>
+        `;
+        overlay.appendChild(content);
+
+        document.body.appendChild(overlay);
+
+        // ══ Particle Animation ══
+        const ctx = canvas.getContext('2d');
+        const particles = [];
+        const PARTICLE_COUNT = 80;
+
+        // نجوم تنفجر من المركز
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const angle = (Math.PI * 2 * i) / PARTICLE_COUNT + Math.random() * 0.3;
+            const speed = Math.random() * 6 + 3;
+            particles.push({
+                x: canvas.width / 2,
+                y: canvas.height / 2,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                size: Math.random() * 4 + 2,
+                life: 1,
+                color: [color, '#fcf6ba', '#fff', '#ffd700'][Math.floor(Math.random() * 4)]
+            });
+        }
+
+        // أشعة ذهبية تخرج من المركز (light rays)
+        let rayRotation = 0;
+
+        let animating = true;
+        function animate() {
+            if (!animating) return;
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // رسم الأشعة
+            ctx.save();
+            ctx.translate(canvas.width / 2, canvas.height / 2);
+            ctx.rotate(rayRotation);
+            for (let i = 0; i < 12; i++) {
+                ctx.rotate((Math.PI * 2) / 12);
+                const grad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+                grad.addColorStop(0, `${color}22`);
+                grad.addColorStop(1, 'transparent');
+                ctx.fillStyle = grad;
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                ctx.lineTo(canvas.width, -40);
+                ctx.lineTo(canvas.width, 40);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+            rayRotation += 0.003;
+
+            // رسم الجسيمات
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.vy += 0.08; // جاذبية
+                p.life -= 0.008;
+
+                if (p.life > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = p.life;
+                    ctx.fillStyle = p.color;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = p.color;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.size * p.life, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            });
+
+            requestAnimationFrame(animate);
+        }
+        animate();
+
+        // تأثير الـ confetti الإضافي
+        if (typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 180,
+                origin: { y: 0.4 },
+                colors: [color, '#fcf6ba', '#fff', '#ffd700']
+            });
+        }
+
+        // اهتزاز
+        if ('vibrate' in navigator) navigator.vibrate([100, 50, 100, 50, 200]);
+
+        // أغلق بالضغط أو تلقائياً
+        const close = () => {
+            animating = false;
+            overlay.style.animation = 'prideFadeOut 0.4s forwards';
+            setTimeout(() => overlay.remove(), 400);
+        };
+        overlay.addEventListener('click', close);
+        setTimeout(close, duration);
+
+        // حفظ الإنجاز في التاريخ
+        if (currentUser) {
+            if (!currentUser.prideHistory) currentUser.prideHistory = [];
+            currentUser.prideHistory.push({
+                type, title, subtitle, date: new Date().toISOString()
+            });
+            if (currentUser.prideHistory.length > 30) {
+                currentUser.prideHistory = currentUser.prideHistory.slice(-30);
+            }
+            localStorage.setItem('mathHero', JSON.stringify(currentUser));
+        }
+    }
 
     /* ================================================================
        LEADERBOARD
@@ -4572,10 +5572,11 @@
             const top3  = winners.slice(0, 3);
             const rest  = winners.slice(3, 10);
 
-            let html = `<div style="text-align:center; margin-bottom:30px;">
+            let html = `<div style="text-align:center; margin-bottom:20px;">
                 <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3.5rem; filter:drop-shadow(0 0 10px #d4af37);">🏆 ديوان العمالقة العشرة</h1>
-                <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; font-size:1.1rem; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
             </div>
+
+            ${renderSeasonCard()}
 
             <!-- ═══ منصة العمالقة الثلاثة الأوائل ═══ -->
             <div style="display:flex; justify-content:center; align-items:flex-end; gap:20px; margin-bottom:50px; flex-wrap:wrap;">
@@ -4700,19 +5701,107 @@
         return b;
     }
 
+    /* ════════════════════════════════════════════════════════
+       🏆 نظام المواسم الأسبوعية (Weekly Tournaments)
+       — موسم واحد = أسبوع (السبت 00:00 إلى الجمعة 23:59)
+       — XP الموسم منفصل عن XP الكلي (لا نُصفّر الأصلي!)
+       — في نهاية الموسم: الفائز يحصل على شارة/لقب
+    ════════════════════════════════════════════════════════ */
+
+    // Season key format: "season_2026_W16" (week-of-year)
+    function _getCurrentSeasonKey() {
+        const now = new Date();
+        const start = new Date(now.getFullYear(), 0, 1);
+        const days = Math.floor((now - start) / 86400000);
+        const week = Math.ceil((days + start.getDay() + 1) / 7);
+        return `season_${now.getFullYear()}_W${week}`;
+    }
+
+    function _getSeasonEndDate() {
+        const now = new Date();
+        const endDate = new Date(now);
+        // نهاية الموسم: يوم الجمعة 23:59:59 (اليوم 5 في JavaScript)
+        const daysUntilFriday = (5 - now.getDay() + 7) % 7;
+        endDate.setDate(now.getDate() + (daysUntilFriday === 0 && now.getHours() >= 23 ? 7 : daysUntilFriday));
+        endDate.setHours(23, 59, 59, 999);
+        return endDate;
+    }
+
+    function getSeasonXP() {
+        if (!currentUser) return 0;
+        const seasonKey = _getCurrentSeasonKey();
+        const data = JSON.parse(localStorage.getItem('seasonData_' + currentUser.username) || '{}');
+        return (data[seasonKey] && data[seasonKey].xp) || 0;
+    }
+
+    function addSeasonXP(amount) {
+        if (!currentUser || amount <= 0) return;
+        const seasonKey = _getCurrentSeasonKey();
+        const key = 'seasonData_' + currentUser.username;
+        const data = JSON.parse(localStorage.getItem(key) || '{}');
+
+        // تحقق من نهاية المواسم السابقة — لو وُجدت موسم لم يُحفظ نتيجته، احفظها كـ "past"
+        Object.keys(data).forEach(k => {
+            if (k !== seasonKey && !data[k].finalized) {
+                data[k].finalized = true;
+                data[k].endDate = new Date().toISOString();
+            }
+        });
+
+        if (!data[seasonKey]) data[seasonKey] = { xp: 0, startDate: new Date().toISOString() };
+        data[seasonKey].xp = (data[seasonKey].xp || 0) + amount;
+        localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    // تحديث: addSeasonXP يُستدعى من updateStudentXP تلقائياً
+    const _origUpdateStudentXP = window._origUpdateStudentXP; // مرة واحدة
+
     function startResetTimer() {
-        setInterval(() => {
-            const now = new Date(); const rd = new Date();
-            rd.setDate(now.getDate() + (7 - now.getDay()) % 7); rd.setHours(23,59,59,999);
-            if (now > rd) rd.setDate(rd.getDate() + 7);
-            const diff = rd - now;
+        if (window._seasonTimerInterval) clearInterval(window._seasonTimerInterval);
+        const tick = () => {
+            const endDate = _getSeasonEndDate();
+            const diff = endDate - new Date();
+            if (diff <= 0) return;
             const days  = Math.floor(diff / 864e5);
             const hours = Math.floor((diff / 36e5) % 24);
             const mins  = Math.floor((diff / 6e4) % 60);
             const secs  = Math.floor((diff / 1e3) % 60);
             const el = document.getElementById('reset-timer');
-            if (el) el.textContent = `⏳ ينتهي الموسم خلال: ${days}ي ${hours}س ${mins}د ${secs}ث`;
-        }, 1000);
+            if (el) el.textContent = `🏆 نهاية الموسم: ${days}ي ${hours}س ${mins}د ${secs}ث`;
+        };
+        tick();
+        window._seasonTimerInterval = setInterval(tick, 1000);
+    }
+
+    // إنشاء widget بطاقة الموسم الحالي
+    function renderSeasonCard() {
+        const seasonXp = getSeasonXP();
+        const seasonKey = _getCurrentSeasonKey();
+        const weekNum = seasonKey.match(/W(\d+)/)?.[1] || '—';
+
+        return `<div id="season-widget" style="background:linear-gradient(135deg,rgba(155,89,182,0.15),rgba(52,152,219,0.1));border:1px solid rgba(155,89,182,0.4);border-radius:18px;padding:18px;margin-bottom:20px;position:relative;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px;">
+                <div style="font-size:2.2rem;filter:drop-shadow(0 0 10px rgba(155,89,182,0.6));">🏆</div>
+                <div style="flex:1;">
+                    <h3 style="color:#bb86fc;font-family:'Amiri';margin:0;font-size:1.3rem;">موسم الأسبوع ${weekNum}</h3>
+                    <div style="font-size:0.8rem;color:rgba(255,255,255,0.5);" id="reset-timer">⏳ جارٍ حساب الوقت...</div>
+                </div>
+            </div>
+            <div style="display:flex;justify-content:space-around;gap:12px;">
+                <div style="text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#bb86fc;">${seasonXp}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">نقاط الموسم</div>
+                </div>
+                <div style="width:1px;background:rgba(255,255,255,0.1);"></div>
+                <div style="text-align:center;">
+                    <div style="font-size:2rem;font-weight:900;color:#f39c12;">${currentUser?.xp || 0}</div>
+                    <div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">XP الكلي</div>
+                </div>
+            </div>
+            <div style="margin-top:12px;padding:9px;background:rgba(155,89,182,0.1);border-radius:10px;font-size:0.83rem;color:rgba(255,255,255,0.7);text-align:center;">
+                💡 المتصدر في نهاية الموسم يحصل على <strong style="color:#bb86fc;">لقب "بطل الأسبوع"</strong> + 500 XP إضافية!
+            </div>
+        </div>`;
     }
 
     /* ================================================================
@@ -5874,13 +6963,13 @@
                 const b = document.createElement('button');
                 b.className = 'quiz-btn shiny-btn';
                 b.textContent = opt + (opt === 'صواب' ? ' ✅' : ' ❌');
-                b.onclick = () => eliteCheckBattleAnswer(opt, q.answer);
+                b.onclick = () => eliteCheckBattleAnswer(opt, q.id || 0);
                 optArea.appendChild(b);
             });
         } else if (_qt === 'short' || _qt === 'essay') {
             optArea.innerHTML = `<input type="text" id="elite-short-input" class="short-answer-input" style="grid-column:1/-1;" placeholder="إجابتك..."
-                onkeypress="if(event.key==='Enter') eliteCheckBattleAnswer(this.value,'${q.answer.replace(/'/g,"\\'")}')">
-                <button class="nav-btn shiny-btn" style="grid-column:1/-1;" onclick="eliteCheckBattleAnswer(document.getElementById('elite-short-input').value,'${q.answer.replace(/'/g,"\\'")}')">ضربة السيف ⚔️</button>`;
+                onkeypress="if(event.key==='Enter') eliteCheckBattleAnswer(this.value,q.id||0)">
+                <button class="nav-btn shiny-btn" style="grid-column:1/-1;" onclick="eliteCheckBattleAnswer(document.getElementById('elite-short-input').value,q.id||0)">ضربة السيف ⚔️</button>`;
         } else {
             const sep  = (q.options||'').includes('|') ? '|' : ',';
             const opts = (q.options||'').split(sep).map(o=>o.trim()).filter(Boolean);
@@ -5889,28 +6978,31 @@
                     const b = document.createElement('button');
                     b.className = 'quiz-btn shiny-btn';
                     b.textContent = opt;
-                    b.onclick = () => eliteCheckBattleAnswer(opt, q.answer);
+                    b.onclick = () => eliteCheckBattleAnswer(opt, q.id || 0);
                     optArea.appendChild(b);
                 });
             }
         }
     }
 
-    async function eliteCheckBattleAnswer(user, correct) {
+    async function eliteCheckBattleAnswer(user, qIdOrCorrect) {
         const optArea = document.getElementById('elite-battle-options');
         document.querySelectorAll('#elite-battle-options .quiz-btn, #elite-battle-options .nav-btn').forEach(b => b.disabled = true);
 
         // فحص عبر السيرفر
         const q = eliteBattleQs[eliteBattleIdx];
         let isCorrect, correctFromServer;
-        if (q && q.id) {
-            const verdict = await checkAnswerServer(q.id, user);
+        const eliteQid = (q && q.id) ? q.id
+                       : (typeof qIdOrCorrect === 'number' && qIdOrCorrect > 0) ? qIdOrCorrect : null;
+        if (eliteQid) {
+            const verdict = await checkAnswerServer(eliteQid, user);
             isCorrect = verdict.is_correct;
-            correctFromServer = verdict.correct_answer || correct || '';
+            correctFromServer = verdict.correct_answer || '';
         } else {
-            const norm = s => (s||'').trim().replace(/\s+/g,' ');
-            isCorrect = norm(user) === norm(correct);
-            correctFromServer = correct;
+            const correctLocal = typeof qIdOrCorrect === 'string' ? qIdOrCorrect : '';
+            const norm = s => (s||'').trim().replace(/\s+/g,' ').toLowerCase();
+            isCorrect = norm(user) === norm(correctLocal);
+            correctFromServer = correctLocal;
         }
 
         document.getElementById('elite-battle-feedback').innerHTML =
@@ -6001,24 +7093,24 @@
             if (!data.length) { el.innerHTML='<p style="opacity:0.5;text-align:center;padding:20px;">لا يوجد فائقون بعد</p>'; return; }
             const med = ['🥇','🥈','🥉'];
             const myId = currentUser?.id;
-            el.innerHTML = data.map((m,i) => `
-                <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);
-                    ${m.id===myId?'background:rgba(243,156,18,0.06);border-radius:8px;padding-right:8px;':''  }">
-                    <div style="font-size:1.4rem;width:32px;text-align:center;">${med[i]||i+1}</div>
-                    <div style="flex:1;">
-                        <div style="font-weight:bold;color:${m.id===myId?'#f39c12':'#fff'};">⭐ ${m.full_name} ${m.id===myId?'(أنت)':''}</div>
-                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.4);">${m.grade}</div>
-                    </div>
-                    <div style="text-align:center;min-width:60px;">
-                        <div style="color:${m.accuracy>=85?'#2ecc71':m.accuracy>=60?'#f39c12':'#e74c3c'};font-weight:bold;">${m.accuracy}%</div>
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">دقة</div>
-                    </div>
-                    <div style="text-align:center;min-width:60px;">
-                        <div style="color:var(--gold);font-weight:900;">${m.xp}</div>
-                        <div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">XP</div>
-                    </div>
-                </div>`).join('');
-        } catch(e) {}
+            el.innerHTML = data.map(function(hero, i) {
+                var isMe = hero.id === myId;
+                var hl = isMe ? 'background:rgba(243,156,18,0.06);border-radius:8px;padding-right:8px;' : '';
+                var nc = isMe ? '#f39c12' : '#fff';
+                var ac = hero.accuracy >= 85 ? '#2ecc71' : hero.accuracy >= 60 ? '#f39c12' : '#e74c3c';
+                return '<div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.07);' + hl + '">'
+                    + '<div style="font-size:1.4rem;width:32px;text-align:center;">' + (med[i] || (i+1)) + '</div>'
+                    + '<div style="flex:1;"><div style="font-weight:bold;color:' + nc + ';">⭐ ' + (hero.full_name||'') + (isMe?' (أنت)':'') + '</div>'
+                    + '<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);">' + (hero.grade||'') + '</div></div>'
+                    + '<div style="text-align:center;min-width:60px;"><div style="color:' + ac + ';font-weight:bold;">' + hero.accuracy + '%</div>'
+                    + '<div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">دقة</div></div>'
+                    + '<div style="text-align:center;min-width:60px;"><div style="color:var(--gold);font-weight:900;">' + hero.xp + '</div>'
+                    + '<div style="font-size:0.7rem;color:rgba(255,255,255,0.3);">XP</div></div>'
+                    + '</div>';
+            }).join('');
+        } catch(e) {
+            _warn('[eliteLoadBoard]', e);
+        }
     }
     // ── END ELITE STUDENT JS ──
 
