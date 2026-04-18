@@ -1112,6 +1112,51 @@ async def student_heartbeat(student_id: int = Form(...)):
         return {"status": "skipped"}
 
 
+@app.post("/api/student/update_profile")
+async def student_update_profile(
+    student_id: int = Form(...),
+    full_name: str  = Form(default=""),
+    school_name: str = Form(default=""),
+    avatar_url: str = Form(default="")
+):
+    """
+    تحديث بيانات ملف الطالب الشخصي (الاسم، المدرسة، الأفاتار).
+    لا يمكن تغيير اسم المستخدم أو كلمة المرور أو الصف من هنا.
+    """
+    update_data = {}
+    if full_name.strip():
+        update_data["full_name"] = full_name.strip()[:120]
+    if school_name.strip():
+        update_data["school_name"] = school_name.strip()[:120]
+    if avatar_url.strip():
+        update_data["avatar_url"] = avatar_url.strip()[:500]
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="لا توجد بيانات للتحديث")
+
+    try:
+        res = supabase.table("students").update(update_data).eq("id", student_id).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الطالب غير موجود")
+        # نُرجع البيانات المحدّثة (بدون كلمة المرور)
+        student = res.data[0]
+        student.pop("password", None)
+        return {"status": "success", "user": student}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل تحديث البيانات: {str(e)}")
+
+
+@app.get("/api/config/public")
+async def get_public_config():
+    """يُعيد إعدادات عامة آمنة للواجهة (مثل Supabase URL و anon key للـ Realtime)"""
+    return {
+        "supabase_url": SUPABASE_URL,
+        "supabase_key": SUPABASE_KEY,  # anon key — آمن للعرض العام
+    }
+
+
 @app.get("/api/leaderboard")
 async def get_lb():
     res = supabase.table("results").select("student_name, score").execute().data
