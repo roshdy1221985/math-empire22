@@ -1037,6 +1037,52 @@
             h3 { font-size: 1.05rem !important; }
         }
 
+        /* ═══ تايمر التحدي ═══ */
+        .challenge-timer {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .timer-ring-wrap {
+            position: relative;
+            width: 52px; height: 52px;
+            flex-shrink: 0;
+        }
+        .timer-ring-svg { transform: rotate(-90deg); }
+        .timer-ring-bg  { fill: none; stroke: rgba(255,255,255,0.08); stroke-width: 4; }
+        .timer-ring-fill {
+            fill: none; stroke-width: 4;
+            stroke: var(--gold);
+            stroke-linecap: round;
+            transition: stroke-dashoffset 1s linear, stroke 0.3s;
+            stroke-dasharray: 138; /* 2π×22 */
+            stroke-dashoffset: 0;
+        }
+        .timer-ring-fill.warn  { stroke: #f39c12; }
+        .timer-ring-fill.danger{ stroke: #e74c3c; animation: timerPulse 0.5s infinite; }
+        .timer-num {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 900; font-size: 1rem; color: var(--gold);
+            transition: color 0.3s;
+        }
+        .timer-num.warn   { color: #f39c12; }
+        .timer-num.danger { color: #e74c3c; }
+        @keyframes timerPulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+        .timer-toggle {
+            display: flex; align-items: center; gap: 8px;
+            background: rgba(212,175,55,0.08);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 12px; padding: 8px 14px;
+            cursor: pointer; font-size: 0.88rem;
+            color: rgba(255,255,255,0.7);
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .timer-toggle:hover { background: rgba(212,175,55,0.15); color: var(--gold); }
+        .timer-toggle input[type=checkbox] { accent-color: var(--gold); width:16px; height:16px; cursor:pointer; }
+
         /* ═══ نافذة استئناف التحدي ═══ */
         @keyframes rmFadeIn  { from{opacity:0;} to{opacity:1;} }
         @keyframes rmSlideUp { from{transform:translateY(30px);opacity:0;} to{transform:translateY(0);opacity:1;} }
@@ -1428,6 +1474,21 @@
                 <button id="start-exam-btn" class="nav-btn active shiny-btn" style="font-size:1.3rem; padding:15px; margin:0 auto; max-width:300px; display:none;" onclick="startScheduledExam()">⏳ ابدأ الاختبار في وضع ملء الشاشة!</button>
             </div>
 
+            <!-- QUESTION OF THE DAY — سؤال اليوم ═══════════════ -->
+            <div id="qotd-card" class="tilt-card" style="margin-bottom:24px; display:none; background:linear-gradient(135deg,rgba(52,152,219,0.12),rgba(155,89,182,0.08)); border-color:rgba(52,152,219,0.4);">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                    <div style="font-size:2rem;filter:drop-shadow(0 0 8px rgba(52,152,219,0.5));">🌟</div>
+                    <div>
+                        <h3 style="color:#5dade2;font-family:'Amiri';margin:0;font-size:1.25rem;">سؤال اليوم الملكي</h3>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);" id="qotd-date">—</div>
+                    </div>
+                    <div id="qotd-badge" style="margin-inline-start:auto;background:rgba(46,204,113,0.2);border:1px solid #2ecc71;border-radius:10px;padding:4px 12px;font-size:0.78rem;color:#2ecc71;display:none;">✅ أجبت اليوم!</div>
+                </div>
+                <p id="qotd-question" style="font-size:1.15rem;font-weight:bold;margin:0 0 16px;line-height:1.6;">جاري تحميل السؤال...</p>
+                <div id="qotd-options" style="display:flex;flex-direction:column;gap:8px;"></div>
+                <div id="qotd-feedback" style="margin-top:12px;font-weight:bold;font-size:1.1rem;text-align:center;min-height:28px;"></div>
+            </div>
+
             <!-- PROFILE CARD — تصميم جديد -->
             <div class="profile-dashboard" id="profile-dashboard-el">
                 <div class="profile-stars" id="profile-stars-container"></div>
@@ -1695,9 +1756,24 @@
        فحص الإجابة عبر السيرفر (أمان: الإجابة مش محلياً)
        يعيد: { is_correct, correct_answer }
     ════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════
+       دالة مساعدة — fetch مع JWT token تلقائياً
+    ════════════════════════════════════════════════════ */
+    function getStudentToken() {
+        return currentUser?._token || localStorage.getItem('studentToken') || '';
+    }
+    async function authFetch(url, opts = {}) {
+        const token = getStudentToken();
+        if (token) {
+            opts.headers = opts.headers || {};
+            opts.headers['Authorization'] = 'Bearer ' + token;
+        }
+        return fetch(url, opts);
+    }
+
     async function checkAnswerServer(questionId, studentAnswer) {
         try {
-            const res = await fetch(`${API_URL}/api/student/check_answer`, {
+            const res = await authFetch(`${API_URL}/api/student/check_answer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1749,7 +1825,11 @@
     // Challenge state — scoped object to avoid global pollution
     let challengeState = {
         qs: [], index: 0, correct: 0, lesson: '',
-        selectedLesson: '', answersStatus: []
+        selectedLesson: '', answersStatus: [],
+        timerEnabled: false,   // هل التايمر مفعّل؟
+        timerSeconds: 60,      // ثواني لكل سؤال
+        _timerInterval: null,  // الـ interval الحالي
+        _timerLeft: 0          // الثواني المتبقية
     };
 
     /* ════════════════════════════════════════════════════════════
@@ -2104,6 +2184,8 @@
         if (isExamMode) return;
         switchView('dashboard');
         setActiveButton('btn-home');
+        // ═══ سؤال اليوم ═══
+        initQuestionOfTheDay();
         if (currentUser) {
             const avatar = currentUser.avatar_url || avatars[0];
             const avatarEl = document.getElementById('main-profile-avatar');
@@ -2394,7 +2476,7 @@
         setTimeout(() => {
             toggleLoader(false);
             let html = `
-            <div style="text-align:center; margin-bottom:40px;">
+            <div style="text-align:center; margin-bottom:30px;">
                 <h1 style="color:#e91e63; font-family:'Amiri'; font-size:3rem; filter:drop-shadow(0 0 10px #e91e63);">🏥 مستشفى الأرقام</h1>
                 <p style="opacity:0.7; font-size:1.1rem;">هنا تتعلم من أخطائك وتعود أقوى!</p>
             </div>`;
@@ -2402,27 +2484,126 @@
             if (mistakes.length === 0) {
                 html += `<div style="text-align:center; padding:60px; opacity:0.5;"><div style="font-size:5rem;">💪</div><h2>لا أخطاء مسجلة!</h2><p>أنت نظيف تماماً يا بطل. استمر في التألق!</p></div>`;
             } else {
-                html += `<p style="margin-bottom:20px; color:var(--gold);">لديك <strong>${mistakes.length}</strong> سؤال تحتاج إلى مراجعته:</p>`;
-                mistakes.slice(-20).forEach((m, idx) => {
-                    html += `
-                    <div class="mistake-item tilt-card" onclick="reviewMistake(${idx})">
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <div>
-                                <div style="font-weight:bold; margin-bottom:5px;">${esc(m.question || 'سؤال رقم ' + (idx+1))}</div>
-                                <div style="font-size:0.85rem; opacity:0.7;">درس: ${esc(m.lesson || 'غير محدد')}</div>
+
+                // ═══════════════════════════════════════════════════
+                // 📊 تحليل نقاط الضعف
+                // ═══════════════════════════════════════════════════
+                // 1. أكثر الدروس أخطاءً
+                const lessonCount = {};
+                const typeCount   = {};
+                mistakes.forEach(m => {
+                    const l = m.lesson || 'غير محدد';
+                    lessonCount[l] = (lessonCount[l] || 0) + 1;
+                    const t = m.q_type || 'غير محدد';
+                    typeCount[t] = (typeCount[t] || 0) + 1;
+                });
+
+                const topLessons = Object.entries(lessonCount)
+                    .sort((a,b) => b[1]-a[1]).slice(0, 5);
+                const maxCount = topLessons[0]?.[1] || 1;
+
+                // نوع السؤال بالعربية
+                const typeLabel = {
+                    'choice':'اختيار متعدد', 'mcq':'اختيار متعدد',
+                    'truefalse':'صح وخطأ', 'true_false':'صح وخطأ',
+                    'short':'إجابة قصيرة', 'essay':'مقالي'
+                };
+
+                html += `
+                <!-- ═══ لوحة التحليل ═══ -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-bottom:28px;">
+
+                    <!-- بطاقة الإحصائيات العامة -->
+                    <div style="background:rgba(233,30,99,0.08); border:1px solid rgba(233,30,99,0.3); border-radius:16px; padding:18px;">
+                        <h3 style="color:#e91e63; margin:0 0 14px; font-size:1rem;">📈 الإحصائيات</h3>
+                        <div style="display:flex; flex-direction:column; gap:8px;">
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="opacity:0.7;">إجمالي الأخطاء</span>
+                                <span style="color:#e91e63; font-weight:bold;">${mistakes.length}</span>
                             </div>
-                            <div style="color:#e91e63; font-size:1.5rem;">❌</div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="opacity:0.7;">دروس متأثرة</span>
+                                <span style="color:#f39c12; font-weight:bold;">${Object.keys(lessonCount).length}</span>
+                            </div>
+                            <div style="display:flex; justify-content:space-between; font-size:0.9rem;">
+                                <span style="opacity:0.7;">أكثر نوع خطأ</span>
+                                <span style="color:#9b59b6; font-weight:bold;">${typeLabel[Object.entries(typeCount).sort((a,b)=>b[1]-a[1])[0]?.[0]] || '—'}</span>
+                            </div>
                         </div>
-                        <div style="margin-top:10px; padding:8px 12px; background:rgba(233,30,99,0.08); border-radius:8px; font-size:0.85rem; color:rgba(255,255,255,0.7);">
+                    </div>
+
+                    <!-- بطاقة نوع السؤال -->
+                    <div style="background:rgba(155,89,182,0.08); border:1px solid rgba(155,89,182,0.3); border-radius:16px; padding:18px;">
+                        <h3 style="color:#9b59b6; margin:0 0 14px; font-size:1rem;">🎯 الأخطاء حسب النوع</h3>
+                        ${Object.entries(typeCount).sort((a,b)=>b[1]-a[1]).map(([t,c]) => {
+                            const pct = Math.round(c / mistakes.length * 100);
+                            return `<div style="margin-bottom:8px;">
+                                <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:3px;">
+                                    <span>${typeLabel[t] || t}</span><span style="color:#9b59b6;">${c} خطأ</span>
+                                </div>
+                                <div style="height:5px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden;">
+                                    <div style="height:100%; width:${pct}%; background:linear-gradient(90deg,#9b59b6,#8e44ad); border-radius:99px;"></div>
+                                </div>
+                            </div>`;
+                        }).join('')}
+                    </div>
+                </div>
+
+                <!-- ═══ خريطة حرارية للدروس ═══ -->
+                <div style="background:rgba(231,76,60,0.06); border:1px solid rgba(231,76,60,0.25); border-radius:16px; padding:18px; margin-bottom:24px;">
+                    <h3 style="color:#e74c3c; margin:0 0 16px; font-size:1rem;">🔥 أكثر الدروس أخطاءً</h3>
+                    ${topLessons.map(([lesson, count], i) => {
+                        const pct  = Math.round(count / maxCount * 100);
+                        const heat = pct >= 80 ? '#e74c3c' : pct >= 50 ? '#f39c12' : '#3498db';
+                        return `<div style="margin-bottom:12px;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                <span style="font-size:0.88rem; font-weight:bold; display:flex; align-items:center; gap:6px;">
+                                    <span style="color:${heat};">${i===0?'🔥':i===1?'⚠️':'📌'}</span>
+                                    ${esc(lesson)}
+                                </span>
+                                <span style="font-size:0.82rem; color:${heat}; font-weight:bold;">${count} خطأ</span>
+                            </div>
+                            <div style="height:8px; background:rgba(255,255,255,0.06); border-radius:99px; overflow:hidden;">
+                                <div style="height:100%; width:${pct}%; background:${heat}; border-radius:99px; transition:width 1s;"></div>
+                            </div>
+                        </div>`;
+                    }).join('')}
+                    ${topLessons.length > 0 ? `
+                    <div style="margin-top:14px; padding:10px; background:rgba(52,152,219,0.1); border-radius:10px; font-size:0.85rem; color:rgba(255,255,255,0.7);">
+                        💡 <strong style="color:#3498db;">توصية:</strong> ركّز على درس
+                        <strong style="color:var(--gold);">${esc(topLessons[0][0])}</strong>
+                        — فيه ${topLessons[0][1]} أخطاء. ادخله وتدرّب مجدداً!
+                        <button onclick="prepareChoice('${topLessons[0][0].replace(/'/g,"\\'")}')"
+                            style="display:block; margin-top:8px; background:linear-gradient(135deg,#3498db,#2980b9); border:none; color:#fff; padding:8px 18px; border-radius:8px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                            🚀 اذهب للدرس الآن
+                        </button>
+                    </div>` : ''}
+                </div>
+                <!-- ═══ نهاية التحليل ═══ -->
+
+                <p style="margin-bottom:16px; color:var(--gold);font-size:0.92rem;">📝 آخر ${Math.min(mistakes.length, 20)} خطأ مسجّل:</p>
+                ${mistakes.slice(-20).reverse().map((m, idx) => {
+                    const realIdx = mistakes.length - 1 - idx;
+                    return `<div class="mistake-item tilt-card">
+                        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                            <div style="flex:1; min-width:0;">
+                                <div style="font-weight:bold; margin-bottom:4px; font-size:0.92rem;">${esc(m.question || 'سؤال رقم '+(realIdx+1))}</div>
+                                <div style="font-size:0.78rem; opacity:0.6;">📖 ${esc(m.lesson || 'غير محدد')} · ${esc(m.date || '')}</div>
+                            </div>
+                            <div style="color:#e91e63; font-size:1.3rem; flex-shrink:0; margin-right:10px;">❌</div>
+                        </div>
+                        <div style="margin-top:10px; padding:8px 12px; background:rgba(233,30,99,0.08); border-radius:8px; font-size:0.83rem; color:rgba(255,255,255,0.65);">
                             💡 جرّب الإجابة من جديد لتعرف الصحيح
                         </div>
-                        <button style="margin-top:10px; padding:6px 18px; background:rgba(233,30,99,0.2); border:1px solid #e91e63; color:#e91e63; border-radius:8px; cursor:pointer; font-family:'Tajawal';" onclick="event.stopPropagation(); retryMistake(${idx})">🔄 إعادة المحاولة</button>
+                        <button style="margin-top:10px; padding:6px 18px; background:rgba(233,30,99,0.2); border:1px solid #e91e63; color:#e91e63; border-radius:8px; cursor:pointer; font-family:'Cairo';" onclick="retryMistake(${realIdx})">🔄 إعادة المحاولة</button>
                     </div>`;
-                });
-                html += `<div style="text-align:center; margin-top:30px;">
+                }).join('')}
+
+                <div style="text-align:center; margin-top:30px;">
                     <button class="nav-btn shiny-btn" style="max-width:250px; margin:0 auto; background:rgba(233,30,99,0.2); border-color:#e91e63; color:#e91e63;" onclick="clearMistakes()">🗑️ مسح سجل الأخطاء</button>
                 </div>`;
             }
+
             html += `<div style="text-align:center; margin-top:30px;"><button class="nav-btn shiny-btn active" style="max-width:200px; margin:0 auto;" onclick="openHome()">🏠 عودة للرئيسية</button></div>`;
             document.getElementById('other-content-area').innerHTML = html;
             initTiltEffect();
@@ -3597,25 +3778,53 @@
             ? document.getElementById('exam-fullscreen-content')
             : document.getElementById('content-area');
 
+        _stopChallengeTimer(); // أوقف التايمر القديم قبل عرض السؤال الجديد
+
+        // استرجاع تفضيل التايمر من localStorage
+        const savedPref = localStorage.getItem('timerPref');
+        if (savedPref !== null) challengeState.timerEnabled = savedPref === '1';
+
         // Update sticky progress bar
         const pct = (challengeState.index / challengeState.qs.length) * 100;
         showStickyProgress(pct);
 
         const progressBar = renderProgressBar();
-        let headerHtml = `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--gold); padding-bottom:15px; margin-bottom:25px;">`;
+
+        // ── header ──
+        let headerHtml = `<div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid var(--gold); padding-bottom:15px; margin-bottom:25px; flex-wrap:wrap; gap:10px;">`;
         if (isExamMode) {
             headerHtml += `<h2 style="color:var(--gold);">السؤال ${challengeState.index + 1} من ${challengeState.qs.length}</h2>`;
         } else {
-            headerHtml += `<h2 style="color:var(--gold);">تحدي: ${challengeState.lesson}</h2>
-                <button onclick="exitExamMode()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:5px 15px; border-radius:8px; cursor:pointer;" class="no-print">❌ انسحاب</button>`;
+            headerHtml += `<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                <h2 style="color:var(--gold);margin:0;">تحدي: ${esc(challengeState.lesson)}</h2>
+                <!-- زر تفعيل التايمر -->
+                <label class="timer-toggle no-print">
+                    <input type="checkbox" id="timer-checkbox" ${challengeState.timerEnabled?'checked':''} onchange="toggleChallengeTimer(this.checked)">
+                    ⏱️ تايمر ${challengeState.timerSeconds}ث
+                </label>
+            </div>
+            <button onclick="exitExamMode()" style="background:transparent; border:1px solid #ff5e5e; color:#ff5e5e; padding:5px 15px; border-radius:8px; cursor:pointer;" class="no-print">❌ انسحاب</button>`;
         }
+
+        // ── حلقة التايمر الدائرية ──
+        const timerDisplay = `
+        <div id="ch-timer-wrap" class="challenge-timer no-print" style="justify-content:center;margin-bottom:12px;display:${challengeState.timerEnabled && !isExamMode ? 'flex' : 'none'};">
+            <div class="timer-ring-wrap">
+                <svg class="timer-ring-svg" width="52" height="52" viewBox="0 0 52 52">
+                    <circle class="timer-ring-bg"   cx="26" cy="26" r="22"/>
+                    <circle class="timer-ring-fill" id="ch-timer-ring" cx="26" cy="26" r="22"/>
+                </svg>
+                <div class="timer-num" id="ch-timer-num">${challengeState.timerSeconds}</div>
+            </div>
+            <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);align-self:center;">ثانية / سؤال</div>
+        </div>`;
+
         headerHtml += `</div>`;
 
-        let html = `${progressBar}${headerHtml}<div>`;
+        let html = `${progressBar}${headerHtml}${timerDisplay}<div>`;
         if (q.image_url) html += `<div style="text-align:center;"><img src="${q.image_url}" class="question-image"></div>`;
-        html += `<p style="font-size:1.3rem; margin-bottom:15px;">${q.question}</p>`;
+        html += `<p style="font-size:1.3rem; margin-bottom:15px;">${esc(q.question)}</p>`;
 
-        // زر التلميح في التحدي
         html += `<div style="margin-bottom:20px;">
             <button class="hint-btn" onclick="useHintChallenge()">🧙‍♂️ مساعدة الحكيم (-50 XP)</button>
             <span id="hint-display"></span>
@@ -3660,7 +3869,81 @@
                 });
             }
         }
+
+        // ═══ ابدأ التايمر بعد عرض الأسئلة ═══
+        setTimeout(() => _startChallengeTimer(), 100);
+    }
+
+    /* ═══════════════════════════════════════════════
+       ⏱️ تايمر التحدي
+    ═══════════════════════════════════════════════ */
+    function _stopChallengeTimer() {
+        if (challengeState._timerInterval) {
+            clearInterval(challengeState._timerInterval);
+            challengeState._timerInterval = null;
         }
+    }
+
+    function _startChallengeTimer() {
+        _stopChallengeTimer();
+        if (!challengeState.timerEnabled || isExamMode) return;
+
+        challengeState._timerLeft = challengeState.timerSeconds;
+        const total = challengeState.timerSeconds;
+        const CIRCUMFERENCE = 138; // 2π×22
+
+        const updateUI = () => {
+            const left = challengeState._timerLeft;
+            const pct  = left / total;
+            const ring = document.getElementById('ch-timer-ring');
+            const num  = document.getElementById('ch-timer-num');
+            if (!ring || !num) return;
+
+            // شريط دائري
+            ring.style.strokeDashoffset = String(CIRCUMFERENCE * (1 - pct));
+            num.textContent = left;
+
+            // ألوان حسب الوقت
+            const cls = left <= 5 ? 'danger' : left <= Math.floor(total * 0.3) ? 'warn' : '';
+            ring.className = 'timer-ring-fill' + (cls ? ' '+cls : '');
+            num.className  = 'timer-num'       + (cls ? ' '+cls : '');
+
+            // اهتزاز عند آخر 5 ثواني
+            if (left === 5 && 'vibrate' in navigator) navigator.vibrate([100,50,100]);
+        };
+
+        updateUI();
+
+        challengeState._timerInterval = setInterval(() => {
+            challengeState._timerLeft--;
+            updateUI();
+            if (challengeState._timerLeft <= 0) {
+                _stopChallengeTimer();
+                // انتهى الوقت → نسجّل خطأ وننتقل للتالي
+                const f = document.getElementById('feedback');
+                if (f) f.innerHTML = `<span style="color:#e74c3c; font-size:1.3rem;">⏰ انتهى الوقت!</span>`;
+                document.querySelectorAll('.quiz-btn, .nav-btn').forEach(b => b.disabled = true);
+                const q = challengeState.qs[challengeState.index];
+                if (q) saveMistake(q, '(لم يُجب)');
+                challengeState.answersStatus[challengeState.index] = false;
+                challengeState.index++;
+                saveProgress();
+                setTimeout(() => {
+                    if (challengeState.index < challengeState.qs.length) renderCurrentQuestion();
+                    else { if (isExamMode) clearInterval(examTimerInterval); finishChallenge(false); }
+                }, 1800);
+            }
+        }, 1000);
+    }
+
+    function toggleChallengeTimer(enabled) {
+        challengeState.timerEnabled = enabled;
+        const timerWrap = document.getElementById('ch-timer-wrap');
+        if (timerWrap) timerWrap.style.display = enabled ? 'flex' : 'none';
+        if (enabled) _startChallengeTimer();
+        else _stopChallengeTimer();
+        try { localStorage.setItem('timerPref', enabled ? '1' : '0'); } catch(e){}
+    }
 
     /* زر التلميح في التحدي */
     function useHintChallenge() {
@@ -3704,6 +3987,7 @@
     const phrasesWrong   = ['حاول يا بطل! 💪','قريبة! ركز شوي 🧐','تعلم من خطأك وانهض! 🛡️'];
 
     async function checkAnswer(user, correct) {
+        _stopChallengeTimer(); // أوقف التايمر فور الإجابة
         document.querySelectorAll('.quiz-btn').forEach(btn => btn.disabled = true);
         const f = document.getElementById('feedback');
         const q = challengeState.qs[challengeState.index];
@@ -3929,6 +4213,118 @@
        🔴 SUPABASE REALTIME — 4 قنوات مباشرة
        تحديث فوري بدون refresh: أسئلة، نتائج، لوحة، اختبارات
     ════════════════════════════════════════════════════════ */
+    /* ════════════════════════════════════════════════════════
+       🌟 سؤال اليوم الملكي
+       — يختار سؤالاً واحداً يومياً بناءً على التاريخ
+       — يُحفظ في localStorage (هل أجاب الطالب اليوم؟)
+       — يظهر في الداشبورد الرئيسي فقط
+    ════════════════════════════════════════════════════════ */
+    async function initQuestionOfTheDay() {
+        if (!currentUser) return;
+        const card = document.getElementById('qotd-card');
+        if (!card) return;
+
+        // تاريخ اليوم كـ key فريد
+        const todayKey = new Date().toISOString().slice(0, 10); // "2026-04-18"
+        const storeKey = `qotd_${currentUser.username}_${todayKey}`;
+        const alreadyAnswered = localStorage.getItem(storeKey);
+
+        // جلب الأسئلة من السيرفر
+        let pool = [];
+        try {
+            const grade = encodeURIComponent(currentUser.grade || '');
+            const r = await fetch(`${API_URL}/api/student/questions?grade=${grade}`);
+            if (r.ok) pool = await r.json();
+        } catch(e) { return; } // لا نُظهر البطاقة لو السيرفر مش شغّال
+
+        if (!pool || pool.length === 0) return;
+
+        // اختيار سؤال ثابت بناءً على التاريخ (حتمي، مش عشوائي)
+        const dayNum = Math.floor(Date.now() / 86400000);
+        const q = pool[dayNum % pool.length];
+        if (!q) return;
+
+        // ── تحديث الـ UI ──
+        card.style.display = 'block';
+        document.getElementById('qotd-date').textContent =
+            new Date().toLocaleDateString('ar-EG', { weekday:'long', day:'numeric', month:'long' });
+        document.getElementById('qotd-question').textContent = q.question || '';
+
+        const optsEl  = document.getElementById('qotd-options');
+        const feedEl  = document.getElementById('qotd-feedback');
+        const badgeEl = document.getElementById('qotd-badge');
+
+        if (alreadyAnswered) {
+            // أجاب سابقاً — اعرض نتيجته
+            badgeEl.style.display = 'block';
+            optsEl.innerHTML = '';
+            const was = JSON.parse(alreadyAnswered);
+            feedEl.innerHTML = was.correct
+                ? `<span style="color:#2ecc71;">✅ أجبت بشكل صحيح — +50 XP 🌟</span>`
+                : `<span style="color:#e74c3c;">❌ أخطأت — جرّب غداً سؤالاً جديداً!</span>`;
+            return;
+        }
+
+        // ── بناء الخيارات ──
+        const _sep  = (q.options||'').includes('|') ? '|' : ',';
+        const _qt   = (q.q_type||'').toLowerCase().replace('_','');
+        const _isTF = _qt === 'truefalse' || _qt === 'tf' || _qt === 'true_false';
+
+        const answerQotd = async (chosen) => {
+            // تعطيل كل الأزرار فوراً
+            optsEl.querySelectorAll('button').forEach(b => b.disabled = true);
+            feedEl.innerHTML = `<span style="color:#f39c12;">⏳ جاري التحقق...</span>`;
+
+            // فحص عبر السيرفر
+            let isCorrect = false;
+            if (q.id) {
+                const v = await checkAnswerServer(q.id, chosen);
+                isCorrect = v.is_correct;
+            }
+
+            // حفظ النتيجة
+            localStorage.setItem(storeKey, JSON.stringify({ correct: isCorrect, chosen }));
+            badgeEl.style.display = 'block';
+
+            if (isCorrect) {
+                feedEl.innerHTML = `<span style="color:#2ecc71;">🎉 ممتاز! إجابة صحيحة — +50 XP 🌟</span>`;
+                updateStudentXP(50);
+                if ('vibrate' in navigator) navigator.vibrate([50,30,50]);
+                confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 } });
+            } else {
+                feedEl.innerHTML = `<span style="color:#e74c3c;">❌ للأسف خطأ — حاول غداً!</span>`;
+            }
+        };
+
+        if (_isTF) {
+            optsEl.innerHTML = `
+                <button onclick="(async()=>await answerQotd('صواب'))()" style="background:rgba(46,204,113,0.15);border:1px solid #2ecc71;color:#2ecc71;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;">صواب ✅</button>
+                <button onclick="(async()=>await answerQotd('خطأ'))()"  style="background:rgba(231,76,60,0.15);border:1px solid #e74c3c;color:#e74c3c;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.95rem;">خطأ ❌</button>`;
+        } else if (_qt === 'short' || _qt === 'essay') {
+            optsEl.innerHTML = `
+                <div style="display:flex;gap:8px;">
+                    <input id="qotd-input" type="text" placeholder="اكتب إجابتك..." autocomplete="off"
+                        style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(52,152,219,0.4);border-radius:10px;padding:10px 14px;color:#fff;font-family:'Cairo';font-size:0.95rem;"
+                        onkeypress="if(event.key==='Enter'){const v=this.value.trim();if(v)(async()=>await answerQotd(v))();}">
+                    <button onclick="const v=document.getElementById('qotd-input')?.value?.trim();if(v)(async()=>await answerQotd(v))()"
+                        style="background:linear-gradient(135deg,#3498db,#2980b9);border:none;color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;">إرسال ✅</button>
+                </div>`;
+            setTimeout(() => document.getElementById('qotd-input')?.focus(), 100);
+        } else {
+            const opts = (q.options||'').split(_sep).map(o=>o.trim()).filter(Boolean);
+            // نخلط الخيارات بناءً على التاريخ (ثابت لكل يوم)
+            const shuffled = [...opts].sort((a,b) => ((a+todayKey).length % 7) - ((b+todayKey).length % 7));
+            optsEl.innerHTML = shuffled.map(opt => `
+                <button onclick="(async()=>await answerQotd('${opt.replace(/'/g,"\\'")}'))()"
+                    style="background:rgba(52,152,219,0.1);border:1px solid rgba(52,152,219,0.35);color:#fff;padding:10px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-size:0.92rem;text-align:right;transition:all 0.2s;"
+                    onmouseover="this.style.background='rgba(52,152,219,0.25)'"
+                    onmouseout="this.style.background='rgba(52,152,219,0.1)'">${opt}</button>`).join('');
+        }
+
+        // جعل answerQotd متاحة للأزرار
+        window.answerQotd = answerQotd;
+    }
+
     function initRealtimeChannels() {
         if (!_supabase) return; // Realtime غير مهيّأ
 
@@ -4683,6 +5079,11 @@
             const data = await res.json();
             if (res.ok) {
                 const u = _applyUserDefaults(data.user);
+                // ═══ حفظ JWT token (للطلبات المستقبلية المحمية) ═══
+                if (data.access_token) {
+                    localStorage.setItem('studentToken', data.access_token);
+                    u._token = data.access_token;
+                }
                 localStorage.setItem('mathHero', JSON.stringify(u));
                 updateAllStudentsList(u);
                 location.reload();
