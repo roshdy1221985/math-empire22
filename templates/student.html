@@ -1446,6 +1446,11 @@
             <span class="btn-icon">⚔️</span><span class="sidebar-label">قبيلتك</span>
         </button>
 
+        <!-- أرشيفي الدراسي -->
+        <button class="nav-btn shiny-btn btn-archive" id="btn-archive" onclick="openMyArchive()">
+            <span class="btn-icon">📚</span><span class="sidebar-label">أرشيفي الدراسي</span>
+        </button>
+
         <!-- الدعم والاشتراك مدمجان -->
         <button class="nav-btn shiny-btn btn-citizens" id="btn-citizens" onclick="openCitizensPortal()">
             <span class="btn-icon">🛡️</span><span class="sidebar-label">الدعم الفني والاشتراك</span>
@@ -2407,6 +2412,8 @@
         // ═══ تقرير الأسبوع + أسلوب التعلم ═══
         renderWeeklyReport();
         renderLearningStyle();
+        // ═══ فحص السنة الدراسية (يوليو: تنبيه / أغسطس: احتفال) ═══
+        initAcademicYearCheck();
         if (currentUser) {
             const avatar = currentUser.avatar_url || avatars[0];
             const avatarEl = document.getElementById('main-profile-avatar');
@@ -4788,6 +4795,347 @@
 
         body.innerHTML = html;
         card.style.display = 'block';
+    }
+
+    /* ════════════════════════════════════════════════════════
+       🎓 نظام السنة الدراسية
+       — في يوليو: يظهر "ملخص السنة" + زر الشهادة
+       — في أغسطس: رسالة "تم الأرشفة" + بداية جديدة
+       — طوال السنة: صفحة "أرشيفي" متاحة
+    ════════════════════════════════════════════════════════ */
+    async function initAcademicYearCheck() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch(`${API_URL}/api/academic/current_year`);
+            if (!res.ok) return;
+            const info = await res.json();
+            
+            // يوليو = تحذير نهاية السنة
+            if (info.show_end_warning) {
+                _renderYearEndWarning(info);
+            }
+            
+            // بعد أغسطس: لو الطالب تم أرشفته، يظهر شعار "خريج"
+            const lastArchive = localStorage.getItem('archived_' + currentUser.username);
+            if (info.last_archived && info.last_archived !== lastArchive) {
+                localStorage.setItem('archived_' + currentUser.username, info.last_archived);
+                _celebrateArchival(info.last_archived);
+            }
+        } catch(e) { _warn('[academic_year]', e); }
+    }
+
+    function _renderYearEndWarning(info) {
+        const grid = document.getElementById('dashboard-insights-grid');
+        if (!grid) return;
+        // تحقق من عدم التكرار
+        if (document.getElementById('year-end-card')) return;
+        
+        const card = document.createElement('div');
+        card.id = 'year-end-card';
+        card.className = 'tilt-card insights-square';
+        card.style.cssText = 'margin:0; background:linear-gradient(135deg,rgba(243,156,18,0.15),rgba(231,76,60,0.08)); border:2px solid rgba(243,156,18,0.5); grid-column:1/-1;';
+        card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                <div style="font-size:2.2rem;filter:drop-shadow(0 0 10px rgba(243,156,18,0.7));">🎓</div>
+                <div style="flex:1;">
+                    <h3 style="color:#f39c12;font-family:'Amiri';margin:0;font-size:1.3rem;">السنة الدراسية ${info.current_year} تقترب من نهايتها!</h3>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);">في 1 أغسطس ستبدأ سنة جديدة بنقاط جديدة</div>
+                </div>
+            </div>
+            <p style="line-height:1.7; color:rgba(255,255,255,0.8); margin:10px 0;">
+                ⏳ <strong>ماذا سيحدث؟</strong><br>
+                • نقاط XP الحالية ستُحفظ في أرشيفك الدائم<br>
+                • ستبدأ السنة الجديدة بـ 0 XP + الصف التالي<br>
+                • <strong style="color:#f39c12;">تحتفظ بـ:</strong> الأوسمة، الأفاتار، الإطار الذهبي، ولقب "خريج"!
+            </p>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+                <button class="nav-btn active shiny-btn" style="flex:1;min-width:150px;padding:12px 16px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;" onclick="showYearSummary()">
+                    📊 ملخص سنتي
+                </button>
+                <button class="nav-btn shiny-btn" style="flex:1;min-width:150px;padding:12px 16px;" onclick="openMyArchive()">
+                    📚 أرشيفي
+                </button>
+            </div>`;
+        grid.appendChild(card);
+    }
+
+    async function showYearSummary() {
+        if (!currentUser) return;
+        try {
+            const res = await fetch(`${API_URL}/api/student/${currentUser.id}/year_summary`);
+            if (!res.ok) { showToast('❌ تعذّر جلب الملخص'); return; }
+            const data = await res.json();
+            _displayYearSummary(data);
+        } catch(e) { showToast('❌ خطأ في الاتصال'); }
+    }
+
+    function _displayYearSummary(data) {
+        const overlay = document.createElement('div');
+        overlay.id = 'year-summary-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(12px);overflow-y:auto;';
+        
+        const topLessonsHtml = (data.top_lessons || []).map((l, i) => {
+            const medal = ['🥇','🥈','🥉'][i] || '';
+            return `<div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(212,175,55,0.08);border-radius:10px;margin-bottom:6px;">
+                <div style="font-size:1.4rem;">${medal}</div>
+                <div style="flex:1;">${esc(l.lesson)}</div>
+                <div style="color:var(--gold);font-weight:900;">${l.xp} XP</div>
+            </div>`;
+        }).join('') || '<p style="opacity:0.5;text-align:center;">لم تكمل أي تحديات بعد</p>';
+        
+        overlay.innerHTML = `
+            <div style="background:linear-gradient(160deg,#1a1a2e,#040d21);border:2px solid var(--gold);border-radius:22px;padding:28px;max-width:520px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(212,175,55,0.4);">
+                <div style="font-size:3.5rem;margin-bottom:8px;">📊</div>
+                <h2 style="color:var(--gold);font-family:'Amiri';margin:0 0 6px;">ملخص السنة</h2>
+                <div style="color:rgba(255,255,255,0.6);margin-bottom:20px;">${data.academic_year}</div>
+                
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+                    <div style="background:rgba(212,175,55,0.1);border-radius:10px;padding:14px 6px;">
+                        <div style="font-size:1.8rem;font-weight:900;color:var(--gold);">${data.total_xp}</div>
+                        <div style="font-size:0.72rem;opacity:0.6;">XP كلي</div>
+                    </div>
+                    <div style="background:rgba(46,204,113,0.1);border-radius:10px;padding:14px 6px;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#2ecc71;">${data.challenges_done}</div>
+                        <div style="font-size:0.72rem;opacity:0.6;">تحدي</div>
+                    </div>
+                    <div style="background:rgba(52,152,219,0.1);border-radius:10px;padding:14px 6px;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#5dade2;">${data.avg_score}%</div>
+                        <div style="font-size:0.72rem;opacity:0.6;">المتوسط</div>
+                    </div>
+                </div>
+                
+                <h4 style="color:var(--gold);font-family:'Amiri';margin:16px 0 10px;">🏆 أفضل دروسك</h4>
+                <div style="text-align:right;margin-bottom:20px;">${topLessonsHtml}</div>
+                
+                <div style="display:flex;gap:10px;">
+                    <button onclick="generateYearCertificate(${JSON.stringify(data).replace(/"/g,'&quot;')})" style="flex:1;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;border:none;padding:12px;border-radius:12px;font-weight:bold;cursor:pointer;">
+                        📜 تحميل الشهادة
+                    </button>
+                    <button onclick="document.getElementById('year-summary-overlay').remove()" style="flex:0 0 auto;background:transparent;color:#fff;border:1px solid rgba(255,255,255,0.3);padding:12px 18px;border-radius:12px;cursor:pointer;">
+                        ✖
+                    </button>
+                </div>
+            </div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+    }
+
+    async function generateYearCertificate(data) {
+        if (!data || !currentUser) return;
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = 1080;
+        canvas.height = 1080;
+        const ctx = canvas.getContext('2d');
+        
+        // خلفية فاخرة
+        const bgGrad = ctx.createLinearGradient(0, 0, 1080, 1080);
+        bgGrad.addColorStop(0, '#0f0c29');
+        bgGrad.addColorStop(0.5, '#302b63');
+        bgGrad.addColorStop(1, '#24243e');
+        ctx.fillStyle = bgGrad;
+        ctx.fillRect(0, 0, 1080, 1080);
+        
+        // زخارف ذهبية
+        ctx.fillStyle = 'rgba(212, 175, 55, 0.3)';
+        for (let i = 0; i < 120; i++) {
+            const x = Math.random() * 1080;
+            const y = Math.random() * 1080;
+            const r = Math.random() * 3 + 1;
+            ctx.beginPath();
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        
+        // إطار مزدوج
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(30, 30, 1020, 1020);
+        ctx.strokeStyle = 'rgba(212,175,55,0.4)';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(55, 55, 970, 970);
+        
+        // العنوان
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 60px "Amiri", serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('🎓 شهادة نهاية السنة 🎓', 540, 150);
+        
+        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+        ctx.font = '30px "Cairo", sans-serif';
+        ctx.fillText('إمبراطورية الرياضيات — الأستاذ رشدي سيد', 540, 200);
+        
+        // خط فاصل
+        ctx.strokeStyle = '#d4af37';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(150, 235);
+        ctx.lineTo(930, 235);
+        ctx.stroke();
+        
+        // اسم الطالب
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 55px "Cairo", sans-serif';
+        ctx.fillText(data.student?.full_name || currentUser.full_name, 540, 330);
+        
+        ctx.fillStyle = 'rgba(212,175,55,0.8)';
+        ctx.font = '28px "Cairo", sans-serif';
+        ctx.fillText(data.student?.grade || currentUser.grade, 540, 380);
+        
+        // السنة الدراسية
+        ctx.fillStyle = '#fcf6ba';
+        ctx.font = 'bold 38px "Amiri", serif';
+        ctx.fillText('السنة الدراسية ' + data.academic_year, 540, 450);
+        
+        // بطاقة الإحصائيات
+        const cardY = 510;
+        ctx.fillStyle = 'rgba(212,175,55,0.08)';
+        ctx.strokeStyle = 'rgba(212,175,55,0.5)';
+        ctx.lineWidth = 2;
+        if (ctx.roundRect) {
+            ctx.beginPath();
+            ctx.roundRect(140, cardY, 800, 340, 20);
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.fillRect(140, cardY, 800, 340);
+            ctx.strokeRect(140, cardY, 800, 340);
+        }
+        
+        // الإحصائيات الثلاث
+        const statsY = cardY + 80;
+        const drawStat = (x, value, label, color) => {
+            ctx.fillStyle = color;
+            ctx.font = 'bold 72px "Cairo", sans-serif';
+            ctx.fillText(String(value), x, statsY);
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.font = '22px "Cairo", sans-serif';
+            ctx.fillText(label, x, statsY + 40);
+        };
+        drawStat(280, data.total_xp, 'XP كلي', '#d4af37');
+        drawStat(540, data.challenges_done, 'تحدي', '#2ecc71');
+        drawStat(800, data.avg_score + '%', 'المتوسط', '#5dade2');
+        
+        // أفضل الدروس
+        ctx.fillStyle = '#d4af37';
+        ctx.font = 'bold 26px "Amiri", serif';
+        ctx.fillText('🏆 أفضل الدروس', 540, cardY + 200);
+        
+        ctx.font = '22px "Cairo", sans-serif';
+        ctx.fillStyle = '#fff';
+        const medals = ['🥇','🥈','🥉'];
+        (data.top_lessons || []).slice(0, 3).forEach((l, i) => {
+            const txt = `${medals[i]} ${(l.lesson||'').slice(0,35)} — ${l.xp} XP`;
+            ctx.fillText(txt, 540, cardY + 250 + i * 35);
+        });
+        
+        // اللقب أسفل
+        ctx.fillStyle = '#fcf6ba';
+        ctx.font = 'bold 36px "Amiri", serif';
+        ctx.fillText('🎖️ خريج السنة ' + data.academic_year, 540, 920);
+        
+        // التاريخ
+        ctx.fillStyle = 'rgba(255,255,255,0.5)';
+        ctx.font = '22px "Cairo", sans-serif';
+        ctx.fillText(new Date().toLocaleDateString('ar-EG', { year:'numeric', month:'long', day:'numeric' }), 540, 980);
+        
+        // تحويل وتنزيل
+        canvas.toBlob(blob => {
+            if (!blob) { showToast('❌ فشل توليد الشهادة'); return; }
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `certificate_${data.academic_year}_${currentUser.username}.png`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast('✅ تم تحميل الشهادة!');
+        }, 'image/png', 0.95);
+    }
+
+    async function openMyArchive() {
+        if (!currentUser) return;
+        toggleLoader(true);
+        switchView('other');
+        try {
+            const res = await fetch(`${API_URL}/api/student/archive/${currentUser.id}`);
+            if (!res.ok) throw new Error('failed');
+            const data = await res.json();
+            _renderArchivePage(data);
+        } catch(e) {
+            document.getElementById('other-content-area').innerHTML = '<h2 style="text-align:center;padding:60px;">لم نستطع جلب الأرشيف</h2>';
+        }
+        toggleLoader(false);
+    }
+
+    function _renderArchivePage(data) {
+        const area = document.getElementById('other-content-area');
+        if (!area) return;
+        
+        if (!data.archives || data.archives.length === 0) {
+            area.innerHTML = `
+                <div style="text-align:center; padding:60px 20px;">
+                    <div style="font-size:4rem; margin-bottom:14px;">📚</div>
+                    <h1 style="color:var(--gold);font-family:'Amiri';">أرشيفي الدراسي</h1>
+                    <p style="opacity:0.6;margin-top:14px;line-height:1.7;">لا يوجد سنوات مؤرشفة بعد.<br>في نهاية كل سنة، سيتم حفظ إنجازاتك هنا للأبد 🎓</p>
+                    <button class="nav-btn shiny-btn active" style="max-width:250px;margin:20px auto 0;" onclick="openHome()">🏠 العودة للرئيسية</button>
+                </div>`;
+            return;
+        }
+        
+        const cards = data.archives.map(a => {
+            const color = a.avg_score >= 85 ? '#2ecc71' : a.avg_score >= 60 ? '#f39c12' : '#e74c3c';
+            return `<div class="tilt-card" style="margin-bottom:18px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(52,152,219,0.05));border:2px solid rgba(212,175,55,0.3);padding:20px;">
+                <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px;flex-wrap:wrap;">
+                    <div style="font-size:2.2rem;">🎓</div>
+                    <div style="flex:1;min-width:180px;">
+                        <h3 style="color:var(--gold);font-family:'Amiri';margin:0;font-size:1.4rem;">السنة ${a.academic_year}</h3>
+                        <div style="font-size:0.85rem;opacity:0.7;">${esc(a.grade||'')} — المرتبة #${a.rank_in_grade || '—'}</div>
+                    </div>
+                    <div style="background:${color}22;color:${color};padding:6px 14px;border-radius:10px;font-weight:bold;border:1px solid ${color}44;">
+                        ${a.avg_score}%
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:12px;">
+                    <div style="text-align:center;background:rgba(212,175,55,0.05);padding:10px;border-radius:10px;">
+                        <div style="font-size:1.4rem;font-weight:900;color:var(--gold);">${a.total_xp}</div>
+                        <div style="font-size:0.7rem;opacity:0.5;">XP</div>
+                    </div>
+                    <div style="text-align:center;background:rgba(46,204,113,0.05);padding:10px;border-radius:10px;">
+                        <div style="font-size:1.4rem;font-weight:900;color:#2ecc71;">${a.challenges_done}</div>
+                        <div style="font-size:0.7rem;opacity:0.5;">تحدي</div>
+                    </div>
+                    <div style="text-align:center;background:rgba(52,152,219,0.05);padding:10px;border-radius:10px;">
+                        <div style="font-size:0.95rem;font-weight:700;color:#5dade2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(a.best_lesson||'—')}</div>
+                        <div style="font-size:0.7rem;opacity:0.5;">الأفضل</div>
+                    </div>
+                </div>
+                <div style="text-align:center;font-size:0.82rem;color:#fcf6ba;opacity:0.85;font-style:italic;">
+                    ${a.graduated_title || ''}
+                </div>
+            </div>`;
+        }).join('');
+        
+        area.innerHTML = `
+            <div style="text-align:center;margin-bottom:24px;">
+                <h1 style="color:var(--gold);font-family:'Amiri';font-size:2.6rem;">📚 أرشيفي الدراسي</h1>
+                <p style="opacity:0.7;">${data.count} سنة دراسية من الإنجازات</p>
+            </div>
+            ${cards}
+            <div style="text-align:center;margin-top:20px;">
+                <button class="nav-btn shiny-btn active" style="max-width:250px;margin:0 auto;" onclick="openHome()">🏠 الرئيسية</button>
+            </div>`;
+    }
+
+    function _celebrateArchival(academicYear) {
+        setTimeout(() => {
+            triggerPrideMoment({
+                type: 'achievement',
+                title: '🎓 تخرّجت من السنة!',
+                subtitle: academicYear + ' — إلى الأمام دائماً',
+                color: '#d4af37',
+                duration: 5500
+            });
+        }, 1500);
     }
 
     async function initQuestionOfTheDay() {

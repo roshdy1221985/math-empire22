@@ -23,16 +23,97 @@ from collections import defaultdict as _defaultdict
 
 _rate_store: dict = _defaultdict(list)  # {ip: [timestamps]}
 
-def _is_rate_limited(ip: str, max_calls: int, window_seconds: int) -> bool:
-    """يتحقق إذا تجاوز الـ IP الحد المسموح — يُرجع True إذا محظور"""
+def _is_rate_limited(ip: str, max_calls: int, window_seconds: int, key_prefix: str = "") -> bool:
+    """يتحقق إذا تجاوز الـ IP الحد المسموح — يُرجع True إذا محظور
+    
+    key_prefix: لفصل الحدود حسب نوع الطلب (login vs check_answer vs parent_search)
+    مثال: _is_rate_limited(ip, 10, 60, "login") لا يتداخل مع check_answer
+    """
+    key = f"{key_prefix}:{ip}" if key_prefix else ip
     now = _time.time()
-    calls = _rate_store[ip]
+    calls = _rate_store[key]
     # احتفظ فقط بالطلبات داخل النافذة الزمنية
-    _rate_store[ip] = [t for t in calls if now - t < window_seconds]
-    if len(_rate_store[ip]) >= max_calls:
+    _rate_store[key] = [t for t in calls if now - t < window_seconds]
+    if len(_rate_store[key]) >= max_calls:
         return True
-    _rate_store[ip].append(now)
+    _rate_store[key].append(now)
     return False
+
+
+# ══════════════════════════════════════════════════
+# 🛡️ حماية رفع الملفات
+# ══════════════════════════════════════════════════
+ALLOWED_FILE_EXTENSIONS = {
+    # مستندات
+    ".pdf", ".doc", ".docx", ".ppt", ".pptx", ".xls", ".xlsx", ".txt",
+    # صور
+    ".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg",
+    # فيديو/صوت
+    ".mp4", ".webm", ".mp3", ".wav", ".m4a",
+}
+
+MAX_FILE_SIZE_MB = 10  # الحد الأقصى لحجم الملف بالميجابايت
+MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
+
+
+def _validate_upload(file_content: bytes, filename: str, allowed_exts: set = None) -> str:
+    """
+    يتحقق من ملف مرفوع — يرفع HTTPException إذا فشل
+    يُرجع الـ extension الآمن (مع نقطة)
+    
+    التحققات:
+    1. الملف ليس فارغاً
+    2. الحجم ≤ MAX_FILE_SIZE_BYTES
+    3. الـ extension في القائمة المسموحة
+    4. لا يحتوي path traversal (../, ./, /)
+    """
+    if not file_content:
+        raise HTTPException(status_code=400, detail="الملف فارغ")
+    
+    if len(file_content) > MAX_FILE_SIZE_BYTES:
+        size_mb = len(file_content) / (1024 * 1024)
+        raise HTTPException(
+            status_code=413,
+            detail=f"الملف كبير جداً ({size_mb:.1f} MB). الحد الأقصى {MAX_FILE_SIZE_MB} MB"
+        )
+    
+    if not filename:
+        raise HTTPException(status_code=400, detail="اسم الملف مفقود")
+    
+    # منع path traversal
+    if "/" in filename or "\\" in filename or ".." in filename:
+        raise HTTPException(status_code=400, detail="اسم الملف يحتوي على رموز ممنوعة")
+    
+    # استخراج وفحص الـ extension
+    ext = os.path.splitext(filename)[1].lower().strip()
+    if not ext:
+        raise HTTPException(status_code=400, detail="الملف بدون امتداد")
+    
+    allowed = allowed_exts if allowed_exts else ALLOWED_FILE_EXTENSIONS
+    if ext not in allowed:
+        raise HTTPException(
+            status_code=415,
+            detail=f"امتداد '{ext}' غير مسموح. المسموح: {', '.join(sorted(allowed))}"
+        )
+    
+    return ext
+
+
+def _is_safe_url(url: str) -> bool:
+    """يتحقق من سلامة URL خارجي — يمنع javascript:, data:, file:, إلخ"""
+    if not url:
+        return False
+    url_lower = url.strip().lower()
+    # نقبل فقط http/https
+    if not (url_lower.startswith("https://") or url_lower.startswith("http://")):
+        return False
+    # نمنع localhost / private IPs (يتطلب extra parsing لكن الأساس)
+    blocked_hosts = ["localhost", "127.0.0.1", "0.0.0.0", "169.254.", "::1"]
+    for host in blocked_hosts:
+        if host in url_lower:
+            return False
+    return True
+
 
 # ==========================================
 # --- 1. الإعدادات الأمنية والاتصال ---
@@ -976,20 +1057,21 @@ async def add_resource(
     category: str=Form(...), description: str=Form(""), 
     file: UploadFile=File(...), admin=Depends(get_current_admin)
 ):
-    file_extension = os.path.splitext(file.filename)[1]
-    file_name = f"res_{uuid.uuid4().hex}{file_extension}"
-    
+    # ═══ تحقق آمن من الملف ═══
     content = await file.read()
-    
+    file_extension = _validate_upload(content, file.filename or "")
+
+    file_name = f"res_{uuid.uuid4().hex}{file_extension}"
+
     supabase.storage.from_("resources").upload(
-        path=file_name, 
+        path=file_name,
         file=content,
-        file_options={"content-type": file.content_type}
+        file_options={"content-type": file.content_type or "application/octet-stream"}
     )
     file_url = supabase.storage.from_("resources").get_public_url(file_name)
-    
+
     supabase.table("teacher_resources").insert({
-        "title": title, "grade": grade, "semester": semester, 
+        "title": title, "grade": grade, "semester": semester,
         "category": category, "description": description, "file_url": file_url
     }).execute()
     return {"status": "success"}
@@ -1015,9 +1097,10 @@ async def upload_summary(
         if is_file_type:
             if not pdf or not pdf.filename:
                 raise HTTPException(status_code=400, detail="يرجى إرفاق ملف")
-            file_extension = os.path.splitext(pdf.filename)[1] or ".pdf"
-            file_name      = f"res_{uuid.uuid4().hex}{file_extension}"
+            # ═══ تحقق آمن من الملف ═══
             content        = await pdf.read()
+            file_extension = _validate_upload(content, pdf.filename)
+            file_name      = f"res_{uuid.uuid4().hex}{file_extension}"
             content_type   = pdf.content_type or "application/pdf"
             supabase.storage.from_("resources").upload(
                 path=file_name, file=content,
@@ -1027,6 +1110,9 @@ async def upload_summary(
         else:
             if not external_url:
                 raise HTTPException(status_code=400, detail="يرجى إدخال الرابط الخارجي")
+            # ═══ تحقق من سلامة الرابط الخارجي (منع javascript:, file:, إلخ) ═══
+            if not _is_safe_url(external_url):
+                raise HTTPException(status_code=400, detail="الرابط غير صالح — يجب أن يبدأ بـ https:// أو http://")
             resource_url = external_url
 
         row = {
@@ -1046,6 +1132,9 @@ async def upload_summary(
 
 @app.get("/api/admin/summaries_list")
 async def get_summaries():
+    """قائمة المصادر التعليمية — متاحة لكل المستخدمين (لا تكشف بيانات حساسة)
+    تُرجع: lesson, resource_type, resource_label, external_url, file_url
+    """
     res = supabase.table("summaries").select("*").order("id", desc=True).execute()
     return res.data if res.data else []
 
@@ -1168,33 +1257,35 @@ async def get_lb():
     return [{"student_name": k, "total_points": v} for k, v in sorted_lb]
 
 @app.get("/api/parent/search/{query:path}")
-async def parent_search(query: str):
-    """بحث ولي الأمر — يدعم: رقم معرف، كود RS-، اسم المستخدم، اسم الطالب"""
+async def parent_search(query: str, request: Request):
+    """
+    بحث ولي الأمر — يقبل **كود ولي الأمر فقط** (RS-XXXXX) للحفاظ على خصوصية الطلاب
+    تم تقييد البحث بالـ ID/username/الاسم لمنع كشف بيانات الطلاب لأي شخص.
+    Rate limit: 20 محاولة/دقيقة لكل IP لمنع brute force على الكودات
+    """
+    # ═══ Rate limiting لمنع تخمين الأكواد ═══
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=20, window_seconds=60, key_prefix="parent_search"):
+        raise HTTPException(status_code=429, detail="⏳ محاولات كثيرة — انتظر دقيقة")
+
     clean = unquote(query).strip()
     if not clean:
-        return {"found": False, "message": "يرجى إدخال الاسم أو الرمز"}
+        return {"found": False, "message": "يرجى إدخال كود ولي الأمر"}
 
-    st = None
+    # ═══ نقبل فقط: parent_code (RS-XXXXX) أو الكود بدون البادئة ═══
+    pc = clean.upper() if clean.upper().startswith("RS-") else f"RS-{clean.upper()}"
 
-    # بحث برقم المعرف
-    if clean.isdigit():
-        st = supabase.table("students").select("id, full_name, grade, username, created_at").eq("id", int(clean)).execute()
+    # تحقق من الصيغة: RS- + 4-10 أحرف/أرقام
+    import re as _re
+    if not _re.match(r'^RS-[A-Z0-9]{4,10}$', pc):
+        return {"found": False, "message": "صيغة الكود غير صحيحة. مثال: RS-AB12C"}
 
-    # بحث بـ parent_code (RS-XXXXX)
-    if not (st and st.data):
-        pc = clean if clean.upper().startswith("RS-") else f"RS-{clean}"
-        st = supabase.table("students").select("id, full_name, grade, username, created_at").eq("parent_code", pc.upper()).execute()
-
-    # بحث بـ username
-    if not (st and st.data):
-        st = supabase.table("students").select("id, full_name, grade, username, created_at").ilike("username", clean).execute()
-
-    # بحث بالاسم جزئي
-    if not (st and st.data):
-        st = supabase.table("students").select("id, full_name, grade, username, created_at").ilike("full_name", f"%{clean}%").execute()
+    st = supabase.table("students").select(
+        "id, full_name, grade, username, created_at"
+    ).eq("parent_code", pc).execute()
 
     if not st.data:
-        return {"found": False, "message": "لم يعثر على طالب بهذا الاسم او الرمز"}
+        return {"found": False, "message": "لم يعثر على طالب بهذا الكود"}
 
     student = st.data[0]
     student.pop("password", None)
@@ -1493,8 +1584,8 @@ async def batch_save_sub_codes(request: Request, admin=Depends(get_current_admin
 
 @app.get("/api/admin/students")
 async def get_all_students_admin(admin=Depends(get_current_admin)):
-    """جلب قائمة جميع الطلاب للأدمن (للربط بأكواد الاشتراك)"""
-    res = supabase.table("students").select("id, full_name, grade, username").order("full_name").execute()
+    """جلب قائمة جميع الطلاب للأدمن (للربط بأكواد الاشتراك والنخبة)"""
+    res = supabase.table("students").select("id, full_name, grade, username, parent_code").order("full_name").execute()
     return res.data if res.data else []
 
 
@@ -2152,6 +2243,434 @@ async def check_teacher_subscription(teacher_id: int):
         return {"active": True, "expiry": None, "months": months}
     except Exception as e:
         return {"active": False, "expiry": None, "months": 0}
+
+
+# ==========================================
+# --- 12.5 🎓 نظام السنة الدراسية (Academic Year) ---
+# ==========================================
+"""
+آلية العمل:
+- السنة الدراسية: سبتمبر → يوليو (2025-2026 ← مثال)
+- 1 أغسطس: أرشفة تلقائية + تصفير XP (لكن الحفاظ على الأوسمة والأفاتار)
+- 1 سبتمبر: ترقية تلقائية للصف التالي + لقب "خريج"
+- كل عمليات التصفير/الأرشفة idempotent (لن تتكرر في نفس السنة)
+"""
+
+# ═══ مخطط ترقية الصفوف ═══
+GRADE_PROGRESSION = {
+    "الصف الأول الابتدائي":  "الصف الثاني الابتدائي",
+    "الصف الثاني الابتدائي": "الصف الثالث الابتدائي",
+    "الصف الثالث الابتدائي": "الصف الرابع الابتدائي",
+    "الصف الرابع الابتدائي": "الصف الخامس الابتدائي",
+    "الصف الخامس الابتدائي": "الصف السادس الابتدائي",
+    "الصف السادس الابتدائي": "الصف السابع",
+    "الصف السابع":           "الصف الثامن",
+    "الصف الثامن":           "الصف التاسع",
+    "الصف التاسع":           "الصف العاشر",
+    "الصف العاشر":           "الصف الحادي عشر",
+    "الصف الحادي عشر":       "الصف الثاني عشر",
+    "الصف الثاني عشر":       "خريج الثانوية",  # نهاية المسار
+}
+
+
+def _get_current_academic_year() -> str:
+    """يحسب السنة الدراسية الحالية — من سبتمبر لأغسطس"""
+    now = datetime.now(timezone.utc)
+    if now.month >= 9:
+        # من سبتمبر = بداية سنة جديدة
+        return f"{now.year}-{now.year + 1}"
+    else:
+        # من يناير إلى أغسطس = السنة ما زالت الحالية
+        return f"{now.year - 1}-{now.year}"
+
+
+def _get_system_state(key: str, default: str = "") -> str:
+    """قراءة قيمة من system_state"""
+    try:
+        res = supabase.table("system_state").select("value").eq("key", key).execute()
+        if res.data and len(res.data) > 0:
+            return res.data[0].get("value", default)
+    except Exception:
+        pass
+    return default
+
+
+def _set_system_state(key: str, value: str):
+    """حفظ قيمة في system_state (upsert)"""
+    try:
+        supabase.table("system_state").upsert({
+            "key": key,
+            "value": value,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }).execute()
+    except Exception as e:
+        print(f"⚠️ _set_system_state error: {e}")
+
+
+async def _archive_student_year(student: dict, academic_year: str) -> dict:
+    """أرشفة سنة واحدة لطالب واحد — يُرجع الـ archive record"""
+    student_id   = student["id"]
+    student_name = student.get("full_name", "")
+    grade        = student.get("grade", "")
+
+    # جلب كل نتائج الطالب
+    results = supabase.table("results").select("*").eq("student_id", student_id).execute().data or []
+
+    # حساب الإحصائيات
+    total_xp        = sum(r.get("score", 0) for r in results)
+    challenges_done = len(results)
+    avg_score       = 0
+    if challenges_done > 0:
+        total_max = sum(r.get("total", 0) for r in results)
+        if total_max > 0:
+            avg_score = round((total_xp / total_max) * 100, 1)
+
+    # أفضل درس
+    lesson_scores = {}
+    for r in results:
+        l = r.get("lesson", "")
+        if l and l not in lesson_scores:
+            lesson_scores[l] = 0
+        if l:
+            lesson_scores[l] += r.get("score", 0)
+    best_lesson = max(lesson_scores.items(), key=lambda x: x[1])[0] if lesson_scores else ""
+
+    # حساب الترتيب في الصف
+    all_in_grade = supabase.table("students").select("id").eq("grade", grade).execute().data or []
+    rank_data = []
+    for s in all_in_grade:
+        s_results = supabase.table("results").select("score").eq("student_id", s["id"]).execute().data or []
+        s_xp = sum(r.get("score", 0) for r in s_results)
+        rank_data.append((s["id"], s_xp))
+    rank_data.sort(key=lambda x: x[1], reverse=True)
+    rank_in_grade = next((i + 1 for i, (sid, _) in enumerate(rank_data) if sid == student_id), 0)
+
+    # اللقب
+    graduated_title = f"🎓 خريج السنة {academic_year} — {grade}"
+
+    # إدراج في الأرشيف
+    archive_record = {
+        "student_id":      student_id,
+        "student_name":    student_name,
+        "academic_year":   academic_year,
+        "grade":           grade,
+        "total_xp":        total_xp,
+        "challenges_done": challenges_done,
+        "avg_score":       avg_score,
+        "best_lesson":     best_lesson,
+        "rank_in_grade":   rank_in_grade,
+        "graduated_title": graduated_title,
+        "full_history":    results,  # JSONB
+        "badges_earned":   [],       # placeholder — client-side badges
+    }
+
+    try:
+        supabase.table("results_archive").insert(archive_record).execute()
+    except Exception as e:
+        print(f"⚠️ archive insert failed for {student_name}: {e}")
+        return {}
+
+    return archive_record
+
+
+async def _run_annual_archive(academic_year: str, dry_run: bool = False) -> dict:
+    """
+    ينفّذ الأرشفة السنوية لكل الطلاب:
+    1. يُؤرشف كل نتائج السنة في results_archive
+    2. يحذف النتائج القديمة من results (يبدأون من الصفر)
+    3. يُضيف اللقب لـ graduation_titles في students
+    4. يحفظ تاريخ الأرشفة لمنع التكرار
+    
+    dry_run=True: يُحصي بدون تنفيذ فعلي
+    """
+    # تحقق من عدم التكرار
+    last = _get_system_state("last_archive_year")
+    if last == academic_year and not dry_run:
+        return {"status": "already_archived", "academic_year": academic_year, "students_count": 0}
+
+    # جلب كل الطلاب النشطين
+    students = supabase.table("students").select(
+        "id, full_name, grade, graduation_titles"
+    ).execute().data or []
+
+    archived_count = 0
+    failed_count   = 0
+    archives       = []
+
+    for student in students:
+        try:
+            archive = await _archive_student_year(student, academic_year)
+            if archive:
+                archives.append({
+                    "student_id":   student["id"],
+                    "student_name": student.get("full_name"),
+                    "total_xp":     archive.get("total_xp"),
+                    "title":        archive.get("graduated_title"),
+                })
+                
+                if not dry_run:
+                    # تحديث ألقاب الطالب + مسح نتائجه
+                    old_titles = student.get("graduation_titles") or []
+                    if isinstance(old_titles, str):
+                        import json as _json
+                        try: old_titles = _json.loads(old_titles)
+                        except: old_titles = []
+                    old_titles.append(archive.get("graduated_title"))
+                    
+                    supabase.table("students").update({
+                        "graduation_titles": old_titles,
+                        "last_archived_at":  datetime.now(timezone.utc).isoformat(),
+                        "current_academic_year": "",  # مؤقت — حتى سبتمبر تأتي
+                    }).eq("id", student["id"]).execute()
+                    
+                    # حذف نتائج السنة المُنقضية
+                    supabase.table("results").delete().eq("student_id", student["id"]).execute()
+                
+                archived_count += 1
+        except Exception as e:
+            print(f"❌ archive error for {student.get('full_name')}: {e}")
+            failed_count += 1
+
+    if not dry_run:
+        _set_system_state("last_archive_year", academic_year)
+
+    return {
+        "status":          "success" if not dry_run else "dry_run",
+        "academic_year":   academic_year,
+        "students_count":  archived_count,
+        "failed_count":    failed_count,
+        "archives":        archives[:20],  # أول 20 فقط في الرد
+    }
+
+
+async def _run_grade_promotion(target_year: str, dry_run: bool = False) -> dict:
+    """
+    ترقية كل الطلاب للصف التالي:
+    — تُنفّذ في سبتمبر (بداية السنة الجديدة)
+    — تُحدّث grade + current_academic_year
+    """
+    last_promo = _get_system_state("last_promotion_year")
+    if last_promo == target_year and not dry_run:
+        return {"status": "already_promoted", "academic_year": target_year, "students_count": 0}
+
+    students = supabase.table("students").select("id, full_name, grade").execute().data or []
+
+    promoted   = 0
+    graduated  = 0
+    promotions = []
+
+    for s in students:
+        current_grade = s.get("grade", "").strip()
+        next_grade    = GRADE_PROGRESSION.get(current_grade)
+        
+        if not next_grade:
+            continue
+        
+        if next_grade == "خريج الثانوية":
+            graduated += 1
+            if not dry_run:
+                supabase.table("students").update({
+                    "is_active": False,
+                    "grade": next_grade,
+                    "grade_promoted_at": datetime.now(timezone.utc).isoformat()
+                }).eq("id", s["id"]).execute()
+        else:
+            promoted += 1
+            if not dry_run:
+                supabase.table("students").update({
+                    "grade": next_grade,
+                    "current_academic_year": target_year,
+                    "grade_promoted_at": datetime.now(timezone.utc).isoformat()
+                }).eq("id", s["id"]).execute()
+        
+        promotions.append({
+            "student_id":    s["id"],
+            "student_name":  s.get("full_name"),
+            "from_grade":    current_grade,
+            "to_grade":      next_grade,
+        })
+
+    if not dry_run:
+        _set_system_state("last_promotion_year", target_year)
+
+    return {
+        "status":         "success" if not dry_run else "dry_run",
+        "academic_year":  target_year,
+        "promoted":       promoted,
+        "graduated":      graduated,
+        "details":        promotions[:20],
+    }
+
+
+# ═══ Endpoints عامة (متاحة للطلاب والأدمن) ═══
+
+@app.get("/api/academic/current_year")
+async def get_current_year():
+    """السنة الدراسية الحالية + حالة الأرشفة"""
+    now = datetime.now(timezone.utc)
+    current_year = _get_current_academic_year()
+    last_archive = _get_system_state("last_archive_year")
+    
+    # هل يجب عرض تنبيه للطالب بنهاية السنة؟
+    show_end_warning = now.month == 7  # يوليو = شهر التحذير
+    
+    return {
+        "current_year":      current_year,
+        "last_archived":     last_archive,
+        "month":             now.month,
+        "show_end_warning":  show_end_warning,
+        "year_ends_on":      f"{now.year if now.month >= 9 else now.year}-07-31",
+    }
+
+
+@app.get("/api/student/archive/{student_id}")
+async def get_student_archive(student_id: int):
+    """جلب أرشيف الطالب (كل سنواته السابقة)"""
+    res = supabase.table("results_archive").select(
+        "academic_year, grade, total_xp, challenges_done, avg_score, "
+        "best_lesson, rank_in_grade, graduated_title, archived_at"
+    ).eq("student_id", student_id).order("archived_at", desc=True).execute()
+    
+    return {
+        "archives": res.data if res.data else [],
+        "count":    len(res.data) if res.data else 0,
+    }
+
+
+@app.get("/api/student/{student_id}/year_summary")
+async def get_year_summary(student_id: int):
+    """ملخص السنة الحالية للطالب — يُعرض في يوليو قبل الأرشفة"""
+    st = supabase.table("students").select("full_name, grade").eq("id", student_id).execute()
+    if not st.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    
+    results = supabase.table("results").select("*").eq("student_id", student_id).execute().data or []
+    
+    total_xp = sum(r.get("score", 0) for r in results)
+    challenges = len(results)
+    avg_pct = 0
+    if challenges > 0:
+        total_max = sum(r.get("total", 0) for r in results)
+        if total_max > 0:
+            avg_pct = round((total_xp / total_max) * 100, 1)
+    
+    # أفضل 3 دروس
+    lesson_scores = {}
+    for r in results:
+        l = r.get("lesson", "")
+        if l:
+            lesson_scores[l] = lesson_scores.get(l, 0) + r.get("score", 0)
+    top_lessons = sorted(lesson_scores.items(), key=lambda x: x[1], reverse=True)[:3]
+    
+    return {
+        "student":          st.data[0],
+        "academic_year":    _get_current_academic_year(),
+        "total_xp":         total_xp,
+        "challenges_done":  challenges,
+        "avg_score":        avg_pct,
+        "top_lessons":      [{"lesson": l, "xp": x} for l, x in top_lessons],
+    }
+
+
+# ═══ Endpoints للأدمن فقط (تحكم يدوي) ═══
+
+@app.post("/api/admin/academic/archive_year")
+async def trigger_archive(
+    request: Request,
+    admin=Depends(get_current_admin)
+):
+    """أرشفة سنوية يدوية (يستخدمها الأدمن أو Cron)"""
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    academic_year = body.get("academic_year", _get_current_academic_year())
+    dry_run       = bool(body.get("dry_run", False))
+    
+    result = await _run_annual_archive(academic_year, dry_run=dry_run)
+    return result
+
+
+@app.post("/api/admin/academic/promote_grades")
+async def trigger_promotion(
+    request: Request,
+    admin=Depends(get_current_admin)
+):
+    """ترقية جماعية للصف التالي"""
+    body = await request.json() if request.headers.get("content-type", "").startswith("application/json") else {}
+    target_year = body.get("academic_year", _get_current_academic_year())
+    dry_run     = bool(body.get("dry_run", False))
+    
+    result = await _run_grade_promotion(target_year, dry_run=dry_run)
+    return result
+
+
+@app.get("/api/admin/academic/archives")
+async def list_all_archives(admin=Depends(get_current_admin)):
+    """عرض كل الأرشيفات السنوية (مجمعة حسب السنة)"""
+    res = supabase.table("results_archive").select(
+        "id, student_id, student_name, academic_year, grade, total_xp, "
+        "challenges_done, avg_score, rank_in_grade, archived_at"
+    ).order("archived_at", desc=True).execute()
+    
+    archives = res.data or []
+    
+    # تجميع حسب السنة
+    by_year = {}
+    for a in archives:
+        year = a.get("academic_year", "—")
+        if year not in by_year:
+            by_year[year] = []
+        by_year[year].append(a)
+    
+    return {
+        "total_archives": len(archives),
+        "by_year":        by_year,
+    }
+
+
+# ═══ Auto-check في كل request (خفيف جداً) ═══
+_LAST_AUTO_CHECK = {"date": None}
+
+@app.middleware("http")
+async def auto_academic_tasks(request: Request, call_next):
+    """
+    Middleware يتحقق مرة في اليوم من:
+    - 1 أغسطس: تشغيل الأرشفة التلقائية
+    - 1 سبتمبر: تشغيل ترقية الصفوف
+    """
+    try:
+        today = datetime.now(timezone.utc).date()
+        
+        # مرة في اليوم فقط
+        if _LAST_AUTO_CHECK["date"] != today:
+            _LAST_AUTO_CHECK["date"] = today
+            
+            # 1 أغسطس → أرشفة
+            if today.month == 8 and today.day == 1:
+                academic_year = f"{today.year - 1}-{today.year}"
+                last = _get_system_state("last_archive_year")
+                if last != academic_year:
+                    print(f"🎓 [AUTO] بدء الأرشفة السنوية: {academic_year}")
+                    try:
+                        result = await _run_annual_archive(academic_year, dry_run=False)
+                        print(f"✅ [AUTO] أرشفة: {result}")
+                    except Exception as e:
+                        print(f"❌ [AUTO] خطأ في الأرشفة: {e}")
+            
+            # 1 سبتمبر → ترقية
+            if today.month == 9 and today.day == 1:
+                academic_year = f"{today.year}-{today.year + 1}"
+                last_promo = _get_system_state("last_promotion_year")
+                if last_promo != academic_year:
+                    print(f"🎓 [AUTO] بدء ترقية الصفوف: {academic_year}")
+                    try:
+                        result = await _run_grade_promotion(academic_year, dry_run=False)
+                        print(f"✅ [AUTO] ترقية: {result}")
+                    except Exception as e:
+                        print(f"❌ [AUTO] خطأ في الترقية: {e}")
+    except Exception as e:
+        print(f"⚠️ auto_academic_tasks error (non-fatal): {e}")
+    
+    response = await call_next(request)
+    return response
 
 
 # ==========================================
