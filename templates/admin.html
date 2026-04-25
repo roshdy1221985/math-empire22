@@ -896,6 +896,40 @@
             0%, 100% { transform: scale(1); opacity: 1; }
             50%      { transform: scale(1.15); opacity: 0.8; }
         }
+
+        /* 📓 دفتر الأعمال */
+        .task-filter-btn {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.7);
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cairo';
+            font-size: 0.8rem;
+            transition: all 0.2s;
+        }
+        .task-filter-btn:hover { background: rgba(243,156,18,0.1); color: #f39c12; }
+        .task-filter-btn.active { background: rgba(243,156,18,0.2); border-color: #f39c12; color: #f39c12; font-weight: bold; }
+
+        .task-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+        .task-card:hover { background: rgba(255,255,255,0.05); border-color: rgba(243,156,18,0.3); }
+        .task-card.priority-urgent  { border-right: 4px solid #e74c3c; }
+        .task-card.priority-high    { border-right: 4px solid #f39c12; }
+        .task-card.priority-normal  { border-right: 4px solid #3498db; }
+        .task-card.priority-low     { border-right: 4px solid #95a5a6; }
+        .task-card.status-done      { opacity: 0.55; }
+        .task-card.status-done .task-title { text-decoration: line-through; }
+
     </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1631,7 +1665,9 @@
                 <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
                 <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
-                <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
+                <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
+                <div class="nav-link" onclick="showSection('workbook');setTimeout(loadAdminTasks,100);" style="color:#f39c12;"><i class="fas fa-book"></i> 📓 دفتر الأعمال</div>
+                <div class="nav-link" onclick="showSection('motivation');" style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب</div>
                 <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
                 <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
                 <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
@@ -2380,12 +2416,118 @@
                     </div>
                     <button class="btn-gold" id="btn-schedule-exam" onclick="scheduleExam()"><i class="fas fa-paper-plane"></i> إطلاق الإشعار للرعية</button>
                 </div>
+                <!-- 📥 استيراد أسئلة Excel لإطلاق ملحمة -->
+                <div class="card" style="border:2px solid rgba(46,204,113,0.5);background:linear-gradient(135deg,rgba(46,204,113,0.08),rgba(46,204,113,0.02));margin-top:24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">
+                        <div>
+                            <h2 style="color:#2ecc71;margin:0 0 6px;"><i class="fas fa-file-excel"></i> 📥 استيراد أسئلة من Excel للملاحم</h2>
+                            <p style="opacity:0.65;margin:0;font-size:0.88rem;">ارفع ملف Excel بأسئلتك → رادار يطابقها بالمنهج → أرسلها كملحمة فورية</p>
+                        </div>
+                        <button onclick="openExcelImportExams()" style="background:linear-gradient(135deg,#27ae60,#1e8449);border:none;color:#fff;padding:14px 24px;border-radius:14px;font-weight:bold;font-family:'Cairo';font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(46,204,113,0.4);">
+                            <i class="fas fa-upload"></i> رفع وتحليل
+                        </button>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h3>🔔 الاختبارات القادمة</h3>
                     <table>
                         <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس المستهدفة</th><th>إجراء</th></tr></thead>
                         <tbody id="exams-table-body"></tbody>
                     </table>
+                </div>
+
+                <!-- 📥 Modal استيراد Excel -->
+                <div id="excel-exam-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(14px);">
+                    <div style="background:linear-gradient(160deg,#0d2018,#1a2e22);border:2px solid #2ecc71;border-radius:24px;padding:0;max-width:900px;width:100%;margin:auto;overflow:hidden;box-shadow:0 30px 80px rgba(46,204,113,0.4);direction:rtl;">
+
+                        <!-- رأس Modal -->
+                        <div style="background:linear-gradient(135deg,#1e3a2a,#0f2418);padding:20px 24px;display:flex;align-items:center;gap:14px;border-bottom:1px solid rgba(46,204,113,0.4);">
+                            <div style="font-size:2rem;">📥</div>
+                            <div style="flex:1;">
+                                <h2 style="color:#2ecc71;margin:0;font-family:'Amiri';font-size:1.5rem;">استيراد أسئلة من Excel</h2>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);">رادار ذكي للمطابقة مع المنهج</div>
+                            </div>
+                            <button onclick="closeExcelImportExams()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+                        </div>
+
+                        <div style="padding:22px;">
+
+                            <!-- Stage 1: رفع الملف -->
+                            <div id="exi-stage-1">
+                                <div style="background:rgba(46,204,113,0.06);border:2px dashed rgba(46,204,113,0.4);border-radius:14px;padding:32px;text-align:center;cursor:pointer;" onclick="document.getElementById('exi-file').click()" ondragover="event.preventDefault();this.style.borderColor='#2ecc71'" ondragleave="this.style.borderColor='rgba(46,204,113,0.4)'" ondrop="handleExiDrop(event)">
+                                    <div style="font-size:3rem;margin-bottom:10px;">📊</div>
+                                    <p style="font-weight:bold;color:#2ecc71;margin:0 0 6px;">اسحب ملف Excel هنا أو اضغط للاختيار</p>
+                                    <p style="opacity:0.5;font-size:0.83rem;margin:0;">صيغ مدعومة: .xlsx .xls .csv</p>
+                                    <input type="file" id="exi-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="exiFileSelected(this)">
+                                </div>
+
+                                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:12px;padding:16px;margin-top:16px;font-size:0.85rem;line-height:1.7;">
+                                    <strong style="color:#2ecc71;">📋 أعمدة Excel المتوقعة (يُقبل أي ترتيب):</strong>
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-top:8px;color:rgba(255,255,255,0.7);">
+                                        <div>📝 <strong>السؤال</strong> (إجباري)</div>
+                                        <div>✅ <strong>الإجابة الصحيحة</strong> (إجباري)</div>
+                                        <div>🎯 <strong>النوع</strong> (choice/short/true_false)</div>
+                                        <div>📚 <strong>الدرس</strong> (للمطابقة)</div>
+                                        <div>1️⃣ <strong>خيار1</strong>, 2️⃣ <strong>خيار2</strong>...</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stage 2: مطابقة المنهج -->
+                            <div id="exi-stage-2" style="display:none;">
+                                <div style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.3);border-radius:12px;padding:14px;margin-bottom:18px;">
+                                    <div style="color:#5dade2;font-weight:bold;margin-bottom:10px;">
+                                        <i class="fas fa-radar"></i> 📡 رادار المطابقة — اختر الدرس المُستهدف
+                                    </div>
+                                    <div class="cascade-grid">
+                                        <div><label>الصف</label><select id="exi-grade" onchange="updateSemesters('exi')"></select></div>
+                                        <div><label>الفصل</label><select id="exi-term" onchange="updateUnits('exi')"></select></div>
+                                        <div><label>الوحدة</label><select id="exi-unit" onchange="updateLessons('exi')"></select></div>
+                                        <div><label>الدرس</label><select id="exi-lesson"></select></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Stage 3: مراجعة الأسئلة -->
+                            <div id="exi-stage-3" style="display:none;">
+                                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                                    <div>
+                                        <strong style="color:#2ecc71;">✅ تمت قراءة الملف</strong>
+                                        <div id="exi-summary" style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-top:4px;"></div>
+                                    </div>
+                                    <div style="display:flex;gap:8px;">
+                                        <button onclick="exiSelectAll(true)" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:0.78rem;">✅ تحديد الكل</button>
+                                        <button onclick="exiSelectAll(false)" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:0.78rem;">✕ إلغاء</button>
+                                    </div>
+                                </div>
+                                <div id="exi-questions-list" style="max-height:400px;overflow-y:auto;background:rgba(0,0,0,0.2);border-radius:12px;padding:12px;"></div>
+                            </div>
+
+                            <!-- Stage 4: إعدادات الإرسال -->
+                            <div id="exi-stage-4" style="display:none;">
+                                <div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:14px;">
+                                    <div style="color:var(--gold);font-weight:bold;margin-bottom:10px;">
+                                        <i class="fas fa-paper-plane"></i> إعدادات إطلاق الملحمة
+                                    </div>
+                                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+                                        <div><label>📌 عنوان الملحمة</label><input type="text" id="exi-title" placeholder="مثال: امتحان جدول الضرب"></div>
+                                        <div><label>📅 التاريخ</label><input type="date" id="exi-date"></div>
+                                        <div><label>⏰ الوقت</label><input type="time" id="exi-time"></div>
+                                        <div><label>⏱️ المدة (دقيقة)</label><input type="number" id="exi-duration" value="30" min="5" max="180"></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- شريط الأزرار -->
+                            <div style="display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;">
+                                <button id="exi-btn-back" onclick="exiPrevStage()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.8);padding:11px 20px;border-radius:12px;cursor:pointer;font-family:'Cairo';display:none;">← رجوع</button>
+                                <div style="flex:1;"></div>
+                                <button id="exi-btn-next" onclick="exiNextStage()" style="background:linear-gradient(135deg,#2ecc71,#1e8449);border:none;color:#fff;padding:12px 26px;border-radius:12px;cursor:pointer;font-family:'Cairo';font-weight:bold;">التالي →</button>
+                                <button id="exi-btn-launch" onclick="doImportExamQuestions()" style="display:none;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;border:none;padding:12px 26px;border-radius:12px;cursor:pointer;font-family:'Cairo';font-weight:bold;">🚀 استيراد وإطلاق الملحمة</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- ⚡ زر فتح اختبار القدرات -->
@@ -2572,12 +2714,144 @@
                 <div class="card" style="margin-top:24px;">
                     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
                         <h3 style="margin:0;color:#5dade2;"><i class="fas fa-list"></i> الدروس التفاعلية المرفوعة</h3>
-                        <button onclick="loadHtmlLessons()" style="background:transparent;border:1px solid rgba(52,152,219,0.4);color:#5dade2;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;">
-                            <i class="fas fa-sync"></i> تحديث
-                        </button>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="resetHlFilter()" style="background:transparent;border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-family:'Cairo';">
+                                <i class="fas fa-times"></i> إلغاء الفلتر
+                            </button>
+                            <button onclick="loadHtmlLessons()" style="background:transparent;border:1px solid rgba(52,152,219,0.4);color:#5dade2;padding:8px 14px;border-radius:8px;cursor:pointer;font-size:0.8rem;font-family:'Cairo';">
+                                <i class="fas fa-sync"></i> تحديث
+                            </button>
+                        </div>
                     </div>
+
+                    <!-- 🔍 فلتر cascade -->
+                    <div style="background:rgba(52,152,219,0.05);border:1px solid rgba(52,152,219,0.2);border-radius:12px;padding:14px;margin-bottom:16px;">
+                        <div style="color:#5dade2;font-weight:bold;font-size:0.85rem;margin-bottom:10px;">
+                            <i class="fas fa-filter"></i> تصفية حسب المنهج
+                        </div>
+                        <div class="cascade-grid">
+                            <div><label>الصف</label><select id="flt-hl-grade" onchange="updateSemesters('flt-hl');applyHlFilter();"><option value="">— كل الصفوف —</option></select></div>
+                            <div><label>الفصل</label><select id="flt-hl-term" onchange="updateUnits('flt-hl');applyHlFilter();"><option value="">— كل الفصول —</option></select></div>
+                            <div><label>الوحدة</label><select id="flt-hl-unit" onchange="updateLessons('flt-hl');applyHlFilter();"><option value="">— كل الوحدات —</option></select></div>
+                            <div><label>الدرس</label><select id="flt-hl-lesson" onchange="applyHlFilter()"><option value="">— كل الدروس —</option></select></div>
+                        </div>
+                        <div id="hl-filter-summary" style="margin-top:10px;font-size:0.78rem;color:rgba(255,255,255,0.5);"></div>
+                    </div>
+
                     <div id="hl-lessons-table">
                         <p style="opacity:0.5;text-align:center;padding:30px;">اضغط "تحديث" لعرض الدروس المرفوعة</p>
+                    </div>
+                </div>
+            </section>
+
+            
+            <!-- ==================== 📓 WORKBOOK ==================== -->
+            <section id="workbook" class="section">
+                <div class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                        <h2 style="color:#f39c12;margin:0;"><i class="fas fa-book"></i> 📓 دفتر الأعمال — مهامي اليومية</h2>
+                        <button onclick="openNewTaskModal()" style="background:linear-gradient(135deg,#f39c12,#e67e22);border:none;color:#fff;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;">
+                            <i class="fas fa-plus"></i> مهمة جديدة
+                        </button>
+                    </div>
+                    <p style="opacity:0.6;font-size:0.88rem;margin-bottom:18px;">
+                        نظّم خطتك اليومية لتطوير المنصة — أضف المهام، حدّد أولوياتها، وتابع تقدمك.
+                    </p>
+
+                    <!-- إحصائيات سريعة -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;">
+                        <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">📋 معلّقة</div>
+                            <div id="task-stat-pending" style="font-size:1.6rem;font-weight:900;color:#f39c12;">—</div>
+                        </div>
+                        <div style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">🔄 قيد التنفيذ</div>
+                            <div id="task-stat-progress" style="font-size:1.6rem;font-weight:900;color:#3498db;">—</div>
+                        </div>
+                        <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">✅ مكتملة</div>
+                            <div id="task-stat-done" style="font-size:1.6rem;font-weight:900;color:#2ecc71;">—</div>
+                        </div>
+                        <div style="background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">⚠️ متأخرة</div>
+                            <div id="task-stat-overdue" style="font-size:1.6rem;font-weight:900;color:#e74c3c;">—</div>
+                        </div>
+                    </div>
+
+                    <!-- فلتر -->
+                    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+                        <button onclick="filterTasks('')" class="task-filter-btn active" data-filter="">الكل</button>
+                        <button onclick="filterTasks('pending')" class="task-filter-btn" data-filter="pending">📋 معلّقة</button>
+                        <button onclick="filterTasks('in_progress')" class="task-filter-btn" data-filter="in_progress">🔄 قيد التنفيذ</button>
+                        <button onclick="filterTasks('done')" class="task-filter-btn" data-filter="done">✅ مكتملة</button>
+                    </div>
+
+                    <div id="tasks-list" style="display:flex;flex-direction:column;gap:10px;">
+                        <p style="opacity:0.5;text-align:center;padding:30px;">جارٍ التحميل...</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ==================== 🎯 MOTIVATION ==================== -->
+            <section id="motivation" class="section">
+                <div class="card">
+                    <h2 style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب — Push Notifications</h2>
+                    <p style="opacity:0.65;margin-bottom:18px;font-size:0.9rem;">
+                        أرسل إشعارات تظهر على <strong style="color:#e91e63;">جهاز الطالب نفسه</strong> (حتى لو كان التطبيق مغلقاً) لتحفيزه على العودة.
+                    </p>
+
+                    <!-- بطاقة الإشعارات التلقائية -->
+                    <div style="background:linear-gradient(135deg,rgba(233,30,99,0.1),rgba(233,30,99,0.03));border:2px solid rgba(233,30,99,0.4);border-radius:16px;padding:20px;margin-bottom:20px;">
+                        <h3 style="color:#e91e63;margin:0 0 12px;"><i class="fas fa-magic"></i> ⚡ تحفيز الغائبين تلقائياً</h3>
+                        <p style="opacity:0.7;font-size:0.85rem;margin-bottom:16px;">
+                            بضغطة واحدة — أرسل إشعارات مختلفة عشوائية لكل طالب غائب منذ N أيام.
+                        </p>
+                        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                            <button onclick="sendInactiveMotivation(3)" style="flex:1;min-width:180px;background:linear-gradient(135deg,#e91e63,#c2185b);border:none;color:#fff;padding:14px;border-radius:12px;font-weight:bold;cursor:pointer;font-family:'Cairo';">
+                                💬 تحفيز غائبين 3+ أيام
+                            </button>
+                            <button onclick="sendInactiveMotivation(7)" style="flex:1;min-width:180px;background:linear-gradient(135deg,#9b59b6,#8e44ad);border:none;color:#fff;padding:14px;border-radius:12px;font-weight:bold;cursor:pointer;font-family:'Cairo';">
+                                🚨 تحفيز غائبين أسبوع+
+                            </button>
+                        </div>
+                        <div id="motiv-result" style="margin-top:12px;font-size:0.85rem;"></div>
+                    </div>
+
+                    <!-- بطاقة الإشعار المخصص -->
+                    <div style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.1);border-radius:14px;padding:18px;">
+                        <h3 style="color:var(--gold);margin:0 0 14px;"><i class="fas fa-edit"></i> ✍️ إشعار مخصص</h3>
+
+                        <div style="margin-bottom:12px;">
+                            <label>📌 العنوان</label>
+                            <input type="text" id="motiv-title" placeholder="مثال: تحدٍ جديد بانتظارك!">
+                        </div>
+                        <div style="margin-bottom:12px;">
+                            <label>📝 الرسالة</label>
+                            <textarea id="motiv-body" placeholder="نص الرسالة التحفيزية..." style="min-height:80px;"></textarea>
+                        </div>
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+                            <div>
+                                <label>🎯 الهدف</label>
+                                <select id="motiv-target" onchange="onMotivTargetChange()">
+                                    <option value="all">📡 جميع الطلاب</option>
+                                    <option value="grade">🎓 صف معيّن</option>
+                                </select>
+                            </div>
+                            <div id="motiv-grade-wrap" style="display:none;">
+                                <label>الصف</label>
+                                <select id="motiv-grade"></select>
+                            </div>
+                        </div>
+
+                        <button onclick="sendCustomMotivation()" id="btn-send-motiv" style="width:100%;background:var(--gold-grad);color:#000;border:none;padding:13px;border-radius:12px;font-weight:bold;cursor:pointer;font-family:'Cairo';font-size:1rem;">
+                            🚀 أرسل الإشعار
+                        </button>
+                    </div>
+
+                    <!-- معلومة مهمة -->
+                    <div style="margin-top:16px;background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:12px;font-size:0.82rem;color:rgba(255,255,255,0.7);">
+                        <strong style="color:#5dade2;">ℹ️ ملاحظة:</strong> الإشعارات تصل فقط للطلاب الذين فعّلوا الإشعارات على أجهزتهم.
+                        يظهر للطالب بانر تشجيعي تلقائياً عند أول دخول.
                     </div>
                 </div>
             </section>
@@ -9318,10 +9592,17 @@
             var res = await authFetch('/api/html_lessons');
             if (!res || !res.ok) throw new Error('failed');
             var data = await res.json();
+            _hlAllLessons = data || [];
             if (!data.length) {
                 container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:30px;">لا توجد دروس تفاعلية بعد — ارفع أول درس!</p>';
+                var sum = document.getElementById('hl-filter-summary');
+                if (sum) sum.innerHTML = '';
                 return;
             }
+            // طبّق الفلتر بدلاً من العرض المباشر
+            applyHlFilter();
+            return;
+            // (الكود القديم محذوف — لم يعد ينفذ)
             var rows = '';
             for (var i=0; i<data.length; i++) {
                 var h = data[i];
@@ -9653,6 +9934,558 @@
         setTimeout(updateEmpireHero, 200);
     });
     setTimeout(updateEmpireHero, 500);
+
+
+    /* ════════════════════════════════════════════════════════════
+       🔍 فلتر cascade للدروس التفاعلية
+    ════════════════════════════════════════════════════════════ */
+    var _hlAllLessons = [];
+
+    function applyHlFilter() {
+        var grade  = document.getElementById('flt-hl-grade')?.value || '';
+        var termId = document.getElementById('flt-hl-term')?.value || '';
+        var unitId = document.getElementById('flt-hl-unit')?.value || '';
+        var lesson = document.getElementById('flt-hl-lesson')?.value || '';
+        
+        // استخرج الأسماء من المعرّفات (cascade يستخدم value=id لكن نحتاج الأسماء)
+        var termName = '';
+        var unitName = '';
+        if (termId && typeof fullCurriculum !== 'undefined') {
+            var g = fullCurriculum.find(function(x){ return x.name === grade; });
+            if (g) {
+                var s = g.semesters?.find(function(x){ return String(x.id) === String(termId); });
+                if (s) {
+                    termName = s.name;
+                    if (unitId) {
+                        var u = s.units?.find(function(x){ return String(x.id) === String(unitId); });
+                        if (u) unitName = u.name;
+                    }
+                }
+            }
+        }
+
+        var filtered = _hlAllLessons.filter(function(L) {
+            if (grade    && L.grade    !== grade)    return false;
+            if (termName && L.semester !== termName) return false;
+            if (unitName && L.unit     !== unitName) return false;
+            if (lesson   && L.lesson   !== lesson)   return false;
+            return true;
+        });
+
+        var summary = document.getElementById('hl-filter-summary');
+        if (summary) {
+            var parts = [];
+            if (grade)    parts.push('الصف: <strong style="color:#5dade2;">'+grade+'</strong>');
+            if (termName) parts.push('الفصل: <strong style="color:#5dade2;">'+termName+'</strong>');
+            if (unitName) parts.push('الوحدة: <strong style="color:#5dade2;">'+unitName+'</strong>');
+            if (lesson)   parts.push('الدرس: <strong style="color:#5dade2;">'+lesson+'</strong>');
+            summary.innerHTML = parts.length 
+                ? '🔍 ' + parts.join(' • ') + ' — <strong style="color:var(--gold);">'+filtered.length+'</strong> درس'
+                : '📊 عرض كل الدروس: <strong style="color:var(--gold);">'+_hlAllLessons.length+'</strong>';
+        }
+
+        renderHlLessonsTable(filtered);
+    }
+
+    function resetHlFilter() {
+        var ids = ['flt-hl-grade','flt-hl-term','flt-hl-unit','flt-hl-lesson'];
+        ids.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+        // أعد بناء term/unit/lesson لتفرغ
+        document.getElementById('flt-hl-term').innerHTML  = '<option value="">— كل الفصول —</option>';
+        document.getElementById('flt-hl-unit').innerHTML  = '<option value="">— كل الوحدات —</option>';
+        document.getElementById('flt-hl-lesson').innerHTML = '<option value="">— كل الدروس —</option>';
+        applyHlFilter();
+    }
+
+    function renderHlLessonsTable(data) {
+        var container = document.getElementById('hl-lessons-table');
+        if (!container) return;
+        if (!data.length) {
+            container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:30px;">📭 لا توجد دروس مطابقة للفلتر — جرّب تغيير الفلاتر</p>';
+            return;
+        }
+        var rows = '';
+        for (var i=0; i<data.length; i++) {
+            var h = data[i];
+            var titleEsc = (h.title||'—').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+            var dateStr = h.uploaded_at ? new Date(h.uploaded_at).toLocaleDateString('ar-EG') : '—';
+            rows +=
+                '<tr>' +
+                  '<td style="font-weight:bold;color:#5dade2;">' + (h.title||'—') + '</td>' +
+                  '<td style="font-size:0.82rem;">' + (h.grade||'') + '</td>' +
+                  '<td style="font-size:0.78rem;color:rgba(255,255,255,0.55);">' + (h.semester||'—') + '</td>' +
+                  '<td style="font-size:0.78rem;color:rgba(255,255,255,0.55);">' + (h.unit||'—') + '</td>' +
+                  '<td style="font-size:0.82rem;color:rgba(255,255,255,0.7);">' + (h.lesson||'') + '</td>' +
+                  '<td style="text-align:center;">' + (h.file_size_kb || '—') + ' KB</td>' +
+                  '<td style="text-align:center;color:#f39c12;font-weight:bold;">' + (h.view_count || 0) + '</td>' +
+                  '<td style="font-size:0.75rem;color:rgba(255,255,255,0.5);">' + dateStr + '</td>' +
+                  '<td style="white-space:nowrap;">' +
+                    '<button onclick="previewHtmlLesson(\'' + h.file_url + '\',\'' + titleEsc + '\')" style="background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.4);color:#5dade2;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:0.75rem;margin-left:5px;"><i class="fas fa-eye"></i></button>' +
+                    '<button onclick="deleteHtmlLesson(' + h.id + ', this)" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:0.75rem;"><i class="fas fa-trash"></i></button>' +
+                  '</td>' +
+                '</tr>';
+        }
+        container.innerHTML =
+            '<div style="overflow-x:auto;">' +
+            '<table>' +
+              '<thead><tr><th>العنوان</th><th>الصف</th><th>الفصل</th><th>الوحدة</th><th>الدرس</th><th>الحجم</th><th>👁️</th><th>التاريخ</th><th>إجراء</th></tr></thead>' +
+              '<tbody>' + rows + '</tbody>' +
+            '</table>' +
+            '</div>';
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📥 استيراد أسئلة Excel للملاحم
+    ════════════════════════════════════════════════════════════ */
+    var _exiData = { stage: 1, questions: [], file: null };
+
+    function openExcelImportExams() {
+        var m = document.getElementById('excel-exam-modal');
+        if (!m) return;
+        m.style.display = 'flex';
+        _exiData = { stage: 1, questions: [], file: null };
+        _exiShowStage(1);
+        // populate cascades
+        populateGradeDropdown('exi');
+        // default date+time
+        var now = new Date();
+        now.setHours(now.getHours() + 1, 0, 0);
+        var d = document.getElementById('exi-date');
+        var t = document.getElementById('exi-time');
+        if (d) d.value = now.toISOString().split('T')[0];
+        if (t) t.value = now.toTimeString().slice(0,5);
+    }
+    function closeExcelImportExams() {
+        document.getElementById('excel-exam-modal').style.display = 'none';
+    }
+
+    function _exiShowStage(n) {
+        for (var i=1; i<=4; i++) {
+            var el = document.getElementById('exi-stage-' + i);
+            if (el) el.style.display = (i === n) ? 'block' : 'none';
+        }
+        document.getElementById('exi-btn-back').style.display = n > 1 ? 'inline-block' : 'none';
+        document.getElementById('exi-btn-next').style.display  = n < 4 ? 'inline-block' : 'none';
+        document.getElementById('exi-btn-launch').style.display = n === 4 ? 'inline-block' : 'none';
+        _exiData.stage = n;
+    }
+
+    function exiPrevStage() {
+        if (_exiData.stage > 1) _exiShowStage(_exiData.stage - 1);
+    }
+
+    function exiNextStage() {
+        var s = _exiData.stage;
+        if (s === 1) {
+            if (!_exiData.file) { showToast('⚠️ اختر ملف Excel أولاً', 'warning'); return; }
+            _processExamExcelFile();
+        } else if (s === 2) {
+            if (!document.getElementById('exi-lesson').value) { showToast('⚠️ اختر الدرس المستهدف', 'warning'); return; }
+            _exiShowStage(3);
+        } else if (s === 3) {
+            var checked = document.querySelectorAll('.exi-q-check:checked').length;
+            if (!checked) { showToast('⚠️ اختر سؤالاً واحداً على الأقل', 'warning'); return; }
+            // تعبئة عنوان افتراضي
+            var titleInp = document.getElementById('exi-title');
+            if (titleInp && !titleInp.value) {
+                var lesson = document.getElementById('exi-lesson')?.options[document.getElementById('exi-lesson').selectedIndex]?.text || '';
+                titleInp.value = 'ملحمة: ' + lesson;
+            }
+            _exiShowStage(4);
+        }
+    }
+
+    function handleExiDrop(e) {
+        e.preventDefault();
+        if (e.dataTransfer.files[0]) exiFileSelected({ files: e.dataTransfer.files });
+    }
+    function exiFileSelected(input) {
+        if (!input.files[0]) return;
+        _exiData.file = input.files[0];
+        showToast('✅ تم اختيار: ' + input.files[0].name, 'success');
+    }
+
+    async function _processExamExcelFile() {
+        var f = _exiData.file;
+        if (!f) return;
+
+        try {
+            var data = await f.arrayBuffer();
+            var workbook = XLSX.read(data);
+            var ws = workbook.Sheets[workbook.SheetNames[0]];
+            var rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+
+            if (!rows.length) { showToast('⚠️ الملف فارغ', 'error'); return; }
+
+            // تعرّف على الأعمدة (دعم عربي وإنجليزي)
+            var keys = Object.keys(rows[0]);
+            var findKey = function(names) {
+                for (var n of names) {
+                    for (var k of keys) {
+                        if (k.toLowerCase().trim() === n.toLowerCase().trim()) return k;
+                    }
+                }
+                return null;
+            };
+            var kQ      = findKey(['السؤال','question','q','نص السؤال']);
+            var kAns    = findKey(['الإجابة','الاجابة','الإجابة الصحيحة','answer','correct','الجواب']);
+            var kType   = findKey(['النوع','type','نوع']);
+            var kLesson = findKey(['الدرس','lesson','اسم الدرس']);
+            var opts = ['1','2','3','4','أ','ب','ج','د','option1','option2','option3','option4'].map(function(o){
+                return findKey(['خيار'+o, 'option'+o, 'الخيار '+o, o]);
+            }).filter(Boolean);
+
+            if (!kQ || !kAns) {
+                showToast('⚠️ لم نعثر على عمود "السؤال" أو "الإجابة"', 'error', 5000);
+                return;
+            }
+
+            // معالجة الأسئلة
+            var processed = [];
+            rows.forEach(function(r) {
+                var qText = String(r[kQ] || '').trim();
+                var ans   = String(r[kAns] || '').trim();
+                if (!qText || !ans) return;
+                var qType = kType ? String(r[kType] || 'choice').trim().toLowerCase() : 'choice';
+                if (qType.includes('صواب') || qType.includes('خطأ') || qType.includes('true') || qType.includes('false')) qType = 'true_false';
+                else if (qType.includes('قصير') || qType.includes('short')) qType = 'short';
+                else qType = 'choice';
+
+                var options = [];
+                opts.forEach(function(k) {
+                    var v = String(r[k] || '').trim();
+                    if (v) options.push(v);
+                });
+
+                processed.push({
+                    question: qText,
+                    correct_answer: ans,
+                    type: qType,
+                    options: options,
+                    lesson_hint: kLesson ? String(r[kLesson]||'').trim() : '',
+                });
+            });
+
+            _exiData.questions = processed;
+
+            // عرض ملخص
+            var sum = document.getElementById('exi-summary');
+            if (sum) sum.innerHTML = 'تم استخراج <strong style="color:#2ecc71;">'+processed.length+'</strong> سؤال من الملف';
+
+            // ابني قائمة الأسئلة
+            _renderExamReviewTable();
+
+            _exiShowStage(2);
+        } catch(e) {
+            console.error(e);
+            showToast('❌ فشل قراءة الملف: ' + e.message, 'error', 6000);
+        }
+    }
+
+    function _renderExamReviewTable() {
+        var list = document.getElementById('exi-questions-list');
+        if (!list) return;
+        list.innerHTML = _exiData.questions.map(function(q, i) {
+            var typeIcon = q.type === 'short' ? '✍️' : q.type === 'true_false' ? '✅/❌' : '🔘';
+            var optsHtml = q.options.length ? '<div style="font-size:0.7rem;opacity:0.55;margin-top:3px;">خيارات: '+q.options.join(' / ')+'</div>' : '';
+            return '<div style="display:flex;align-items:flex-start;gap:10px;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;">' +
+                '<input type="checkbox" class="exi-q-check" data-idx="'+i+'" checked style="margin-top:4px;width:18px;height:18px;accent-color:#2ecc71;flex-shrink:0;">' +
+                '<div style="flex:1;min-width:0;">' +
+                  '<div style="font-weight:bold;font-size:0.88rem;">' + typeIcon + ' ' + esc(q.question) + '</div>' +
+                  '<div style="font-size:0.78rem;color:#2ecc71;margin-top:3px;">✓ الإجابة: <strong>' + esc(q.correct_answer) + '</strong></div>' +
+                  optsHtml +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+
+    function exiSelectAll(state) {
+        document.querySelectorAll('.exi-q-check').forEach(function(c) { c.checked = state; });
+    }
+
+    async function doImportExamQuestions() {
+        var grade  = document.getElementById('exi-grade').value;
+        var lesson = document.getElementById('exi-lesson').options[document.getElementById('exi-lesson').selectedIndex]?.text;
+        var title  = document.getElementById('exi-title').value || 'ملحمة Excel';
+        var date   = document.getElementById('exi-date').value;
+        var time   = document.getElementById('exi-time').value;
+        var duration = parseInt(document.getElementById('exi-duration').value) || 30;
+        if (!date || !time) { showToast('⚠️ حدد التاريخ والوقت', 'warning'); return; }
+
+        var gradeOpt = document.getElementById('exi-grade').options[document.getElementById('exi-grade').selectedIndex]?.text;
+
+        // اجمع المختار فقط
+        var checked = document.querySelectorAll('.exi-q-check:checked');
+        var idx = Array.from(checked).map(function(c){ return parseInt(c.dataset.idx); });
+        var selected = idx.map(function(i){ return _exiData.questions[i]; });
+
+        if (!selected.length) { showToast('⚠️ لا أسئلة محددة', 'error'); return; }
+
+        var btn = document.getElementById('exi-btn-launch');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الاستيراد...';
+
+        try {
+            // 1. ارفع الأسئلة لقاعدة البيانات أولاً
+            var inserted = 0;
+            for (var q of selected) {
+                var fd = new FormData();
+                fd.append('grade', gradeOpt);
+                fd.append('lesson', lesson);
+                fd.append('type', q.type);
+                fd.append('question', q.question);
+                fd.append('correct_answer', q.correct_answer);
+                if (q.options && q.options.length) {
+                    fd.append('options', JSON.stringify(q.options));
+                }
+                try {
+                    var r = await authFetch('/api/admin/questions', { method: 'POST', body: fd });
+                    if (r && r.ok) inserted++;
+                } catch(e) {}
+            }
+
+            // 2. أرسل إشعار الملحمة
+            var examFd = new FormData();
+            examFd.append('title', title);
+            examFd.append('date', date);
+            examFd.append('time', time);
+            examFd.append('duration', duration);
+            examFd.append('lessons', JSON.stringify([lesson]));
+            examFd.append('grade', gradeOpt);
+
+            var examRes = await authFetch('/api/admin/exams', { method: 'POST', body: examFd });
+
+            if (inserted > 0) {
+                showToast('✅ تم استيراد '+inserted+' سؤال + إطلاق الملحمة!', 'success', 6000);
+                closeExcelImportExams();
+                if (typeof loadExams === 'function') loadExams();
+            } else {
+                showToast('⚠️ لم تُحفظ أسئلة', 'warning');
+            }
+        } catch(e) {
+            showToast('❌ ' + e.message, 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '🚀 استيراد وإطلاق الملحمة';
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📓 دفتر الأعمال — Tasks
+    ════════════════════════════════════════════════════════════ */
+    var _allTasks = [];
+    var _taskFilter = '';
+
+    async function loadAdminTasks() {
+        var list = document.getElementById('tasks-list');
+        if (!list) return;
+        list.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">⏳ جارٍ التحميل...</p>';
+        try {
+            var res = await authFetch('/api/admin/tasks');
+            if (!res || !res.ok) throw new Error('failed');
+            _allTasks = await res.json();
+            _renderTaskStats();
+            renderTasksList();
+        } catch(e) {
+            list.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
+        }
+    }
+
+    function _renderTaskStats() {
+        var pending = _allTasks.filter(function(t){return t.status==='pending'}).length;
+        var prog    = _allTasks.filter(function(t){return t.status==='in_progress'}).length;
+        var done    = _allTasks.filter(function(t){return t.status==='done'}).length;
+        var today   = new Date().toISOString().slice(0,10);
+        var overdue = _allTasks.filter(function(t){return t.status!=='done' && t.due_date && t.due_date < today}).length;
+        var setEl = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+        setEl('task-stat-pending', pending);
+        setEl('task-stat-progress', prog);
+        setEl('task-stat-done', done);
+        setEl('task-stat-overdue', overdue);
+    }
+
+    function filterTasks(status) {
+        _taskFilter = status;
+        document.querySelectorAll('.task-filter-btn').forEach(function(b){
+            b.classList.toggle('active', b.dataset.filter === status);
+        });
+        renderTasksList();
+    }
+
+    function renderTasksList() {
+        var list = document.getElementById('tasks-list');
+        if (!list) return;
+        var filtered = _taskFilter ? _allTasks.filter(function(t){return t.status===_taskFilter}) : _allTasks;
+        if (!filtered.length) {
+            list.innerHTML = '<p style="opacity:0.5;text-align:center;padding:30px;">📭 لا توجد مهام في هذا التصنيف</p>';
+            return;
+        }
+        var prioOrder = {urgent:0, high:1, normal:2, low:3};
+        filtered.sort(function(a,b){
+            return (prioOrder[a.priority]||2) - (prioOrder[b.priority]||2);
+        });
+        var prioIcons = {urgent:'🔴', high:'🟠', normal:'🔵', low:'⚪'};
+        var statusIcons = {pending:'📋', in_progress:'🔄', done:'✅'};
+        var today = new Date().toISOString().slice(0,10);
+
+        list.innerHTML = filtered.map(function(t) {
+            var isOverdue = t.status !== 'done' && t.due_date && t.due_date < today;
+            return '<div class="task-card priority-'+(t.priority||'normal')+' status-'+(t.status||'pending')+'">' +
+                '<input type="checkbox" '+(t.status==='done'?'checked':'')+' onchange="toggleTaskStatus('+t.id+', this.checked)" style="margin-top:4px;width:20px;height:20px;accent-color:#2ecc71;flex-shrink:0;cursor:pointer;">' +
+                '<div style="flex:1;min-width:0;">' +
+                  '<div class="task-title" style="font-weight:bold;font-size:0.95rem;color:#fff;">' + esc(t.title||'') + '</div>' +
+                  (t.description ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-top:4px;">'+esc(t.description)+'</div>' : '') +
+                  '<div style="display:flex;gap:10px;margin-top:8px;font-size:0.72rem;flex-wrap:wrap;">' +
+                    '<span style="color:rgba(255,255,255,0.5);">' + (prioIcons[t.priority]||'🔵') + ' ' + (t.priority||'normal') + '</span>' +
+                    '<span style="color:rgba(255,255,255,0.5);">' + (statusIcons[t.status]||'📋') + ' ' + (t.status||'pending') + '</span>' +
+                    (t.due_date ? '<span style="color:'+(isOverdue?'#e74c3c':'rgba(255,255,255,0.5)')+';">📅 ' + t.due_date + (isOverdue?' (متأخرة!)':'') + '</span>' : '') +
+                  '</div>' +
+                '</div>' +
+                '<button onclick="deleteTask('+t.id+')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:0.78rem;flex-shrink:0;"><i class="fas fa-trash"></i></button>' +
+            '</div>';
+        }).join('');
+    }
+
+    async function toggleTaskStatus(id, isDone) {
+        try {
+            var fd = new FormData();
+            fd.append('status', isDone ? 'done' : 'pending');
+            await authFetch('/api/admin/tasks/'+id, { method: 'PUT', body: fd });
+            loadAdminTasks();
+        } catch(e) { showToast('❌ خطأ', 'error'); }
+    }
+
+    async function deleteTask(id) {
+        if (!confirm('حذف هذه المهمة؟')) return;
+        try {
+            await authFetch('/api/admin/tasks/'+id, { method: 'DELETE' });
+            showToast('✅ تم الحذف', 'success');
+            loadAdminTasks();
+        } catch(e) { showToast('❌ خطأ', 'error'); }
+    }
+
+    function openNewTaskModal() {
+        var prev = document.getElementById('new-task-modal');
+        if (prev) prev.remove();
+        var m = document.createElement('div');
+        m.id = 'new-task-modal';
+        m.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);';
+        m.innerHTML =
+            '<div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid #f39c12;border-radius:20px;padding:24px;max-width:480px;width:100%;">' +
+              '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">' +
+                '<div style="font-size:2rem;">📝</div>' +
+                '<h2 style="color:#f39c12;margin:0;font-family:\'Amiri\';">مهمة جديدة</h2>' +
+                '<div style="flex:1;"></div>' +
+                '<button onclick="document.getElementById(\'new-task-modal\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>' +
+              '</div>' +
+              '<div style="margin-bottom:12px;"><label>العنوان</label><input type="text" id="nt-title" placeholder="مثال: مراجعة أسئلة الصف السادس"></div>' +
+              '<div style="margin-bottom:12px;"><label>الوصف (اختياري)</label><textarea id="nt-desc" placeholder="تفاصيل إضافية..." style="min-height:60px;"></textarea></div>' +
+              '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px;">' +
+                '<div><label>الأولوية</label><select id="nt-priority"><option value="low">⚪ منخفضة</option><option value="normal" selected>🔵 عادية</option><option value="high">🟠 عالية</option><option value="urgent">🔴 عاجلة</option></select></div>' +
+                '<div><label>تاريخ التنفيذ</label><input type="date" id="nt-due"></div>' +
+              '</div>' +
+              '<button onclick="saveNewTask()" style="width:100%;background:linear-gradient(135deg,#f39c12,#e67e22);border:none;color:#fff;padding:13px;border-radius:12px;font-weight:bold;cursor:pointer;font-family:\'Cairo\';">✅ حفظ المهمة</button>' +
+            '</div>';
+        document.body.appendChild(m);
+        setTimeout(function(){ document.getElementById('nt-title')?.focus(); }, 100);
+    }
+
+    async function saveNewTask() {
+        var title = document.getElementById('nt-title').value.trim();
+        if (!title) { showToast('⚠️ أدخل عنوان المهمة', 'warning'); return; }
+        var desc = document.getElementById('nt-desc').value.trim();
+        var prio = document.getElementById('nt-priority').value;
+        var due  = document.getElementById('nt-due').value;
+        try {
+            var fd = new FormData();
+            fd.append('title', title);
+            fd.append('description', desc);
+            fd.append('priority', prio);
+            if (due) fd.append('due_date', due);
+            var res = await authFetch('/api/admin/tasks', { method: 'POST', body: fd });
+            if (res && res.ok) {
+                showToast('✅ تم إضافة المهمة', 'success');
+                document.getElementById('new-task-modal').remove();
+                loadAdminTasks();
+            } else { showToast('❌ فشل', 'error'); }
+        } catch(e) { showToast('❌ خطأ', 'error'); }
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       🎯 تحفيز الطلاب — Push Motivation
+    ════════════════════════════════════════════════════════════ */
+    function onMotivTargetChange() {
+        var target = document.getElementById('motiv-target').value;
+        var wrap = document.getElementById('motiv-grade-wrap');
+        if (wrap) wrap.style.display = (target === 'grade') ? 'block' : 'none';
+        // املأ الصفوف
+        if (target === 'grade') {
+            var sel = document.getElementById('motiv-grade');
+            if (sel && sel.options.length === 0 && typeof fullCurriculum !== 'undefined') {
+                fullCurriculum.forEach(function(g) {
+                    var o = document.createElement('option');
+                    o.value = g.name; o.textContent = g.name;
+                    sel.appendChild(o);
+                });
+            }
+        }
+    }
+
+    async function sendInactiveMotivation(days) {
+        if (!confirm('إرسال إشعار تحفيزي لكل الطلاب الغائبين منذ ' + days + ' أيام؟')) return;
+        var resBox = document.getElementById('motiv-result');
+        if (resBox) resBox.innerHTML = '⏳ جارٍ الإرسال...';
+        try {
+            var fd = new FormData();
+            fd.append('days', days);
+            var res = await authFetch('/api/admin/motivation/send_inactive', { method: 'POST', body: fd });
+            var data = await res.json();
+            if (!data.push_enabled) {
+                resBox.innerHTML = '<div style="color:#e74c3c;background:rgba(231,76,60,0.08);padding:10px;border-radius:8px;">⚠️ Push notifications غير مفعّلة على الخادم. اضبط متغيرات VAPID في Render.</div>';
+                return;
+            }
+            resBox.innerHTML = '<div style="color:#2ecc71;background:rgba(46,204,113,0.08);padding:10px;border-radius:8px;">✅ تم إرسال <strong>'+data.sent+'</strong> إشعار · تخطّى <strong>'+data.skipped_today+'</strong> أُرسلوا اليوم سابقاً</div>';
+            showToast('✅ أُرسل '+data.sent+' إشعار', 'success');
+        } catch(e) {
+            if (resBox) resBox.innerHTML = '<div style="color:#e74c3c;">❌ فشل الإرسال</div>';
+        }
+    }
+
+    async function sendCustomMotivation() {
+        var title = document.getElementById('motiv-title').value.trim();
+        var body  = document.getElementById('motiv-body').value.trim();
+        if (!title || !body) { showToast('⚠️ املأ العنوان والرسالة', 'warning'); return; }
+        var target = document.getElementById('motiv-target').value;
+        var targetVal = 'all';
+        if (target === 'grade') {
+            var g = document.getElementById('motiv-grade').value;
+            if (!g) { showToast('⚠️ اختر الصف', 'warning'); return; }
+            targetVal = 'grade:' + g;
+        }
+        var btn = document.getElementById('btn-send-motiv');
+        btn.disabled = true; btn.innerHTML = '⏳ جارٍ الإرسال...';
+        try {
+            var fd = new FormData();
+            fd.append('title', title);
+            fd.append('body', body);
+            fd.append('target', targetVal);
+            var res = await authFetch('/api/admin/motivation/send_custom', { method: 'POST', body: fd });
+            var data = await res.json();
+            if (!data.push_enabled) {
+                showToast('⚠️ Push غير مفعّل على الخادم', 'warning', 5000);
+            } else {
+                showToast('✅ أُرسل '+data.sent+' إشعار', 'success', 5000);
+                document.getElementById('motiv-title').value = '';
+                document.getElementById('motiv-body').value = '';
+            }
+        } catch(e) { showToast('❌ خطأ', 'error'); }
+        finally { btn.disabled = false; btn.innerHTML = '🚀 أرسل الإشعار'; }
+    }
 
 
 </script>

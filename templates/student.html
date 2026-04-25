@@ -1395,7 +1395,10 @@
             <input type="text"     id="user-login" class="auth-input" placeholder="اسم المستخدم" autocomplete="username">
             <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور" autocomplete="current-password">
             <button class="nav-btn active shiny-btn" onclick="handleLogin()">دخول الإمبراطورية</button>
-            <p style="margin-top:20px; font-size:0.8rem;">بطل جديد؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold); font-weight:bold;">أنشئ حسابك ←</a></p>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;font-size:0.8rem;flex-wrap:wrap;gap:10px;">
+                <a href="#" onclick="openForgotPassword(event)" style="color:#5dade2;text-decoration:underline;">🔑 نسيت كلمة المرور؟</a>
+                <span>بطل جديد؟ <a href="#" onclick="toggleAuth()" style="color:var(--gold); font-weight:bold;">أنشئ حسابك ←</a></span>
+            </div>
         </div>
         <div class="auth-card tilt-card" id="register-form" style="display:none;">
             <h2 style="color:var(--gold); font-family:'Amiri';">انضمام بطل جديد 📜</h2>
@@ -2458,6 +2461,8 @@
         if (window._notifInterval) clearInterval(window._notifInterval);
         window._notifInterval = setInterval(() => { if (currentUser) checkGeneralNotifications(); }, 60000);
         setTimeout(checkEliteStatus, 3500);
+        // 📡 فعّل push notifications إن لم تكن مفعّلة
+        setTimeout(() => { if (currentUser && typeof _initPushAfterLogin === 'function') _initPushAfterLogin(); }, 4000);
     }
 
     /* ================================================================
@@ -3554,10 +3559,10 @@
 
         document.getElementById('battle-my-avatar').src          = currentUser?.avatar_url || avatars[0];
         document.getElementById('battle-my-name').textContent    = currentUser?.full_name || 'أنا';
-        document.getElementById('battle-my-score').textContent   = 'النقاط: 0/—';
+        document.getElementById('battle-my-score').textContent   = 'النقاط: 0/5';
         document.getElementById('battle-enemy-avatar').src       = enemy.avatar;
         document.getElementById('battle-enemy-name').textContent = enemy.name;
-        document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/—';
+        document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/5';
 
         const userGrade    = currentUser?.grade || '';
         const userGradeNum = normalizeGradeNum(userGrade);
@@ -3627,16 +3632,13 @@
     }
 
     function updateArenaScoreBoard() {
-        const total = arenaQs.length || 5;
-        document.getElementById('battle-my-score').textContent    = `النقاط: ${myArenaScore} / ${total}`;
-        document.getElementById('battle-enemy-score').textContent = `النقاط: ${enemyArenaScore} / ${total}`;
+        document.getElementById('battle-my-score').textContent    = `النقاط: ${myArenaScore} / 5`;
+        document.getElementById('battle-enemy-score').textContent = `النقاط: ${enemyArenaScore} / 5`;
     }
 
     function renderArenaQuestion(q) {
-        if (!q) { finishArenaMatch(); return; } // حماية من undefined
-        const totalQ = arenaQs.length;
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
-            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من ${totalQ}</div>`;
+            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 10</div>`;
         if (q.image_url) html += `<img src="${q.image_url}" class="question-image" style="max-height:200px;">`;
         html += `<p class="battle-question">${q.question}</p>
             <div style="text-align:left; margin-bottom:15px;">
@@ -3750,16 +3752,11 @@
         updateArenaScoreBoard();
         setTimeout(() => {
             currentArenaQIndex++;
-            if (currentArenaQIndex < arenaQs.length) {
+            if (currentArenaQIndex < 10) {
                 playSound(document.getElementById('scroll-sfx'));
                 const qArea = document.getElementById('battle-question-area');
                 qArea.classList.add('fade-out-down');
-                setTimeout(() => {
-                    const nextQ = arenaQs[currentArenaQIndex];
-                    if (!nextQ) { finishArenaMatch(); return; }
-                    renderArenaQuestion(nextQ);
-                    qArea.classList.remove('fade-out-down');
-                }, 400);
+                setTimeout(() => { renderArenaQuestion(arenaQs[currentArenaQIndex]); qArea.classList.remove('fade-out-down'); }, 400);
             } else {
                 finishArenaMatch();
             }
@@ -7975,35 +7972,24 @@
             document.head.appendChild(st);
         }
 
-        // iframe معزول — srcdoc لتفادي X-Frame-Options من Supabase
+        // iframe معزول
         var frame = document.createElement('iframe');
         frame.id = 'html-lesson-frame';
-        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+        frame.src = fileUrl;
+        frame.setAttribute('sandbox', 'allow-scripts');
         frame.setAttribute('referrerpolicy', 'no-referrer');
+        frame.setAttribute('loading', 'lazy');
         frame.style.cssText = 'flex:1;width:100%;border:none;background:#fff;min-height:0;';
-        frame.srcdoc = '<div style="text-align:center;padding:80px;font-family:Cairo,sans-serif;direction:rtl;font-size:1.2rem;color:#666;">⏳ جارٍ تحميل الدرس…</div>';
+        frame.onload = function() {
+            loader.style.opacity = '0';
+            setTimeout(function(){ loader.style.display = 'none'; }, 400);
+            if (lessonId) {
+                fetch(API_URL + '/api/html_lessons/' + lessonId + '/view', { method: 'POST' }).catch(function(){});
+            }
+        };
         modal.appendChild(frame);
-        document.body.appendChild(modal);
 
-        fetch(fileUrl)
-            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-            .then(function(html) {
-                frame.srcdoc = html;
-                loader.style.opacity = '0';
-                setTimeout(function(){ loader.style.display = 'none'; }, 400);
-                if (lessonId) {
-                    fetch(API_URL + '/api/html_lessons/' + lessonId + '/view', { method: 'POST' }).catch(function(){});
-                }
-            })
-            .catch(function(err) {
-                loader.style.display = 'none';
-                frame.srcdoc = '<div style="text-align:center;padding:80px 20px;font-family:Cairo,sans-serif;direction:rtl;">'
-                    + '<div style="font-size:3rem;margin-bottom:12px;">⚠️</div>'
-                    + '<h2 style="color:#e74c3c;margin-bottom:12px;">تعذّر تحميل الدرس</h2>'
-                    + '<p style="color:#888;margin-bottom:20px;">' + err.message + '</p>'
-                    + '<a href="' + fileUrl + '" target="_blank" style="display:inline-block;background:#1abc9c;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:bold;">📎 فتح في نافذة جديدة</a>'
-                    + '</div>';
-            });
+        document.body.appendChild(modal);
 
         // زر بدء التحدي
         document.getElementById('html-lesson-start-btn').addEventListener('click', function() {
@@ -8019,6 +8005,217 @@
             }
         };
         document.addEventListener('keydown', onKey);
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       🔑 استعادة كلمة المرور المنسية
+       — يستخدم كود ولي الأمر (parent_code) كمُصادقة
+    ════════════════════════════════════════════════════════════ */
+    function openForgotPassword(e) {
+        if (e) e.preventDefault();
+        var prev = document.getElementById('forgot-pwd-modal');
+        if (prev) prev.remove();
+        var m = document.createElement('div');
+        m.id = 'forgot-pwd-modal';
+        m.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);';
+        m.innerHTML =
+            '<div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid var(--gold);border-radius:22px;padding:26px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(212,175,55,0.4);">' +
+              '<div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">' +
+                '<div style="font-size:2.4rem;">🔑</div>' +
+                '<div style="flex:1;">' +
+                  '<h2 style="color:var(--gold);margin:0;font-family:\'Amiri\';font-size:1.5rem;">استعادة كلمة المرور</h2>' +
+                  '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:2px;">عبر كود ولي الأمر</div>' +
+                '</div>' +
+                '<button onclick="document.getElementById(\'forgot-pwd-modal\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>' +
+              '</div>' +
+              '<div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:14px;margin-bottom:18px;font-size:0.85rem;line-height:1.7;color:rgba(255,255,255,0.75);">' +
+                '🔐 <strong>كيف تعمل الاستعادة؟</strong><br>' +
+                'أدخل اسم المستخدم + كود ولي الأمر (يبدأ بـ RS-XXXXX). يمكنك أخذ الكود من ولي الأمر، أو من بريدك المحفوظ عند التسجيل.' +
+              '</div>' +
+              '<div style="margin-bottom:14px;">' +
+                '<label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">👤 اسم المستخدم</label>' +
+                '<input type="text" id="fp-username" placeholder="username" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:\'Cairo\';box-sizing:border-box;">' +
+              '</div>' +
+              '<div style="margin-bottom:14px;">' +
+                '<label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">🔑 كود ولي الأمر</label>' +
+                '<input type="text" id="fp-parentcode" placeholder="RS-XXXXX" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:\'Cairo\';box-sizing:border-box;text-transform:uppercase;">' +
+              '</div>' +
+              '<div style="margin-bottom:18px;">' +
+                '<label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">🆕 كلمة المرور الجديدة</label>' +
+                '<input type="password" id="fp-newpass" placeholder="كلمة مرور جديدة (6+ أحرف)" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:\'Cairo\';box-sizing:border-box;">' +
+              '</div>' +
+              '<button onclick="submitForgotPassword()" id="fp-submit-btn" style="width:100%;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;border:none;padding:13px;border-radius:12px;font-weight:bold;font-family:\'Cairo\';font-size:1rem;cursor:pointer;box-shadow:0 6px 18px rgba(212,175,55,0.4);">🔓 استرجاع الحساب</button>' +
+            '</div>';
+        document.body.appendChild(m);
+    }
+
+    async function submitForgotPassword() {
+        var username = document.getElementById('fp-username').value.trim();
+        var code     = document.getElementById('fp-parentcode').value.trim().toUpperCase();
+        var newPass  = document.getElementById('fp-newpass').value;
+        if (!username || !code || !newPass) { showToast('⚠️ املأ جميع الحقول', 2500); return; }
+        if (newPass.length < 6) { showToast('⚠️ كلمة المرور قصيرة (6+ أحرف)', 2500); return; }
+        if (!code.startsWith('RS-')) { showToast('⚠️ الكود يجب أن يبدأ بـ RS-', 2500); return; }
+
+        var btn = document.getElementById('fp-submit-btn');
+        btn.disabled = true;
+        btn.innerHTML = '⏳ جارٍ التحقق...';
+
+        try {
+            var fd = new FormData();
+            fd.append('username', username);
+            fd.append('parent_code', code);
+            fd.append('new_password', newPass);
+            var res = await fetch(API_URL + '/api/student/forgot_password', { method: 'POST', body: fd });
+            var data = await res.json().catch(function(){ return {}; });
+            if (res.ok) {
+                showToast('✅ تم تحديث كلمة المرور — سجّل الدخول الآن', 4000);
+                document.getElementById('forgot-pwd-modal').remove();
+                // املأ حقل الـ login تلقائياً
+                document.getElementById('user-login').value = username;
+                document.getElementById('pass-login').value = newPass;
+            } else {
+                showToast('❌ ' + (data.detail || 'فشل الاسترجاع'), 4000);
+            }
+        } catch(e) {
+            showToast('❌ خطأ في الاتصال', 3000);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '🔓 استرجاع الحساب';
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📡 Web Push Notifications — تسجيل الجهاز لاستقبال إشعارات
+       تظهر الإشعارات على شاشة الجهاز حتى لو كان التطبيق مغلقاً!
+    ════════════════════════════════════════════════════════════ */
+    var _pushVapidKey = null;
+
+    // تحويل base64 → Uint8Array (مطلوب للـ Push API)
+    function _urlBase64ToUint8Array(base64String) {
+        const padding = '='.repeat((4 - base64String.length % 4) % 4);
+        const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+        const rawData = window.atob(base64);
+        const outputArray = new Uint8Array(rawData.length);
+        for (let i = 0; i < rawData.length; ++i) {
+            outputArray[i] = rawData.charCodeAt(i);
+        }
+        return outputArray;
+    }
+
+    async function setupPushNotifications() {
+        // فحوصات الدعم
+        if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+            console.warn('[push] المتصفح لا يدعم push notifications');
+            return false;
+        }
+        if (!currentUser || !currentUser.id) return false;
+
+        try {
+            // 1. سجّل الـ service worker
+            const registration = await navigator.serviceWorker.register('/static/sw.js', { scope: '/' });
+            console.log('[push] SW registered');
+
+            // 2. اطلب إذن الإشعارات
+            let permission = Notification.permission;
+            if (permission === 'default') {
+                permission = await Notification.requestPermission();
+            }
+            if (permission !== 'granted') {
+                console.warn('[push] إذن الإشعارات مرفوض');
+                return false;
+            }
+
+            // 3. اجلب VAPID public key
+            if (!_pushVapidKey) {
+                const keyRes = await fetch(API_URL + '/api/push/vapid_public_key');
+                const keyData = await keyRes.json();
+                if (!keyData.enabled || !keyData.key) {
+                    console.warn('[push] Push غير مفعّل في الخادم');
+                    return false;
+                }
+                _pushVapidKey = keyData.key;
+            }
+
+            // 4. اشترك (إن لم يكن مشتركاً سابقاً)
+            let subscription = await registration.pushManager.getSubscription();
+            if (!subscription) {
+                subscription = await registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: _urlBase64ToUint8Array(_pushVapidKey)
+                });
+            }
+
+            // 5. أرسل الاشتراك للخادم
+            const subJson = subscription.toJSON();
+            const fd = new FormData();
+            fd.append('student_id', currentUser.id);
+            fd.append('endpoint', subJson.endpoint);
+            fd.append('p256dh', subJson.keys.p256dh);
+            fd.append('auth', subJson.keys.auth);
+            fd.append('user_agent', navigator.userAgent.substring(0, 200));
+            await fetch(API_URL + '/api/push/subscribe', { method: 'POST', body: fd });
+
+            console.log('[push] ✅ مُسجَّل بنجاح');
+            return true;
+        } catch (e) {
+            console.warn('[push] فشل التسجيل:', e);
+            return false;
+        }
+    }
+
+    // اعرض زر تشجيعي بعد تسجيل الدخول إن لم تكن الإشعارات مفعّلة
+    function maybeShowPushPromo() {
+        if (!('Notification' in window)) return;
+        if (Notification.permission !== 'default') return; // إما granted أو denied — لا تُزعج
+        if (localStorage.getItem('pushPromoSeen')) return;
+        if (!currentUser) return;
+
+        // أنشئ بانر علوي
+        var banner = document.createElement('div');
+        banner.id = 'push-promo-banner';
+        banner.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:99988;background:linear-gradient(135deg,#1a1a2e,#0d1b3e);border-bottom:2px solid var(--gold);padding:14px 18px;direction:rtl;display:flex;align-items:center;gap:12px;flex-wrap:wrap;animation:slideDown 0.4s ease;';
+        banner.innerHTML =
+            '<div style="font-size:1.6rem;">🔔</div>' +
+            '<div style="flex:1;min-width:200px;">' +
+              '<div style="font-weight:bold;color:var(--gold);font-size:0.95rem;">فعّل الإشعارات على جهازك</div>' +
+              '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin-top:2px;">لتصلك تنبيهات الملاحم والتحديات الجديدة فوراً!</div>' +
+            '</div>' +
+            '<button id="push-promo-yes" style="background:var(--gold-grad);color:#000;border:none;padding:9px 18px;border-radius:10px;font-weight:bold;cursor:pointer;font-family:\'Cairo\';">✅ فعّل الآن</button>' +
+            '<button id="push-promo-no" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:9px 14px;border-radius:10px;cursor:pointer;font-family:\'Cairo\';">لاحقاً</button>';
+        
+        if (!document.getElementById('push-promo-style')) {
+            var s = document.createElement('style');
+            s.id = 'push-promo-style';
+            s.textContent = '@keyframes slideDown{from{transform:translateY(-100%)}to{transform:translateY(0)}}';
+            document.head.appendChild(s);
+        }
+        document.body.prepend(banner);
+        
+        document.getElementById('push-promo-yes').onclick = async function() {
+            banner.remove();
+            localStorage.setItem('pushPromoSeen', '1');
+            var ok = await setupPushNotifications();
+            if (ok) showToast('🔔 تم تفعيل الإشعارات!', 3000);
+        };
+        document.getElementById('push-promo-no').onclick = function() {
+            banner.remove();
+            localStorage.setItem('pushPromoSeen', '1');
+        };
+    }
+
+    // فعّل تلقائياً بعد تسجيل الدخول
+    function _initPushAfterLogin() {
+        if (!currentUser) return;
+        // لو المستخدم وافق سابقاً، اشترك تلقائياً
+        if ('Notification' in window && Notification.permission === 'granted') {
+            setupPushNotifications();
+        } else {
+            // اعرض البانر التشجيعي بعد 4 ثواني (لا نُزعج فوراً)
+            setTimeout(maybeShowPushPromo, 4000);
+        }
     }
 
     // ── END ELITE STUDENT JS ──

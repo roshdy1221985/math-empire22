@@ -1,4 +1,5 @@
 import os
+import json
 import uuid
 import random
 from datetime import datetime, timedelta, timezone
@@ -233,6 +234,107 @@ async def global_exception_handler(request: Request, exc: Exception):
 # ضمان ترميز UTF-8 لجميع الاستجابات
 from fastapi.responses import Response
 import json as _json
+
+# ═══ Web Push Notifications (VAPID) ═══
+VAPID_PUBLIC_KEY  = os.environ.get("VAPID_PUBLIC_KEY", "")
+VAPID_PRIVATE_KEY = os.environ.get("VAPID_PRIVATE_KEY", "")
+VAPID_CLAIMS_SUB  = os.environ.get("VAPID_CLAIMS_SUB", "mailto:rashdy.sayed@example.com")
+
+# pywebpush قد لا يكون مثبتاً — نستورده بحذر
+try:
+    from pywebpush import webpush, WebPushException  # type: ignore
+    PUSH_ENABLED = bool(VAPID_PUBLIC_KEY and VAPID_PRIVATE_KEY)
+except ImportError:
+    PUSH_ENABLED = False
+    print("⚠️ pywebpush غير مثبت — سيتم تخطي push notifications")
+
+
+def _send_push_to_endpoint(subscription_info: dict, payload: dict) -> bool:
+    """يُرسل push لاشتراك واحد. يُرجع True عند النجاح."""
+    if not PUSH_ENABLED:
+        return False
+    try:
+        webpush(
+            subscription_info=subscription_info,
+            data=json.dumps(payload, ensure_ascii=False),
+            vapid_private_key=VAPID_PRIVATE_KEY,
+            vapid_claims={"sub": VAPID_CLAIMS_SUB}
+        )
+        return True
+    except WebPushException as e:
+        # لو 410/404 → الاشتراك منتهي، احذفه
+        if e.response and e.response.status_code in (410, 404):
+            try:
+                supabase.table("push_subscriptions").delete().eq(
+                    "endpoint", subscription_info.get("endpoint", "")
+                ).execute()
+            except Exception:
+                pass
+        return False
+    except Exception:
+        return False
+
+
+def _push_to_student(student_id: int, title: str, body: str,
+                     url: str = "/student", tag: str = "general",
+                     icon: str = "/static/icon-192.png", require_interaction: bool = False) -> int:
+    """يُرسل push لكل اشتراكات طالب معيّن. يُرجع عدد الإرسالات الناجحة."""
+    if not PUSH_ENABLED:
+        return 0
+    try:
+        res = supabase.table("push_subscriptions").select(
+            "endpoint, p256dh, auth"
+        ).eq("student_id", student_id).execute()
+        subs = res.data or []
+    except Exception:
+        return 0
+    
+    sent = 0
+    payload = {
+        "title": title,
+        "body": body,
+        "url": url,
+        "tag": tag,
+        "icon": icon,
+        "requireInteraction": require_interaction,
+    }
+    for s in subs:
+        info = {
+            "endpoint": s["endpoint"],
+            "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}
+        }
+        if _send_push_to_endpoint(info, payload):
+            sent += 1
+    return sent
+
+
+def _push_to_grade(grade: str, title: str, body: str, url: str = "/student", tag: str = "general") -> int:
+    """يُرسل push لكل طلاب صف معيّن"""
+    if not PUSH_ENABLED:
+        return 0
+    try:
+        # اجلب IDs الطلاب في الصف
+        st_res = supabase.table("students").select("id").eq("grade", grade).execute()
+        student_ids = [s["id"] for s in (st_res.data or [])]
+        if not student_ids:
+            return 0
+        # اجلب اشتراكاتهم
+        sub_res = supabase.table("push_subscriptions").select(
+            "endpoint, p256dh, auth, student_id"
+        ).in_("student_id", student_ids).execute()
+        subs = sub_res.data or []
+    except Exception:
+        return 0
+    
+    sent = 0
+    payload = {"title": title, "body": body, "url": url, "tag": tag, "icon": "/static/icon-192.png"}
+    for s in subs:
+        info = {"endpoint": s["endpoint"], "keys": {"p256dh": s["p256dh"], "auth": s["auth"]}}
+        if _send_push_to_endpoint(info, payload):
+            sent += 1
+    return sent
+
+
 
 class UTF8JSONResponse(JSONResponse):
     def render(self, content) -> bytes:
@@ -1863,6 +1965,58 @@ def _count_active_recent(results: list, days: int = 7) -> int:
     return len(active_ids)
 
 
+@app.post("/api/student/forgot_password")
+async def student_forgot_password(
+    request: Request,
+    username: str       = Form(...),
+    parent_code: str    = Form(...),
+    new_password: str   = Form(...),
+):
+    """
+    استعادة كلمة مرور طالب — يتطلب كود ولي الأمر للأمان
+    Rate-limit: 5 محاولات / دقيقة لكل IP
+    """
+    import re
+    
+    # 🛡️ rate limiting يدوي
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=5, window_seconds=60, key_prefix="forgot_pwd"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة — انتظر دقيقة وحاول مرة أخرى")
+    
+    # تحقق من شكل الكود
+    if not re.match(r'^RS-[A-Z0-9]{4,12}$', parent_code.strip().upper()):
+        raise HTTPException(status_code=400, detail="كود ولي الأمر غير صالح")
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="كلمة المرور قصيرة (6+ أحرف)")
+    if len(username) < 3:
+        raise HTTPException(status_code=400, detail="اسم المستخدم غير صالح")
+
+    try:
+        # ابحث عن الطالب باسم المستخدم + كود ولي الأمر
+        res = supabase.table("students").select("id, username, parent_code").eq(
+            "username", username.strip()
+        ).eq("parent_code", parent_code.strip().upper()).limit(1).execute()
+        
+        if not res.data:
+            raise HTTPException(
+                status_code=404,
+                detail="لم نعثر على حساب بهذا الاسم وكود ولي الأمر — تحقق من البيانات"
+            )
+
+        student_id = res.data[0]["id"]
+        # حدّث كلمة المرور (مع hashing)
+        hashed = hash_password(new_password)
+        supabase.table("students").update({
+            "password": hashed
+        }).eq("id", student_id).execute()
+        
+        return {"status": "success", "message": "تم تحديث كلمة المرور"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),
@@ -3325,6 +3479,326 @@ async def delete_html_lesson(lesson_id: int, admin = Depends(get_current_admin))
                 pass
     supabase.table("html_lessons").delete().eq("id", lesson_id).execute()
     return {"status": "deleted"}
+
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📡 PUSH NOTIFICATIONS — تسجيل + إرسال
+# ═══════════════════════════════════════════════════════════════
+@app.get("/api/push/vapid_public_key")
+async def get_vapid_public_key():
+    """يُرجع المفتاح العام للعميل ليُسجّل اشتراك push"""
+    return {"key": VAPID_PUBLIC_KEY, "enabled": PUSH_ENABLED}
+
+
+@app.post("/api/push/subscribe")
+async def push_subscribe(
+    student_id: int = Form(...),
+    endpoint: str   = Form(...),
+    p256dh: str     = Form(...),
+    auth: str       = Form(...),
+    user_agent: str = Form(default=""),
+):
+    """تسجيل اشتراك push من جهاز الطالب"""
+    if not endpoint or not p256dh or not auth:
+        raise HTTPException(status_code=400, detail="بيانات الاشتراك ناقصة")
+    try:
+        # حذف اشتراك سابق بنفس endpoint إن وُجد
+        supabase.table("push_subscriptions").delete().eq("endpoint", endpoint).execute()
+        # إدراج الجديد
+        supabase.table("push_subscriptions").insert({
+            "student_id": student_id,
+            "endpoint":   endpoint,
+            "p256dh":     p256dh,
+            "auth":       auth,
+            "user_agent": user_agent[:500],
+        }).execute()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/push/unsubscribe")
+async def push_unsubscribe(endpoint: str = Form(...)):
+    """إلغاء اشتراك push"""
+    try:
+        supabase.table("push_subscriptions").delete().eq("endpoint", endpoint).execute()
+    except Exception:
+        pass
+    return {"status": "ok"}
+
+
+@app.post("/api/admin/push/send_to_student/{student_id}")
+async def admin_push_to_student(
+    student_id: int,
+    title: str = Form(...),
+    body: str  = Form(...),
+    url: str   = Form(default="/student"),
+    admin = Depends(get_current_admin),
+):
+    """إرسال push يدوي لطالب"""
+    sent = _push_to_student(student_id, title, body, url=url, tag="admin_push")
+    return {"sent": sent, "enabled": PUSH_ENABLED}
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📓 ADMIN TASKS — دفتر الأعمال
+# ═══════════════════════════════════════════════════════════════
+@app.get("/api/admin/tasks")
+async def list_tasks(status: str = "", admin = Depends(get_current_admin)):
+    """قائمة المهام (يمكن فلترتها بالحالة)"""
+    try:
+        q = supabase.table("admin_tasks").select("*")
+        if status:
+            q = q.eq("status", status)
+        res = q.order("priority").order("due_date", nullsfirst=False).order("created_at", desc=True).execute()
+        return res.data or []
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.post("/api/admin/tasks")
+async def create_task(
+    title: str       = Form(...),
+    description: str = Form(default=""),
+    priority: str    = Form(default="normal"),
+    category: str    = Form(default="general"),
+    due_date: str    = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """إضافة مهمة جديدة"""
+    if priority not in ("low", "normal", "high", "urgent"):
+        priority = "normal"
+    row = {
+        "title": title.strip()[:200],
+        "description": description.strip()[:2000],
+        "priority": priority,
+        "category": category[:50],
+        "status": "pending",
+    }
+    if due_date:
+        row["due_date"] = due_date
+    try:
+        res = supabase.table("admin_tasks").insert(row).execute()
+        return {"status": "created", "id": res.data[0]["id"] if res.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.put("/api/admin/tasks/{task_id}")
+async def update_task(
+    task_id: int,
+    title: str       = Form(default=None),
+    description: str = Form(default=None),
+    priority: str    = Form(default=None),
+    status: str      = Form(default=None),
+    due_date: str    = Form(default=None),
+    admin = Depends(get_current_admin)
+):
+    """تحديث مهمة"""
+    update = {"updated_at": datetime.now(timezone.utc).isoformat()}
+    if title is not None:       update["title"]       = title.strip()[:200]
+    if description is not None: update["description"] = description.strip()[:2000]
+    if priority is not None:    update["priority"]    = priority
+    if status is not None:
+        update["status"] = status
+        if status == "done":
+            update["completed_at"] = datetime.now(timezone.utc).isoformat()
+    if due_date is not None:    update["due_date"]    = due_date or None
+    try:
+        supabase.table("admin_tasks").update(update).eq("id", task_id).execute()
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.delete("/api/admin/tasks/{task_id}")
+async def delete_task(task_id: int, admin = Depends(get_current_admin)):
+    try:
+        supabase.table("admin_tasks").delete().eq("id", task_id).execute()
+        return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🎯 MOTIVATIONAL NOTIFICATIONS — تحفيز الطلاب تلقائياً
+# ═══════════════════════════════════════════════════════════════
+def _was_motivation_sent_today(student_id: int, notif_type: str) -> bool:
+    """فحص هل أُرسل هذا النوع لهذا الطالب اليوم"""
+    try:
+        from datetime import date
+        today = date.today().isoformat()
+        res = supabase.table("motivation_log").select("id").eq(
+            "student_id", student_id
+        ).eq("notif_type", notif_type).eq("notif_date", today).limit(1).execute()
+        return bool(res.data)
+    except Exception:
+        return False
+
+
+def _log_motivation(student_id: int, notif_type: str):
+    """سجّل أن الإشعار أُرسل"""
+    try:
+        supabase.table("motivation_log").insert({
+            "student_id": student_id,
+            "notif_type": notif_type,
+        }).execute()
+    except Exception:
+        pass
+
+
+# قوالب الرسائل التحفيزية (يمكن للأدمن تخصيصها لاحقاً)
+MOTIVATION_TEMPLATES = {
+    "inactive_3days": {
+        "titles": [
+            "🏰 إمبراطوريتك تشتاق إليك!",
+            "⚔️ أبطالك ينتظرون عودتك",
+            "👑 العرش يحتاج بطله",
+        ],
+        "bodies": [
+            "غبت عن المنصة 3 أيام — تعال خض تحدياً جديداً وارفع نقاطك! ⚡",
+            "لا تترك أصدقاءك يسبقونك في الترتيب — عد للمعركة! 🏆",
+            "تحدٍ جديد بانتظارك في ساحة المبارزة — اضغط وابدأ! 🎯",
+        ],
+    },
+    "inactive_7days": {
+        "titles": [
+            "🚨 أسبوع كامل بدون تحديات!",
+            "💔 افتقدناك في إمبراطوريتنا",
+        ],
+        "bodies": [
+            "مرّ أسبوع — استعد عرشك بحلّ تحدٍ سريع الآن! 5 دقائق فقط ⏱️",
+            "زملاؤك حصلوا على 200+ XP هذا الأسبوع — لا تتأخر عنهم! 🎖️",
+        ],
+    },
+    "streak_break": {
+        "titles": ["🔥 لا تكسر سلسلة إنجازاتك!"],
+        "bodies": ["كنت في طريقك لرقم قياسي — حلّ تحدٍ واحد فقط لتحافظ على السلسلة! 💪"],
+    },
+    "morning_motivation": {
+        "titles": [
+            "☀️ صباح المبارزات!",
+            "🌅 يوم جديد لتحديات جديدة",
+        ],
+        "bodies": [
+            "ابدأ يومك بحلّ تحدٍ سريع — 10 دقائق تعطيك طاقة لليوم كله! ⚡",
+            "أبطال اليوم يبدؤون باكراً — كن منهم! 🏆",
+        ],
+    },
+    "evening_reminder": {
+        "titles": ["🌙 لم تتحدّ اليوم بعد!"],
+        "bodies": ["لا تنهي يومك بدون تحدٍ واحد على الأقل — اكسب نقاطك! ⭐"],
+    },
+}
+
+
+import random as _random_mod
+
+
+@app.post("/api/admin/motivation/send_inactive")
+async def send_motivation_inactive(
+    days: int = Form(default=3),
+    admin = Depends(get_current_admin)
+):
+    """
+    إرسال إشعار تحفيزي للطلاب غير النشطين منذ N أيام
+    يفحص آخر heartbeat ويُرسل push للطلاب الغائبين
+    """
+    from datetime import datetime, timezone, timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    notif_type = f"inactive_{days}days" if days in (3, 7) else "inactive_3days"
+    
+    # اجلب كل الطلاب
+    try:
+        students_res = supabase.table("students").select(
+            "id, full_name, last_active"
+        ).execute()
+        students = students_res.data or []
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+    
+    template = MOTIVATION_TEMPLATES.get(notif_type, MOTIVATION_TEMPLATES["inactive_3days"])
+    sent_count = 0
+    skipped_count = 0
+    
+    for st in students:
+        sid = st["id"]
+        last_active = st.get("last_active")
+        
+        # تخطّى الطلاب النشطين
+        if last_active:
+            try:
+                la_dt = datetime.fromisoformat(last_active.replace("Z", "+00:00"))
+                if la_dt.tzinfo is None:
+                    la_dt = la_dt.replace(tzinfo=timezone.utc)
+                if la_dt > cutoff:
+                    continue  # نشط — تخطَّ
+            except Exception:
+                pass
+        
+        # تخطّى لو أُرسل اليوم
+        if _was_motivation_sent_today(sid, notif_type):
+            skipped_count += 1
+            continue
+        
+        # اختر رسالة عشوائية
+        title = _random_mod.choice(template["titles"])
+        body  = _random_mod.choice(template["bodies"])
+        
+        sent = _push_to_student(sid, title, body, url="/student", tag=notif_type)
+        if sent > 0:
+            _log_motivation(sid, notif_type)
+            sent_count += 1
+    
+    return {
+        "sent": sent_count,
+        "skipped_today": skipped_count,
+        "total_inactive_students": len(students),
+        "push_enabled": PUSH_ENABLED,
+    }
+
+
+@app.post("/api/admin/motivation/send_custom")
+async def send_motivation_custom(
+    title: str        = Form(...),
+    body: str         = Form(...),
+    target: str       = Form(default="all"),  # all / grade:X / student:N
+    url: str          = Form(default="/student"),
+    admin = Depends(get_current_admin)
+):
+    """إرسال رسالة تحفيزية مخصصة"""
+    if not title or not body:
+        raise HTTPException(status_code=400, detail="title و body مطلوبان")
+    
+    sent = 0
+    if target.startswith("student:"):
+        try:
+            sid = int(target.split(":")[1])
+            sent = _push_to_student(sid, title, body, url=url, tag="custom_motivation")
+        except Exception:
+            pass
+    elif target.startswith("grade:"):
+        grade = target.split(":", 1)[1]
+        sent = _push_to_grade(grade, title, body, url=url, tag="custom_motivation")
+    else:
+        # all — لكل الطلاب
+        try:
+            res = supabase.table("students").select("id").execute()
+            for s in (res.data or []):
+                sent += _push_to_student(s["id"], title, body, url=url, tag="custom_motivation")
+        except Exception:
+            pass
+    
+    return {"sent": sent, "push_enabled": PUSH_ENABLED}
+
+
+@app.get("/api/admin/motivation/templates")
+async def get_motivation_templates(admin = Depends(get_current_admin)):
+    """قوالب الرسائل التحفيزية الجاهزة"""
+    return MOTIVATION_TEMPLATES
 
 
 
