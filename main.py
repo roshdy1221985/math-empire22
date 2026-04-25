@@ -1212,14 +1212,222 @@ async def save_result(
 
 @app.post("/api/student/heartbeat")
 async def student_heartbeat(student_id: int = Form(...)):
-    """تحديث last_active للطالب — يُستدعى من العميل كل دقيقة أثناء النشاط"""
+    """
+    تحديث last_active للطالب + حفظ session bucket
+    يُستدعى كل دقيقة من العميل أثناء النشاط
+    
+    Bucket = 5 دقائق → الطالب يُسجَّل مرة واحدة في كل bucket
+    وقت الطالب اليومي = عدد buckets فريدة × 5 دقائق
+    """
+    now = datetime.now(timezone.utc)
     try:
+        # 1. تحديث last_active في students (للتوافق)
         supabase.table("students").update({
-            "last_active": datetime.now(timezone.utc).isoformat()
+            "last_active": now.isoformat()
         }).eq("id", student_id).execute()
+        
+        # 2. حفظ session bucket (مدة 5 دقائق)
+        # نقرّب الوقت لأقرب 5 دقائق (12:00, 12:05, 12:10, ...)
+        bucket_minute = (now.minute // 5) * 5
+        bucket = now.replace(minute=bucket_minute, second=0, microsecond=0)
+        
+        # جلب بيانات الطالب لتسجيلها مع الجلسة
+        try:
+            stu_res = supabase.table("students").select("full_name, grade").eq("id", student_id).limit(1).execute()
+            stu_data = stu_res.data[0] if stu_res.data else {}
+        except Exception:
+            stu_data = {}
+        
+        # upsert: إن كان الـ bucket موجود، نحدّث last_seen + counter
+        try:
+            existing = supabase.table("student_sessions").select("id, heartbeat_count")\
+                .eq("student_id", student_id).eq("session_bucket", bucket.isoformat()).limit(1).execute()
+            if existing.data:
+                supabase.table("student_sessions").update({
+                    "last_seen": now.isoformat(),
+                    "heartbeat_count": (existing.data[0].get("heartbeat_count", 1) or 1) + 1
+                }).eq("id", existing.data[0]["id"]).execute()
+            else:
+                supabase.table("student_sessions").insert({
+                    "student_id": student_id,
+                    "student_name": stu_data.get("full_name", ""),
+                    "grade": stu_data.get("grade", ""),
+                    "session_bucket": bucket.isoformat(),
+                    "last_seen": now.isoformat(),
+                    "heartbeat_count": 1
+                }).execute()
+        except Exception as e:
+            # الجدول قد لا يكون موجوداً بعد
+            print(f"[heartbeat session] {str(e)[:100]}")
+        
         return {"status": "ok"}
     except Exception:
         return {"status": "skipped"}
+
+
+@app.get("/api/admin/stats/daily_activity")
+async def get_daily_activity_stats(
+    days: int = 7,
+    admin = Depends(get_current_admin)
+):
+    """
+    📊 إحصائيات الحضور اليومي — حقيقية ومن الـ buckets
+    
+    Returns:
+        - daily_stats: قائمة بآخر N أيام (اليوم + N-1 يوم سابقاً)
+            * date: التاريخ
+            * unique_students: عدد الطلاب الفريدين
+            * total_minutes: إجمالي الدقائق المُحتسبة (بكل الطلاب)
+            * avg_minutes_per_student: متوسط الدقائق لكل طالب
+        - today_live: الطلاب النشطون الآن (آخر 5 دقائق)
+        - today_total_unique: إجمالي طلاب اليوم الفريدين
+    """
+    from datetime import datetime, timezone, timedelta
+    
+    days = max(1, min(days, 30))  # حد بين 1 و 30
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    range_start = today_start - timedelta(days=days - 1)
+    
+    # جلب كل sessions في النطاق المطلوب (مع pagination)
+    all_sessions = []
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("student_sessions").select(
+                "student_id, student_name, grade, session_bucket, last_seen, heartbeat_count"
+            ).gte("session_bucket", range_start.isoformat()).order("session_bucket", desc=True).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_sessions.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception as e:
+            print(f"[daily_activity] {e}")
+            break
+    
+    # تجميع حسب التاريخ
+    from collections import defaultdict
+    daily = defaultdict(lambda: {"buckets": 0, "students": set(), "by_grade": defaultdict(set)})
+    
+    for s in all_sessions:
+        bucket_str = s.get("session_bucket", "")
+        if not bucket_str:
+            continue
+        try:
+            dt = datetime.fromisoformat(bucket_str.replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            date_key = dt.date().isoformat()
+            daily[date_key]["buckets"] += 1
+            sid = s.get("student_id")
+            if sid:
+                daily[date_key]["students"].add(sid)
+                grade = s.get("grade") or "غير محدد"
+                daily[date_key]["by_grade"][grade].add(sid)
+        except Exception:
+            continue
+    
+    # بناء قائمة آخر N أيام (حتى لو لا توجد بيانات)
+    daily_stats = []
+    for i in range(days):
+        d = (today_start - timedelta(days=days - 1 - i)).date()
+        key = d.isoformat()
+        info = daily.get(key, {"buckets": 0, "students": set(), "by_grade": defaultdict(set)})
+        unique = len(info["students"])
+        total_min = info["buckets"] * 5
+        daily_stats.append({
+            "date": key,
+            "day_name": d.strftime("%A"),  # سيُترجم في الواجهة
+            "unique_students": unique,
+            "total_minutes": total_min,
+            "total_hours": round(total_min / 60, 1),
+            "avg_minutes_per_student": round(total_min / unique, 1) if unique > 0 else 0,
+            "grades_count": len(info["by_grade"]),
+        })
+    
+    # طلاب اليوم
+    today_key = today_start.date().isoformat()
+    today_info = daily.get(today_key, {"buckets": 0, "students": set()})
+    
+    # نشطون الآن (آخر 5 دقائق)
+    five_min_ago = now - timedelta(minutes=5)
+    live_students = set()
+    for s in all_sessions:
+        try:
+            seen = datetime.fromisoformat(s.get("last_seen", "").replace("Z", "+00:00"))
+            if seen.tzinfo is None:
+                seen = seen.replace(tzinfo=timezone.utc)
+            if seen >= five_min_ago:
+                sid = s.get("student_id")
+                if sid:
+                    live_students.add(sid)
+        except Exception:
+            continue
+    
+    return {
+        "daily_stats": daily_stats,
+        "today_live": len(live_students),
+        "today_total_unique": len(today_info["students"]),
+        "today_total_minutes": today_info["buckets"] * 5,
+        "now": now.isoformat(),
+    }
+
+
+@app.get("/api/admin/stats/student_time/{student_id}")
+async def get_student_time_breakdown(
+    student_id: int,
+    days: int = 30,
+    admin = Depends(get_current_admin)
+):
+    """⏱️ تفاصيل وقت طالب معيّن خلال آخر N يوم"""
+    from datetime import datetime, timezone, timedelta
+    days = max(1, min(days, 90))
+    range_start = datetime.now(timezone.utc) - timedelta(days=days)
+    
+    sessions = []
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("student_sessions").select(
+                "session_bucket, heartbeat_count"
+            ).eq("student_id", student_id).gte("session_bucket", range_start.isoformat()).order("session_bucket", desc=True).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            sessions.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تجميع يومي
+    from collections import defaultdict
+    daily = defaultdict(int)
+    for s in sessions:
+        try:
+            dt = datetime.fromisoformat(s["session_bucket"].replace("Z", "+00:00"))
+            daily[dt.date().isoformat()] += 5  # كل bucket = 5 دقائق
+        except Exception:
+            continue
+    
+    total_minutes = sum(daily.values())
+    days_active   = len(daily)
+    
+    return {
+        "student_id":      student_id,
+        "total_minutes":   total_minutes,
+        "total_hours":     round(total_minutes / 60, 1),
+        "days_active":     days_active,
+        "avg_per_day":     round(total_minutes / days_active, 1) if days_active else 0,
+        "daily_breakdown": [{"date": k, "minutes": v} for k, v in sorted(daily.items())],
+    }
+
+
+
 
 
 @app.post("/api/student/update_profile")
@@ -2062,11 +2270,95 @@ async def delete_notification(notif_id: int, admin=Depends(get_current_admin)):
 
 @app.get("/api/admin/students/full")
 async def get_all_students_full(admin=Depends(get_current_admin)):
-    """جلب قائمة الطلاب كاملة مع is_active"""
-    res = supabase.table("students").select(
-        "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active"
-    ).order("full_name").execute()
-    return res.data or []
+    """جلب قائمة الطلاب الكاملة + إحصائيات XP والتحديات والوقت الفعلي"""
+    # 1. جلب كل الطلاب (pagination)
+    students = []
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("students").select(
+                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active"
+            ).order("full_name").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception:
+            break
+
+    # 2. جلب كل النتائج (pagination) لحساب XP والتحديات
+    all_results = []
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("results").select(
+                "student_id, student_name, score, total, timestamp"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_results.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception:
+            break
+
+    # 3. تجميع إحصائيات لكل طالب
+    from collections import defaultdict
+    stats = defaultdict(lambda: {"xp": 0, "tests": 0, "score_sum": 0, "total_sum": 0})
+    for r in all_results:
+        sid = r.get("student_id")
+        if not sid:
+            continue
+        stats[sid]["xp"]        += r.get("score", 0) or 0
+        stats[sid]["tests"]     += 1
+        stats[sid]["score_sum"] += r.get("score", 0) or 0
+        stats[sid]["total_sum"] += r.get("total", 0) or 0
+
+    # 4. جلب وقت الجلسات (آخر 30 يوم) لكل طالب
+    from datetime import datetime, timezone, timedelta
+    range_30 = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+    sessions_by_student = defaultdict(int)  # student_id -> bucket count
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("student_sessions").select(
+                "student_id"
+            ).gte("session_bucket", range_30).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            for s in batch:
+                sid = s.get("student_id")
+                if sid:
+                    sessions_by_student[sid] += 1
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception:
+            break
+
+    # 5. دمج البيانات
+    enriched = []
+    for s in students:
+        sid = s.get("id")
+        sst = stats.get(sid, {"xp": 0, "tests": 0, "score_sum": 0, "total_sum": 0})
+        avg_pct = round((sst["score_sum"] / sst["total_sum"]) * 100, 1) if sst["total_sum"] > 0 else 0
+        minutes_30d = sessions_by_student.get(sid, 0) * 5
+        enriched.append({
+            **s,
+            "xp":            sst["xp"],
+            "tests":         sst["tests"],
+            "avg_score_pct": avg_pct,
+            "minutes_30d":   minutes_30d,
+            "hours_30d":     round(minutes_30d / 60, 1),
+        })
+
+    return enriched
 
 
 @app.post("/api/admin/students/{student_id}/toggle")

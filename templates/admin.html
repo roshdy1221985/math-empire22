@@ -515,6 +515,387 @@
             color: rgba(255,255,255,0.4);
             margin-top: 3px;
         }
+
+        /* ════════════════════════════════════════════════════════════
+           👑 EMPIRE DASHBOARD — تصميم ملكي فاخر
+        ════════════════════════════════════════════════════════════ */
+        @keyframes empireGlowPulse {
+            0%, 100% { opacity: 0.45; transform: rotate(0deg); }
+            50%      { opacity: 0.7;  transform: rotate(180deg); }
+        }
+        @keyframes empireLivePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.6); }
+            50%      { box-shadow: 0 0 0 8px rgba(46,204,113,0); }
+        }
+        @keyframes empireShine {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        @keyframes empireFloat {
+            0%, 100% { transform: translateY(0); }
+            50%      { transform: translateY(-4px); }
+        }
+        @keyframes empireSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes empireCountUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to   { opacity: 1; transform: scale(1); }
+        }
+
+        /* ── البطاقة الكبرى ── */
+        .empire-hero {
+            position: relative;
+            background: 
+                radial-gradient(circle at 85% 20%, rgba(212,175,55,0.18) 0%, transparent 55%),
+                radial-gradient(circle at 15% 80%, rgba(155,89,182,0.12) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a1a 0%, #1a0d2e 50%, #0d1b3e 100%);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 22px;
+            padding: 26px 28px;
+            margin-bottom: 22px;
+            overflow: hidden;
+            box-shadow:
+                0 12px 40px rgba(0,0,0,0.4),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+            animation: empireSlideUp 0.6s ease;
+        }
+
+        .empire-hero-glow {
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(212,175,55,0.06) 60deg,
+                transparent 120deg,
+                rgba(155,89,182,0.05) 240deg,
+                transparent 300deg
+            );
+            pointer-events: none;
+            animation: empireGlowPulse 18s linear infinite;
+        }
+
+        .empire-hero-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding-bottom: 22px;
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+        }
+
+        .empire-hero-side {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 280px;
+        }
+
+        .empire-crown {
+            font-size: 3.2rem;
+            filter: drop-shadow(0 0 20px rgba(212,175,55,0.55));
+            animation: empireFloat 4s ease-in-out infinite;
+        }
+
+        .empire-greeting {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.55);
+            font-family: 'Cairo', sans-serif;
+            margin-bottom: 2px;
+        }
+
+        .empire-title {
+            font-family: 'Amiri', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f5d04a 0%, #d4af37 50%, #b8860b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 4px;
+            line-height: 1.2;
+        }
+
+        .empire-subtitle {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.4);
+            font-family: 'Cairo', sans-serif;
+        }
+
+        .empire-hero-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .empire-btn-gold,
+        .empire-btn-ghost {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 22px;
+            border-radius: 12px;
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .empire-btn-gold {
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #1a0d2e;
+            border: none;
+            box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        }
+        .empire-btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(212,175,55,0.5);
+        }
+        .empire-btn-gold::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: empireShine 3.5s ease-in-out infinite;
+        }
+
+        .empire-btn-ghost {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .empire-btn-ghost:hover {
+            background: rgba(255,255,255,0.12);
+            border-color: rgba(212,175,55,0.4);
+            color: var(--gold);
+        }
+
+        /* ── شريط النبض الحي ── */
+        .empire-pulse-bar {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding-top: 18px;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .empire-pulse-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+            transition: all 0.2s;
+            background: rgba(255,255,255,0.02);
+        }
+        .empire-pulse-item:hover {
+            background: rgba(212,175,55,0.06);
+        }
+        .empire-pulse-item.urgent {
+            background: rgba(231,76,60,0.08);
+            border: 1px solid rgba(231,76,60,0.2);
+        }
+
+        .empire-pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            flex-shrink: 0;
+        }
+        .empire-pulse-dot.live {
+            animation: empireLivePulse 2s ease-in-out infinite;
+        }
+
+        .empire-pulse-icon { font-size: 1rem; }
+        .empire-pulse-label {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.55);
+            font-family: 'Cairo', sans-serif;
+        }
+        .empire-pulse-val {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--gold);
+            font-family: 'Cairo', sans-serif;
+        }
+        .empire-pulse-item.urgent .empire-pulse-val { color: #e74c3c; }
+
+        .empire-pulse-divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(212,175,55,0.15);
+        }
+        @media (max-width: 700px) {
+            .empire-pulse-divider { display: none; }
+            .empire-pulse-item { width: calc(50% - 6px); justify-content: flex-start; }
+        }
+
+        /* ── الكنوز الست (Treasures Grid) ── */
+        .empire-treasures {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+
+        .treasure-card {
+            position: relative;
+            background: linear-gradient(150deg, rgba(20,15,40,0.7) 0%, rgba(10,10,30,0.85) 100%);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 18px;
+            padding: 20px 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            min-height: 150px;
+            backdrop-filter: blur(10px);
+        }
+
+        .treasure-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, transparent 50%, rgba(212,175,55,0.06) 100%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .treasure-card:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(212,175,55,0.5);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(212,175,55,0.15);
+        }
+        .treasure-card:hover::before { opacity: 1; }
+
+        .treasure-bg-icon {
+            position: absolute;
+            top: 50%;
+            left: -10px;
+            transform: translateY(-50%);
+            font-size: 7rem;
+            opacity: 0.04;
+            pointer-events: none;
+            transition: all 0.4s;
+        }
+        .treasure-card:hover .treasure-bg-icon {
+            opacity: 0.1;
+            transform: translateY(-50%) rotate(-8deg) scale(1.1);
+        }
+
+        .treasure-label {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            font-family: 'Cairo', sans-serif;
+            font-weight: bold;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .treasure-number {
+            font-size: 2.6rem;
+            font-weight: 900;
+            font-family: 'Cairo', sans-serif;
+            line-height: 1;
+            background: linear-gradient(135deg, #f5d04a 0%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            position: relative;
+            z-index: 1;
+            animation: empireCountUp 0.5s ease;
+        }
+
+        .treasure-name {
+            font-size: 1.1rem;
+            font-weight: bold;
+            font-family: 'Amiri', serif;
+            color: var(--gold);
+            margin-bottom: 6px;
+            min-height: 1.6rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        .treasure-xp {
+            font-size: 0.95rem;
+            color: rgba(212,175,55,0.85);
+            font-weight: bold;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .treasure-sublabel {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .treasure-trend {
+            font-size: 0.7rem;
+            color: rgba(212,175,55,0.55);
+            padding-top: 8px;
+            border-top: 1px solid rgba(212,175,55,0.1);
+            position: relative;
+            z-index: 1;
+            font-family: 'Cairo', sans-serif;
+        }
+
+        /* ألوان مميزة لكل بطاقة */
+        .treasure-card.t-students     { border-color: rgba(46,204,113,0.25); }
+        .treasure-card.t-students:hover { border-color: rgba(46,204,113,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(46,204,113,0.2); }
+        .treasure-card.t-students .treasure-number { background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); -webkit-background-clip: text; background-clip: text; }
+
+        .treasure-card.t-questions    { border-color: rgba(155,89,182,0.25); }
+        .treasure-card.t-questions:hover { border-color: rgba(155,89,182,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(155,89,182,0.2); }
+        .treasure-card.t-questions .treasure-number { background: linear-gradient(135deg, #bb86fc 0%, #9b59b6 100%); -webkit-background-clip: text; background-clip: text; }
+
+        .treasure-card.t-lessons      { border-color: rgba(52,152,219,0.25); }
+        .treasure-card.t-lessons:hover { border-color: rgba(52,152,219,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(52,152,219,0.2); }
+        .treasure-card.t-lessons .treasure-number { background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); -webkit-background-clip: text; background-clip: text; }
+
+        .treasure-card.t-teachers     { border-color: rgba(243,156,18,0.25); }
+        .treasure-card.t-teachers:hover { border-color: rgba(243,156,18,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(243,156,18,0.2); }
+        .treasure-card.t-teachers .treasure-number { background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); -webkit-background-clip: text; background-clip: text; }
+
+        .treasure-card.t-champion {
+            background: linear-gradient(150deg, rgba(40,30,5,0.8) 0%, rgba(20,15,5,0.9) 100%);
+            border-color: rgba(212,175,55,0.5);
+        }
+        .treasure-card.t-champion:hover { border-color: rgba(212,175,55,0.9); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 30px rgba(212,175,55,0.3); }
+
+        .treasure-card.t-notifs       { border-color: rgba(231,76,60,0.2); }
+        .treasure-card.t-notifs:hover { border-color: rgba(231,76,60,0.5); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(231,76,60,0.18); }
+        .treasure-card.t-notifs .treasure-number { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); -webkit-background-clip: text; background-clip: text; }
+
+
+        @keyframes livePulseAdmin {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%      { transform: scale(1.15); opacity: 0.8; }
+        }
     </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1247,7 +1628,7 @@
                 <div class="nav-link nl-gold" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
                 <div class="nav-link nl-blue active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
                 <div class="nav-link nl-purple" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد 📚</div>
-                <div class="nav-link nl-green" onclick="showSection('students')"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
+                <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
                 <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                 <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
@@ -1279,82 +1660,170 @@
                 <p style="color: rgba(255,255,255,0.5); font-size: 1rem;"><i class="far fa-calendar-alt"></i> <span id="current-date"></span></p>
             </header>
 
-            <!-- ==================== DASH ==================== -->
+            <!-- ==================== DASH (إمبراطورية مُجدّدة بالكامل) ==================== -->
             <section id="dash" class="section">
                 <div class="card">
-                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-chart-line"></i> الحالة العامة للإمبراطورية</h2>
-                        <button class="btn-import" onclick="openNotifModal()" style="padding:10px 20px;font-size:0.9rem;">
-                            <i class="fas fa-bell"></i> إرسال إشعار سريع
-                        </button>
-                    </div>
-                    <!-- بطاقة التنبيهات السريعة -->
-                    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;" id="dash-alerts-row">
-                        <div style="background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('elite')">
-                            <div style="font-size:1.8rem;flex-shrink:0;">🔔</div>
-                            <div>
-                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">طلبات النخبة المعلقة</div>
-                                <div id="dash-elite-pending" style="font-size:1.5rem;font-weight:900;color:#f39c12;">—</div>
+                    
+                    <!-- 👑 بطاقة الترحيب الملكية الكبرى -->
+                    <div class="empire-hero" id="empire-hero">
+                        <div class="empire-hero-glow"></div>
+                        <div class="empire-hero-content">
+                            <div class="empire-hero-side">
+                                <div class="empire-crown">👑</div>
+                                <div>
+                                    <div class="empire-greeting" id="empire-greeting">صباح الخير، ايها الأستاذ</div>
+                                    <h1 class="empire-title">لوحة قيادة الإمبراطورية</h1>
+                                    <div class="empire-subtitle" id="empire-now"></div>
+                                </div>
+                            </div>
+                            <div class="empire-hero-actions">
+                                <button class="empire-btn-gold" onclick="openNotifModal()">
+                                    <i class="fas fa-bell"></i>
+                                    <span>إشعار سريع</span>
+                                </button>
+                                <button class="empire-btn-ghost" onclick="refreshAllStats();loadDailyActivityStats();">
+                                    <i class="fas fa-sync"></i>
+                                    <span>تحديث الكل</span>
+                                </button>
                             </div>
                         </div>
-                        <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('students')">
-                            <div style="font-size:1.8rem;flex-shrink:0;">🆕</div>
-                            <div>
-                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">طلاب جدد اليوم</div>
-                                <div id="dash-new-students" style="font-size:1.5rem;font-weight:900;color:#2ecc71;">—</div>
+                        
+                        <!-- شريط النبض الحي — 5 مؤشرات لحظية -->
+                        <div class="empire-pulse-bar">
+                            <div class="empire-pulse-item">
+                                <span class="empire-pulse-dot live"></span>
+                                <span class="empire-pulse-label">نشطون الآن</span>
+                                <span class="empire-pulse-val" id="hero-live">—</span>
                             </div>
-                        </div>
-                        <div style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.25);border-radius:14px;padding:16px;display:flex;align-items:center;gap:12px;cursor:pointer;" onclick="showSection('students')">
-                            <div style="font-size:1.8rem;flex-shrink:0;">⚡</div>
-                            <div>
-                                <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">نشطون اليوم</div>
-                                <div id="dash-active-today" style="font-size:1.5rem;font-weight:900;color:#3498db;">—</div>
+                            <div class="empire-pulse-divider"></div>
+                            <div class="empire-pulse-item">
+                                <span class="empire-pulse-icon">📅</span>
+                                <span class="empire-pulse-label">دخلوا اليوم</span>
+                                <span class="empire-pulse-val" id="hero-today">—</span>
+                            </div>
+                            <div class="empire-pulse-divider"></div>
+                            <div class="empire-pulse-item">
+                                <span class="empire-pulse-icon">⏱️</span>
+                                <span class="empire-pulse-label">دقائق اليوم</span>
+                                <span class="empire-pulse-val" id="hero-time">—</span>
+                            </div>
+                            <div class="empire-pulse-divider"></div>
+                            <div class="empire-pulse-item">
+                                <span class="empire-pulse-icon">🆕</span>
+                                <span class="empire-pulse-label">طلاب جدد</span>
+                                <span class="empire-pulse-val" id="hero-new">—</span>
+                            </div>
+                            <div class="empire-pulse-divider"></div>
+                            <div class="empire-pulse-item urgent" onclick="showSection('elite')" style="cursor:pointer;">
+                                <span class="empire-pulse-icon">🔔</span>
+                                <span class="empire-pulse-label">طلبات نخبة</span>
+                                <span class="empire-pulse-val" id="hero-elite">—</span>
                             </div>
                         </div>
                     </div>
 
-                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
-                        <div id="stats-last-updated" style="color:rgba(255,255,255,0.4);font-size:0.85rem;"></div>
-                        <button onclick="refreshAllStats()" id="btn-refresh-stats" style="background:rgba(212,175,55,0.12);border:1px solid rgba(212,175,55,0.4);color:var(--gold);padding:8px 16px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.9rem;transition:0.2s;">
-                            🔄 تحديث الإحصائيات
-                        </button>
-                    </div>
-                    <div class="stats-grid" id="stats-grid-main">
-                        <div class="stat-box">
-                            <div>👥 إجمالي الرعية (الطلاب)</div>
-                            <div class="stat-number" id="stat-total-students">0</div>
+                    <!-- 💎 الكنوز الست — الإحصائيات الرئيسية -->
+                    <div class="empire-treasures">
+                        <div class="treasure-card t-students" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);">
+                            <div class="treasure-bg-icon">👥</div>
+                            <div class="treasure-label">إجمالي الرعية</div>
+                            <div class="treasure-number" id="stat-total-students">0</div>
+                            <div class="treasure-sublabel">طالب مسجل</div>
+                            <div class="treasure-trend"><span id="stat-students-grades">—</span></div>
                         </div>
-                        <div class="stat-box" style="border-color:rgba(52,152,219,0.5);background:rgba(52,152,219,0.05);">
-                            <div>👨‍🏫 المعلمون المسجلون</div>
-                            <div class="stat-number" id="stat-total-teachers" style="color:#3498db;">0</div>
-                            <div id="stat-teachers-detail" style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">جاري التحميل...</div>
+
+                        <div class="treasure-card t-questions" onclick="showSection('bank')">
+                            <div class="treasure-bg-icon">💎</div>
+                            <div class="treasure-label">مخزون التحديات</div>
+                            <div class="treasure-number" id="stat-total-q">0</div>
+                            <div class="treasure-sublabel">سؤال في البنك</div>
+                            <div class="treasure-trend">📚 موزّع على المناهج</div>
                         </div>
-                        <div class="stat-box" style="border-color: var(--gold); background: rgba(212,175,55,0.05);">
-                            <div>🏆 بطل الأرقام الحالي</div>
-                            <div class="stat-number" id="stat-top-student" style="font-size:1.8rem; margin: 15px 0;">---</div>
-                            <div id="stat-top-xp" style="color: var(--gold); font-weight: bold;">0 XP</div>
+
+                        <div class="treasure-card t-lessons" onclick="showSection('curriculum')">
+                            <div class="treasure-bg-icon">📚</div>
+                            <div class="treasure-label">هيكل المنهج</div>
+                            <div class="treasure-number" id="stat-total-lessons">0</div>
+                            <div class="treasure-sublabel">درس مُنشأ</div>
+                            <div class="treasure-trend">🏛️ بناء كامل</div>
                         </div>
-                        <div class="stat-box">
-                            <div>💎 مخزون التحديات (الأسئلة)</div>
-                            <div class="stat-number" id="stat-total-q">0</div>
+
+                        <div class="treasure-card t-teachers" onclick="showSection('teachers')">
+                            <div class="treasure-bg-icon">👨‍🏫</div>
+                            <div class="treasure-label">المعلمون المسجلون</div>
+                            <div class="treasure-number" id="stat-total-teachers">0</div>
+                            <div class="treasure-sublabel" id="stat-teachers-detail">معلم مسجل</div>
+                            <div class="treasure-trend">⚙️ نظام التعاون</div>
                         </div>
-                        <div class="stat-box" style="border-color:rgba(46,204,113,0.4);background:rgba(46,204,113,0.04);">
-                            <div>📚 هيكل المنهج</div>
-                            <div class="stat-number" id="stat-total-lessons" style="color:#2ecc71;">0</div>
-                            <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">درس في المنهج</div>
+
+                        <div class="treasure-card t-champion" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);">
+                            <div class="treasure-bg-icon">🏆</div>
+                            <div class="treasure-label">بطل الأرقام الحالي</div>
+                            <div class="treasure-name" id="stat-top-student">— لا يوجد بعد —</div>
+                            <div class="treasure-xp" id="stat-top-xp">0 XP</div>
+                            <div class="treasure-trend">⚜️ أعلى نقاط</div>
                         </div>
-                        <div class="stat-box" style="border-color:rgba(243,156,18,0.4);background:rgba(243,156,18,0.04);">
-                            <div>🔔 إشعارات مُرسَلة</div>
-                            <div class="stat-number" id="stat-total-notifs" style="color:#f39c12;">0</div>
-                            <div style="color:rgba(255,255,255,0.4);font-size:0.8rem;margin-top:5px;">هذا الشهر</div>
+
+                        <div class="treasure-card t-notifs" onclick="openNotifModal()">
+                            <div class="treasure-bg-icon">🔔</div>
+                            <div class="treasure-label">إشعارات هذا الشهر</div>
+                            <div class="treasure-number" id="stat-total-notifs">0</div>
+                            <div class="treasure-sublabel">إشعار مُرسل</div>
+                            <div class="treasure-trend">📡 تواصل مستمر</div>
                         </div>
                     </div>
 
-                    <!-- آخر نشاط الطلاب -->
-                    <div style="margin-top:20px;">
-                        <h3 style="color:var(--gold);margin-bottom:12px;font-size:0.95rem;"><i class="fas fa-history"></i> آخر نشاط الطلاب</h3>
+                    <div id="stats-last-updated" style="color:rgba(255,255,255,0.35);font-size:0.78rem;margin-top:14px;text-align:center;"></div>
+
+                    <!-- 🎯 أحدث التحديات المُكملة -->
+                    <div style="margin-top:24px;background:linear-gradient(160deg,rgba(20,15,40,0.45) 0%, rgba(10,10,30,0.55) 100%);border:1px solid rgba(212,175,55,0.18);border-radius:18px;padding:20px;backdrop-filter:blur(8px);">
+                        <h3 style="color:var(--gold);margin:0 0 14px;font-size:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                            <span><i class="fas fa-trophy"></i> أحدث التحديات المُكملة</span>
+                            <span style="font-size:0.72rem;font-weight:normal;color:rgba(255,255,255,0.5);">(الأنشطة الفعلية — الطلاب الذين أنجزوا تحديات حديثاً)</span>
+                        </h3>
                         <div id="dash-recent-activity" style="display:flex;flex-direction:column;gap:7px;">
                             <div style="opacity:0.4;text-align:center;padding:20px;font-size:0.85rem;">جاري التحميل...</div>
+                        </div>
+                    </div>
+
+                    <!-- 📊 الإحصائيات الحقيقية للحضور -->
+                    <div style="margin-top:18px;background:linear-gradient(160deg,rgba(20,15,40,0.45) 0%, rgba(10,10,30,0.55) 100%);border:1px solid rgba(212,175,55,0.18);border-radius:18px;padding:20px;backdrop-filter:blur(8px);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                            <h3 style="color:var(--gold);margin:0;font-size:0.95rem;">
+                                <i class="fas fa-chart-line"></i> الحضور والوقت الفعلي
+                                <span style="font-size:0.7rem;font-weight:normal;color:rgba(255,255,255,0.4);margin-right:8px;">(من الجلسات الحقيقية)</span>
+                            </h3>
+                            <button onclick="loadDailyActivityStats()" style="background:transparent;border:1px solid rgba(212,175,55,0.4);color:var(--gold);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-family:'Cairo';">
+                                <i class="fas fa-sync"></i> تحديث
+                            </button>
+                        </div>
+
+                        <!-- 3 أرقام رئيسية -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;">
+                            <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:12px;padding:14px;text-align:center;">
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);margin-bottom:4px;">🟢 نشطون الآن</div>
+                                <div id="stat-live-now" style="font-size:1.8rem;font-weight:900;color:#2ecc71;">—</div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:2px;">آخر 5 دقائق</div>
+                            </div>
+                            <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:12px;padding:14px;text-align:center;">
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);margin-bottom:4px;">📅 طلاب اليوم</div>
+                                <div id="stat-today-unique" style="font-size:1.8rem;font-weight:900;color:var(--gold);">—</div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:2px;">طلاب فريدين</div>
+                            </div>
+                            <div style="background:rgba(155,89,182,0.08);border:1px solid rgba(155,89,182,0.3);border-radius:12px;padding:14px;text-align:center;">
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);margin-bottom:4px;">⏱️ وقت اليوم</div>
+                                <div id="stat-today-time" style="font-size:1.8rem;font-weight:900;color:#9b59b6;">—</div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:2px;">إجمالي الدقائق</div>
+                            </div>
+                        </div>
+
+                        <!-- جدول آخر 7 أيام -->
+                        <div style="background:rgba(0,0,0,0.15);border-radius:10px;padding:12px;">
+                            <div style="font-size:0.82rem;font-weight:bold;color:rgba(255,255,255,0.7);margin-bottom:10px;">📈 آخر 7 أيام</div>
+                            <div id="dash-daily-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:5px 0;">
+                                <div style="opacity:0.4;text-align:center;width:100%;font-size:0.8rem;">جاري التحميل...</div>
+                            </div>
+                            <div id="dash-daily-table" style="margin-top:14px;font-size:0.78rem;"></div>
                         </div>
                     </div>
                 </div>
@@ -1490,13 +1959,74 @@
             <!-- ==================== STUDENTS ==================== -->
             <section id="students" class="section">
                 <div class="card">
-                    <h2 style="color:var(--gold);"><i class="fas fa-users-cog"></i> سجل الأبطال والمنح الملكية</h2>
-                    <table>
-                        <thead>
-                            <tr><th>البطل</th><th>الصف</th><th>نقطة (XP)</th><th>منحة ملكية</th><th>الإجراء</th></tr>
-                        </thead>
-                        <tbody id="students-table-body"></tbody>
-                    </table>
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                        <h2 style="color:var(--gold);margin:0;"><i class="fas fa-users-cog"></i> سجل الأبطال والمنح الملكية</h2>
+                        <button onclick="loadChampionsRegistry()" style="background:transparent;border:1px solid rgba(212,175,55,0.4);color:var(--gold);padding:8px 18px;border-radius:8px;cursor:pointer;font-size:0.85rem;font-family:'Cairo';">
+                            <i class="fas fa-sync"></i> تحديث
+                        </button>
+                    </div>
+
+                    <!-- إحصائيات سريعة -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;">
+                        <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">👥 إجمالي الطلاب</div>
+                            <div id="ch-total" style="font-size:1.6rem;font-weight:900;color:var(--gold);">—</div>
+                        </div>
+                        <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">✅ نشطون</div>
+                            <div id="ch-active" style="font-size:1.6rem;font-weight:900;color:#2ecc71;">—</div>
+                        </div>
+                        <div style="background:rgba(155,89,182,0.08);border:1px solid rgba(155,89,182,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">🏆 من النخبة</div>
+                            <div id="ch-elite" style="font-size:1.6rem;font-weight:900;color:#9b59b6;">—</div>
+                        </div>
+                        <div style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:12px;text-align:center;">
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">⚡ XP الكلي</div>
+                            <div id="ch-xp" style="font-size:1.6rem;font-weight:900;color:#3498db;">—</div>
+                        </div>
+                    </div>
+
+                    <!-- بحث + فلتر -->
+                    <div style="display:grid;grid-template-columns:1fr auto auto;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap;">
+                        <input type="text" id="ch-search" placeholder="🔍 ابحث باسم البطل أو اسم المستخدم..." 
+                            oninput="filterChampions()"
+                            style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:10px;font-family:'Cairo';font-size:0.88rem;">
+                        <select id="ch-filter-grade" onchange="filterChampions()" style="background:rgba(13,27,62,0.8);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;border-radius:10px;font-family:'Cairo';font-size:0.85rem;">
+                            <option value="">📊 كل الصفوف</option>
+                        </select>
+                        <select id="ch-sort" onchange="renderChampionsTable()" style="background:rgba(13,27,62,0.8);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 12px;border-radius:10px;font-family:'Cairo';font-size:0.85rem;">
+                            <option value="xp_desc">⚡ XP (الأعلى)</option>
+                            <option value="xp_asc">⚡ XP (الأقل)</option>
+                            <option value="tests_desc">🎯 التحديات (الأكثر)</option>
+                            <option value="time_desc">⏱️ الوقت (الأكثر)</option>
+                            <option value="name_asc">👤 الاسم (أبجدي)</option>
+                            <option value="recent">🕐 الأحدث نشاطاً</option>
+                        </select>
+                    </div>
+
+                    <div id="ch-result-count" style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:8px;"></div>
+
+                    <!-- جدول الأبطال -->
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th style="width:40px;">#</th>
+                                    <th>البطل</th>
+                                    <th>الصف</th>
+                                    <th style="text-align:center;">⚡ XP</th>
+                                    <th style="text-align:center;">🎯 تحديات</th>
+                                    <th style="text-align:center;">📊 المتوسط</th>
+                                    <th style="text-align:center;">⏱️ آخر 30 يوم</th>
+                                    <th style="text-align:center;">🟢 الحالة</th>
+                                    <th style="text-align:center;width:160px;">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="students-table-body">
+                                <tr><td colspan="9" style="text-align:center;padding:30px;opacity:0.5;">جاري التحميل...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </section>
 
@@ -4169,7 +4699,7 @@
     }
 
     async function loadScheduledExams() {
-        const res = await authFetch(`/api/exams/upcoming`);
+        const res = await fetch(`${API_URL}/api/exams/upcoming`);
         if(!res.ok) return;
         const data     = await res.json();
         const tableBody = document.getElementById('exams-table-body');
@@ -5398,6 +5928,7 @@
             await loadCurriculum();
             await Promise.all([
                 loadDashboard(),
+            loadDailyActivityStats(),
                 loadQuestions(),
                 loadTeachersStats(),
                 refreshNotifCount()
@@ -6641,10 +7172,9 @@
             const newToday = data.filter(s => s.created_at && new Date(s.created_at).toDateString() === today).length;
             const el1 = document.getElementById('dash-new-students');
             if (el1) el1.textContent = newToday;
-            // ✅ نشطون اليوم
-            const activeToday = data.filter(s => s.last_active && new Date(s.last_active).toDateString() === today).length;
-            const elActive = document.getElementById('dash-active-today');
-            if (elActive) elActive.textContent = activeToday;
+            // 🆕 hero-new
+            const heroNew = document.getElementById('hero-new');
+            if (heroNew) heroNew.textContent = newToday.toLocaleString('ar-EG');
             // طلبات النخبة
             try {
                 const r2 = await authFetch('/api/admin/elite/requests');
@@ -6655,11 +7185,13 @@
                 // badge في nav
                 const badge = document.getElementById('elite-req-badge');
                 if (badge) { badge.textContent = pending; badge.style.display = pending ? 'inline' : 'none'; }
+                // 🆕 hero-elite
+                var heroElite = document.getElementById('hero-elite');
+                if (heroElite) heroElite.textContent = pending.toLocaleString('ar-EG');
             } catch(e) {}
-            // آخر نشاط
-            // دالة عرض "منذ X" بدلاً من تاريخ كامل
+            // أحدث التحديات المُكملة — من جدول results الفعلي
             const relTime = (iso) => {
-                if(!iso) return '<span style="color:#888;">لم يدخل بعد</span>';
+                if(!iso) return '<span style="color:#888;">—</span>';
                 const now = Date.now();
                 const then = new Date(iso).getTime();
                 const diff = Math.max(0, now - then);
@@ -6674,22 +7206,74 @@
                 return '<span style="color:#95a5a6;">'+new Date(iso).toLocaleDateString('ar-OM')+'</span>';
             };
 
-            const recent = data.sort((a,b) => (b.last_active||b.created_at||'') > (a.last_active||a.created_at||'') ? 1 : -1).slice(0,5);
             const elR = document.getElementById('dash-recent-activity');
-            if (elR && recent.length) {
-                elR.innerHTML = recent.map(s => `
-                    <div style="display:flex;align-items:center;gap:10px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
+            if (!elR) return;
+
+            // اجلب النتائج الفعلية من /api/admin/reports/full (موجود فيه results+students)
+            try {
+                const fullRes = await authFetch('/api/admin/reports/full');
+                if (!fullRes || !fullRes.ok) {
+                    elR.innerHTML = '<div style="opacity:0.5;text-align:center;padding:20px;font-size:0.85rem;">⚠️ تعذّر تحميل النتائج</div>';
+                    return;
+                }
+                const fullData = await fullRes.json();
+                const studentsMap = {};
+                (fullData.students || []).forEach(s => { studentsMap[s.full_name] = s; });
+
+                // اجلب آخر 5 نتائج من Supabase مباشرة
+                const cfgRes = await fetch(`${API_URL}/api/config/public`).catch(()=>null);
+                let recentResults = [];
+                if (cfgRes && cfgRes.ok) {
+                    const cfg = await cfgRes.json();
+                    if (cfg.SUPABASE_URL && cfg.SUPABASE_KEY) {
+                        try {
+                            const r = await fetch(`${cfg.SUPABASE_URL}/rest/v1/results?select=student_name,lesson,score,total,timestamp&order=timestamp.desc&limit=5`, {
+                                headers: { 'apikey': cfg.SUPABASE_KEY, 'Authorization': 'Bearer ' + cfg.SUPABASE_KEY }
+                            });
+                            if (r.ok) recentResults = await r.json();
+                        } catch(e) {}
+                    }
+                }
+
+                if (!recentResults.length) {
+                    elR.innerHTML = `
+                        <div style="text-align:center;padding:24px;opacity:0.6;">
+                            <div style="font-size:2rem;margin-bottom:8px;">📭</div>
+                            <p style="font-size:0.88rem;margin:0;">لم يُكمل أي طالب تحدياً بعد</p>
+                            <p style="font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px;">سيظهر هنا أحدث 5 تحديات منجزة</p>
+                        </div>`;
+                    return;
+                }
+
+                elR.innerHTML = recentResults.map(r => {
+                    const pct = r.total > 0 ? Math.round((r.score / r.total) * 100) : 0;
+                    const color = pct >= 80 ? '#2ecc71' : pct >= 60 ? '#f39c12' : '#e74c3c';
+                    const star  = pct >= 90 ? '⭐⭐⭐' : pct >= 70 ? '⭐⭐' : pct >= 50 ? '⭐' : '';
+                    const stu   = studentsMap[r.student_name] || {};
+                    return `
+                    <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.06);">
                         <div style="width:34px;height:34px;border-radius:50%;background:rgba(212,175,55,0.15);display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">
-                            ${s.avatar_url ? `<img src="${s.avatar_url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : '👤'}
+                            👤
                         </div>
                         <div style="flex:1;min-width:0;">
-                            <div style="font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(s.full_name||'')}</div>
-                            <div style="font-size:0.75rem;color:rgba(255,255,255,0.4);">${esc(s.grade||'')} · ${esc(s.username||'')}</div>
+                            <div style="font-weight:bold;font-size:0.85rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(r.student_name||'مجهول')} ${star}</div>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+                                📖 ${esc(r.lesson||'—')} · ${esc(stu.grade||'')}
+                            </div>
                         </div>
-                        <div style="font-size:0.75rem;flex-shrink:0;font-weight:bold;">
-                            ${relTime(s.last_active)}
+                        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:2px;flex-shrink:0;">
+                            <div style="background:${color}22;color:${color};padding:2px 9px;border-radius:7px;font-size:0.78rem;font-weight:bold;border:1px solid ${color}55;">
+                                ${r.score}/${r.total} (${pct}%)
+                            </div>
+                            <div style="font-size:0.7rem;font-weight:bold;">
+                                ${relTime(r.timestamp)}
+                            </div>
                         </div>
-                    </div>`).join('');
+                    </div>`;
+                }).join('');
+            } catch(e) {
+                elR.innerHTML = '<div style="opacity:0.5;text-align:center;padding:20px;font-size:0.85rem;">⚠️ خطأ في التحميل</div>';
+                console.error('[recent-activity]', e);
             }
         } catch(e) {}
     }
@@ -8780,12 +9364,8 @@
               '<span style="font-size:0.75rem;color:rgba(255,165,0,0.8);background:rgba(255,165,0,0.1);padding:3px 10px;border-radius:6px;border:1px solid rgba(255,165,0,0.3);">⚠️ sandbox محمي</span>' +
               '<button onclick="document.getElementById(\'hl-preview-modal\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;">✕</button>' +
             '</div>' +
-            '<iframe id="hl-preview-frame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="flex:1;width:100%;border:none;background:#fff;"></iframe>';
+            '<iframe src="' + url + '" sandbox="allow-scripts" referrerpolicy="no-referrer" style="flex:1;width:100%;border:none;background:#fff;" loading="lazy"></iframe>';
         document.body.appendChild(modal);
-        fetch(url)
-            .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
-            .then(function(html){ var f=document.getElementById('hl-preview-frame'); if(f) f.srcdoc=html; })
-            .catch(function(err){ var f=document.getElementById('hl-preview-frame'); if(f) f.srcdoc='<div style="text-align:center;padding:80px;font-family:Cairo,sans-serif;direction:rtl;"><div style="font-size:3rem;">⚠️</div><h2 style="color:#e74c3c;">تعذّر تحميل المعاينة</h2><p style="color:#888;">'+err.message+'</p><a href="'+url+'" target="_blank" style="background:#1abc9c;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">📎 فتح في نافذة جديدة</a></div>'; });
     }
 
     async function deleteHtmlLesson(id, btn) {
@@ -8805,6 +9385,275 @@
             btn.disabled = false;
         }
     }
+
+    /* ════════════════════════════════════════════════════════════
+       📊 إحصائيات الحضور والوقت الفعلي للطلاب
+    ════════════════════════════════════════════════════════════ */
+    async function loadDailyActivityStats() {
+        try {
+            var res = await authFetch('/api/admin/stats/daily_activity?days=7');
+            if (!res || !res.ok) {
+                console.warn('[stats] failed');
+                return;
+            }
+            var data = await res.json();
+
+            // الأرقام الكبيرة (في القسم القديم — قد لا تكون موجودة)
+            var elLive   = document.getElementById('stat-live-now');
+            var elUnique = document.getElementById('stat-today-unique');
+            var elTime   = document.getElementById('stat-today-time');
+            if (elLive)   elLive.textContent   = data.today_live   || 0;
+            if (elUnique) elUnique.textContent = data.today_total_unique || 0;
+            if (elTime)   elTime.textContent   = (data.today_total_minutes || 0) + ' د';
+
+            // 🆕 أرقام Hero الجديدة
+            var heroLive = document.getElementById('hero-live');
+            var heroToday = document.getElementById('hero-today');
+            var heroTime = document.getElementById('hero-time');
+            if (heroLive)  heroLive.textContent  = (data.today_live || 0).toLocaleString('ar-EG');
+            if (heroToday) heroToday.textContent = (data.today_total_unique || 0).toLocaleString('ar-EG');
+            if (heroTime)  heroTime.textContent  = (data.today_total_minutes || 0).toLocaleString('ar-EG');
+
+            // الرسم البياني
+            var chart = document.getElementById('dash-daily-chart');
+            var table = document.getElementById('dash-daily-table');
+            if (!chart || !data.daily_stats) return;
+
+            var stats = data.daily_stats;
+            var maxStudents = Math.max.apply(null, stats.map(function(d){ return d.unique_students; })) || 1;
+            var dayNames = { 'Saturday':'السبت','Sunday':'الأحد','Monday':'الإثنين','Tuesday':'الثلاثاء','Wednesday':'الأربعاء','Thursday':'الخميس','Friday':'الجمعة' };
+
+            chart.innerHTML = stats.map(function(d, idx) {
+                var pct = (d.unique_students / maxStudents) * 100;
+                var color = d.unique_students > 0 ? 'linear-gradient(180deg,#d4af37,#b8860b)' : 'rgba(255,255,255,0.08)';
+                var dayLabel = dayNames[d.day_name] || d.day_name;
+                var isToday = idx === stats.length - 1;
+                return (
+                    '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0;cursor:default;" title="' + dayLabel + ' ' + d.date + '\n' + d.unique_students + ' طالب — ' + d.total_minutes + ' دقيقة">' +
+                      '<div style="font-size:0.7rem;font-weight:bold;color:' + (isToday ? '#d4af37' : 'rgba(255,255,255,0.55)') + ';">' + d.unique_students + '</div>' +
+                      '<div style="width:100%;flex:1;background:rgba(0,0,0,0.2);border-radius:5px;display:flex;align-items:flex-end;overflow:hidden;">' +
+                        '<div style="width:100%;height:' + Math.max(2, pct) + '%;background:' + color + ';border-radius:5px;transition:height 0.4s ease;"></div>' +
+                      '</div>' +
+                      '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);' + (isToday ? 'font-weight:bold;color:#d4af37;' : '') + '">' + dayLabel.slice(0,3) + '</div>' +
+                    '</div>'
+                );
+            }).join('');
+
+            // الجدول السفلي — تفاصيل
+            if (table) {
+                var totalAll = stats.reduce(function(s, d){ return s + d.unique_students; }, 0);
+                var totalMin = stats.reduce(function(s, d){ return s + d.total_minutes; }, 0);
+                table.innerHTML =
+                    '<div style="display:flex;justify-content:space-between;padding-top:10px;border-top:1px solid rgba(255,255,255,0.06);color:rgba(255,255,255,0.65);">' +
+                      '<span>📊 إجمالي الأسبوع: <strong style="color:var(--gold);">' + totalAll + '</strong> دخول</span>' +
+                      '<span>⏱️ <strong style="color:#9b59b6;">' + totalMin + '</strong> دقيقة (' + (totalMin/60).toFixed(1) + ' ساعة)</span>' +
+                    '</div>';
+            }
+        } catch(e) {
+            console.error('[loadDailyActivityStats]', e);
+        }
+    }
+
+    // حدّث تلقائياً كل 60 ثانية إن كنا في dashboard
+    setInterval(function() {
+        var dashSec = document.getElementById('dash');
+        if (dashSec && dashSec.classList.contains('active')) {
+            loadDailyActivityStats();
+        }
+    }, 60000);
+
+
+    /* ════════════════════════════════════════════════════════════
+       👑 سجل الأبطال — نظام كامل مع بحث/فلتر/ترتيب/إجراءات
+    ════════════════════════════════════════════════════════════ */
+    var _championsData = [];
+
+    async function loadChampionsRegistry() {
+        var tbody = document.getElementById('students-table-body');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;opacity:0.5;">⏳ جارٍ تحميل البيانات...</td></tr>';
+
+        try {
+            var res = await authFetch('/api/admin/students/full');
+            if (!res || !res.ok) throw new Error('failed');
+            _championsData = await res.json();
+            
+            // املأ فلتر الصفوف
+            var gradeSelect = document.getElementById('ch-filter-grade');
+            if (gradeSelect && gradeSelect.options.length <= 1) {
+                var gradesSet = {};
+                _championsData.forEach(function(s) { if (s.grade) gradesSet[s.grade] = true; });
+                Object.keys(gradesSet).sort().forEach(function(g) {
+                    var o = document.createElement('option');
+                    o.value = g; o.textContent = g;
+                    gradeSelect.appendChild(o);
+                });
+            }
+            
+            // إحصائيات سريعة
+            var elT = document.getElementById('ch-total');
+            var elA = document.getElementById('ch-active');
+            var elE = document.getElementById('ch-elite');
+            var elX = document.getElementById('ch-xp');
+            if (elT) elT.textContent = _championsData.length.toLocaleString('ar-EG');
+            if (elA) elA.textContent = _championsData.filter(function(s){return s.is_active !== false}).length.toLocaleString('ar-EG');
+            if (elE) elE.textContent = _championsData.filter(function(s){return s.is_elite}).length.toLocaleString('ar-EG');
+            if (elX) {
+                var total = _championsData.reduce(function(s,c){return s+(c.xp||0)},0);
+                elX.textContent = total.toLocaleString('ar-EG');
+            }
+
+            renderChampionsTable();
+        } catch(e) {
+            console.error('[loadChampionsRegistry]', e);
+            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#e74c3c;">❌ فشل تحميل البيانات</td></tr>';
+        }
+    }
+
+    function filterChampions() { renderChampionsTable(); }
+
+    function renderChampionsTable() {
+        var tbody = document.getElementById('students-table-body');
+        if (!tbody) return;
+
+        var search = (document.getElementById('ch-search')?.value || '').toLowerCase().trim();
+        var gradeFilter = document.getElementById('ch-filter-grade')?.value || '';
+        var sortMode = document.getElementById('ch-sort')?.value || 'xp_desc';
+
+        var filtered = _championsData.filter(function(s) {
+            if (gradeFilter && s.grade !== gradeFilter) return false;
+            if (search) {
+                var hay = ((s.full_name||'') + ' ' + (s.username||'')).toLowerCase();
+                if (hay.indexOf(search) === -1) return false;
+            }
+            return true;
+        });
+
+        // ترتيب
+        var cmp = {
+            'xp_desc':    function(a,b){ return (b.xp||0) - (a.xp||0); },
+            'xp_asc':     function(a,b){ return (a.xp||0) - (b.xp||0); },
+            'tests_desc': function(a,b){ return (b.tests||0) - (a.tests||0); },
+            'time_desc':  function(a,b){ return (b.minutes_30d||0) - (a.minutes_30d||0); },
+            'name_asc':   function(a,b){ return (a.full_name||'').localeCompare(b.full_name||'', 'ar'); },
+            'recent':     function(a,b){ return (b.last_active||'').localeCompare(a.last_active||''); },
+        }[sortMode];
+        if (cmp) filtered.sort(cmp);
+
+        var counter = document.getElementById('ch-result-count');
+        if (counter) counter.textContent = '📋 عرض ' + filtered.length + ' من ' + _championsData.length + ' بطل';
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;opacity:0.5;">🔍 لا يوجد طلاب يطابقون الفلتر</td></tr>';
+            return;
+        }
+
+        var relTime = function(iso) {
+            if(!iso) return '<span style="color:#666;">—</span>';
+            var diff = Math.max(0, Date.now() - new Date(iso).getTime());
+            var mins = Math.floor(diff / 60000);
+            if(mins < 1)   return '<span style="color:#2ecc71;">● الآن</span>';
+            if(mins < 60)  return '<span style="color:#2ecc71;">منذ '+mins+' د</span>';
+            var hrs = Math.floor(mins / 60);
+            if(hrs < 24)   return '<span style="color:#f39c12;">منذ '+hrs+' س</span>';
+            var days = Math.floor(hrs / 24);
+            if(days < 7)   return '<span style="color:#e67e22;">منذ '+days+' يوم</span>';
+            return '<span style="color:#888;">'+new Date(iso).toLocaleDateString('ar-OM')+'</span>';
+        };
+
+        tbody.innerHTML = filtered.map(function(s, i) {
+            var rank = i + 1;
+            var rankBadge = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : '#' + rank;
+            var avatar = s.avatar_url 
+                ? '<img src="'+s.avatar_url+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
+                : '<div style="width:32px;height:32px;border-radius:50%;background:rgba(212,175,55,0.15);display:flex;align-items:center;justify-content:center;">👤</div>';
+            var eliteBadge = s.is_elite ? '<span style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;padding:1px 6px;border-radius:4px;font-size:0.65rem;font-weight:bold;margin-right:6px;">⚡ نخبة</span>' : '';
+            var statusBadge = s.is_active === false 
+                ? '<span style="color:#e74c3c;font-size:0.78rem;">🔴 معطّل</span>'
+                : '<span style="color:#2ecc71;font-size:0.78rem;">🟢 نشط</span>';
+            var avgColor = s.avg_score_pct >= 80 ? '#2ecc71' : s.avg_score_pct >= 60 ? '#f39c12' : '#e74c3c';
+
+            return '<tr>' +
+                '<td style="font-weight:bold;font-size:0.95rem;color:var(--gold);">' + rankBadge + '</td>' +
+                '<td>' +
+                    '<div style="display:flex;align-items:center;gap:8px;">' + avatar +
+                        '<div>' +
+                            '<div style="font-weight:bold;">' + esc(s.full_name||'—') + ' ' + eliteBadge + '</div>' +
+                            '<div style="font-size:0.72rem;color:rgba(255,255,255,0.4);">@' + esc(s.username||'') + '</div>' +
+                        '</div>' +
+                    '</div>' +
+                '</td>' +
+                '<td style="font-size:0.85rem;">' + esc(s.grade||'—') + '</td>' +
+                '<td style="text-align:center;font-weight:bold;color:#3498db;">' + (s.xp||0).toLocaleString('ar-EG') + '</td>' +
+                '<td style="text-align:center;">' + (s.tests||0) + '</td>' +
+                '<td style="text-align:center;color:' + avgColor + ';font-weight:bold;">' + (s.avg_score_pct||0) + '%</td>' +
+                '<td style="text-align:center;font-size:0.78rem;">' +
+                    '<div style="font-weight:bold;color:#9b59b6;">' + (s.minutes_30d||0) + ' د</div>' +
+                    '<div style="font-size:0.7rem;color:rgba(255,255,255,0.4);">' + relTime(s.last_active) + '</div>' +
+                '</td>' +
+                '<td style="text-align:center;">' + statusBadge + '</td>' +
+                '<td style="text-align:center;white-space:nowrap;">' +
+                    '<button onclick="viewStudentReport(\'' + esc(s.full_name||'').replace(/\'/g,"\\\'") + '\')" style="background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.4);color:var(--gold);padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-left:4px;" title="تقرير">📊</button>' +
+                    '<button onclick="giveRoyalGrant(\'' + esc(s.full_name||'').replace(/\'/g,"\\\'") + '\')" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;margin-left:4px;" title="منح XP">🏅</button>' +
+                    '<button onclick="toggleStudentActive(' + s.id + ',' + (s.is_active === false ? 'true' : 'false') + ')" style="background:rgba(' + (s.is_active === false ? '46,204,113' : '231,76,60') + ',0.15);border:1px solid rgba(' + (s.is_active === false ? '46,204,113' : '231,76,60') + ',0.4);color:' + (s.is_active === false ? '#2ecc71' : '#e74c3c') + ';padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;" title="' + (s.is_active === false ? 'تفعيل' : 'تعطيل') + '">' + (s.is_active === false ? '✅' : '🚫') + '</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    async function toggleStudentActive(studentId, newState) {
+        var msg = newState ? '✅ تفعيل هذا الطالب؟' : '🚫 تعطيل هذا الطالب؟ لن يستطيع الدخول';
+        if (!confirm(msg)) return;
+        try {
+            var fd = new FormData();
+            fd.append('is_active', newState ? 'true' : 'false');
+            var res = await authFetch('/api/admin/students/' + studentId + '/toggle', { method: 'POST', body: fd });
+            if (res && res.ok) {
+                showToast(newState ? '✅ تم التفعيل' : '🚫 تم التعطيل', 'success');
+                loadChampionsRegistry();
+            } else {
+                showToast('❌ فشلت العملية', 'error');
+            }
+        } catch(e) {
+            showToast('❌ خطأ في الاتصال', 'error');
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       👑 EMPIRE HERO — تحية ديناميكية + وقت حالي
+    ════════════════════════════════════════════════════════════ */
+    function updateEmpireHero() {
+        var now = new Date();
+        var h = now.getHours();
+        var greetEl = document.getElementById('empire-greeting');
+        var nowEl = document.getElementById('empire-now');
+        
+        if (greetEl) {
+            var msg;
+            if (h < 5)       msg = '🌙 ليلة طيبة، ايها الأستاذ';
+            else if (h < 12) msg = '☀️ صباح الخير، ايها الأستاذ';
+            else if (h < 17) msg = '🌤️ مساء النور، ايها الأستاذ';
+            else if (h < 21) msg = '🌅 مساء الخير، ايها الأستاذ';
+            else             msg = '🌃 ليلة موفّقة، ايها الأستاذ';
+            greetEl.textContent = msg;
+        }
+        
+        if (nowEl) {
+            var dateStr = now.toLocaleDateString('ar-EG', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+            });
+            var timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            nowEl.textContent = '📅 ' + dateStr + ' • 🕐 ' + timeStr;
+        }
+    }
+    
+    // حدّث كل دقيقة
+    setInterval(updateEmpireHero, 60000);
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(updateEmpireHero, 200);
+    });
+    setTimeout(updateEmpireHero, 500);
+
 
 </script>
 </body>
