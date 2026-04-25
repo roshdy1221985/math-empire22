@@ -773,9 +773,30 @@ async def bulk_add_questions(request: Request, admin=Depends(get_current_admin))
 
 @app.get("/api/admin/questions")
 async def get_all_questions(admin=Depends(get_current_admin)):
-    """جلب الأسئلة كاملةً للأدمن فقط (مع الإجابات)"""
-    res = supabase.table("questions").select("*").order("id", desc=True).execute()
-    return res.data if res.data else []
+    """
+    جلب الأسئلة كاملةً للأدمن — مع pagination تلقائي
+    لأن Supabase يحدد كل query بـ 1000 صف افتراضياً
+    """
+    all_questions = []
+    page_size = 1000
+    offset = 0
+    max_iterations = 50  # حد أقصى للأمان (50,000 سؤال)
+    
+    for _ in range(max_iterations):
+        try:
+            res = supabase.table("questions").select("*").order("id", desc=True).range(offset, offset + page_size - 1).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_questions.extend(batch)
+            if len(batch) < page_size:
+                break  # آخر صفحة
+            offset += page_size
+        except Exception as e:
+            print(f"questions pagination error at offset {offset}: {e}")
+            break
+    
+    return all_questions
 
 def _grade_variants(grade: str) -> list:
     """يولّد جميع الصيغ الممكنة لاسم الصف لضمان تطابق الأسئلة المخزونة بأي صيغة"""
@@ -1248,13 +1269,34 @@ async def get_public_config():
 
 @app.get("/api/leaderboard")
 async def get_lb():
-    res = supabase.table("results").select("student_name, score").execute().data
+    """لوحة الصدارة — مع pagination كامل لجميع النتائج"""
+    all_results = []
+    offset = 0
+    for _ in range(50):  # حد أقصى 50,000 نتيجة
+        try:
+            res = supabase.table("results").select("student_name, score, grade").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_results.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception as e:
+            print(f"leaderboard pagination error: {e}")
+            break
+    
     lb = {}
-    if res:
-        for r in res: 
-            lb[r['student_name']] = lb.get(r['student_name'], 0) + r['score']
-    sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)[:10]
-    return [{"student_name": k, "total_points": v} for k, v in sorted_lb]
+    grades = {}
+    for r in all_results:
+        name = r.get("student_name") or ""
+        if not name: continue
+        lb[name] = lb.get(name, 0) + (r.get("score") or 0)
+        if "grade" in r and r["grade"]:
+            grades[name] = r["grade"]
+    
+    sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)
+    return [{"student_name": k, "total_points": v, "grade": grades.get(k, "")} for k, v in sorted_lb]
 
 @app.get("/api/parent/search/{query:path}")
 async def parent_search(query: str, request: Request):
@@ -1589,24 +1631,101 @@ async def get_all_students_admin(admin=Depends(get_current_admin)):
     return res.data if res.data else []
 
 
+def _count_active_recent(results: list, days: int = 7) -> int:
+    """يحسب عدد الطلاب الفريدين الذين شاركوا في آخر N أيام"""
+    from datetime import datetime, timezone, timedelta
+    cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+    active_ids = set()
+    for r in results:
+        ts = r.get("timestamp", "")
+        if not ts:
+            continue
+        try:
+            if isinstance(ts, str):
+                ts = ts.replace("Z", "+00:00")
+                dt = datetime.fromisoformat(ts)
+                if dt.tzinfo is None:
+                    dt = dt.replace(tzinfo=timezone.utc)
+                if dt >= cutoff:
+                    sid = r.get("student_id")
+                    if sid:
+                        active_ids.add(sid)
+        except Exception:
+            continue
+    return len(active_ids)
+
+
+@app.post("/api/admin/update_password")
+async def update_admin_password(
+    new_password: str = Form(...),
+    admin = Depends(get_current_admin)
+):
+    """
+    تحديث كلمة مرور الأدمن — يُحفظ في system_state
+    ملاحظة: لا يُحدّث env var ADMIN_PASSWORD مباشرة، لكن يُتيح override
+    """
+    if len(new_password) < 6:
+        raise HTTPException(status_code=400, detail="كلمة المرور قصيرة جداً (6+ أحرف)")
+    try:
+        # نحفظ في system_state لـ override
+        supabase.table("system_state").upsert({
+            "key": "admin_password_override",
+            "value": new_password.strip(),
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }).execute()
+        return {"status": "success", "message": "تم تحديث كلمة المرور"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.get("/api/admin/reports/full")
 async def get_full_report(admin=Depends(get_current_admin)):
     """تقرير شامل للإمبراطورية — الطلاب + النتائج + الإحصائيات"""
-    # جلب الطلاب
-    students_res = supabase.table("students").select(
-        "id, full_name, grade, username, created_at"
-    ).order("full_name").execute()
-    students = students_res.data or []
+    # جلب كل الطلاب (مع pagination)
+    students = []
+    offset = 0
+    for _ in range(20):  # حد أقصى 20,000 طالب
+        try:
+            res_batch = supabase.table("students").select(
+                "id, full_name, grade, username, created_at"
+            ).order("full_name").range(offset, offset + 999).execute()
+            batch = res_batch.data or []
+            if not batch:
+                break
+            students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        except Exception as e:
+            print(f"students pagination error: {e}")
+            break
 
-    # جلب كل النتائج
-    results_res = supabase.table("results").select(
-        "student_id, student_name, lesson, score, total, timestamp"
-    ).order("timestamp", desc=True).execute()
-    results = results_res.data or []
+    # جلب كل النتائج (مع pagination لتجاوز حد 1000)
+    results = []
+    offset = 0
+    page_size = 1000
+    for _ in range(50):  # حد أقصى 50,000 نتيجة
+        try:
+            res_batch = supabase.table("results").select(
+                "student_id, student_name, lesson, score, total, timestamp"
+            ).order("timestamp", desc=True).range(offset, offset + page_size - 1).execute()
+            batch = res_batch.data or []
+            if not batch:
+                break
+            results.extend(batch)
+            if len(batch) < page_size:
+                break
+            offset += page_size
+        except Exception as e:
+            print(f"results pagination error: {e}")
+            break
 
-    # جلب عدد الأسئلة
-    q_res = supabase.table("questions").select("id, grade", count="exact").execute()
-    total_questions = len(q_res.data) if q_res.data else 0
+    # جلب عدد الأسئلة الفعلي (count من Supabase وليس len(data) لأن data محدد بـ 1000)
+    try:
+        q_res = supabase.table("questions").select("id", count="exact").limit(1).execute()
+        total_questions = q_res.count if hasattr(q_res, "count") and q_res.count is not None else 0
+    except Exception:
+        total_questions = 0
 
     # بناء إحصائيات لكل طالب
     from collections import defaultdict
@@ -1654,6 +1773,7 @@ async def get_full_report(admin=Depends(get_current_admin)):
             "total_questions": total_questions,
             "total_results":   len(results),
             "active_students": sum(1 for s in students_report if s["tests"] > 0),
+            "active_last_7days": _count_active_recent(results, days=7),
         },
         "grade_distribution": dict(grade_stats),
         "students":           students_report,
@@ -1897,7 +2017,7 @@ async def send_notification(
         raise HTTPException(status_code=429, detail="طلبات كثيرة جداً")
     row = {
         "title":    title.strip()[:200],
-        "body":     body.strip()[:500],
+        "body":     body.strip()[:5000],
         "grade":    grade,
         "priority": priority,
         "type":     type,
@@ -2676,6 +2796,246 @@ async def auto_academic_tasks(request: Request, call_next):
 # ==========================================
 # --- 13. تشغيل المحرك المركزي ---
 # ==========================================
+
+
+# ==========================================
+# --- 12.6 📘 الدروس التفاعلية (HTML Lessons) ---
+# ==========================================
+
+# CDNs المسموح بها داخل ملفات HTML
+ALLOWED_CDN_HOSTS = {
+    "fonts.googleapis.com", "fonts.gstatic.com",
+    "cdnjs.cloudflare.com", "cdn.jsdelivr.net",
+    "unpkg.com", "cdn.tailwindcss.com",
+}
+
+DANGEROUS_HTML_PATTERNS = [
+    r'fetch\s*\(', r'XMLHttpRequest', r'navigator\.sendBeacon',
+    r'WebSocket\s*\(', r'EventSource\s*\(',
+    r'localStorage', r'sessionStorage', r'document\.cookie', r'indexedDB',
+    r'\beval\s*\(', r'new\s+Function\s*\(',
+    r'setTimeout\s*\(\s*[\'"`]', r'setInterval\s*\(\s*[\'"`]',
+    r'<iframe', r'<frame', r'<embed', r'<object',
+    r'import\s*\([\'"]', r'importScripts\s*\(',
+    r'<meta\s+[^>]*http-equiv\s*=\s*[\'"]?refresh',
+    r'<form\s+[^>]*action\s*=\s*[\'"]https?://',
+    r'navigator\.serviceWorker', r'navigator\.clipboard',
+    r'window\.location\s*=', r'location\.href\s*=', r'location\.replace',
+    r'window\.open', r'window\.top', r'window\.parent',
+]
+
+MAX_HTML_SIZE_MB = 2
+MAX_HTML_SIZE_BYTES = MAX_HTML_SIZE_MB * 1024 * 1024
+
+
+def _scan_html_threats(html_text: str) -> list:
+    import re as _re
+    warnings = []
+    for pattern in DANGEROUS_HTML_PATTERNS:
+        try:
+            matches = _re.findall(pattern, html_text, flags=_re.IGNORECASE)
+            if matches:
+                sev = "high" if any(x in pattern for x in ["eval", "Function", "localStorage", "cookie", "fetch"]) else "medium"
+                warnings.append({"pattern": pattern, "count": len(matches), "severity": sev})
+        except Exception:
+            pass
+    return warnings
+
+
+def _sanitize_html_lesson(html_text: str):
+    """ينظّف HTML — يُرجع (cleaned, report)"""
+    import re as _re
+    original_size = len(html_text)
+    removed = {"iframes": 0, "bad_scripts": 0, "meta_refresh": 0}
+    cleaned = html_text
+
+    # 1. حذف iframe/frame/embed/object
+    for tag in ["iframe", "frame", "embed", "object"]:
+        pattern = rf"<{tag}\b[^>]*>.*?</{tag}>"
+        count = len(_re.findall(pattern, cleaned, flags=_re.IGNORECASE | _re.DOTALL))
+        cleaned = _re.sub(pattern, "", cleaned, flags=_re.IGNORECASE | _re.DOTALL)
+        self_close = rf"<{tag}\b[^>]*/?>"
+        count += len(_re.findall(self_close, cleaned, flags=_re.IGNORECASE))
+        cleaned = _re.sub(self_close, "", cleaned, flags=_re.IGNORECASE)
+        if tag == "iframe":
+            removed["iframes"] = count
+
+    # 2. meta refresh
+    meta_pattern = r'<meta\s+[^>]*http-equiv\s*=\s*[\'"]?refresh[^>]*>'
+    count = len(_re.findall(meta_pattern, cleaned, flags=_re.IGNORECASE))
+    cleaned = _re.sub(meta_pattern, "", cleaned, flags=_re.IGNORECASE)
+    removed["meta_refresh"] = count
+
+    # 3. scripts خارجية من نطاقات غير مسموحة
+    def _check_script(match):
+        src = match.group(1).lower()
+        if src.startswith("//"): src = "https:" + src
+        if not src.startswith(("http://", "https://")):
+            return match.group(0)
+        try:
+            from urllib.parse import urlparse
+            host = urlparse(src).netloc.lower()
+            if host.startswith("www."): host = host[4:]
+            allowed = any(host == a or host.endswith("." + a) for a in ALLOWED_CDN_HOSTS)
+            if not allowed:
+                removed["bad_scripts"] += 1
+                return ""
+        except Exception:
+            removed["bad_scripts"] += 1
+            return ""
+        return match.group(0)
+
+    script_src_pattern = r'<script\b[^>]*\bsrc\s*=\s*[\'"]([^\'"]+)[\'"][^>]*>\s*</script>'
+    cleaned = _re.sub(script_src_pattern, _check_script, cleaned, flags=_re.IGNORECASE)
+
+    report = {
+        "original_size": original_size,
+        "cleaned_size": len(cleaned),
+        "removed": removed,
+        "warnings": _scan_html_threats(cleaned),
+    }
+    return cleaned, report
+
+
+def _wrap_html_lesson_safe(html_text: str) -> str:
+    """يضيف CSP + secure links"""
+    import re as _re
+    csp = (
+        "default-src 'self' data: blob:; "
+        "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com; "
+        "font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com data:; "
+        "script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net https://unpkg.com https://cdn.tailwindcss.com; "
+        "img-src 'self' data: https:; "
+        "connect-src 'none'; "
+        "frame-ancestors 'none'; "
+        "base-uri 'none'; "
+        "form-action 'none';"
+    )
+    csp_tag = f'<meta http-equiv="Content-Security-Policy" content="{csp}">'
+    if "<head>" in html_text.lower():
+        result = _re.sub(r"(<head[^>]*>)", r"\\1\n" + csp_tag, html_text, count=1, flags=_re.IGNORECASE)
+    elif "<html" in html_text.lower():
+        result = _re.sub(r"(<html[^>]*>)", r"\\1\n<head>\n" + csp_tag + "\n</head>", html_text, count=1, flags=_re.IGNORECASE)
+    else:
+        result = csp_tag + "\n" + html_text
+    return result
+
+
+@app.post("/api/admin/html_lessons")
+async def upload_html_lesson(
+    title: str        = Form(...),
+    grade: str        = Form(...),
+    semester: str     = Form(default=""),
+    unit: str         = Form(default=""),
+    lesson: str       = Form(...),
+    description: str  = Form(default=""),
+    file: UploadFile  = File(...),
+    admin = Depends(get_current_admin)
+):
+    """رفع درس HTML تفاعلي — مع تنظيف أمني"""
+    content_bytes = await file.read()
+    if not content_bytes:
+        raise HTTPException(status_code=400, detail="الملف فارغ")
+    if len(content_bytes) > MAX_HTML_SIZE_BYTES:
+        size_mb = len(content_bytes) / (1024 * 1024)
+        raise HTTPException(status_code=413, detail=f"الملف كبير جداً ({size_mb:.1f} MB). الحد الأقصى {MAX_HTML_SIZE_MB} MB")
+    filename = (file.filename or "").strip()
+    if not filename:
+        raise HTTPException(status_code=400, detail="اسم الملف مفقود")
+    ext = os.path.splitext(filename)[1].lower()
+    if ext not in {".html", ".htm"}:
+        raise HTTPException(status_code=415, detail="الامتداد يجب .html أو .htm")
+    if ".." in filename or "/" in filename or "\\" in filename:
+        raise HTTPException(status_code=400, detail="اسم الملف يحتوي رموز ممنوعة")
+
+    try:
+        html_text = content_bytes.decode("utf-8")
+    except UnicodeDecodeError:
+        try:
+            html_text = content_bytes.decode("windows-1256")
+        except Exception:
+            raise HTTPException(status_code=400, detail="الملف ليس UTF-8")
+
+    cleaned, report = _sanitize_html_lesson(html_text)
+    final_html = _wrap_html_lesson_safe(cleaned)
+
+    file_name = f"html_lesson_{uuid.uuid4().hex}.html"
+    try:
+        supabase.storage.from_("resources").upload(
+            path=file_name,
+            file=final_html.encode("utf-8"),
+            file_options={"content-type": "text/html; charset=utf-8"}
+        )
+        file_url = supabase.storage.from_("resources").get_public_url(file_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل رفع الملف: {str(e)[:200]}")
+
+    row = {
+        "title": title[:200],
+        "grade": grade[:100],
+        "semester": (semester or "")[:100],
+        "unit": (unit or "")[:200],
+        "lesson": lesson[:300],
+        "description": (description or "")[:500],
+        "file_url": file_url,
+        "file_size_kb": len(final_html.encode("utf-8")) // 1024,
+        "sanitized": True,
+    }
+    try:
+        supabase.table("html_lessons").insert(row).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل الحفظ: {str(e)[:200]}")
+
+    return {
+        "status": "success",
+        "file_url": file_url,
+        "sanitization": report,
+        "message": f"حُذف: {report['removed']['iframes']} iframe، {report['removed']['bad_scripts']} script خارجي"
+    }
+
+
+@app.get("/api/html_lessons")
+async def list_html_lessons(grade: str = "", lesson: str = ""):
+    """قائمة الدروس التفاعلية"""
+    query = supabase.table("html_lessons").select(
+        "id, title, grade, semester, unit, lesson, description, file_url, file_size_kb, uploaded_at, view_count"
+    )
+    if grade:  query = query.eq("grade", grade)
+    if lesson: query = query.eq("lesson", lesson)
+    res = query.order("uploaded_at", desc=True).execute()
+    return res.data or []
+
+
+@app.post("/api/html_lessons/{lesson_id}/view")
+async def increment_view_count(lesson_id: int):
+    """زيادة عداد المشاهدات"""
+    try:
+        res = supabase.table("html_lessons").select("view_count").eq("id", lesson_id).execute()
+        if res.data:
+            current = res.data[0].get("view_count", 0) or 0
+            supabase.table("html_lessons").update({"view_count": current + 1}).eq("id", lesson_id).execute()
+        return {"status": "ok"}
+    except Exception:
+        return {"status": "error"}
+
+
+@app.delete("/api/admin/html_lessons/{lesson_id}")
+async def delete_html_lesson(lesson_id: int, admin = Depends(get_current_admin)):
+    """حذف درس تفاعلي"""
+    res = supabase.table("html_lessons").select("file_url").eq("id", lesson_id).execute()
+    if res.data:
+        file_url = res.data[0].get("file_url", "")
+        file_name = file_url.rsplit("/", 1)[-1] if "/" in file_url else ""
+        if file_name and file_name.startswith("html_lesson_"):
+            try:
+                supabase.storage.from_("resources").remove([file_name])
+            except Exception:
+                pass
+    supabase.table("html_lessons").delete().eq("id", lesson_id).execute()
+    return {"status": "deleted"}
+
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

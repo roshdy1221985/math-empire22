@@ -429,6 +429,92 @@
         .ext-tab { padding:10px 20px;border-radius:12px;cursor:pointer;font-family:'Cairo';font-weight:bold;font-size:0.9rem;transition:0.25s;background:var(--glass);border:1px solid var(--border);color:rgba(255,255,255,0.6); }
         .ext-tab:hover { color:var(--gold);border-color:rgba(212,175,55,0.4); }
         .ext-tab.on,.ext-tab.active { background:rgba(212,175,55,0.12);border-color:rgba(212,175,55,0.5);color:var(--gold); }
+        /* ══ اختبار القدرات Modal ══ */
+        .ab-grade-btn {
+            padding: 7px 14px;
+            border-radius: 99px;
+            border: 1px solid rgba(142,68,173,0.4);
+            background: rgba(142,68,173,0.08);
+            color: #fff;
+            font-size: 0.78rem;
+            font-family: 'Cairo';
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .ab-grade-btn:hover { background: rgba(142,68,173,0.18); }
+        .ab-grade-btn.selected {
+            background: linear-gradient(135deg,#8e44ad,#bb86fc);
+            border-color: #bb86fc;
+            color: #fff;
+            font-weight: bold;
+            box-shadow: 0 0 12px rgba(187,134,252,0.4);
+        }
+
+        .ab-op-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(142,68,173,0.3);
+            background: rgba(142,68,173,0.06);
+            cursor: pointer;
+            transition: all 0.2s;
+            user-select: none;
+        }
+        .ab-op-card:hover { background: rgba(142,68,173,0.15); border-color: rgba(187,134,252,0.5); }
+        .ab-op-card.selected {
+            background: linear-gradient(135deg,rgba(142,68,173,0.25),rgba(187,134,252,0.1));
+            border-color: #bb86fc;
+            box-shadow: 0 4px 12px rgba(142,68,173,0.3);
+        }
+        .ab-op-card .ab-op-checkbox {
+            width: 18px; height: 18px;
+            border-radius: 5px;
+            border: 2px solid rgba(187,134,252,0.4);
+            background: rgba(255,255,255,0.05);
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.2s;
+        }
+        .ab-op-card.selected .ab-op-checkbox {
+            background: #bb86fc;
+            border-color: #bb86fc;
+        }
+        .ab-op-card.selected .ab-op-checkbox::after {
+            content: '✓';
+            position: absolute;
+            color: #1a1035;
+            font-size: 0.85rem;
+            font-weight: 900;
+            left: 50%; top: 50%;
+            transform: translate(-50%, -50%);
+        }
+        .ab-op-card .ab-op-label {
+            font-weight: bold;
+            font-size: 0.95rem;
+            font-family: 'Cairo';
+        }
+
+        .ab-preview-pill {
+            background: rgba(142,68,173,0.12);
+            border: 1px solid rgba(142,68,173,0.3);
+            border-radius: 10px;
+            padding: 9px 14px;
+            min-width: 90px;
+            text-align: center;
+        }
+        .ab-preview-pill .ab-preview-q {
+            font-size: 0.92rem;
+            font-weight: bold;
+            font-family: 'Cairo';
+        }
+        .ab-preview-pill .ab-preview-type {
+            font-size: 0.65rem;
+            color: rgba(255,255,255,0.4);
+            margin-top: 3px;
+        }
     </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1164,6 +1250,7 @@
                 <div class="nav-link nl-green" onclick="showSection('students')"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
                 <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
+                <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
                 <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
                 <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
                 <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
@@ -1769,6 +1856,199 @@
                         <thead><tr><th>العنوان</th><th>الموعد</th><th>الدروس المستهدفة</th><th>إجراء</th></tr></thead>
                         <tbody id="exams-table-body"></tbody>
                     </table>
+                </div>
+
+                <!-- ⚡ زر فتح اختبار القدرات -->
+                <div class="card" style="border:2px solid rgba(142,68,173,0.5);background:linear-gradient(135deg,rgba(142,68,173,0.12),rgba(142,68,173,0.04));margin-top:24px;text-align:center;padding:30px;">
+                    <div style="font-size:3rem;margin-bottom:8px;filter:drop-shadow(0 0 14px rgba(187,134,252,0.6));">⚡</div>
+                    <h2 style="color:#bb86fc;margin:0 0 6px;">اختبار قدرات رياضي</h2>
+                    <p style="opacity:0.6;margin:0 0 20px;font-size:0.9rem;">جمع · طرح · ضرب · قسمة — مع مؤقت ذكي</p>
+                    <button onclick="openAbilityBuilder()" style="background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:#fff;padding:14px 36px;border-radius:14px;font-weight:bold;font-family:'Cairo';font-size:1rem;cursor:pointer;box-shadow:0 6px 20px rgba(142,68,173,0.4);transition:all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                        ⚡ إنشاء اختبار قدرات رياضي
+                    </button>
+                </div>
+            </section>
+
+            <!-- ⚡ Modal اختبار القدرات الكامل -->
+            <div id="ability-builder-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(14px);">
+                <div style="background:linear-gradient(160deg,#0d0d1f,#1a1035);border:2px solid #8e44ad;border-radius:24px;padding:0;max-width:560px;width:100%;margin:auto;overflow:hidden;box-shadow:0 30px 80px rgba(142,68,173,0.5);direction:rtl;">
+
+                    <!-- رأس Modal -->
+                    <div style="background:linear-gradient(135deg,#2c1654,#1a0a3d);padding:18px 22px;display:flex;align-items:center;gap:12px;border-bottom:1px solid rgba(142,68,173,0.4);">
+                        <div style="font-size:1.8rem;filter:drop-shadow(0 0 10px rgba(187,134,252,0.8));">⚡</div>
+                        <div style="flex:1;">
+                            <h2 style="color:#bb86fc;margin:0;font-family:'Amiri';font-size:1.5rem;">إنشاء اختبار قدرات رياضي</h2>
+                            <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);">جمع · طرح · ضرب · قسمة — مع مؤقت ذكي</div>
+                        </div>
+                        <button onclick="closeAbilityBuilder()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+                    </div>
+
+                    <div style="padding:22px;">
+
+                        <!-- الصفوف المستهدفة (أزرار) -->
+                        <div style="margin-bottom:18px;">
+                            <div style="color:#bb86fc;font-weight:bold;margin-bottom:10px;font-size:0.95rem;"><i class="fas fa-users"></i> الصفوف المستهدفة <span style="opacity:0.5;font-weight:normal;font-size:0.8rem;">(يمكن تحديد أكثر من صف)</span></div>
+                            <div id="ab-grades-list" style="display:flex;flex-wrap:wrap;gap:6px;padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(142,68,173,0.25);">
+                                <!-- تُملأ ديناميكياً -->
+                            </div>
+                        </div>
+
+                        <!-- العمليات الحسابية -->
+                        <div style="margin-bottom:18px;">
+                            <div style="color:#bb86fc;font-weight:bold;margin-bottom:10px;font-size:0.95rem;"><i class="fas fa-calculator"></i> العمليات الحسابية</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <label class="ab-op-card" data-op="+" onclick="this.classList.toggle('selected')">
+                                    <span class="ab-op-checkbox"></span>
+                                    <span class="ab-op-label" style="color:#2ecc71;">➕ الجمع</span>
+                                </label>
+                                <label class="ab-op-card" data-op="-" onclick="this.classList.toggle('selected')">
+                                    <span class="ab-op-checkbox"></span>
+                                    <span class="ab-op-label" style="color:#e74c3c;">➖ الطرح</span>
+                                </label>
+                                <label class="ab-op-card selected" data-op="×" onclick="this.classList.toggle('selected')">
+                                    <span class="ab-op-checkbox"></span>
+                                    <span class="ab-op-label" style="color:#f39c12;">✖️ الضرب</span>
+                                </label>
+                                <label class="ab-op-card" data-op="÷" onclick="this.classList.toggle('selected')">
+                                    <span class="ab-op-checkbox"></span>
+                                    <span class="ab-op-label" style="color:#5dade2;">➗ القسمة</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- مستوى الصعوبة + عدد الأسئلة -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+                            <div>
+                                <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-signal"></i> مستوى الصعوبة</div>
+                                <select id="ab-difficulty" style="width:100%;background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';font-size:0.88rem;">
+                                    <option value="easy">🟢 سهل (أرقام 1-10)</option>
+                                    <option value="medium" selected>🟡 متوسط (أرقام 1-20)</option>
+                                    <option value="hard">🔴 صعب (أرقام 1-100)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-list-ol"></i> عدد الأسئلة</div>
+                                <select id="ab-count" style="width:100%;background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';font-size:0.88rem;">
+                                    <option value="10">10 أسئلة (سريع)</option>
+                                    <option value="20" selected>20 سؤال (معياري)</option>
+                                    <option value="30">30 سؤال (شامل)</option>
+                                    <option value="50">50 سؤال (تحدي)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- الوقت + نوع الإجابة + العنوان -->
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;">
+                            <div>
+                                <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-stopwatch"></i> وقت الاختبار (دقيقة)</div>
+                                <div style="display:flex;align-items:center;gap:10px;background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);border-radius:10px;padding:8px 12px;">
+                                    <input type="range" id="ab-timer" min="1" max="60" value="10" style="flex:1;accent-color:#bb86fc;" oninput="document.getElementById('ab-timer-val').textContent=this.value">
+                                    <span id="ab-timer-val" style="color:#bb86fc;font-weight:bold;font-size:1.1rem;min-width:24px;text-align:center;">10</span>
+                                    <span style="font-size:0.75rem;opacity:0.6;">دقيقة</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-question-circle"></i> نوع الإجابة</div>
+                                <select id="ab-qtype" style="width:100%;background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';font-size:0.88rem;">
+                                    <option value="short" selected>✍️ كتابة الإجابة مباشرة</option>
+                                    <option value="mcq">🔘 اختيار من متعدد</option>
+                                    <option value="mixed">🔀 مزيج</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- العنوان + التاريخ -->
+                        <div style="margin-bottom:18px;">
+                            <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-tag"></i> عنوان الاختبار</div>
+                            <input type="text" id="ab-title" placeholder="مثال: اختبار قدرات رياضية" value="" style="width:100%;background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';font-size:0.88rem;box-sizing:border-box;">
+                        </div>
+
+                        <div style="margin-bottom:18px;">
+                            <div style="color:#bb86fc;font-weight:bold;margin-bottom:8px;font-size:0.9rem;"><i class="fas fa-calendar"></i> موعد الاختبار</div>
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                                <input type="time" id="ab-time" style="background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';">
+                                <input type="date" id="ab-date" style="background:rgba(13,27,62,0.8);border:1px solid rgba(142,68,173,0.4);color:#fff;padding:11px 12px;border-radius:10px;font-family:'Cairo';">
+                            </div>
+                        </div>
+
+                        <!-- معاينة نماذج الأسئلة -->
+                        <div style="background:rgba(142,68,173,0.06);border:1px solid rgba(142,68,173,0.25);border-radius:14px;padding:14px;margin-bottom:18px;">
+                            <div style="color:#bb86fc;font-weight:bold;margin-bottom:10px;font-size:0.9rem;"><i class="fas fa-eye"></i> معاينة نماذج أسئلة</div>
+                            <div id="ab-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
+                                <!-- نماذج تظهر هنا -->
+                            </div>
+                            <button onclick="refreshAbPreview()" style="background:transparent;border:1px solid rgba(142,68,173,0.4);color:#bb86fc;padding:7px 14px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-family:'Cairo';">
+                                <i class="fas fa-sync"></i> تحديث المعاينة
+                            </button>
+                        </div>
+
+                        <!-- زر الإرسال -->
+                        <button onclick="sendAbilityCheckNotif(event)" style="width:100%;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1035;border:none;padding:15px;border-radius:14px;font-weight:bold;font-family:'Cairo';font-size:1.05rem;cursor:pointer;box-shadow:0 6px 20px rgba(212,175,55,0.4);">
+                            🚀 توليد الاختبار وجدولته
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== HTML LESSONS ==================== -->
+            <section id="html-lessons" class="section">
+                <div class="card">
+                    <h2 style="color:#5dade2;"><i class="fas fa-laptop-code"></i> رفع درس تفاعلي (HTML)</h2>
+                    <p style="opacity:0.65;font-size:0.9rem;margin-bottom:18px;">
+                        ارفع ملفات HTML تحتوي شروحاً تفاعلية، أمثلة محلولة، أو رسوم توضيحية.
+                        يُعرض للطالب في نافذة معزولة آمنة بالكامل داخل التطبيق.
+                    </p>
+
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-bottom:20px;">
+                        <div>
+                            <label>📌 عنوان الدرس</label>
+                            <input type="text" id="hl-title" placeholder='مثال: "شرح تفاعلي: المتوسط الحسابي"'>
+                        </div>
+                        <div>
+                            <label>📝 وصف مختصر</label>
+                            <input type="text" id="hl-desc" placeholder="مثال: 6 أمثلة محلولة + تحدي النخبة">
+                        </div>
+                    </div>
+
+                    <div style="background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.25);border-radius:14px;padding:16px;margin-bottom:18px;">
+                        <div style="color:#5dade2;font-weight:bold;margin-bottom:12px;"><i class="fas fa-sitemap"></i> ربط بالمنهج (للطالب يلقاه عند فتح الدرس)</div>
+                        <div class="cascade-grid">
+                            <div><label>الصف</label><select id="hl-grade" onchange="updateSemesters('hl')"></select></div>
+                            <div><label>الفصل</label><select id="hl-term"  onchange="updateUnits('hl')"></select></div>
+                            <div><label>الوحدة</label><select id="hl-unit"  onchange="updateLessons('hl')"></select></div>
+                            <div><label>الدرس</label><select id="hl-lesson"></select></div>
+                        </div>
+                    </div>
+
+                    <div id="hl-dropzone"
+                        style="border:2px dashed rgba(52,152,219,0.4);border-radius:16px;padding:32px;text-align:center;cursor:pointer;transition:all 0.2s;"
+                        onclick="document.getElementById('hl-file').click()"
+                        ondragover="event.preventDefault();this.style.borderColor='#5dade2'"
+                        ondragleave="this.style.borderColor='rgba(52,152,219,0.4)'"
+                        ondrop="handleHlDrop(event)">
+                        <div style="font-size:3rem;margin-bottom:10px;">📄</div>
+                        <p style="font-weight:bold;color:#5dade2;margin:0 0 6px;">اسحب ملف HTML هنا أو اضغط للاختيار</p>
+                        <p id="hl-file-name" style="opacity:0.5;font-size:0.83rem;margin:0;">لا يوجد ملف محدد — الحد الأقصى 2 MB</p>
+                        <input type="file" id="hl-file" accept=".html,.htm" style="display:none" onchange="hlFileSelected(this)">
+                    </div>
+
+                    <button class="btn-gold" id="hl-upload-btn" onclick="uploadHtmlLesson()" style="width:100%;margin-top:16px;font-size:1rem;padding:14px;">
+                        <i class="fas fa-upload"></i> رفع الدرس التفاعلي
+                    </button>
+
+                    <div id="hl-security-report" style="display:none;margin-top:14px;background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:12px;padding:14px;"></div>
+                </div>
+
+                <div class="card" style="margin-top:24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="margin:0;color:#5dade2;"><i class="fas fa-list"></i> الدروس التفاعلية المرفوعة</h3>
+                        <button onclick="loadHtmlLessons()" style="background:transparent;border:1px solid rgba(52,152,219,0.4);color:#5dade2;padding:8px 16px;border-radius:8px;cursor:pointer;font-size:0.85rem;">
+                            <i class="fas fa-sync"></i> تحديث
+                        </button>
+                    </div>
+                    <div id="hl-lessons-table">
+                        <p style="opacity:0.5;text-align:center;padding:30px;">اضغط "تحديث" لعرض الدروس المرفوعة</p>
+                    </div>
                 </div>
             </section>
 
@@ -3889,7 +4169,7 @@
     }
 
     async function loadScheduledExams() {
-        const res = await fetch(`${API_URL}/api/exams/upcoming`);
+        const res = await authFetch(`/api/exams/upcoming`);
         if(!res.ok) return;
         const data     = await res.json();
         const tableBody = document.getElementById('exams-table-body');
@@ -6361,6 +6641,10 @@
             const newToday = data.filter(s => s.created_at && new Date(s.created_at).toDateString() === today).length;
             const el1 = document.getElementById('dash-new-students');
             if (el1) el1.textContent = newToday;
+            // ✅ نشطون اليوم
+            const activeToday = data.filter(s => s.last_active && new Date(s.last_active).toDateString() === today).length;
+            const elActive = document.getElementById('dash-active-today');
+            if (elActive) elActive.textContent = activeToday;
             // طلبات النخبة
             try {
                 const r2 = await authFetch('/api/admin/elite/requests');
@@ -8156,6 +8440,370 @@
         document.getElementById('aqg-results').style.display='none';
         document.getElementById('aqg-prog-card').style.display='none';
         showToast('تم الإعادة','warning');
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       ⚡ إرسال اختبار القدرات كإشعار للطلاب
+    ════════════════════════════════════════════════════════════ */
+    /* قائمة احتياطية فقط — الأساس من خريطة المنهج */
+    var _ABILITY_FALLBACK = [
+        'الصف الأول الابتدائي','الصف الثاني الابتدائي','الصف الثالث الابتدائي',
+        'الصف الرابع الابتدائي','الصف الخامس الابتدائي','الصف السادس الابتدائي',
+        'الصف السابع','الصف الثامن','الصف التاسع',
+        'الصف العاشر','الصف الحادي عشر','الصف الثاني عشر'
+    ];
+
+    /* جلب الصفوف من خريطة المنهج الحقيقية */
+    async function _fetchAbilityGrades() {
+        // إن كان fullCurriculum محمّل من قبل — استخدمه
+        if (typeof fullCurriculum !== 'undefined' && fullCurriculum && fullCurriculum.length > 0) {
+            return fullCurriculum.map(function(g) { return g.name; });
+        }
+        // وإلا اجلبه من API
+        try {
+            var res = await fetch(API_URL + '/api/curriculum/structure');
+            if (res.ok) {
+                var data = await res.json();
+                if (data && data.length > 0) {
+                    if (typeof fullCurriculum !== 'undefined') {
+                        fullCurriculum = data;
+                    }
+                    return data.map(function(g) { return g.name; });
+                }
+            }
+        } catch(e) {}
+        // fallback
+        return _ABILITY_FALLBACK;
+    }
+
+    /* فتح Modal اختبار القدرات */
+    async function openAbilityBuilder() {
+        var modal = document.getElementById('ability-builder-modal');
+        if (!modal) return;
+        modal.style.display = 'flex';
+
+        // املأ الصفوف من خريطة المنهج الفعلية
+        var list = document.getElementById('ab-grades-list');
+        if (list) {
+            // امسح القديم وأعد البناء (لضمان التحديث لو المنهج تغيّر)
+            list.innerHTML = '<div style="opacity:0.5;font-size:0.8rem;padding:6px 12px;">⏳ جارٍ تحميل الصفوف من خريطة المنهج...</div>';
+            var grades = await _fetchAbilityGrades();
+            list.innerHTML = '';
+            for (var i=0; i<grades.length; i++) {
+                var btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ab-grade-btn';
+                btn.textContent = grades[i];
+                btn.dataset.grade = grades[i];
+                btn.onclick = function() { this.classList.toggle('selected'); };
+                list.appendChild(btn);
+            }
+            // أزرار سريعة: تحديد الكل / إلغاء الكل
+            var actions = document.createElement('div');
+            actions.style.cssText = 'display:flex;gap:8px;width:100%;margin-top:8px;padding-top:10px;border-top:1px solid rgba(142,68,173,0.2);';
+            actions.innerHTML =
+                '<button type="button" onclick="document.querySelectorAll(\'.ab-grade-btn\').forEach(function(b){b.classList.add(\'selected\')})" style="flex:1;background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-family:\'Cairo\';">✅ تحديد الكل</button>' +
+                '<button type="button" onclick="document.querySelectorAll(\'.ab-grade-btn\').forEach(function(b){b.classList.remove(\'selected\')})" style="flex:1;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:7px 10px;border-radius:8px;cursor:pointer;font-size:0.78rem;font-family:\'Cairo\';">✕ إلغاء الكل</button>';
+            list.appendChild(actions);
+        }
+
+        // التاريخ والوقت الافتراضيين
+        var now = new Date();
+        now.setHours(now.getHours() + 1, 0, 0);
+        var d = document.getElementById('ab-date');
+        var t = document.getElementById('ab-time');
+        if (d && !d.value) d.value = now.toISOString().split('T')[0];
+        if (t && !t.value) t.value = now.toTimeString().slice(0,5);
+
+        // عنوان افتراضي
+        var titleInp = document.getElementById('ab-title');
+        if (titleInp && !titleInp.value) {
+            titleInp.value = 'اختبار قدرات رياضية - ' + new Date().toLocaleDateString('ar-EG');
+        }
+
+        // معاينة أولية
+        refreshAbPreview();
+    }
+
+    function closeAbilityBuilder() {
+        var modal = document.getElementById('ability-builder-modal');
+        if (modal) modal.style.display = 'none';
+    }
+
+    /* مولّد الأسئلة */
+    function _abGetSelectedOps() {
+        var ops = [];
+        var cards = document.querySelectorAll('.ab-op-card.selected');
+        for (var i=0; i<cards.length; i++) ops.push(cards[i].dataset.op);
+        return ops;
+    }
+
+    function _abGetSelectedGrades() {
+        var btns = document.querySelectorAll('.ab-grade-btn.selected');
+        var arr = [];
+        for (var i=0; i<btns.length; i++) arr.push(btns[i].dataset.grade);
+        return arr;
+    }
+
+    function _abGenSample(ops, difficulty) {
+        var op = ops[Math.floor(Math.random() * ops.length)];
+        var ranges = { easy: [1,10], medium: [1,20], hard: [2,100] };
+        var r = ranges[difficulty] || ranges.medium;
+        var rnd = function(lo,hi){ return Math.floor(Math.random()*(hi-lo+1))+lo; };
+        if (op === '+') { var a=rnd(r[0],r[1]),b=rnd(r[0],r[1]); return {q:'? = '+a+' + '+b, op:op}; }
+        if (op === '-') { var a2=rnd(r[0],r[1]),b2=rnd(r[0],a2); return {q:'? = '+a2+' - '+b2, op:op}; }
+        if (op === '×') { var a3=rnd(1,12),b3=rnd(1,12); return {q:'? = '+a3+' × '+b3, op:op}; }
+        if (op === '÷') { var b4=rnd(1,12),a4=rnd(1,12); return {q:'? = '+(b4*a4)+' ÷ '+b4, op:op}; }
+        return {q:'? = 1 + 1', op:'+'};
+    }
+
+    function refreshAbPreview() {
+        var ops = _abGetSelectedOps();
+        var diff = document.getElementById('ab-difficulty')?.value || 'medium';
+        var qtype = document.getElementById('ab-qtype')?.value || 'short';
+        var preview = document.getElementById('ab-preview');
+        if (!preview) return;
+        if (!ops.length) {
+            preview.innerHTML = '<div style="opacity:0.4;font-size:0.82rem;padding:8px 0;">⚠️ اختر عملية واحدة على الأقل</div>';
+            return;
+        }
+        var html = '';
+        var seen = {};
+        for (var i=0; i<5; i++) {
+            var s = _abGenSample(ops, diff);
+            if (seen[s.q]) { i--; continue; }
+            seen[s.q] = 1;
+            html += '<div class="ab-preview-pill"><div class="ab-preview-q" style="color:#fff;">' + s.q + '</div><div class="ab-preview-type">' + (qtype === 'mixed' ? 'mixed' : qtype) + '</div></div>';
+        }
+        preview.innerHTML = html;
+    }
+
+    /* إرسال الإشعار */
+    async function sendAbilityCheckNotif(ev) {
+        var title = (document.getElementById('ab-title')?.value || 'اختبار القدرات').trim();
+        var grades = _abGetSelectedGrades();
+        var ops    = _abGetSelectedOps();
+        var diff   = document.getElementById('ab-difficulty')?.value || 'medium';
+        var count  = parseInt(document.getElementById('ab-count')?.value || '20');
+        var timer  = parseInt(document.getElementById('ab-timer')?.value || '10') * 60; // إلى ثواني
+        var qtype  = document.getElementById('ab-qtype')?.value || 'short';
+        var date   = document.getElementById('ab-date')?.value || '';
+        var time   = document.getElementById('ab-time')?.value || '';
+
+        if (!grades.length) { showToast('⚠️ اختر صفاً واحداً على الأقل','warning'); return; }
+        if (!ops.length)    { showToast('⚠️ اختر عملية حسابية على الأقل','warning'); return; }
+
+        var payload = JSON.stringify({
+            ops: ops, count: count, timer: timer, qtype: qtype,
+            difficulty: diff, date: date, time: time
+        });
+        var btn = (ev && ev.currentTarget) ? ev.currentTarget : null;
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الإرسال...'; }
+
+        var sentCount = 0;
+        try {
+            // أرسل لكل صف منفصل (الـ backend بيدعم grade واحد)
+            for (var i=0; i<grades.length; i++) {
+                var fd = new FormData();
+                fd.append('title',    '⚡ ' + title);
+                fd.append('body',     payload);
+                fd.append('grade',    grades[i]);
+                fd.append('priority', 'urgent');
+                fd.append('type',     'ability_check');
+                var res = await authFetch('/api/admin/notifications', { method: 'POST', body: fd });
+                if (res && res.ok) sentCount++;
+            }
+            if (sentCount > 0) {
+                showToast('✅ تم إرسال اختبار القدرات لـ ' + sentCount + ' صف!', 'success', 5000);
+                closeAbilityBuilder();
+            } else {
+                showToast('❌ فشل الإرسال — تحقق من الاتصال', 'error');
+            }
+        } catch(e) {
+            showToast('❌ خطأ: ' + (e.message || ''), 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '🚀 توليد الاختبار وجدولته'; }
+        }
+    }
+
+    /* ════════════════════════════════════════════════════════════
+       📘 إدارة الدروس التفاعلية (HTML)
+    ════════════════════════════════════════════════════════════ */
+    var _hlSelectedFile = null;
+
+    function handleHlDrop(e) {
+        e.preventDefault();
+        document.getElementById('hl-dropzone').style.borderColor = 'rgba(52,152,219,0.4)';
+        var file = e.dataTransfer.files[0];
+        if (file) _setHlFile(file);
+    }
+
+    function hlFileSelected(input) {
+        if (input.files[0]) _setHlFile(input.files[0]);
+    }
+
+    function _setHlFile(file) {
+        var ext = file.name.split('.').pop().toLowerCase();
+        if (ext !== 'html' && ext !== 'htm') {
+            showToast('⚠️ يجب أن يكون الملف بامتداد .html أو .htm', 'warning');
+            return;
+        }
+        if (file.size > 2 * 1024 * 1024) {
+            showToast('⚠️ الملف أكبر من 2 MB', 'warning');
+            return;
+        }
+        _hlSelectedFile = file;
+        var label = document.getElementById('hl-file-name');
+        if (label) {
+            label.textContent = '✅ ' + file.name + ' (' + Math.round(file.size/1024) + ' KB)';
+            label.style.color = '#2ecc71';
+        }
+        document.getElementById('hl-dropzone').style.borderColor = '#2ecc71';
+    }
+
+    async function uploadHtmlLesson() {
+        var title  = document.getElementById('hl-title').value.trim();
+        var desc   = document.getElementById('hl-desc').value.trim() || '';
+        var grade  = document.getElementById('hl-grade').value || '';
+        var term   = document.getElementById('hl-term').value || '';
+        var unit   = document.getElementById('hl-unit').value || '';
+        var lesson = document.getElementById('hl-lesson').value || '';
+
+        if (!title)              { showToast('⚠️ أدخل عنوان الدرس', 'warning'); return; }
+        if (!grade)              { showToast('⚠️ اختر الصف', 'warning'); return; }
+        if (!lesson)             { showToast('⚠️ اختر الدرس', 'warning'); return; }
+        if (!_hlSelectedFile)    { showToast('⚠️ اختر ملف HTML أولاً', 'warning'); return; }
+
+        var btn = document.getElementById('hl-upload-btn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الرفع والتنظيف الأمني...';
+
+        var fd = new FormData();
+        fd.append('title',       title);
+        fd.append('description', desc);
+        fd.append('grade',       grade);
+        fd.append('semester',    term);
+        fd.append('unit',        unit);
+        fd.append('lesson',      lesson);
+        fd.append('file',        _hlSelectedFile);
+
+        try {
+            var res = await authFetch('/api/admin/html_lessons', { method: 'POST', body: fd });
+            if (!res || !res.ok) {
+                var err = res ? await res.json().catch(function(){ return {}; }) : {};
+                throw new Error(err.detail || 'فشل الرفع');
+            }
+            var data = await res.json();
+            var rep = data.sanitization || {};
+            var removed = rep.removed || {};
+            var report = document.getElementById('hl-security-report');
+            if (report) {
+                report.style.display = 'block';
+                report.innerHTML =
+                    '<div style="font-weight:bold;color:#2ecc71;margin-bottom:8px;"><i class="fas fa-shield-alt"></i> تقرير الأمان</div>' +
+                    '<div style="font-size:0.85rem;line-height:1.8;">' +
+                      '<div>🧹 iframe محذوفة: <strong>' + (removed.iframes||0) + '</strong></div>' +
+                      '<div>🔗 scripts خارجية محذوفة: <strong>' + (removed.bad_scripts||0) + '</strong></div>' +
+                      '<div>🚫 meta refresh محذوفة: <strong>' + (removed.meta_refresh||0) + '</strong></div>' +
+                      '<div>💾 الحجم بعد التنظيف: <strong>' + (rep.cleaned_size ? Math.round(rep.cleaned_size/1024)+' KB' : '—') + '</strong></div>' +
+                    '</div>';
+            }
+            showToast('✅ تم رفع الدرس بنجاح!', 'success', 5000);
+            document.getElementById('hl-title').value = '';
+            document.getElementById('hl-desc').value = '';
+            document.getElementById('hl-file-name').textContent = 'لا يوجد ملف محدد — الحد الأقصى 2 MB';
+            document.getElementById('hl-file-name').style.color = '';
+            document.getElementById('hl-dropzone').style.borderColor = 'rgba(52,152,219,0.4)';
+            document.getElementById('hl-file').value = '';
+            _hlSelectedFile = null;
+            loadHtmlLessons();
+        } catch(err) {
+            showToast('❌ ' + (err.message || 'خطأ في الرفع'), 'error', 6000);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-upload"></i> رفع الدرس التفاعلي';
+        }
+    }
+
+    async function loadHtmlLessons() {
+        var container = document.getElementById('hl-lessons-table');
+        if (!container) return;
+        container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">⏳ جارٍ التحميل...</p>';
+        try {
+            var res = await authFetch('/api/html_lessons');
+            if (!res || !res.ok) throw new Error('failed');
+            var data = await res.json();
+            if (!data.length) {
+                container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:30px;">لا توجد دروس تفاعلية بعد — ارفع أول درس!</p>';
+                return;
+            }
+            var rows = '';
+            for (var i=0; i<data.length; i++) {
+                var h = data[i];
+                var titleEsc = (h.title||'—').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                var dateStr = h.uploaded_at ? new Date(h.uploaded_at).toLocaleDateString('ar-EG') : '—';
+                rows +=
+                    '<tr>' +
+                      '<td style="font-weight:bold;color:#5dade2;">' + (h.title||'—') + '</td>' +
+                      '<td style="font-size:0.85rem;">' + (h.grade||'') + '</td>' +
+                      '<td style="font-size:0.85rem;color:rgba(255,255,255,0.7);">' + (h.lesson||'') + '</td>' +
+                      '<td style="text-align:center;">' + (h.file_size_kb || '—') + ' KB</td>' +
+                      '<td style="text-align:center;color:#f39c12;font-weight:bold;">' + (h.view_count || 0) + '</td>' +
+                      '<td style="font-size:0.78rem;color:rgba(255,255,255,0.5);">' + dateStr + '</td>' +
+                      '<td style="white-space:nowrap;">' +
+                        '<button onclick="previewHtmlLesson(\'' + h.file_url + '\',\'' + titleEsc + '\')" style="background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.4);color:#5dade2;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;margin-left:6px;"><i class="fas fa-eye"></i> معاينة</button>' +
+                        '<button onclick="deleteHtmlLesson(' + h.id + ', this)" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;"><i class="fas fa-trash"></i></button>' +
+                      '</td>' +
+                    '</tr>';
+            }
+            container.innerHTML =
+                '<table>' +
+                  '<thead><tr><th>العنوان</th><th>الصف</th><th>الدرس</th><th>الحجم</th><th>المشاهدات</th><th>التاريخ</th><th>إجراء</th></tr></thead>' +
+                  '<tbody>' + rows + '</tbody>' +
+                '</table>';
+        } catch(e) {
+            container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل تحميل الدروس</p>';
+        }
+    }
+
+    function previewHtmlLesson(url, title) {
+        var prev = document.getElementById('hl-preview-modal');
+        if (prev) prev.remove();
+        var modal = document.createElement('div');
+        modal.id = 'hl-preview-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99995;background:rgba(0,0,0,0.92);display:flex;flex-direction:column;backdrop-filter:blur(6px);';
+        modal.innerHTML =
+            '<div style="display:flex;align-items:center;gap:12px;padding:10px 16px;background:#1a1a2e;border-bottom:2px solid rgba(52,152,219,0.4);">' +
+              '<div style="font-size:1.3rem;">📘</div>' +
+              '<div style="flex:1;font-weight:bold;color:#5dade2;">' + title + ' — معاينة الأدمن</div>' +
+              '<span style="font-size:0.75rem;color:rgba(255,165,0,0.8);background:rgba(255,165,0,0.1);padding:3px 10px;border-radius:6px;border:1px solid rgba(255,165,0,0.3);">⚠️ sandbox محمي</span>' +
+              '<button onclick="document.getElementById(\'hl-preview-modal\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;">✕</button>' +
+            '</div>' +
+            '<iframe id="hl-preview-frame" sandbox="allow-scripts allow-same-origin" referrerpolicy="no-referrer" style="flex:1;width:100%;border:none;background:#fff;"></iframe>';
+        document.body.appendChild(modal);
+        fetch(url)
+            .then(function(r){ if(!r.ok) throw new Error('HTTP '+r.status); return r.text(); })
+            .then(function(html){ var f=document.getElementById('hl-preview-frame'); if(f) f.srcdoc=html; })
+            .catch(function(err){ var f=document.getElementById('hl-preview-frame'); if(f) f.srcdoc='<div style="text-align:center;padding:80px;font-family:Cairo,sans-serif;direction:rtl;"><div style="font-size:3rem;">⚠️</div><h2 style="color:#e74c3c;">تعذّر تحميل المعاينة</h2><p style="color:#888;">'+err.message+'</p><a href="'+url+'" target="_blank" style="background:#1abc9c;color:#fff;padding:10px 24px;border-radius:8px;text-decoration:none;font-weight:bold;">📎 فتح في نافذة جديدة</a></div>'; });
+    }
+
+    async function deleteHtmlLesson(id, btn) {
+        if (!confirm('حذف هذا الدرس نهائياً؟')) return;
+        btn.disabled = true;
+        try {
+            var res = await authFetch('/api/admin/html_lessons/' + id, { method: 'DELETE' });
+            if (res && res.ok) {
+                showToast('✅ تم الحذف', 'success');
+                loadHtmlLessons();
+            } else {
+                showToast('❌ فشل الحذف', 'error');
+            }
+        } catch(e) {
+            showToast('❌ خطأ في الاتصال', 'error');
+        } finally {
+            btn.disabled = false;
+        }
     }
 
 </script>

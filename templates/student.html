@@ -1165,6 +1165,7 @@
 
     <!-- AUDIO -->
     <audio id="door-sfx"    src="/static/door.mp3"    preload="auto"></audio>
+    <audio id="notif-sfx"   src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto"></audio>
     <audio id="sword-sfx"   src="/static/sword.mp3"   preload="auto"></audio>
     <audio id="podium-sfx"  src="https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3" preload="auto"></audio>
     <audio id="applause-sfx" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
@@ -1201,6 +1202,11 @@
             <div class="arena-daily-counter" id="arena-daily-counter">
                 <span>مبارزات اليوم:</span>
                 <div class="arena-dots" id="arena-dots">
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
+                    <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
                     <div class="arena-dot ready"></div>
@@ -1449,6 +1455,11 @@
         <!-- أرشيفي الدراسي -->
         <button class="nav-btn shiny-btn btn-archive" id="btn-archive" onclick="openMyArchive()">
             <span class="btn-icon">📚</span><span class="sidebar-label">أرشيفي الدراسي</span>
+        </button>
+
+        <!-- مكتبة الدروس التفاعلية -->
+        <button class="nav-btn shiny-btn btn-html-lessons" id="btn-html-lessons" onclick="openHtmlLessonsLibrary()" style="background:linear-gradient(135deg,#3498db,#2980b9);border-color:#5dade2;">
+            <span class="btn-icon">📘</span><span class="sidebar-label">الدروس التفاعلية</span>
         </button>
 
         <!-- الدعم والاشتراك مدمجان -->
@@ -3213,7 +3224,7 @@
     const TRIAL_END_DATE  = new Date('2026-09-15T23:59:59');
     const SUB_KEY         = 'mathEmpireSub';
     const ARENA_DAILY_KEY = 'arenaDaily';
-    const ARENA_MAX_DAILY = 5;
+    const ARENA_MAX_DAILY = 10;  // 10 مبارزات يومياً
 
     // الأكواد محفوظة في السيرفر فقط — لا أكواد هنا لأمان أعلى
 
@@ -3543,10 +3554,10 @@
 
         document.getElementById('battle-my-avatar').src          = currentUser?.avatar_url || avatars[0];
         document.getElementById('battle-my-name').textContent    = currentUser?.full_name || 'أنا';
-        document.getElementById('battle-my-score').textContent   = 'النقاط: 0/5';
+        document.getElementById('battle-my-score').textContent   = 'النقاط: 0/—';
         document.getElementById('battle-enemy-avatar').src       = enemy.avatar;
         document.getElementById('battle-enemy-name').textContent = enemy.name;
-        document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/5';
+        document.getElementById('battle-enemy-score').textContent= 'النقاط: 0/—';
 
         const userGrade    = currentUser?.grade || '';
         const userGradeNum = normalizeGradeNum(userGrade);
@@ -3566,11 +3577,11 @@
             });
 
             // fallback إذا لم نجد أسئلة بصيغة الصف المحددة
-            if (pool.length < 5) {
+            if (pool.length < 10) {
                 pool = allQs.filter(q => !q.grade || q.grade.trim() === '');
             }
             // fallback أخير — كل الأسئلة
-            if (pool.length < 5) pool = allQs.slice();
+            if (pool.length < 10) pool = allQs.slice();
 
             if (pool.length < 5) throw new Error('not_enough');
 
@@ -3578,14 +3589,14 @@
             let freshPool = pool.filter(q => q.id && !_arenaUsedIds.has(q.id));
 
             // إذا استُنفد بنك الأسئلة غير المستخدمة → امسح السجل وابدأ من جديد
-            if (freshPool.length < 5) {
+            if (freshPool.length < 10) {
                 _arenaUsedIds.clear();
                 freshPool = pool.slice();
                 showToast('♻️ تم تجديد بنك الأسئلة — جولة جديدة!', 2000);
             }
 
             // ── 3. خلط عشوائي حقيقي واختيار 5 أسئلة ──
-            const chosen = knuthShuffle(freshPool).slice(0, 5);
+            const chosen = knuthShuffle(freshPool).slice(0, 10);
             chosen.forEach(q => { if (q.id) _arenaUsedIds.add(q.id); });
 
             arenaQs = chosen;
@@ -3616,13 +3627,16 @@
     }
 
     function updateArenaScoreBoard() {
-        document.getElementById('battle-my-score').textContent    = `النقاط: ${myArenaScore} / 5`;
-        document.getElementById('battle-enemy-score').textContent = `النقاط: ${enemyArenaScore} / 5`;
+        const total = arenaQs.length || 5;
+        document.getElementById('battle-my-score').textContent    = `النقاط: ${myArenaScore} / ${total}`;
+        document.getElementById('battle-enemy-score').textContent = `النقاط: ${enemyArenaScore} / ${total}`;
     }
 
     function renderArenaQuestion(q) {
+        if (!q) { finishArenaMatch(); return; } // حماية من undefined
+        const totalQ = arenaQs.length;
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
-            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 5</div>`;
+            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من ${totalQ}</div>`;
         if (q.image_url) html += `<img src="${q.image_url}" class="question-image" style="max-height:200px;">`;
         html += `<p class="battle-question">${q.question}</p>
             <div style="text-align:left; margin-bottom:15px;">
@@ -3724,8 +3738,9 @@
         }
 
         if (isCorrect) {
-            playSound(document.getElementById('correct-sfx'));
             myArenaScore++;
+            // 🎊 احتفال موحّد
+            celebrateCorrect('normal');
             document.getElementById('arena-options-area').innerHTML = `<h2 style='grid-column:1/-1; color:#00ff00;'>إصابة قاتلة! ✅</h2>`;
         } else {
             playSound(document.getElementById('wrong-sfx'));
@@ -3735,11 +3750,16 @@
         updateArenaScoreBoard();
         setTimeout(() => {
             currentArenaQIndex++;
-            if (currentArenaQIndex < 5) {
+            if (currentArenaQIndex < arenaQs.length) {
                 playSound(document.getElementById('scroll-sfx'));
                 const qArea = document.getElementById('battle-question-area');
                 qArea.classList.add('fade-out-down');
-                setTimeout(() => { renderArenaQuestion(arenaQs[currentArenaQIndex]); qArea.classList.remove('fade-out-down'); }, 400);
+                setTimeout(() => {
+                    const nextQ = arenaQs[currentArenaQIndex];
+                    if (!nextQ) { finishArenaMatch(); return; }
+                    renderArenaQuestion(nextQ);
+                    qArea.classList.remove('fade-out-down');
+                }, 400);
             } else {
                 finishArenaMatch();
             }
@@ -3807,9 +3827,30 @@
             if (!res.ok) return;
             const notifs = await res.json();
             if (!notifs || notifs.length === 0) return;
-            const latest = notifs[0];
+
+            // ═══ ابحث أولاً عن أي اختبار قدرات لم يبدأه الطالب ═══
+            for (const n of notifs) {
+                if (n.type === 'ability_check') {
+                    const startedKey = 'abStarted_' + n.id;
+                    if (localStorage.getItem(startedKey)) continue; // الطالب بدأ هذا الاختبار سابقاً
+                    // اعرض البانر
+                    _showAbilityCheckBanner(n);
+                    return; // اعرض واحد فقط في كل مرة
+                }
+            }
+
+            // ═══ الإشعارات العادية ═══
+            const latest = notifs.find(n => n.type !== 'ability_check') || notifs[0];
             const seenKey = 'seenNotif_' + latest.id;
             if (localStorage.getItem(seenKey)) return;
+
+            // (احتياطياً لو ability_check وصل هنا)
+            if (latest.type === 'ability_check') {
+                _showAbilityCheckBanner(latest);
+                localStorage.setItem(seenKey, '1');
+                return;
+            }
+
             const icons  = {announcement:'📢',exam:'📝',achievement:'🏆',warning:'⚠️',homework:'📚'};
             const colors = {urgent:'#e74c3c',important:'#f39c12',normal:'#d4af37'};
             const color = colors[latest.priority] || '#d4af37';
@@ -3821,6 +3862,9 @@
             banner.style.cssText=`position:fixed;top:0;left:0;right:0;background:${color};color:#000;padding:10px 20px;z-index:99999;font-family:'Cairo',sans-serif;font-weight:bold;font-size:.88rem;display:flex;justify-content:space-between;align-items:center;direction:rtl;`;
             banner.innerHTML=`<span>${icon} <strong>${latest.title}</strong> — ${latest.body}</span><button onclick="document.getElementById('${bid}').remove();" style="background:rgba(0,0,0,.2);border:none;color:#000;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:'Cairo';">✕</button>`;
             document.body.prepend(banner);
+            // 🔔 نغمة إشعار + اهتزاز
+            try { playSound(document.getElementById('notif-sfx')); } catch(e) {}
+            if ('vibrate' in navigator) navigator.vibrate([60, 30, 60]);
             localStorage.setItem(seenKey,'1');
             setTimeout(()=>{const b=document.getElementById(bid);if(b)b.remove();},12000);
         } catch(e){}
@@ -4351,9 +4395,9 @@
         }
 
         if (verdict.is_correct) {
-            playSound(document.getElementById('correct-sfx'));
             f.innerHTML = `<span style="color:#00ff00;">${phrasesCorrect[Math.floor(Math.random() * phrasesCorrect.length)]}</span>`;
-            confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+            // 🎊 الاحتفال الموحّد
+            celebrateCorrect('normal');
             challengeState.correct++;
             challengeState.answersStatus[challengeState.index] = true;
             challengeState._secondChanceUsed = false;
@@ -6771,18 +6815,37 @@
         container.innerHTML = '<p style="opacity:0.5; text-align:center;">⏳ جاري تحميل المصادر...</p>';
         document.getElementById('choice-overlay').style.display = 'flex';
 
-        // جلب المصادر المتاحة لهذا الدرس
-        let resources = [];
+        // جلب المصادر المتاحة (PDFs/فيديو) + الدروس التفاعلية HTML
+        let resources = [], htmlLessons = [];
         try {
-            const res = await fetch(`${API_URL}/api/admin/summaries_list`);
-            if (res.ok) {
-                const data = await res.json();
+            const [resRes, htmlRes] = await Promise.all([
+                fetch(`${API_URL}/api/admin/summaries_list`),
+                fetch(`${API_URL}/api/html_lessons?lesson=${encodeURIComponent(lesson)}`).catch(() => null)
+            ]);
+            if (resRes && resRes.ok) {
+                const data = await resRes.json();
                 resources = data.filter(s => s.lesson === lesson);
+            }
+            if (htmlRes && htmlRes.ok) {
+                htmlLessons = await htmlRes.json();
             }
         } catch(e) {}
 
         // بناء الأزرار ديناميكياً
         container.innerHTML = '';
+
+        // ── 📘 أزرار الشرح التفاعلي HTML ──
+        if (htmlLessons && htmlLessons.length > 0) {
+            htmlLessons.forEach(h => {
+                const safeTitle = (h.title || 'شرح تفاعلي').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                container.innerHTML += `
+                    <button class="choice-btn shiny-btn"
+                        style="background:linear-gradient(135deg,#3498db,#2980b9); color:#fff; border:none;"
+                        onclick="openHtmlLesson(${h.id || 0}, '${safeTitle}', '${h.file_url}')">
+                        📘 ${esc(h.title || 'شرح تفاعلي')}
+                    </button>`;
+            });
+        }
 
         // ── أزرار المصادر (PDF، فيديو، إلخ) ──
         if (resources.length === 0) {
@@ -6869,6 +6932,36 @@
         if (icon) icon.textContent = isSoundOn ? '🔊' : '🔇';
         if (btn) { btn.title = isSoundOn ? 'الصوت: مفعل' : 'الصوت: صامت'; btn.style.opacity = isSoundOn ? '1' : '0.5'; }
     }
+
+    /* ════════════════════════════════════════════════════════════
+       🎊 CELEBRATE_CORRECT — دالة موحّدة لاحتفال الإجابة الصحيحة
+       تُستخدم في كل مكان: التحدي / المبارزة / النخبة / القدرات / الامتحان
+    ════════════════════════════════════════════════════════════ */
+    function celebrateCorrect(intensity) {
+        intensity = intensity || 'normal';
+        // 1. الصوت دائماً
+        try { playSound(document.getElementById('correct-sfx')); } catch(e) {}
+        // 2. اهتزاز قصير
+        if ('vibrate' in navigator) navigator.vibrate(60);
+        // 3. القصاصات الورقية الملونة
+        if (typeof confetti !== 'function') return;
+        var counts = { mini: 60, normal: 120, big: 200 };
+        var spread = { mini: 60,  normal: 80,  big: 100 };
+        var n = counts[intensity] || counts.normal;
+        var s = spread[intensity] || spread.normal;
+        confetti({
+            particleCount: n,
+            spread: s,
+            origin: { y: 0.65 },
+            colors: ['#d4af37','#fcf6ba','#2ecc71','#3498db','#e74c3c','#9b59b6','#ff9ff3']
+        });
+        // موجة ثانية من الجانبين
+        setTimeout(function() {
+            confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#fff','#2ecc71'] });
+            confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#d4af37','#fff','#e74c3c'] });
+        }, 280);
+    }
+
     function playSound(audioEl) { if (isSoundOn && audioEl) { audioEl.currentTime = 0; audioEl.play().catch(() => {}); } }
 
     /* Gold particle on mouse move (requestAnimationFrame, not direct event) */
@@ -7358,6 +7451,8 @@
                       : `<span style="color:#e74c3c;">❌ خطأ — الصحيح: <strong style="color:#fff;">${correctFromServer}</strong></span>`;
         if (isCorrect) {
             eliteMyScore += 10;
+            // 🎊 احتفال موحّد
+            celebrateCorrect('mini');
             document.getElementById('elite-p1-score').textContent = eliteMyScore;
             if (eliteWs && eliteRoomId) {
                 eliteWs.send(JSON.stringify({ type:'score_update', room_id:eliteRoomId, score:eliteMyScore }));
@@ -7460,6 +7555,472 @@
             _warn('[eliteLoadBoard]', e);
         }
     }
+
+    /* ════════════════════════════════════════════════════════════
+       ⚡ اختبار القدرات (يُستقبل كإشعار من الأستاذ)
+       — بانر بنفسجي مع زر "ابدأ الاختبار"
+       — اختبار كامل: MCQ / كتابة / مزيج + مؤقت + XP + قصاصات
+    ════════════════════════════════════════════════════════════ */
+    function _showAbilityCheckBanner(notif) {
+        const bid = 'ab_' + notif.id;
+        if (document.getElementById(bid)) return;
+        let cfg = {};
+        try { cfg = JSON.parse(notif.body || '{}'); } catch(e) {}
+
+        if (!document.getElementById('ab-banner-css')) {
+            const st = document.createElement('style');
+            st.id = 'ab-banner-css';
+            st.textContent = '@keyframes abSlideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}';
+            document.head.appendChild(st);
+        }
+
+        const ops   = (cfg.ops || ['+', '-', '×']).join(' ');
+        const count = cfg.count || 20;
+        const mins  = cfg.timer ? Math.floor(cfg.timer / 60) : null;
+
+        const banner = document.createElement('div');
+        banner.id = bid;
+        banner.style.cssText = [
+            'position:fixed','top:0','left:0','right:0','z-index:99999',
+            'background:linear-gradient(135deg,#1e0a3c,#2d1254)',
+            'border-bottom:3px solid #bb86fc',
+            'padding:0','direction:rtl',
+            'box-shadow:0 4px 24px rgba(142,68,173,0.7)',
+            'animation:abSlideDown 0.4s ease',
+        ].join(';');
+        banner.innerHTML =
+            '<div style="display:flex;align-items:center;gap:14px;padding:12px 18px;flex-wrap:wrap;">' +
+              '<div style="font-size:1.8rem;filter:drop-shadow(0 0 8px rgba(187,134,252,0.9));">⚡</div>' +
+              '<div style="flex:1;min-width:180px;">' +
+                '<div style="font-weight:bold;color:#bb86fc;font-size:0.95rem;font-family:\'Cairo\';">' + (notif.title||'') + '</div>' +
+                '<div style="font-size:0.78rem;color:rgba(255,255,255,0.75);margin-top:2px;">' +
+                  '🧑‍🏫 لنطمئن على قدراتك! — ' + count + ' سؤال' +
+                  (mins ? ' — ' + mins + ' دقيقة' : '') +
+                  (ops ? ' — ' + ops : '') +
+                '</div>' +
+              '</div>' +
+              '<button id="' + bid + '_btn" style="background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:#fff;padding:10px 22px;border-radius:12px;font-weight:bold;font-family:\'Cairo\';cursor:pointer;font-size:0.9rem;white-space:nowrap;box-shadow:0 4px 12px rgba(142,68,173,0.5);">🚀 ابدأ الاختبار</button>' +
+              '<button onclick="document.getElementById(\'' + bid + '\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>' +
+            '</div>';
+
+        document.body.prepend(banner);
+        // 🔔 نغمة إشعار + اهتزاز
+        try { playSound(document.getElementById('notif-sfx')); } catch(e) {}
+        try { playSound(document.getElementById('door-sfx')); } catch(e) {}
+        if ('vibrate' in navigator) navigator.vibrate([80, 40, 80, 40, 120]);
+
+        document.getElementById(bid + '_btn').addEventListener('click', function() {
+            // علّم أن الطالب بدأ هذا الاختبار
+            try { localStorage.setItem('abStarted_' + notif.id, '1'); } catch(e) {}
+            banner.remove();
+            _launchAbilityTest(cfg);
+        });
+    }
+
+    /* مولّد أسئلة بحسب الصف */
+    function _abilityParams(grade) {
+        var m = (grade || '').match(/\d+/);
+        var n = m ? parseInt(m[0]) : 5;
+        if (n <= 3)  return { max: 10,  mulMax: 5  };
+        if (n <= 5)  return { max: 20,  mulMax: 9  };
+        if (n <= 7)  return { max: 50,  mulMax: 12 };
+        return { max: 100, mulMax: 15 };
+    }
+
+    function _genOneQ(ops, p) {
+        var op = ops[Math.floor(Math.random() * ops.length)];
+        var r = function(a,b){ return Math.floor(Math.random()*(b-a+1))+a; };
+        if (op === '+') { var a1=r(1,p.max),  b1=r(1,p.max);  return {q:a1+' + '+b1+' = ?', ans:a1+b1, op:op}; }
+        if (op === '-') { var a2=r(2,p.max),  b2=r(1,a2);     return {q:a2+' - '+b2+' = ?', ans:a2-b2, op:op}; }
+        if (op === '×' || op === '*') { var a3=r(1,p.mulMax),b3=r(1,p.mulMax); return {q:a3+' × '+b3+' = ?', ans:a3*b3, op:'×'}; }
+        if (op === '÷' || op === '/') { var b4=r(1,p.mulMax),a4=r(1,p.mulMax); return {q:(b4*a4)+' ÷ '+b4+' = ?', ans:a4, op:'÷'}; }
+        return {q:'1+1=?', ans:2, op:'+'};
+    }
+
+    function _genMCQ(correct) {
+        var s = new Set([correct]);
+        while (s.size < 4) { var w = correct + Math.floor(Math.random()*8) - 4; if (w>0 && w!==correct) s.add(w); }
+        var arr = Array.from(s);
+        for (var i=arr.length-1; i>0; i--) { var j=Math.floor(Math.random()*(i+1)); var t=arr[i]; arr[i]=arr[j]; arr[j]=t; }
+        return arr;
+    }
+
+    var _ab = { qs:[], cur:0, ok:0, xp:0, t0:null, ti:null, sec:0 };
+
+    function _launchAbilityTest(cfg) {
+        var ops   = cfg.ops || ['+','-','×'];
+        var count = cfg.count || 20;
+        var p     = _abilityParams((typeof currentUser!=='undefined' && currentUser) ? currentUser.grade : '');
+        var qs=[], used={}, tries=0;
+        while (qs.length < count && tries < count*12) {
+            tries++;
+            var gen = _genOneQ(ops, p);
+            if (used[gen.q]) continue;
+            used[gen.q] = 1;
+            var type = cfg.qtype || 'mcq';
+            if (type === 'mixed') type = Math.random()>0.5 ? 'mcq' : 'short';
+            qs.push({ q:gen.q, ans:gen.ans, op:gen.op, type:type, opts: type==='mcq' ? _genMCQ(gen.ans) : null });
+        }
+        _ab = { qs:qs, cur:0, ok:0, xp:0, t0:Date.now(), ti:null, sec:cfg.timer||0 };
+        _abRender();
+    }
+
+    function _abRender() {
+        var prev = document.getElementById('_ab_modal');
+        if (prev) prev.remove();
+        if (_ab.cur >= _ab.qs.length) { _abFinish(); return; }
+
+        var q   = _ab.qs[_ab.cur];
+        var num = _ab.cur + 1;
+        var tot = _ab.qs.length;
+        var pct = Math.round((_ab.cur/tot)*100);
+        var opcMap = {'+':'#2ecc71','-':'#e74c3c','×':'#f39c12','÷':'#5dade2'};
+        var opiMap = {'+':'➕','-':'➖','×':'✖️','÷':'➗'};
+        var opc = opcMap[q.op] || '#bb86fc';
+        var opi = opiMap[q.op] || '⚡';
+
+        var ansHtml;
+        if (q.type === 'mcq') {
+            ansHtml = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px;" id="_ab_opts">';
+            for (var i=0; i<q.opts.length; i++) {
+                ansHtml += '<button onclick="_abAnswer(' + q.opts[i] + ')" style="background:rgba(142,68,173,0.12);border:2px solid rgba(142,68,173,0.35);color:#fff;padding:14px;border-radius:12px;font-size:1.35rem;font-weight:bold;cursor:pointer;font-family:\'Cairo\';">' + q.opts[i] + '</button>';
+            }
+            ansHtml += '</div>';
+        } else {
+            ansHtml = '<div style="display:flex;gap:8px;margin-top:16px;">' +
+                '<input id="_ab_inp" type="number" inputmode="numeric" autofocus placeholder="اكتب الجواب..." style="flex:1;background:rgba(255,255,255,0.06);border:2px solid rgba(142,68,173,0.4);border-radius:12px;color:#fff;padding:12px;font-size:1.4rem;text-align:center;outline:none;font-family:\'Cairo\';" onkeypress="if(event.key===\'Enter\'){var v=parseInt(this.value);if(!isNaN(v))_abAnswer(v);}">' +
+                '<button onclick="var v=parseInt(document.getElementById(\'_ab_inp\').value);if(!isNaN(v))_abAnswer(v);" style="background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:#fff;padding:12px 18px;border-radius:12px;font-size:1.1rem;cursor:pointer;font-weight:bold;">✓</button>' +
+            '</div>';
+        }
+
+        var timerHtml = '';
+        if (_ab.sec > 0) {
+            var rem = Math.max(0, _ab.sec - Math.floor((Date.now()-_ab.t0)/1000));
+            var mm = Math.floor(rem/60), ss = rem%60;
+            timerHtml = '<span id="_ab_timer" style="color:' + (rem<30?'#e74c3c':'#bb86fc') + ';font-weight:bold;font-size:0.85rem;">⏱️ ' + mm + ':' + (ss<10?'0':'') + ss + '</span>';
+        }
+
+        var modal = document.createElement('div');
+        modal.id = '_ab_modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99991;background:rgba(0,0,0,0.97);display:flex;align-items:center;justify-content:center;padding:16px;';
+        modal.innerHTML =
+            '<div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid #9b59b6;border-radius:22px;padding:24px;max-width:400px;width:100%;box-shadow:0 0 50px rgba(142,68,173,0.5);">' +
+              '<div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">' +
+                '<div style="flex:1;">' +
+                  '<div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:0.78rem;color:rgba(255,255,255,0.5);">' +
+                    '<span>السؤال ' + num + ' / ' + tot + '</span>' +
+                    '<span style="color:#2ecc71;">✅ ' + _ab.ok + '</span>' +
+                  '</div>' +
+                  '<div style="height:6px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden;">' +
+                    '<div style="height:100%;width:' + pct + '%;background:linear-gradient(90deg,#8e44ad,#bb86fc);border-radius:99px;transition:width 0.3s;"></div>' +
+                  '</div>' +
+                '</div>' +
+                timerHtml +
+                '<button onclick="_abAbort()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:0.85rem;">✕</button>' +
+              '</div>' +
+              '<div style="text-align:center;font-size:2.8rem;margin:4px 0;filter:drop-shadow(0 0 12px ' + opc + ');">' + opi + '</div>' +
+              '<div style="text-align:center;font-size:2.4rem;font-weight:900;color:' + opc + ';letter-spacing:2px;font-family:\'Cairo\';">' + q.q + '</div>' +
+              '<div id="_ab_fb" style="min-height:24px;text-align:center;font-size:0.9rem;font-weight:bold;margin:4px 0;"></div>' +
+              ansHtml +
+            '</div>';
+        document.body.appendChild(modal);
+
+        if (_ab.sec > 0) {
+            clearInterval(_ab.ti);
+            _ab.ti = setInterval(function() {
+                var rem = Math.max(0, _ab.sec - Math.floor((Date.now()-_ab.t0)/1000));
+                var el = document.getElementById('_ab_timer');
+                if (el) {
+                    var mm = Math.floor(rem/60), ss = rem%60;
+                    el.textContent = '⏱️ ' + mm + ':' + (ss<10?'0':'') + ss;
+                    el.style.color = rem<30 ? '#e74c3c' : '#bb86fc';
+                }
+                if (rem <= 0) { clearInterval(_ab.ti); _abFinish(); }
+            }, 1000);
+        }
+        setTimeout(function(){ var inp = document.getElementById('_ab_inp'); if (inp) inp.focus(); }, 80);
+    }
+
+    function _abAnswer(userAns) {
+        var btns = document.querySelectorAll('#_ab_opts button');
+        for (var i=0; i<btns.length; i++) btns[i].disabled = true;
+        var inp = document.getElementById('_ab_inp');
+        if (inp) inp.disabled = true;
+        var correct = parseInt(userAns) === _ab.qs[_ab.cur].ans;
+        var fb = document.getElementById('_ab_fb');
+        if (correct) {
+            _ab.ok++;
+            _ab.xp += 10;
+            if (fb) { fb.textContent = '✅ أحسنت!'; fb.style.color = '#2ecc71'; }
+            try { playSound(document.getElementById('correct-sfx')); } catch(e) {}
+            // 🎊 قصاصات احتفالية
+            confetti({ particleCount: 60, spread: 65, origin: { y: 0.6 }, colors: ['#bb86fc','#fff','#2ecc71','#f39c12'] });
+            setTimeout(function() {
+                confetti({ particleCount: 40, spread: 80, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#bb86fc','#fff'] });
+                confetti({ particleCount: 40, spread: 80, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#2ecc71','#bb86fc','#fff'] });
+            }, 220);
+        } else {
+            if (fb) { fb.innerHTML = '❌ الصحيح: <strong style="color:#f39c12;">' + _ab.qs[_ab.cur].ans + '</strong>'; fb.style.color = '#e74c3c'; }
+            try { playSound(document.getElementById('wrong-sfx')); } catch(e) {}
+        }
+        setTimeout(function() { _ab.cur++; _abRender(); }, 800);
+    }
+
+    function _abAbort() {
+        clearInterval(_ab.ti);
+        var m = document.getElementById('_ab_modal');
+        if (m) m.remove();
+        showToast('🚫 تم إيقاف الاختبار', 2000);
+    }
+
+    function _abFinish() {
+        clearInterval(_ab.ti);
+        var m = document.getElementById('_ab_modal');
+        if (m) m.remove();
+        var tot = _ab.qs.length;
+        var ok  = _ab.ok;
+        var pct = tot>0 ? Math.round(ok/tot*100) : 0;
+        var elapsed = Math.round((Date.now()-_ab.t0)/1000);
+
+        if (_ab.xp > 0 && typeof updateStudentXP === 'function') updateStudentXP(_ab.xp);
+
+        if (pct >= 90) {
+            confetti({ particleCount: 300, spread: 120, origin: { y: 0.5 } });
+            setTimeout(function(){
+                confetti({ particleCount: 150, spread: 180, angle: 60,  origin: { x: 0, y: 0.7 } });
+                confetti({ particleCount: 150, spread: 180, angle: 120, origin: { x: 1, y: 0.7 } });
+            }, 400);
+        } else if (pct >= 70) {
+            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+        }
+
+        var star  = pct>=90 ? '⭐⭐⭐' : pct>=70 ? '⭐⭐' : '⭐';
+        var color = pct>=80 ? '#2ecc71' : pct>=60 ? '#f39c12' : '#e74c3c';
+        var msg   = pct>=90 ? '🏆 إتقان تام — عبقري الأرقام!' :
+                    pct>=70 ? '💪 أداء جيد جداً!' :
+                    pct>=50 ? '📈 واصل التدريب' : '🔁 لا تيأس!';
+
+        if (pct >= 85 && typeof triggerPrideMoment === 'function') {
+            triggerPrideMoment({ type:'achievement', title: star + ' ' + pct + '% في اختبار القدرات!', subtitle: msg, color: color, duration: 4000 });
+        }
+
+        var mm = Math.floor(elapsed/60), ss = elapsed%60;
+        var modal = document.createElement('div');
+        modal.id = '_ab_result';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99992;background:rgba(0,0,0,0.95);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);';
+        modal.innerHTML =
+            '<div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid #9b59b6;border-radius:22px;padding:28px;max-width:380px;width:100%;text-align:center;box-shadow:0 0 50px rgba(142,68,173,0.5);">' +
+              '<div style="font-size:3rem;margin-bottom:6px;">' + star + '</div>' +
+              '<h2 style="color:#bb86fc;font-family:\'Amiri\';font-size:1.7rem;margin:0 0 6px;">' + msg + '</h2>' +
+              '<div style="font-size:3.8rem;font-weight:900;color:' + color + ';margin:14px 0;">' + pct + '%</div>' +
+              '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">' +
+                '<div style="background:rgba(142,68,173,0.1);border-radius:12px;padding:11px;"><div style="font-size:1.5rem;font-weight:900;color:#2ecc71;">' + ok + '</div><div style="font-size:0.7rem;opacity:0.55;">صحيحة</div></div>' +
+                '<div style="background:rgba(142,68,173,0.1);border-radius:12px;padding:11px;"><div style="font-size:1.5rem;font-weight:900;color:#e74c3c;">' + (tot-ok) + '</div><div style="font-size:0.7rem;opacity:0.55;">خاطئة</div></div>' +
+                '<div style="background:rgba(142,68,173,0.1);border-radius:12px;padding:11px;"><div style="font-size:1.3rem;font-weight:900;color:#f39c12;">+' + _ab.xp + '</div><div style="font-size:0.7rem;opacity:0.55;">XP</div></div>' +
+              '</div>' +
+              '<div style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-bottom:18px;">⏱️ ' + mm + ':' + (ss<10?'0':'') + ss + '</div>' +
+              '<button onclick="document.getElementById(\'_ab_result\').remove();" style="width:100%;background:linear-gradient(135deg,#8e44ad,#6c3483);border:none;color:#fff;padding:13px;border-radius:12px;font-weight:bold;font-family:\'Cairo\';font-size:1rem;cursor:pointer;">🏠 إغلاق</button>' +
+            '</div>';
+        document.body.appendChild(modal);
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📘 عارض الدروس التفاعلية (HTML)
+       — iframe معزول بـ sandbox محكم (allow-scripts فقط)
+       — لا وصول للـ localStorage الأصلي / JWT
+       — يتتبّع عداد المشاهدات
+    ════════════════════════════════════════════════════════════ */
+
+    /* ════════════════════════════════════════════════════════════
+       📚 مكتبة الدروس التفاعلية — قائمة كل ملفات HTML المتاحة
+    ════════════════════════════════════════════════════════════ */
+    async function openHtmlLessonsLibrary() {
+        // إغلاق modal سابق
+        var prev = document.getElementById('html-lessons-library');
+        if (prev) prev.remove();
+
+        // modal بحالة التحميل أولاً
+        var modal = document.createElement('div');
+        modal.id = 'html-lessons-library';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99988;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;backdrop-filter:blur(8px);overflow:hidden;';
+        modal.innerHTML =
+            '<div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(135deg,#1a1a2e,#0d1b3e);border-bottom:2px solid rgba(52,152,219,0.4);flex-shrink:0;">' +
+              '<div style="font-size:1.6rem;filter:drop-shadow(0 0 10px rgba(52,152,219,0.7));">📚</div>' +
+              '<div style="flex:1;">' +
+                '<div style="font-weight:bold;color:#5dade2;font-family:\'Cairo\';font-size:1.1rem;">📘 مكتبة الدروس التفاعلية</div>' +
+                '<div style="font-size:0.78rem;color:rgba(255,255,255,0.55);">شروحات تفاعلية معدّة من الأستاذ</div>' +
+              '</div>' +
+              '<button onclick="document.getElementById(\'html-lessons-library\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>' +
+            '</div>' +
+            '<div id="hll-content" style="flex:1;overflow-y:auto;padding:20px;">' +
+              '<div style="text-align:center;padding:60px 20px;">' +
+                '<div style="font-size:2.4rem;margin-bottom:14px;">⏳</div>' +
+                '<p style="opacity:0.6;">جارٍ تحميل المكتبة...</p>' +
+              '</div>' +
+            '</div>';
+        document.body.appendChild(modal);
+
+        // اجلب الدروس الخاصة بصف الطالب
+        var grade = (currentUser && currentUser.grade) ? currentUser.grade : '';
+        var url = API_URL + '/api/html_lessons' + (grade ? '?grade=' + encodeURIComponent(grade) : '');
+        var lessons = [];
+        try {
+            var res = await fetch(url);
+            if (res.ok) lessons = await res.json();
+        } catch(e) {}
+
+        var content = document.getElementById('hll-content');
+        if (!content) return;
+
+        if (!lessons || lessons.length === 0) {
+            content.innerHTML =
+                '<div style="text-align:center;padding:60px 20px;">' +
+                  '<div style="font-size:4rem;margin-bottom:16px;">📭</div>' +
+                  '<h3 style="color:var(--gold);font-family:\'Amiri\';">لا توجد دروس تفاعلية بعد</h3>' +
+                  '<p style="opacity:0.6;margin-top:12px;line-height:1.7;">' +
+                    'سيقوم الأستاذ بإضافة شروحات تفاعلية لصفك قريباً.<br>' +
+                    'تابع الإشعارات!' +
+                  '</p>' +
+                  '<button onclick="document.getElementById(\'html-lessons-library\').remove()" style="margin-top:20px;background:var(--gold-grad);color:#000;border:none;padding:12px 28px;border-radius:12px;font-weight:bold;cursor:pointer;font-family:\'Cairo\';">🏠 العودة</button>' +
+                '</div>';
+            return;
+        }
+
+        // اجمع حسب الوحدة
+        var byUnit = {};
+        for (var i = 0; i < lessons.length; i++) {
+            var L = lessons[i];
+            var u = L.unit || 'عام';
+            if (!byUnit[u]) byUnit[u] = [];
+            byUnit[u].push(L);
+        }
+
+        var html = '<div style="margin-bottom:16px;text-align:center;color:rgba(255,255,255,0.7);">';
+        html += '📖 <strong>' + lessons.length + '</strong> درس تفاعلي متاح';
+        if (grade) html += ' لـ <span style="color:var(--gold);">' + grade + '</span>';
+        html += '</div>';
+
+        var unitKeys = Object.keys(byUnit);
+        for (var u = 0; u < unitKeys.length; u++) {
+            var unitName = unitKeys[u];
+            var unitLessons = byUnit[unitName];
+            html += '<div style="margin-bottom:24px;">';
+            html += '<h3 style="color:#5dade2;font-family:\'Amiri\';margin:0 0 12px;padding-bottom:8px;border-bottom:1px solid rgba(52,152,219,0.3);">📦 ' + unitName + '</h3>';
+            html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">';
+
+            for (var j = 0; j < unitLessons.length; j++) {
+                var L = unitLessons[j];
+                var safeTitle = (L.title || 'شرح تفاعلي').replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                var safeDesc  = L.description ? L.description.replace(/'/g, "\\'").replace(/"/g, '&quot;') : '';
+                html += '<div onclick="openHtmlLesson(' + (L.id || 0) + ', \'' + safeTitle + '\', \'' + L.file_url + '\');document.getElementById(\'html-lessons-library\').remove();" style="background:linear-gradient(135deg,rgba(52,152,219,0.15),rgba(41,128,185,0.08));border:1px solid rgba(52,152,219,0.4);border-radius:14px;padding:14px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.transform=\'translateY(-3px)\';this.style.borderColor=\'#5dade2\';" onmouseout="this.style.transform=\'translateY(0)\';this.style.borderColor=\'rgba(52,152,219,0.4)\';">';
+                html += '<div style="display:flex;align-items:start;gap:10px;margin-bottom:8px;">';
+                html += '<div style="font-size:1.6rem;flex-shrink:0;">📘</div>';
+                html += '<div style="flex:1;min-width:0;">';
+                html += '<div style="font-weight:bold;color:#5dade2;font-size:0.95rem;margin-bottom:4px;line-height:1.4;">' + (L.title || 'شرح تفاعلي') + '</div>';
+                html += '<div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">' + (L.lesson || '') + '</div>';
+                html += '</div></div>';
+                if (safeDesc) {
+                    html += '<div style="font-size:0.78rem;color:rgba(255,255,255,0.6);line-height:1.5;margin-top:6px;">' + safeDesc + '</div>';
+                }
+                html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;font-size:0.72rem;color:rgba(255,255,255,0.4);">';
+                html += '<span>👁️ ' + (L.view_count || 0) + ' مشاهدة</span>';
+                html += '<span style="color:#3498db;font-weight:bold;">افتح ←</span>';
+                html += '</div>';
+                html += '</div>';
+            }
+            html += '</div></div>';
+        }
+
+        content.innerHTML = html;
+    }
+
+    function openHtmlLesson(lessonId, title, fileUrl) {
+        // إغلاق قائمة الاختيار
+        var co = document.getElementById('choice-overlay');
+        if (co) co.style.display = 'none';
+
+        // حذف modal قديم
+        var prev = document.getElementById('html-lesson-modal');
+        if (prev) prev.remove();
+
+        var modal = document.createElement('div');
+        modal.id = 'html-lesson-modal';
+        modal.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;padding:0;backdrop-filter:blur(8px);';
+
+        // شريط العنوان
+        var bar = document.createElement('div');
+        bar.style.cssText = 'width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;background:linear-gradient(135deg,#1a1a2e,#0d1b3e);border-bottom:2px solid rgba(212,175,55,0.4);box-sizing:border-box;flex-shrink:0;';
+        bar.innerHTML =
+            '<div style="font-size:1.5rem;filter:drop-shadow(0 0 8px rgba(52,152,219,0.6));">📘</div>' +
+            '<div style="flex:1;min-width:0;">' +
+              '<div style="font-weight:bold;color:#5dade2;font-family:\'Cairo\';font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + (title || 'شرح تفاعلي') + '</div>' +
+              '<div style="font-size:0.72rem;color:rgba(255,255,255,0.45);">درس تفاعلي — معزول بالكامل</div>' +
+            '</div>' +
+            '<button id="html-lesson-start-btn" style="background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-weight:bold;font-family:\'Cairo\';font-size:0.88rem;white-space:nowrap;">⚔️ بدء التحدي</button>' +
+            '<button onclick="document.getElementById(\'html-lesson-modal\').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>';
+        modal.appendChild(bar);
+
+        // شريط تحميل
+        var loader = document.createElement('div');
+        loader.id = 'html-lesson-loader';
+        loader.style.cssText = 'width:100%;height:3px;background:rgba(255,255,255,0.05);flex-shrink:0;overflow:hidden;';
+        loader.innerHTML = '<div style="height:100%;background:linear-gradient(90deg,transparent,#5dade2,transparent);animation:htmlLoaderAnim 1.5s ease-in-out infinite;width:60%;"></div>';
+        modal.appendChild(loader);
+
+        if (!document.getElementById('html-lesson-style')) {
+            var st = document.createElement('style');
+            st.id = 'html-lesson-style';
+            st.textContent = '@keyframes htmlLoaderAnim{0%{transform:translateX(-100%)}100%{transform:translateX(200%)}}';
+            document.head.appendChild(st);
+        }
+
+        // iframe معزول — srcdoc لتفادي X-Frame-Options من Supabase
+        var frame = document.createElement('iframe');
+        frame.id = 'html-lesson-frame';
+        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+        frame.setAttribute('referrerpolicy', 'no-referrer');
+        frame.style.cssText = 'flex:1;width:100%;border:none;background:#fff;min-height:0;';
+        frame.srcdoc = '<div style="text-align:center;padding:80px;font-family:Cairo,sans-serif;direction:rtl;font-size:1.2rem;color:#666;">⏳ جارٍ تحميل الدرس…</div>';
+        modal.appendChild(frame);
+        document.body.appendChild(modal);
+
+        fetch(fileUrl)
+            .then(function(r) { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+            .then(function(html) {
+                frame.srcdoc = html;
+                loader.style.opacity = '0';
+                setTimeout(function(){ loader.style.display = 'none'; }, 400);
+                if (lessonId) {
+                    fetch(API_URL + '/api/html_lessons/' + lessonId + '/view', { method: 'POST' }).catch(function(){});
+                }
+            })
+            .catch(function(err) {
+                loader.style.display = 'none';
+                frame.srcdoc = '<div style="text-align:center;padding:80px 20px;font-family:Cairo,sans-serif;direction:rtl;">'
+                    + '<div style="font-size:3rem;margin-bottom:12px;">⚠️</div>'
+                    + '<h2 style="color:#e74c3c;margin-bottom:12px;">تعذّر تحميل الدرس</h2>'
+                    + '<p style="color:#888;margin-bottom:20px;">' + err.message + '</p>'
+                    + '<a href="' + fileUrl + '" target="_blank" style="display:inline-block;background:#1abc9c;color:#fff;padding:12px 28px;border-radius:10px;text-decoration:none;font-weight:bold;">📎 فتح في نافذة جديدة</a>'
+                    + '</div>';
+            });
+
+        // زر بدء التحدي
+        document.getElementById('html-lesson-start-btn').addEventListener('click', function() {
+            modal.remove();
+            if (typeof proceedToChallenge === 'function') proceedToChallenge();
+        });
+
+        // Escape
+        var onKey = function(e) {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', onKey);
+            }
+        };
+        document.addEventListener('keydown', onKey);
+    }
+
     // ── END ELITE STUDENT JS ──
 
     </script>
