@@ -900,27 +900,28 @@ body {
     </div>
 
     <div class="form-group">
-      <label class="form-label" for="parent-code">🔑 الكود المرجعي للبطل (يبدأ بـ RS-)</label>
-      <input class="form-input" id="parent-code" type="text" placeholder="مثال: RS-2847" autocomplete="off"
-             oninput="this.value = this.value.toUpperCase()"
-             onkeypress="if(event.key==='Enter') doLogin()">
+      <label class="form-label" for="parent-username">👤 اسم مستخدم البطل (Username)</label>
+      <input class="form-input" id="parent-username" type="text" placeholder="مثال: ahmed_2010" autocomplete="off"
+             onkeypress="if(event.key==='Enter') document.getElementById('parent-phone').focus()">
+      <small style="opacity:0.55;font-size:0.72rem;display:block;margin-top:4px;">📝 نفس الاسم الذي يستخدمه ابنك للدخول لمنصته</small>
     </div>
 
-    <!-- 📧 بيانات اختيارية لاستلام النشرات والإشعارات -->
+    <div class="form-group">
+      <label class="form-label" for="parent-phone">📱 رقم هاتفك (سرّي — لحماية الحساب)</label>
+      <input class="form-input" id="parent-phone" type="tel" placeholder="مثال: 96812345678" autocomplete="tel" inputmode="tel"
+             onkeypress="if(event.key==='Enter') doLogin()">
+      <small style="opacity:0.55;font-size:0.72rem;display:block;margin-top:4px;">🔒 في أول دخول يُحفظ هذا الرقم — وفي المرات القادمة يجب إدخاله للدخول</small>
+    </div>
+
+    <!-- 📧 بريد اختياري -->
     <div class="form-group">
       <label class="form-label" for="parent-email">📧 البريد الإلكتروني <span style="opacity:0.5;font-size:0.75rem;">(اختياري — لاستلام تقارير دورية)</span></label>
       <input class="form-input" id="parent-email" type="email" placeholder="example@gmail.com" autocomplete="email" inputmode="email">
     </div>
-    
-    <div class="form-group">
-      <label class="form-label" for="parent-phone">📱 رقم الهاتف <span style="opacity:0.5;font-size:0.75rem;">(اختياري)</span></label>
-      <input class="form-input" id="parent-phone" type="tel" placeholder="مثال: 96812345678" autocomplete="tel" inputmode="tel"
-             onkeypress="if(event.key==='Enter') doLogin()">
-    </div>
 
     <div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);border-radius:10px;padding:10px;margin-bottom:14px;font-size:0.78rem;color:rgba(255,255,255,0.7);line-height:1.6;">
       ✨ <strong style="color:#2ecc71;">تسجيل دخول مرة واحدة!</strong><br>
-      بعد الدخول لأول مرة، سيتم حفظ جلستك لمدة 6 أشهر — لن تحتاج لإعادة الدخول.
+      بعد الدخول لأول مرة، ستبقى مسجّلاً لمدة 6 أشهر — لن تحتاج إدخال بياناتك مرة أخرى على هذا الجهاز.
     </div>
 
     <button class="btn-royal" onclick="doLogin()">دخول إلى الإمبراطورية ⚔️</button>
@@ -928,11 +929,11 @@ body {
     <div class="login-error" id="login-error"></div>
 
     <div style="text-align:center; margin-top:18px;">
-      <a href="https://api.whatsapp.com/send?phone=96878537653&text=أحتاج%20كود%20ولي%20الأمر%20لابني" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.12);border:1px solid #25D366;color:#25D366;padding:10px 20px;border-radius:10px;font-size:0.85rem;text-decoration:none;font-weight:bold;transition:0.2s;" onmouseover="this.style.background='rgba(37,211,102,0.25)'" onmouseout="this.style.background='rgba(37,211,102,0.12)'">
+      <a href="https://api.whatsapp.com/send?phone=96878537653&text=أحتاج%20اسم%20مستخدم%20ابني%20للدخول%20لبوابة%20ولي%20الأمر" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.12);border:1px solid #25D366;color:#25D366;padding:10px 20px;border-radius:10px;font-size:0.85rem;text-decoration:none;font-weight:bold;transition:0.2s;" onmouseover="this.style.background='rgba(37,211,102,0.25)'" onmouseout="this.style.background='rgba(37,211,102,0.12)'">
         <i class="fab fa-whatsapp"></i> نسيت الكود؟ تواصل مع الأستاذ رشدي
       </a>
       <p style="margin-top:12px; font-size:0.75rem; color:var(--text-muted); line-height:1.6;">
-        🔒 الكود سري — لا تشاركه مع أحد لحماية بيانات ابنك
+        🔒 رقم هاتفك سرّي — يحمي حساب ابنك من الدخول غير المصرّح به
       </p>
     </div>
   </div>
@@ -1396,25 +1397,33 @@ async function tryAutoLogin() {
   try {
     const res = await fetch(`${API_URL}/api/parent/auto_login/${encodeURIComponent(token)}`);
     if (!res.ok) {
-      // الجلسة منتهية — احذف
+      // الجلسة منتهية
       localStorage.removeItem("parentSessionToken");
       return false;
     }
     const data = await res.json();
-    if (!data.valid || !data.parent_code) return false;
+    if (!data.valid) return false;
     
-    // املأ الحقول واستدعِ doLogin
-    const codeEl = document.getElementById("parent-code");
+    // 🆕 نحتاج username (إن كانت الجلسة من النظام الجديد)
+    const username = data.username || localStorage.getItem("parentUsername");
+    if (!username) {
+      // جلسة قديمة بدون username — نمسحها ونطلب الدخول الجديد
+      localStorage.removeItem("parentSessionToken");
+      return false;
+    }
+    
+    // املأ الحقول
+    const usernameEl = document.getElementById("parent-username");
+    const phoneEl = document.getElementById("parent-phone");
     const nameEl = document.getElementById("parent-name");
     const emailEl = document.getElementById("parent-email");
-    const phoneEl = document.getElementById("parent-phone");
     
-    if (codeEl) codeEl.value = data.parent_code;
-    if (nameEl) nameEl.value = data.parent_name || localStorage.getItem("parentName") || "";
-    if (emailEl) emailEl.value = data.parent_email || "";
-    if (phoneEl) phoneEl.value = data.parent_phone || "";
+    if (usernameEl) usernameEl.value = username;
+    if (phoneEl)    phoneEl.value = data.parent_phone || localStorage.getItem("parentPhone") || "";
+    if (nameEl)     nameEl.value = data.parent_name || localStorage.getItem("parentName") || "";
+    if (emailEl)    emailEl.value = data.parent_email || "";
     
-    // إخفاء شاشة الدخول وإظهار رسالة تحميل
+    // شاشة تحميل أنيقة
     const ov = document.getElementById("login-overlay");
     if (ov) {
       ov.innerHTML = `
@@ -1427,7 +1436,6 @@ async function tryAutoLogin() {
       `;
     }
     
-    // استدعِ doLogin الفعلي بعد ميلي ثانية
     setTimeout(() => doLogin(), 600);
     return true;
   } catch(e) {
@@ -1471,7 +1479,7 @@ function mapApiToStudent(apiStudent, apiHistory, apiStats) {
     grade:      apiStudent.grade     || "—",
     school:     apiStudent.school    || "—",
     joinDate:   apiStudent.created_at || null,
-    parentCode: apiStudent.parent_code || ("RS-" + String(apiStudent.id).padStart(4, "0")),
+    parentCode: apiStudent.parent_code || "—",  // الكود الحقيقي من DB
     xp:         totalXP,
     history:    history,
     roadmap:    null,
@@ -1484,121 +1492,127 @@ function mapApiToStudent(apiStudent, apiHistory, apiStats) {
    LOGIN LOGIC — API أولاً ثم fallback
 ════════════════════════════ */
 async function doLogin() {
+  const username    = document.getElementById("parent-username")?.value.trim() || "";
+  const phone       = document.getElementById("parent-phone")?.value.trim() || "";
   const parentName  = document.getElementById("parent-name").value.trim();
-  const code        = document.getElementById("parent-code").value.trim().toUpperCase();
   const parentEmail = (document.getElementById("parent-email")?.value || "").trim();
-  const parentPhone = (document.getElementById("parent-phone")?.value || "").trim();
   const btn         = document.querySelector(".btn-royal");
 
   if (!parentName) { showLoginError("⚠️ يرجى إدخال اسم ولي الأمر."); return; }
-  if (!code) { showLoginError("⚠️ يرجى إدخال الكود المرجعي للبطل."); return; }
+  if (!username)   { showLoginError("⚠️ يرجى إدخال اسم مستخدم البطل."); return; }
+  if (!phone)      { showLoginError("⚠️ يرجى إدخال رقم هاتفك."); return; }
+  
+  // تنظيف الهاتف
+  const phoneClean = phone.replace(/\D/g, "");
+  if (phoneClean.length < 6) {
+    showLoginError("⚠️ رقم الهاتف قصير — تأكد من إدخاله كاملاً.");
+    return;
+  }
   
   // تحقق من صيغة الإيميل إن أُدخل
   if (parentEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(parentEmail)) {
     showLoginError("⚠️ صيغة البريد الإلكتروني غير صحيحة.");
     return;
   }
-  
-  // 🆕 سجّل جلسة دائمة في backend (مع الإيميل/الهاتف للتواصل لاحقاً)
+
+  // حالة التحميل
+  if (btn) { btn.disabled = true; btn.textContent = "⏳ جاري التحقق..."; }
+
+  // ── 1. تسجيل دخول v2 (username + phone) ──
+  let sessionToken = null;
+  let isFirstTime = false;
   try {
-    const sessFd = new FormData();
-    sessFd.append("parent_code", code);
-    sessFd.append("parent_name", parentName);
-    if (parentEmail) sessFd.append("parent_email", parentEmail);
-    if (parentPhone) sessFd.append("parent_phone", parentPhone);
-    const sessRes = await fetch(`${API_URL}/api/parent/login`, { method: "POST", body: sessFd });
-    if (sessRes.ok) {
-      const sessData = await sessRes.json();
-      if (sessData.token) {
-        localStorage.setItem("parentSessionToken", sessData.token);
-        localStorage.setItem("parentName", parentName);
-        if (parentEmail) localStorage.setItem("parentEmail", parentEmail);
-        if (parentPhone) localStorage.setItem("parentPhone", parentPhone);
+    const fd = new FormData();
+    fd.append("username", username);
+    fd.append("parent_phone", phone);
+    fd.append("parent_name", parentName);
+    if (parentEmail) fd.append("parent_email", parentEmail);
+    
+    const loginRes = await fetch(`${API_URL}/api/parent/login_v2`, { method: "POST", body: fd });
+    
+    if (!loginRes.ok) {
+      const err = await loginRes.json().catch(() => ({}));
+      if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+      
+      if (loginRes.status === 404) {
+        showLoginError("❌ لم يُعثر على طالب بهذا الاسم — تأكد من اسم المستخدم.");
+      } else if (loginRes.status === 403) {
+        showLoginError("🔒 رقم الهاتف لا يطابق المُسجّل لهذا الطالب — إذا نسيته، تواصل مع الأستاذ.");
+      } else if (loginRes.status === 429) {
+        showLoginError("⏱️ محاولات كثيرة — انتظر دقيقة وحاول مرة أخرى.");
+      } else {
+        showLoginError("❌ " + (err.detail || "فشل الدخول"));
       }
-    } else if (sessRes.status === 404) {
-      showLoginError("❌ لم يُعثر على بطل بهذا الكود — تحقق من البيانات.");
       return;
     }
-  } catch(e) {
-    console.warn("[parent] failed to create session:", e);
-  }
-
-  // ── تحديد اسم البطل من الكود ──
-  // الكود المرجعي: RS-XXXX حيث XXXX هو معرف الطالب
-  // أو البحث بالاسم مباشرة
-  const isRsCode      = /^RS-/i.test(code);
-  const codeBody      = code.replace(/^RS-0*/i, "").trim(); // RS-0042→42, RS-RWRHQ→RWRHQ
-  const isNumericCode = /^\d+$/.test(codeBody);
-
-  // تغيير حالة الزر للتحميل
-  if (btn) { btn.disabled = true; btn.textContent = "⏳ جاري البحث في الإمبراطورية..."; }
-
-  // ── محاولة 1: البحث عبر API ──
-  try {
-    // إذا كان رقمياً → بحث بالـ id، وإلا → بحث بـ username أو الاسم
-    const searchTerm = isNumericCode ? codeBody : codeBody;
-    const res  = await fetch(`${API_URL}/api/parent/search/${encodeURIComponent(searchTerm)}`);
-    if (res.ok) {
-      const data = await res.json();
-      if (data && data.found && data.student) {
-        const student = mapApiToStudent(data.student, data.history || [], data.stats);
-        // لوحة الشرف: جلب بيانات الصف من leaderboard
-        let allHeroes = [];
-        try {
-          const lbRes  = await fetch(`${API_URL}/api/leaderboard`);
-          if (lbRes.ok) {
-            const lbData = await lbRes.json();
-            allHeroes = (lbData || []).map(s => ({
-              id:         String(s.student_id || s.student_name),
-              name:       s.student_name,
-              grade:      student.grade,
-              xp:         s.total_points || 0,
-              parentCode: "RS-" + String(s.student_id || "0").padStart(4, "0"),
-            }));
-          }
-        } catch(_) {}
-        if (!allHeroes.length) allHeroes = [student];
-        if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
-        document.getElementById("login-error").style.display = "none";
-        try { if (parentName) localStorage.setItem("parentName", parentName); } catch(e) {}
-        openDashboard(student, allHeroes, false);
-        return;
-      } else {
-        // الطالب غير موجود في قاعدة البيانات
-        if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
-        showLoginError("❌ لم يُعثر على بطل بهذا الاسم أو الكود — تحقق من البيانات.");
-        return;
-      }
+    
+    const sessData = await loginRes.json();
+    sessionToken = sessData.token;
+    isFirstTime = sessData.is_first_time || false;
+    
+    // احفظ في localStorage
+    if (sessionToken) {
+      localStorage.setItem("parentSessionToken", sessionToken);
+      localStorage.setItem("parentName", parentName);
+      localStorage.setItem("parentUsername", username);
+      localStorage.setItem("parentPhone", phoneClean);
+      if (parentEmail) localStorage.setItem("parentEmail", parentEmail);
     }
   } catch(e) {
-    // السيرفر غير متاح — نستخدم localStorage كـ fallback
-    console.warn("⚠️ API غير متاح — محاولة localStorage:", e);
+    if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+    showLoginError("❌ خطأ في الاتصال — تأكد من الإنترنت.");
+    return;
   }
 
-  // ── محاولة 2: localStorage fallback ──
+  // ── 2. جلب بيانات الطالب ──
   try {
-    const raw = localStorage.getItem("allMathHeroes");
-    if (raw) {
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr) && arr.length) {
-        const student = arr.find(h =>
-          (h.parentCode && h.parentCode.toUpperCase() === code) ||
-          (h.id && String(h.id).toUpperCase() === code) ||
-          (h.name && h.name.toUpperCase().includes(code.replace(/^RS-/i,"").trim().toUpperCase()))
-        );
-        if (student) {
-          if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
-          document.getElementById("login-error").style.display = "none";
-          openDashboard(student, arr, false);
-          return;
+    const res = await fetch(`${API_URL}/api/parent/search_by_username/${encodeURIComponent(username)}`);
+    if (!res.ok) throw new Error("search failed");
+    const data = await res.json();
+    
+    if (!data || !data.found || !data.student) {
+      if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+      showLoginError("❌ لم يُعثر على بيانات الطالب.");
+      return;
+    }
+    
+    const student = mapApiToStudent(data.student, data.history || [], data.stats);
+    
+    // لوحة الشرف
+    let allHeroes = [];
+    try {
+      const lbRes = await fetch(`${API_URL}/api/leaderboard`);
+      if (lbRes.ok) {
+        const lbData = await lbRes.json();
+        allHeroes = (lbData || []).map(s => ({
+          id:         String(s.student_id || s.student_name),
+          name:       s.student_name,
+          grade:      student.grade,
+          xp:         s.total_points || 0,
+        }));
+      }
+    } catch(_) {}
+    if (!allHeroes.length) allHeroes = [student];
+    
+    if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+    document.getElementById("login-error").style.display = "none";
+    
+    // رسالة ترحيبية لأول دخول
+    if (isFirstTime) {
+      setTimeout(() => {
+        if (typeof showToast === "function") {
+          showToast("🎉 تم تسجيلك بنجاح! تم حفظ رقم هاتفك لحماية حساب ابنك.", 5000);
+        } else {
+          alert("🎉 تم تسجيلك بنجاح! تم حفظ رقم هاتفك لحماية حساب ابنك.");
         }
-      }
+      }, 800);
     }
-  } catch(_) {}
-
-  // ── فشل الاثنان ──
-  if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
-  showLoginError("❌ لم يُعثر على بطل — تحقق من الاسم أو الكود. إذا كان السيرفر يعمل، تأكد أن الطالب مسجل.");
+    
+    openDashboard(student, allHeroes, false);
+  } catch(e) {
+    if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
+    showLoginError("❌ فشل تحميل بيانات الطالب — حاول مرة أخرى.");
+  }
 }
 
 // ── دعم Enter ──
@@ -1637,16 +1651,20 @@ async function doLogout() {
   localStorage.removeItem("parentEmail");
   localStorage.removeItem("parentPhone");
   
+  // امسح localStorage إضافياً
+  localStorage.removeItem("parentUsername");
+  
   document.getElementById("dashboard").style.display = "none";
   const ov = document.getElementById("login-overlay");
   ov.style.display = "flex";
   ov.style.animation = "fadeIn 0.4s ease";
-  document.getElementById("parent-code").value = "";
-  document.getElementById("parent-name").value = "";
-  const emEl = document.getElementById("parent-email");
-  const phEl = document.getElementById("parent-phone");
-  if (emEl) emEl.value = "";
-  if (phEl) phEl.value = "";
+  
+  // مسح كل الحقول
+  const ids = ["parent-username", "parent-name", "parent-email", "parent-phone"];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = "";
+  });
   document.getElementById("login-error").style.display = "none";
 }
 
@@ -2132,7 +2150,7 @@ function initTilt() {
    KEYBOARD SHORTCUT
 ════════════════════════════ */
 document.getElementById("parent-name").addEventListener("keypress", e => {
-  if (e.key === "Enter") document.getElementById("parent-code").focus();
+  if (e.key === "Enter") document.getElementById("parent-username").focus();
 });
 </script>
 </body>

@@ -1662,7 +1662,7 @@
                 <div class="nav-link nl-gold" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
                 <div class="nav-link nl-blue active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
                 <div class="nav-link nl-purple" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد 📚</div>
-                <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
+                <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);setTimeout(updateParentsLoginStats,400);"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
                 <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
                 <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                 <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
@@ -1761,7 +1761,7 @@
 
                     <!-- 💎 الكنوز الست — الإحصائيات الرئيسية -->
                     <div class="empire-treasures">
-                        <div class="treasure-card t-students" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);">
+                        <div class="treasure-card t-students" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);setTimeout(updateParentsLoginStats,400);">
                             <div class="treasure-bg-icon">👥</div>
                             <div class="treasure-label">إجمالي الرعية</div>
                             <div class="treasure-number" id="stat-total-students">0</div>
@@ -1793,7 +1793,7 @@
                             <div class="treasure-trend">⚙️ نظام التعاون</div>
                         </div>
 
-                        <div class="treasure-card t-champion" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);">
+                        <div class="treasure-card t-champion" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);setTimeout(updateParentsLoginStats,400);">
                             <div class="treasure-bg-icon">🏆</div>
                             <div class="treasure-label">بطل الأرقام الحالي</div>
                             <div class="treasure-name" id="stat-top-student">— لا يوجد بعد —</div>
@@ -2003,6 +2003,27 @@
                         </button>
                     </div>
 
+                    <!-- 📊 بطاقة حالة دخول أولياء الأمور -->
+                    <div id="parents-stats-card" style="background:linear-gradient(135deg,rgba(46,204,113,0.08),rgba(52,152,219,0.05));border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:14px 18px;margin-bottom:18px;">
+                        <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+                            <div style="font-size:1.8rem;">👨‍👩‍👦</div>
+                            <div style="flex:1;min-width:200px;">
+                                <div style="font-weight:bold;color:#2ecc71;font-size:0.95rem;">حالة دخول أولياء الأمور</div>
+                                <div id="parents-stats-status" style="font-size:0.82rem;color:rgba(255,255,255,0.65);margin-top:3px;">يستخدم النظام الجديد: username + هاتف ولي الأمر</div>
+                            </div>
+                            <div id="parents-stats-numbers" style="display:flex;gap:14px;flex-wrap:wrap;font-size:0.85rem;">
+                                <div style="text-align:center;background:rgba(46,204,113,0.1);padding:6px 12px;border-radius:8px;border:1px solid rgba(46,204,113,0.3);">
+                                    <div id="ps-with-phone" style="font-weight:bold;color:#2ecc71;font-size:1.1rem;">—</div>
+                                    <div style="font-size:0.7rem;color:rgba(255,255,255,0.55);">سجّلوا دخولاً</div>
+                                </div>
+                                <div style="text-align:center;background:rgba(231,76,60,0.08);padding:6px 12px;border-radius:8px;border:1px solid rgba(231,76,60,0.25);">
+                                    <div id="ps-no-phone" style="font-weight:bold;color:#e74c3c;font-size:1.1rem;">—</div>
+                                    <div style="font-size:0.7rem;color:rgba(255,255,255,0.55);">لم يدخلوا بعد</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- إحصائيات سريعة -->
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px;">
                         <div style="background:rgba(212,175,55,0.08);border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:12px;text-align:center;">
@@ -2055,12 +2076,13 @@
                                     <th style="text-align:center;">🎯 تحديات</th>
                                     <th style="text-align:center;">📊 المتوسط</th>
                                     <th style="text-align:center;">⏱️ آخر 30 يوم</th>
+                                    <th style="text-align:center;">📱 هاتف ولي الأمر</th>
                                     <th style="text-align:center;">🟢 الحالة</th>
                                     <th style="text-align:center;width:160px;">الإجراءات</th>
                                 </tr>
                             </thead>
                             <tbody id="students-table-body">
-                                <tr><td colspan="9" style="text-align:center;padding:30px;opacity:0.5;">جاري التحميل...</td></tr>
+                                <tr><td colspan="10" style="text-align:center;padding:30px;opacity:0.5;">جاري التحميل...</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -3372,7 +3394,7 @@
                                 </tr>
                             </thead>
                             <tbody id="rpt-tbody">
-                                <tr><td colspan="9" style="text-align:center; padding:40px; opacity:0.4;">اضغط "تحديث التقرير" لعرض البيانات</td></tr>
+                                <tr><td colspan="10" style="text-align:center; padding:40px; opacity:0.4;">اضغط "تحديث التقرير" لعرض البيانات</td></tr>
                             </tbody>
                         </table>
                     </div>
@@ -6756,7 +6778,7 @@
 
     async function loadFullReport() {
         const tbody = document.getElementById('rpt-tbody');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin" style="color:var(--gold);"></i> جاري تحميل بيانات الإمبراطورية...</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:40px;"><i class="fas fa-spinner fa-spin" style="color:var(--gold);"></i> جاري تحميل بيانات الإمبراطورية...</td></tr>';
         try {
             const res  = await authFetch('/api/admin/reports/full');
             if (!res || !res.ok) { showToast('⚠️ تعذّر جلب بيانات التقرير', 'error'); return; }
@@ -6781,7 +6803,7 @@
             renderReportTable(data.students);
             showToast('✅ تم تحميل التقرير الملكي!', 'success');
         } catch(e) {
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:#ff5e5e; padding:30px;">خطأ في جلب البيانات</td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; color:#ff5e5e; padding:30px;">خطأ في جلب البيانات</td></tr>';
         }
     }
 
@@ -6798,7 +6820,7 @@
         const tbody = document.getElementById('rpt-tbody');
         if (!tbody || !students) return;
         if (students.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding:40px; opacity:0.4;">لا يوجد طلاب مسجّلون بعد</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:40px; opacity:0.4;">لا يوجد طلاب مسجّلون بعد</td></tr>';
             return;
         }
         tbody.innerHTML = students.map((s, i) => {
@@ -9834,7 +9856,7 @@
 
     async function loadChampionsRegistry() {
         var tbody = document.getElementById('students-table-body');
-        if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;opacity:0.5;">⏳ جارٍ تحميل البيانات...</td></tr>';
+        if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;opacity:0.5;">⏳ جارٍ تحميل البيانات...</td></tr>';
 
         try {
             var res = await authFetch('/api/admin/students/full');
@@ -9867,9 +9889,11 @@
             }
 
             renderChampionsTable();
+            // 🆕 حدّث إحصائية دخول أولياء الأمور
+            if (typeof updateParentsLoginStats === 'function') updateParentsLoginStats();
         } catch(e) {
             console.error('[loadChampionsRegistry]', e);
-            if (tbody) tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:30px;color:#e74c3c;">❌ فشل تحميل البيانات</td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:30px;color:#e74c3c;">❌ فشل تحميل البيانات</td></tr>';
         }
     }
 
@@ -9907,7 +9931,7 @@
         if (counter) counter.textContent = '📋 عرض ' + filtered.length + ' من ' + _championsData.length + ' بطل';
 
         if (!filtered.length) {
-            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center;padding:40px;opacity:0.5;">🔍 لا يوجد طلاب يطابقون الفلتر</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;opacity:0.5;">🔍 لا يوجد طلاب يطابقون الفلتر</td></tr>';
             return;
         }
 
@@ -9953,6 +9977,13 @@
                 '<td style="text-align:center;font-size:0.78rem;">' +
                     '<div style="font-weight:bold;color:#9b59b6;">' + (s.minutes_30d||0) + ' د</div>' +
                     '<div style="font-size:0.7rem;color:rgba(255,255,255,0.4);">' + relTime(s.last_active) + '</div>' +
+                '</td>' +
+                '<td style="text-align:center;font-size:0.82rem;">' +
+                    (s.parent_phone 
+                        ? '<a href="https://wa.me/' + String(s.parent_phone).replace(/[^\d+]/g, '') + '" target="_blank" style="color:#25D366;text-decoration:none;font-weight:bold;"><i class="fab fa-whatsapp"></i> ' + esc(s.parent_phone) + '</a>'
+                        : '<span style="color:rgba(231,76,60,0.6);font-size:0.75rem;"><i class="fas fa-exclamation-triangle"></i> لم يدخل بعد</span>'
+                    ) +
+                    (s.parent_phone ? '<div style="margin-top:3px;"><button onclick="resetParentLogin(' + s.id + ',\'' + esc(s.full_name||'').replace(/\'/g, "\\'") + '\')" style="background:none;border:none;color:rgba(231,76,60,0.7);font-size:0.65rem;cursor:pointer;text-decoration:underline;">🔄 إعادة تعيين</button></div>' : '') +
                 '</td>' +
                 '<td style="text-align:center;">' + statusBadge + '</td>' +
                 '<td style="text-align:center;white-space:nowrap;">' +
@@ -10675,6 +10706,189 @@
             showToast('❌ فشل التصدير', 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-csv"></i> تصدير CSV'; }
+        }
+    }
+
+
+    async function regenParentCode(studentId, studentName) {
+        if (!confirm('⚠️ إعادة توليد كود ولي الأمر للطالب: ' + studentName + '؟\n\n' +
+                     'سيُلغى الكود القديم — وعلى ولي الأمر الدخول بالكود الجديد.\n' +
+                     'سيتم تسجيل الخروج من جلساته الحالية تلقائياً.')) return;
+        try {
+            var res = await authFetch('/api/admin/students/' + studentId + '/regenerate_parent_code', {
+                method: 'POST'
+            });
+            if (res && res.ok) {
+                var data = await res.json();
+                showToast('✅ الكود الجديد: ' + data.parent_code + ' — تم نسخه', 'success', 6000);
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(data.parent_code).catch(function(){});
+                }
+                loadChampionsRegistry();
+            } else {
+                showToast('❌ فشلت العملية', 'error');
+            }
+        } catch(e) {
+            showToast('❌ خطأ في الاتصال', 'error');
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       🛡️ صحة أكواد ولي الأمر
+    ════════════════════════════════════════════════════════════ */
+    async function diagnoseParentCodes() {
+        var card = document.getElementById('parent-codes-health');
+        var status = document.getElementById('pch-status');
+        var details = document.getElementById('pch-details');
+        if (card) card.style.display = 'block';
+        if (status) status.textContent = '🔍 جارٍ الفحص...';
+        
+        try {
+            var res = await authFetch('/api/admin/parent_codes/diagnose');
+            if (!res || !res.ok) throw new Error('failed');
+            var data = await res.json();
+            
+            if (data.is_healthy) {
+                if (status) status.innerHTML = '<span style="color:#2ecc71;">✅ كل الطلاب لديهم أكواد فريدة وصحيحة (' + data.total_students + ' طالب)</span>';
+                if (details) details.style.display = 'none';
+                card.style.borderColor = 'rgba(46,204,113,0.4)';
+                card.style.background = 'linear-gradient(135deg,rgba(46,204,113,0.08),rgba(46,204,113,0.03))';
+                return;
+            }
+            
+            // مشاكل!
+            card.style.borderColor = 'rgba(231,76,60,0.5)';
+            card.style.background = 'linear-gradient(135deg,rgba(231,76,60,0.1),rgba(231,76,60,0.04))';
+            
+            var problems = [];
+            if (data.no_code_count > 0)         problems.push('🔴 <strong>' + data.no_code_count + '</strong> طالب بدون كود');
+            if (data.invalid_format_count > 0)  problems.push('🟠 <strong>' + data.invalid_format_count + '</strong> طالب بكود بصيغة غير صحيحة');
+            if (data.duplicate_groups_count > 0) problems.push('🟡 <strong>' + data.duplicate_groups_count + '</strong> مجموعة أكواد مكررة (' + data.students_in_duplicates + ' طالب)');
+            
+            if (status) status.innerHTML = '<span style="color:#e74c3c;">⚠️ مشاكل في أكواد ' + (data.no_code_count + data.invalid_format_count + data.students_in_duplicates) + ' طالب من أصل ' + data.total_students + '</span>';
+            
+            var html = '<div style="background:rgba(0,0,0,0.2);border-radius:8px;padding:10px;margin-top:8px;">';
+            problems.forEach(function(p) {
+                html += '<div style="margin:4px 0;">' + p + '</div>';
+            });
+            
+            // عيّنات
+            if (data.duplicates_sample && data.duplicates_sample.length) {
+                html += '<details style="margin-top:8px;"><summary style="cursor:pointer;color:#f39c12;">📋 عيّنة من الأكواد المكررة</summary>';
+                data.duplicates_sample.forEach(function(d) {
+                    html += '<div style="margin:6px 0;padding:6px;background:rgba(255,255,255,0.03);border-radius:6px;">';
+                    html += '<strong style="color:#f39c12;">' + d.code + '</strong> — مكرر بين ' + d.count + ' طلاب: ';
+                    html += d.students.map(function(s){ return esc(s.name||'?') + ' (' + (s.grade||'?') + ')'; }).join('، ');
+                    html += '</div>';
+                });
+                html += '</details>';
+            }
+            
+            if (data.no_code_sample && data.no_code_sample.length) {
+                html += '<details style="margin-top:8px;"><summary style="cursor:pointer;color:#e74c3c;">📋 عيّنة من الطلاب بدون كود</summary>';
+                data.no_code_sample.forEach(function(s) {
+                    html += '<div style="margin:4px 0;font-size:0.78rem;">• ' + esc(s.name||'?') + ' (' + (s.grade||'?') + ')</div>';
+                });
+                html += '</details>';
+            }
+            html += '</div>';
+            
+            if (details) {
+                details.innerHTML = html;
+                details.style.display = 'block';
+            }
+        } catch(e) {
+            if (status) status.innerHTML = '<span style="color:#e74c3c;">❌ فشل التشخيص</span>';
+        }
+    }
+
+    async function fixAllParentCodes() {
+        if (!confirm('🛡️ إصلاح جماعي للأكواد\n\n' +
+                     'سيتم:\n' +
+                     '  • توليد كود فريد لكل طالب بدون كود\n' +
+                     '  • إصلاح الأكواد المكررة (يبقى الأقدم، الباقي يتغيّر)\n' +
+                     '  • إصلاح الأكواد بصيغ خاطئة\n' +
+                     '  • حذف جلسات أولياء الأمور للأكواد المُغيّرة\n\n' +
+                     'هل أنت متأكد؟')) return;
+        
+        var btn = document.getElementById('btn-fix-codes');
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جارٍ الإصلاح...'; }
+        
+        try {
+            var res = await authFetch('/api/admin/parent_codes/fix_all', { method: 'POST' });
+            if (!res || !res.ok) throw new Error('failed');
+            var data = await res.json();
+            
+            showToast('✅ تم تحديث ' + data.updated + ' طالب من أصل ' + data.needed_fix + ' بحاجة لإصلاح', 'success', 6000);
+            
+            // أعد التشخيص
+            setTimeout(diagnoseParentCodes, 500);
+            // أعد تحميل الجدول
+            setTimeout(loadChampionsRegistry, 1000);
+        } catch(e) {
+            showToast('❌ فشلت العملية', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-magic"></i> إصلاح جماعي'; }
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       🔄 إعادة تعيين دخول ولي الأمر (نظام v2)
+    ════════════════════════════════════════════════════════════ */
+    async function resetParentLogin(studentId, studentName) {
+        if (!confirm('🔄 إعادة تعيين دخول ولي الأمر للطالب: ' + studentName + '؟\n\n' +
+                     'سيتم:\n' +
+                     '  • حذف رقم الهاتف المُسجّل\n' +
+                     '  • قطع جلسات الدخول الحالية\n' +
+                     '  • سيستطيع ولي الأمر تسجيل رقم جديد عند الدخول التالي\n\n' +
+                     'هل أنت متأكد؟')) return;
+        try {
+            var res = await authFetch('/api/admin/students/' + studentId + '/reset_parent_login', {
+                method: 'POST'
+            });
+            if (res && res.ok) {
+                showToast('✅ تم — يستطيع ولي الأمر التسجيل من جديد', 'success', 5000);
+                if (typeof loadChampionsRegistry === 'function') loadChampionsRegistry();
+            } else {
+                showToast('❌ فشلت العملية', 'error');
+            }
+        } catch(e) {
+            showToast('❌ خطأ في الاتصال', 'error');
+        }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📊 إحصائية دخول أولياء الأمور (من _championsData)
+    ════════════════════════════════════════════════════════════ */
+    function updateParentsLoginStats() {
+        if (!Array.isArray(_championsData) || !_championsData.length) {
+            // لم تتحمل البيانات بعد — جرّب لاحقاً
+            setTimeout(updateParentsLoginStats, 600);
+            return;
+        }
+        var withPhone = 0;
+        var noPhone = 0;
+        _championsData.forEach(function(s) {
+            if (s.parent_phone && String(s.parent_phone).trim().length >= 6) {
+                withPhone++;
+            } else {
+                noPhone++;
+            }
+        });
+        var setEl = function(id, val) {
+            var el = document.getElementById(id);
+            if (el) el.textContent = val;
+        };
+        setEl('ps-with-phone', withPhone);
+        setEl('ps-no-phone', noPhone);
+        
+        var statusEl = document.getElementById('parents-stats-status');
+        if (statusEl) {
+            var pct = _championsData.length ? Math.round(withPhone / _championsData.length * 100) : 0;
+            statusEl.innerHTML = '🔐 النظام الجديد: <strong style="color:#2ecc71;">' + pct + '%</strong> من أولياء الأمور سجّلوا دخولاً (' + withPhone + ' من ' + _championsData.length + ')';
         }
     }
 

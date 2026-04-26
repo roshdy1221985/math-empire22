@@ -440,6 +440,53 @@ async def teacher_login(request: Request, username: str = Form(...), password: s
 
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
+
+def _normalize_phone(phone: str) -> str:
+    """تطبيع رقم الهاتف للمقارنة: إزالة كل ما عدا الأرقام"""
+    if not phone:
+        return ""
+    import re as _re
+    # احتفظ بالأرقام فقط
+    digits = _re.sub(r'\D', '', str(phone))
+    # احذف 00 أو + من البداية
+    if digits.startswith("00"):
+        digits = digits[2:]
+    # احذف 968 إن كان رقماً عمانياً (لتوحيد المقارنة)
+    return digits
+
+
+def _phone_matches(p1: str, p2: str) -> bool:
+    """مقارنة ذكية بين رقمين — يدعم اختلاف بادئة الدولة"""
+    if not p1 or not p2:
+        return False
+    n1 = _normalize_phone(p1)
+    n2 = _normalize_phone(p2)
+    if n1 == n2:
+        return True
+    # تطابق الأرقام الـ 8 الأخيرة (للأرقام المحلية)
+    if len(n1) >= 8 and len(n2) >= 8 and n1[-8:] == n2[-8:]:
+        return True
+    return False
+
+
+def _generate_unique_parent_code() -> str:
+    """توليد كود ولي أمر فريد بصيغة RS-XXXXXX (50 محاولة)"""
+    import secrets
+    import string
+    # حروف بدون 0,O,1,I لتجنّب الالتباس
+    chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+    for _ in range(50):
+        code = "RS-" + "".join(secrets.choice(chars) for _ in range(6))
+        try:
+            existing = supabase.table("students").select("id").eq("parent_code", code).limit(1).execute()
+            if not existing.data:
+                return code
+        except Exception:
+            pass
+    # fallback نادر — كود أطول
+    return "RS-" + "".join(secrets.choice(chars) for _ in range(8))
+
+
 @app.post("/api/student/register")
 async def register_student(
     full_name: str=Form(...), username: str=Form(...),
@@ -448,14 +495,30 @@ async def register_student(
 ):
     existing = supabase.table("students").select("username").eq("username", username).execute()
     if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود مسبقاً")
-    supabase.table("students").insert({
+    
+    # 🔧 توليد كود فريد دائماً (سواء أدخل المستخدم أم لا)
+    pc = (parent_code or "").strip().upper()
+    if pc:
+        # إن أدخل كود يدوياً — تأكد من فرادته
+        if not pc.startswith("RS-"):
+            pc = f"RS-{pc}"
+        existing_code = supabase.table("students").select("id").eq("parent_code", pc).limit(1).execute()
+        if existing_code.data:
+            # الكود مكرر — ولّد كود جديد بدلاً منه
+            pc = _generate_unique_parent_code()
+    else:
+        # لم يُدخل كود — ولّد واحداً
+        pc = _generate_unique_parent_code()
+    
+    res = supabase.table("students").insert({
         "full_name":   full_name,
         "username":    username,
         "password":    hash_password(password),
         "grade":       grade,
-        "parent_code": parent_code or None,
+        "parent_code": pc,
     }).execute()
-    return {"status": "success"}
+    
+    return {"status": "success", "parent_code": pc}
 
 def get_current_student(request: Request):
     """التحقق من JWT الطالب"""
@@ -1627,14 +1690,15 @@ async def parent_search(query: str, request: Request):
     # ═══ نقبل فقط: parent_code (RS-XXXXX) أو الكود بدون البادئة ═══
     pc = clean.upper() if clean.upper().startswith("RS-") else f"RS-{clean.upper()}"
 
-    # تحقق من الصيغة: RS- + 4-10 أحرف/أرقام
+    # تحقق من الصيغة: RS- + 4-12 أحرف/أرقام
     import re as _re
-    if not _re.match(r'^RS-[A-Z0-9]{4,10}$', pc):
-        return {"found": False, "message": "صيغة الكود غير صحيحة. مثال: RS-AB12C"}
+    if not _re.match(r'^RS-[A-Z0-9]{4,12}$', pc):
+        return {"found": False, "message": "صيغة الكود غير صحيحة. مثال: RS-AB12CD"}
 
+    # 🔧 يُرجع parent_code أيضاً (حتى تستخدمه parent.html بدل التخمين)
     st = supabase.table("students").select(
-        "id, full_name, grade, username, created_at"
-    ).eq("parent_code", pc).execute()
+        "id, full_name, grade, username, parent_code, created_at"
+    ).eq("parent_code", pc).limit(1).execute()
 
     if not st.data:
         return {"found": False, "message": "لم يعثر على طالب بهذا الكود"}
@@ -2312,9 +2376,21 @@ async def parent_auto_login(token: str, request: Request):
         except Exception:
             pass
         
+        # 🆕 جلب username الطالب أيضاً (للتوافق مع نظام v2)
+        student_username = None
+        try:
+            stud_res = supabase.table("students").select("username, full_name").eq(
+                "id", session["student_id"]
+            ).limit(1).execute()
+            if stud_res.data:
+                student_username = stud_res.data[0].get("username")
+        except Exception:
+            pass
+        
         return {
             "valid": True,
-            "parent_code": session["parent_code"],
+            "parent_code": session["parent_code"],  # للتوافق العكسي
+            "username": student_username,  # 🆕 للنظام الجديد
             "parent_name": session.get("parent_name"),
             "parent_email": session.get("parent_email"),
             "parent_phone": session.get("parent_phone"),
@@ -2324,6 +2400,286 @@ async def parent_auto_login(token: str, request: Request):
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 👨‍👩 PARENT ACCESS V2 — دخول مبسّط: username + phone
+# ═══════════════════════════════════════════════════════════════
+@app.post("/api/parent/login_v2")
+async def parent_login_v2(
+    request: Request,
+    username: str     = Form(...),
+    parent_phone: str = Form(...),
+    parent_name: str  = Form(default=""),
+    parent_email: str = Form(default=""),
+):
+    """
+    🔐 دخول ولي الأمر بـ:
+       • username الطالب (يعرفه الطالب وأسرته)
+       • parent_phone رقم هاتف ولي الأمر (سرّي)
+    
+    منطق الذكاء:
+    - أول دخول: يُسجّل رقم الهاتف للطالب (يصبح "كلمة السر")
+    - الدخول التالي: يجب أن يطابق الرقم المُسجّل
+    """
+    # rate limit
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=15, window_seconds=60, key_prefix="parent_login_v2"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة — انتظر دقيقة")
+    
+    uname = username.strip()
+    if not uname:
+        raise HTTPException(status_code=400, detail="اسم المستخدم مطلوب")
+    
+    phone_clean = _normalize_phone(parent_phone)
+    if len(phone_clean) < 6 or len(phone_clean) > 20:
+        raise HTTPException(status_code=400, detail="رقم الهاتف غير صحيح")
+    
+    # ابحث عن الطالب
+    try:
+        st_res = supabase.table("students").select(
+            "id, full_name, grade, username, parent_phone, parent_name, parent_email"
+        ).eq("username", uname).limit(1).execute()
+        
+        if not st_res.data:
+            raise HTTPException(status_code=404, detail="لم نعثر على طالب باسم المستخدم هذا")
+        
+        student = st_res.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+    
+    saved_phone = (student.get("parent_phone") or "").strip()
+    
+    # ─── السيناريو 1: أول دخول لهذا الطالب — لا يوجد هاتف مُسجّل ───
+    if not saved_phone:
+        # سجّل الهاتف + الاسم (تأمين الحساب لأول مرة)
+        update_data = {
+            "parent_phone": phone_clean,
+        }
+        if parent_name.strip():
+            update_data["parent_name"] = parent_name.strip()[:200]
+        if parent_email.strip():
+            import re as _re
+            em = parent_email.strip().lower()
+            if _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', em):
+                update_data["parent_email"] = em[:200]
+        
+        try:
+            supabase.table("students").update(update_data).eq("id", student["id"]).execute()
+            student.update(update_data)
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"فشل التسجيل: {str(e)[:150]}")
+        
+        is_first_time = True
+    else:
+        # ─── السيناريو 2: دخول لاحق — يجب أن يطابق الهاتف ───
+        if not _phone_matches(saved_phone, phone_clean):
+            raise HTTPException(
+                status_code=403,
+                detail="رقم الهاتف لا يطابق المُسجّل لهذا الطالب — تواصل مع الأستاذ إن نسيت"
+            )
+        
+        # حدّث الاسم/الإيميل إن قُدّما
+        update_data = {}
+        if parent_name.strip() and not student.get("parent_name"):
+            update_data["parent_name"] = parent_name.strip()[:200]
+        if parent_email.strip():
+            import re as _re
+            em = parent_email.strip().lower()
+            if _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', em):
+                update_data["parent_email"] = em[:200]
+        
+        if update_data:
+            try:
+                supabase.table("students").update(update_data).eq("id", student["id"]).execute()
+            except Exception:
+                pass
+        
+        is_first_time = False
+    
+    # ─── إنشاء session token ───
+    token = _generate_parent_token()
+    try:
+        supabase.table("parent_sessions").insert({
+            "student_id":    student["id"],
+            "parent_code":   "USERNAME_AUTH",  # مَعلَم: لا يستخدم parent_code
+            "session_token": token,
+            "parent_name":   (parent_name.strip() or student.get("parent_name") or "")[:200] or None,
+            "parent_email":  ((parent_email.strip().lower() if parent_email else None) or student.get("parent_email")),
+            "parent_phone":  phone_clean,
+            "user_agent":    str(request.headers.get("user-agent", ""))[:300],
+        }).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل إنشاء الجلسة: {str(e)[:150]}")
+    
+    return {
+        "status": "success",
+        "token": token,
+        "expires_in_days": 180,
+        "is_first_time": is_first_time,
+        "student": {
+            "id":         student["id"],
+            "full_name":  student.get("full_name"),
+            "grade":      student.get("grade"),
+            "username":   student.get("username"),
+        }
+    }
+
+
+@app.get("/api/parent/search_by_username/{username}")
+async def parent_search_by_username(username: str, request: Request):
+    """
+    📖 جلب بيانات الطالب الكاملة + الإحصاءات (بعد تسجيل الدخول الناجح)
+    تعتمد على token في المتصفح للمصادقة (auto_login يتم قبلها)
+    """
+    # rate limit
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=60, window_seconds=60, key_prefix="parent_search_uname"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة")
+    
+    uname = username.strip()
+    if not uname:
+        raise HTTPException(status_code=400, detail="اسم المستخدم مطلوب")
+    
+    # ابحث
+    st = supabase.table("students").select(
+        "id, full_name, grade, username, parent_code, created_at"
+    ).eq("username", uname).limit(1).execute()
+    
+    if not st.data:
+        return {"found": False, "message": "لم يعثر على طالب باسم المستخدم هذا"}
+    
+    student = st.data[0]
+    student.pop("password", None)
+    
+    # ═══ نفس منطق parent_search القديم (الإحصاءات الكاملة) ═══
+    history = supabase.table("results").select(
+        "id, lesson, score, total, timestamp"
+    ).eq("student_id", student["id"]).order("timestamp", desc=True).limit(200).execute().data or []
+
+    from datetime import datetime, timezone, timedelta
+    session_minutes_30d = 0
+    session_minutes_7d = 0
+    session_minutes_total = 0
+    days_active_30d = set()
+    last_seen_iso = None
+    
+    try:
+        now = datetime.now(timezone.utc)
+        cutoff_30d = now - timedelta(days=30)
+        cutoff_7d = now - timedelta(days=7)
+        all_sessions = []
+        offset = 0
+        for _ in range(20):
+            sess = supabase.table("student_sessions").select(
+                "session_bucket, last_seen"
+            ).eq("student_id", student["id"]).order("session_bucket", desc=True).range(offset, offset + 999).execute()
+            batch = sess.data or []
+            if not batch: break
+            all_sessions.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        
+        for s in all_sessions:
+            session_minutes_total += 5
+            try:
+                bucket_dt = datetime.fromisoformat(s["session_bucket"].replace("Z", "+00:00"))
+                if bucket_dt.tzinfo is None:
+                    bucket_dt = bucket_dt.replace(tzinfo=timezone.utc)
+                if bucket_dt >= cutoff_30d:
+                    session_minutes_30d += 5
+                    days_active_30d.add(bucket_dt.date().isoformat())
+                if bucket_dt >= cutoff_7d:
+                    session_minutes_7d += 5
+                if s.get("last_seen"):
+                    if last_seen_iso is None or s["last_seen"] > last_seen_iso:
+                        last_seen_iso = s["last_seen"]
+            except Exception:
+                continue
+    except Exception:
+        pass
+    
+    # الترتيب
+    rank_in_grade = None
+    grade_total_students = 0
+    try:
+        all_results = []
+        offset = 0
+        for _ in range(50):
+            rb = supabase.table("results").select(
+                "student_id, score, grade"
+            ).range(offset, offset + 999).execute()
+            batch = rb.data or []
+            if not batch: break
+            all_results.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        
+        from collections import defaultdict
+        xp_grade = defaultdict(int)
+        for r in all_results:
+            sid = r.get("student_id")
+            if not sid: continue
+            if r.get("grade") == student.get("grade"):
+                xp_grade[sid] += (r.get("score") or 0)
+        
+        sorted_grade = sorted(xp_grade.items(), key=lambda x: x[1], reverse=True)
+        grade_total_students = len(sorted_grade)
+        for idx, (sid, _) in enumerate(sorted_grade, 1):
+            if sid == student["id"]:
+                rank_in_grade = idx
+                break
+    except Exception:
+        pass
+    
+    total_tests = len(history)
+    total_score = sum((r.get("score") or 0) for r in history)
+    total_max = sum((r.get("total") or 0) for r in history)
+    avg_pct = round((total_score / total_max * 100), 1) if total_max > 0 else 0
+    
+    lesson_stats = {}
+    for r in history:
+        lesson = r.get("lesson") or "غير محدد"
+        if lesson not in lesson_stats:
+            lesson_stats[lesson] = {"score": 0, "total": 0, "count": 0}
+        lesson_stats[lesson]["score"] += (r.get("score") or 0)
+        lesson_stats[lesson]["total"] += (r.get("total") or 0)
+        lesson_stats[lesson]["count"] += 1
+    
+    weak_lessons = []
+    strong_lessons = []
+    for lesson, st_data in lesson_stats.items():
+        if st_data["total"] > 0 and st_data["count"] >= 2:
+            pct = (st_data["score"] / st_data["total"]) * 100
+            entry = {"lesson": lesson, "pct": round(pct, 1), "count": st_data["count"]}
+            if pct < 65: weak_lessons.append(entry)
+            elif pct >= 85: strong_lessons.append(entry)
+    weak_lessons.sort(key=lambda x: x["pct"])
+    strong_lessons.sort(key=lambda x: -x["pct"])
+    
+    return {
+        "found":   True,
+        "student": student,
+        "history": history,
+        "stats": {
+            "total_xp":             total_score,
+            "total_tests":          total_tests,
+            "avg_score_pct":        avg_pct,
+            "minutes_30d":          session_minutes_30d,
+            "hours_30d":            round(session_minutes_30d / 60, 1),
+            "minutes_7d":           session_minutes_7d,
+            "minutes_total":        session_minutes_total,
+            "days_active_30d":      len(days_active_30d),
+            "last_seen":            last_seen_iso,
+            "rank_in_grade":        rank_in_grade,
+            "grade_total_students": grade_total_students,
+            "weak_lessons":         weak_lessons[:5],
+            "strong_lessons":       strong_lessons[:5],
+        },
+    }
 
 
 @app.post("/api/parent/logout")
@@ -2392,6 +2748,214 @@ async def parent_update_profile(
 # ═══════════════════════════════════════════════════════════════
 # 📧 ADMIN — إدارة بريد أولياء الأمور
 # ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/students/{student_id}/regenerate_parent_code")
+async def regenerate_parent_code(student_id: int, admin = Depends(get_current_admin)):
+    """إعادة توليد كود ولي الأمر لطالب معيّن"""
+    new_code = _generate_unique_parent_code()
+    try:
+        # احذف جلسات ولي الأمر السابقة (الكود القديم لم يعد صالحاً)
+        supabase.table("parent_sessions").delete().eq("student_id", student_id).execute()
+        # حدّث الكود
+        supabase.table("students").update({"parent_code": new_code}).eq("id", student_id).execute()
+        return {"status": "success", "parent_code": new_code}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🛡️ ADMIN — إصلاح أكواد ولي الأمر جماعياً (للحالات الطارئة)
+# ═══════════════════════════════════════════════════════════════
+@app.post("/api/admin/parent_codes/fix_all")
+async def admin_fix_all_parent_codes(admin = Depends(get_current_admin)):
+    """
+    🔧 إصلاح أكواد ولي الأمر لكل الطلاب بدون كود أو بكود مكرر.
+    يُولّد كوداً فريداً لكل طالب بحاجة، ويترك الأكواد الصحيحة الفريدة كما هي.
+    """
+    try:
+        # 1. جلب كل الطلاب (pagination)
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, parent_code"
+            ).order("id").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        # 2. تشخيص: من بحاجة لكود جديد؟
+        import re as _re
+        code_to_students = {}  # parent_code -> [student_ids]
+        for s in all_students:
+            pc = (s.get("parent_code") or "").strip().upper()
+            if pc:
+                code_to_students.setdefault(pc, []).append(s["id"])
+        
+        # الطلاب الذين يحتاجون كوداً جديداً:
+        need_new_code = []
+        for s in all_students:
+            pc = (s.get("parent_code") or "").strip()
+            sid = s["id"]
+            
+            # شرط 1: لا كود أصلاً
+            if not pc or pc.lower() == "null":
+                need_new_code.append(sid)
+                continue
+            
+            # شرط 2: صيغة غير صالحة
+            if not _re.match(r'^RS-[A-Z0-9]{4,12}$', pc.upper()):
+                need_new_code.append(sid)
+                continue
+            
+            # شرط 3: كود مكرر — نُبقي على أقدم طالب فقط
+            siblings = code_to_students.get(pc.upper(), [])
+            if len(siblings) > 1:
+                # أقدم طالب (أصغر id) يحتفظ بالكود
+                if sid != min(siblings):
+                    need_new_code.append(sid)
+        
+        # 3. توليد كود فريد لكل طالب يحتاج
+        used_codes = set()
+        for s in all_students:
+            pc = (s.get("parent_code") or "").strip().upper()
+            if pc and s["id"] not in need_new_code:
+                used_codes.add(pc)
+        
+        import secrets
+        chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        
+        def gen_code():
+            for _ in range(100):
+                candidate = "RS-" + "".join(secrets.choice(chars) for _ in range(6))
+                if candidate not in used_codes:
+                    used_codes.add(candidate)
+                    return candidate
+            # fallback
+            return "RS-" + "".join(secrets.choice(chars) for _ in range(8))
+        
+        # 4. تطبيق التحديثات
+        updated_count = 0
+        failed_count = 0
+        
+        for sid in need_new_code:
+            new_code = gen_code()
+            try:
+                supabase.table("students").update({
+                    "parent_code": new_code
+                }).eq("id", sid).execute()
+                
+                # احذف جلسات parent_sessions القديمة (الكود تغيّر)
+                try:
+                    supabase.table("parent_sessions").delete().eq("student_id", sid).execute()
+                except Exception:
+                    pass
+                
+                updated_count += 1
+            except Exception:
+                failed_count += 1
+        
+        return {
+            "status": "success",
+            "total_students": len(all_students),
+            "needed_fix": len(need_new_code),
+            "updated": updated_count,
+            "failed": failed_count,
+            "diagnosis": {
+                "no_code_or_invalid": sum(1 for s in all_students 
+                    if not (s.get("parent_code") or "").strip() 
+                    or not _re.match(r'^RS-[A-Z0-9]{4,12}$', (s.get("parent_code") or "").strip().upper())),
+                "duplicates": sum(1 for codes in code_to_students.values() if len(codes) > 1),
+            }
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:300]}")
+
+
+@app.get("/api/admin/parent_codes/diagnose")
+async def admin_diagnose_parent_codes(admin = Depends(get_current_admin)):
+    """
+    🔍 تشخيص حالة أكواد ولي الأمر — قبل تشغيل الإصلاح
+    """
+    try:
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, grade, parent_code"
+            ).order("id").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        import re as _re
+        code_to_count = {}
+        no_code = []
+        invalid_format = []
+        
+        for s in all_students:
+            pc = (s.get("parent_code") or "").strip()
+            if not pc or pc.lower() == "null":
+                no_code.append({"id": s["id"], "name": s.get("full_name"), "grade": s.get("grade")})
+            elif not _re.match(r'^RS-[A-Z0-9]{4,12}$', pc.upper()):
+                invalid_format.append({"id": s["id"], "name": s.get("full_name"), "code": pc})
+            else:
+                code_to_count[pc.upper()] = code_to_count.get(pc.upper(), 0) + 1
+        
+        duplicates = []
+        for code, cnt in code_to_count.items():
+            if cnt > 1:
+                # احصل على كل الطلاب بهذا الكود
+                students_with_code = [
+                    {"id": s["id"], "name": s.get("full_name"), "grade": s.get("grade")}
+                    for s in all_students
+                    if (s.get("parent_code") or "").strip().upper() == code
+                ]
+                duplicates.append({"code": code, "count": cnt, "students": students_with_code})
+        
+        return {
+            "total_students": len(all_students),
+            "no_code_count": len(no_code),
+            "invalid_format_count": len(invalid_format),
+            "duplicate_groups_count": len(duplicates),
+            "students_in_duplicates": sum(d["count"] for d in duplicates),
+            "no_code_sample": no_code[:10],
+            "invalid_format_sample": invalid_format[:10],
+            "duplicates_sample": duplicates[:5],
+            "is_healthy": len(no_code) == 0 and len(invalid_format) == 0 and len(duplicates) == 0,
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+@app.post("/api/admin/students/{student_id}/reset_parent_login")
+async def reset_parent_login(student_id: int, admin = Depends(get_current_admin)):
+    """
+    🔄 إعادة تعيين دخول ولي الأمر لطالب معيّن.
+    يحذف parent_phone (يصبح أول دخول جديد) + يحذف الجلسات القديمة.
+    """
+    try:
+        # احذف الجلسات
+        supabase.table("parent_sessions").delete().eq("student_id", student_id).execute()
+        # امسح parent_phone (سيُسجَّل من جديد عند أول دخول)
+        supabase.table("students").update({
+            "parent_phone": None,
+        }).eq("id", student_id).execute()
+        return {"status": "success", "message": "تم — يستطيع ولي الأمر التسجيل من جديد"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
 @app.get("/api/admin/parent_emails")
 async def admin_list_parent_emails(admin = Depends(get_current_admin)):
     """
@@ -2906,7 +3470,7 @@ async def get_all_students_full(admin=Depends(get_current_admin)):
     for _ in range(20):
         try:
             res = supabase.table("students").select(
-                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active"
+                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active, parent_code, parent_phone, parent_name, parent_email"
             ).order("full_name").range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch:
