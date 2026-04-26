@@ -535,6 +535,325 @@
             .main-content { padding:20px; }
             .edit-grid { grid-template-columns:1fr; }
         }
+    
+        /* ════════════════════════════════════════════════════════════
+           👑 EMPIRE TEACHERS — تصميم ملكي فاخر
+        ════════════════════════════════════════════════════════════ */
+        @keyframes empireGlowPulse {
+            0%, 100% { opacity: 0.45; transform: rotate(0deg); }
+            50%      { opacity: 0.7;  transform: rotate(180deg); }
+        }
+        @keyframes empireFloat {
+            0%, 100% { transform: translateY(0) rotate(-3deg); }
+            50%      { transform: translateY(-6px) rotate(3deg); }
+        }
+        @keyframes empireLivePulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(46,204,113,0.6); }
+            50%      { box-shadow: 0 0 0 8px rgba(46,204,113,0); }
+        }
+        @keyframes empireSlideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes empireShine {
+            0%   { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+        }
+        @keyframes empireBreathe {
+            0%, 100% { transform: scale(1); }
+            50%      { transform: scale(1.04); }
+        }
+
+        /* ── Hero الكبير ── */
+        .empire-hero-teacher {
+            position: relative;
+            background: 
+                radial-gradient(circle at 85% 20%, rgba(212,175,55,0.18) 0%, transparent 55%),
+                radial-gradient(circle at 15% 80%, rgba(155,89,182,0.12) 0%, transparent 50%),
+                linear-gradient(135deg, #0a0a1a 0%, #1a0d2e 50%, #0d1b3e 100%);
+            border: 1px solid rgba(212,175,55,0.3);
+            border-radius: 22px;
+            padding: 26px 28px;
+            margin-bottom: 24px;
+            overflow: hidden;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+            animation: empireSlideUp 0.6s ease;
+        }
+        .empire-hero-glow {
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(212,175,55,0.06) 60deg,
+                transparent 120deg,
+                rgba(155,89,182,0.05) 240deg,
+                transparent 300deg
+            );
+            pointer-events: none;
+            animation: empireGlowPulse 18s linear infinite;
+        }
+        .empire-hero-content {
+            position: relative; z-index: 1;
+            display: flex; align-items: center; gap: 18px;
+            flex-wrap: wrap;
+        }
+        .empire-hero-icon {
+            font-size: 3.4rem;
+            filter: drop-shadow(0 0 20px rgba(212,175,55,0.55));
+            animation: empireFloat 4s ease-in-out infinite;
+        }
+        .empire-hero-text { flex: 1; min-width: 200px; }
+        .empire-greeting {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.6);
+            margin-bottom: 4px;
+        }
+        .empire-hero-title {
+            font-family: 'Amiri', serif;
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #f5d04a 0%, #d4af37 50%, #b8860b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin: 0 0 4px;
+            line-height: 1.2;
+        }
+        .empire-hero-subtitle {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.45);
+        }
+        .empire-hero-actions {
+            display: flex; gap: 10px; flex-wrap: wrap;
+        }
+        .empire-btn-gold {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 22px;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative; overflow: hidden;
+            background: linear-gradient(135deg, #d4af37 0%, #b8860b 100%);
+            color: #1a0d2e;
+            border: none;
+            box-shadow: 0 6px 18px rgba(212,175,55,0.35);
+        }
+        .empire-btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 26px rgba(212,175,55,0.5);
+        }
+        .empire-btn-gold::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: empireShine 3.5s ease-in-out infinite;
+        }
+        .empire-btn-ghost-t {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 11px 22px;
+            border-radius: 12px;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: bold;
+            font-size: 0.88rem;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.85);
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .empire-btn-ghost-t:hover {
+            background: rgba(212,175,55,0.12);
+            border-color: rgba(212,175,55,0.4);
+            color: var(--gold);
+        }
+
+        /* ── شريط النبض ── */
+        .empire-pulse-row {
+            position: relative; z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(212,175,55,0.15);
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+        .empire-pulse-cell {
+            display: flex; align-items: center; gap: 8px;
+            padding: 8px 14px;
+            border-radius: 10px;
+        }
+        .empire-pulse-cell .empire-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: #2ecc71;
+            animation: empireLivePulse 2s ease-in-out infinite;
+        }
+        .empire-pulse-cell .icon { font-size: 1rem; }
+        .empire-pulse-cell .lbl {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.55);
+        }
+        .empire-pulse-cell .val {
+            font-size: 1rem;
+            font-weight: 900;
+            color: var(--gold);
+        }
+        .empire-pulse-divider {
+            width: 1px; height: 24px;
+            background: rgba(212,175,55,0.15);
+        }
+        @media (max-width: 700px) {
+            .empire-pulse-divider { display: none; }
+            .empire-pulse-cell { width: calc(50% - 6px); }
+        }
+
+        /* ── الكنوز / Quick Cards ── */
+        .empire-treasures-t {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+            margin-bottom: 24px;
+        }
+        .treasure-t {
+            position: relative;
+            background: linear-gradient(150deg, rgba(20,15,40,0.7) 0%, rgba(10,10,30,0.85) 100%);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 18px;
+            padding: 20px 18px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+            min-height: 130px;
+            backdrop-filter: blur(10px);
+        }
+        .treasure-t::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: linear-gradient(135deg, transparent 50%, rgba(212,175,55,0.06) 100%);
+            opacity: 0; transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .treasure-t:hover {
+            transform: translateY(-4px) scale(1.01);
+            border-color: rgba(212,175,55,0.5);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(212,175,55,0.15);
+        }
+        .treasure-t:hover::before { opacity: 1; }
+        .treasure-t .bg-icon {
+            position: absolute;
+            top: 50%; left: -10px;
+            transform: translateY(-50%);
+            font-size: 6rem;
+            opacity: 0.05;
+            transition: all 0.4s;
+            pointer-events: none;
+        }
+        .treasure-t:hover .bg-icon {
+            opacity: 0.12;
+            transform: translateY(-50%) rotate(-8deg) scale(1.1);
+        }
+        .treasure-t .lbl {
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.6);
+            font-weight: bold;
+            margin-bottom: 10px;
+            position: relative; z-index: 1;
+        }
+        .treasure-t .num {
+            font-size: 2.4rem;
+            font-weight: 900;
+            line-height: 1;
+            background: linear-gradient(135deg, #f5d04a 0%, #d4af37 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 6px;
+            position: relative; z-index: 1;
+        }
+        .treasure-t .sub {
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.4);
+            margin-bottom: 8px;
+            position: relative; z-index: 1;
+        }
+        .treasure-t .trend {
+            font-size: 0.7rem;
+            color: rgba(212,175,55,0.55);
+            padding-top: 8px;
+            border-top: 1px solid rgba(212,175,55,0.1);
+            position: relative; z-index: 1;
+        }
+        /* تنويعات الألوان */
+        .treasure-t.t-prep      { border-color: rgba(46,204,113,0.25); }
+        .treasure-t.t-prep:hover{ border-color: rgba(46,204,113,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(46,204,113,0.2); }
+        .treasure-t.t-prep .num{ background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%); -webkit-background-clip: text; background-clip: text; }
+        .treasure-t.t-res       { border-color: rgba(52,152,219,0.25); }
+        .treasure-t.t-res:hover { border-color: rgba(52,152,219,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(52,152,219,0.2); }
+        .treasure-t.t-res .num  { background: linear-gradient(135deg, #5dade2 0%, #3498db 100%); -webkit-background-clip: text; background-clip: text; }
+        .treasure-t.t-bank      { border-color: rgba(155,89,182,0.25); }
+        .treasure-t.t-bank:hover{ border-color: rgba(155,89,182,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(155,89,182,0.2); }
+        .treasure-t.t-bank .num { background: linear-gradient(135deg, #bb86fc 0%, #9b59b6 100%); -webkit-background-clip: text; background-clip: text; }
+        .treasure-t.t-exam      { border-color: rgba(231,76,60,0.25); }
+        .treasure-t.t-exam:hover{ border-color: rgba(231,76,60,0.6); box-shadow: 0 12px 32px rgba(0,0,0,0.5), 0 0 24px rgba(231,76,60,0.2); }
+        .treasure-t.t-exam .num { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); -webkit-background-clip: text; background-clip: text; }
+
+        /* ── تحسين nav-btn (sidebar) ── */
+        .nav-btn {
+            position: relative; overflow: hidden;
+        }
+        .nav-btn::before {
+            content: '';
+            position: absolute;
+            left: -100%; top: 0;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            transition: left 0.6s ease;
+        }
+        .nav-btn:hover::before { left: 100%; }
+        .nav-btn.active {
+            box-shadow: 0 6px 18px rgba(212,175,55,0.3) !important;
+        }
+
+        /* ── selection-panel تحسين ── */
+        .selection-panel {
+            background: rgba(0,0,0,0.2) !important;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(212,175,55,0.15) !important;
+            position: relative; z-index: 1;
+        }
+
+        /* ── sub-plan glow ── */
+        .sub-plan {
+            position: relative; overflow: hidden;
+        }
+        .sub-plan::before {
+            content: '';
+            position: absolute;
+            top: 0; right: -100%;
+            width: 60%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.08), transparent);
+            transition: right 0.6s;
+        }
+        .sub-plan:hover::before { right: 200%; }
+
+        /* ── prep-box تحسين ── */
+        .prep-box {
+            transition: all 0.3s cubic-bezier(0.4,0,0.2,1) !important;
+        }
+        .prep-box:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(212,175,55,0.15);
+        }
+
     </style>
 </head>
 <body>
@@ -554,9 +873,14 @@
         <button class="btn-gold-main shiny-btn" style="width:100%;justify-content:center;" onclick="handleLogin()">
             <i class="fas fa-key"></i> فتح أبواب الديوان
         </button>
-        <p style="font-size:0.85rem;margin-top:16px;color:rgba(255,255,255,0.35);">
-            معلم جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;">سجّل بياناتك</span>
-        </p>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-size:0.82rem;flex-wrap:wrap;gap:8px;">
+            <a href="#" onclick="event.preventDefault();window.open('https://api.whatsapp.com/send?phone=96878537653&text=بيانات%20المعلم%20منسية','_blank');" style="color:#5dade2;text-decoration:none;">
+                <i class="fab fa-whatsapp"></i> 🔑 نسيت كلمة المرور؟
+            </a>
+            <span style="color:rgba(255,255,255,0.35);">
+                معلم جديد؟ <span onclick="toggleAuth(true)" style="color:var(--gold);cursor:pointer;text-decoration:underline;font-weight:bold;">سجّل بياناتك</span>
+            </span>
+        </div>
     </div>
     <div id="register-form" class="access-box" style="display:none;">
         <h2 style="font-family:'Amiri';color:var(--gold);font-size:2rem;margin:0 0 18px;">تسجيل معلم جديد 📜</h2>
@@ -709,15 +1033,92 @@
 
 <main class="main-content">
 
-    <!-- Header -->
-    <div class="header-box">
-        <div>
-            <h1 style="font-family:'Amiri';color:var(--gold);margin:0;font-size:2.2rem;filter:drop-shadow(0 0 10px rgba(212,175,55,0.4));">
-                ديوان موارد المعلمين 👑
-            </h1>
-            <p style="opacity:0.6;margin:4px 0 0;font-size:0.9rem;">إمبراطورية الرياضيات — سلطنة عُمان 2026</p>
+    <!-- 👑 Hero ملكي -->
+    <div class="empire-hero-teacher" id="teacher-hero">
+        <div class="empire-hero-glow"></div>
+        <div class="empire-hero-content">
+            <div class="empire-hero-icon">🏛️</div>
+            <div class="empire-hero-text">
+                <div class="empire-greeting" id="teacher-greeting">صباح الخير، أيها الأستاذ</div>
+                <h1 class="empire-hero-title">ديوان المعلمين</h1>
+                <div class="empire-hero-subtitle" id="teacher-now">
+                    <i class="fas fa-mortarboard"></i> إمبراطورية الرياضيات — سلطنة عُمان 2026
+                </div>
+            </div>
+            <div class="empire-hero-actions">
+                <button class="empire-btn-gold" onclick="document.querySelector('.btn-prep').click()">
+                    <i class="fas fa-book-open"></i> ابدأ التحضير
+                </button>
+                <button class="empire-btn-ghost-t" onclick="loadCurriculum().then(()=>showToast('✅ تم تحديث المنهج'))">
+                    <i class="fas fa-sync"></i> تحديث
+                </button>
+            </div>
         </div>
-        <div style="font-size:3rem;opacity:0.12;filter:drop-shadow(0 0 20px var(--gold));">📐</div>
+
+        <!-- شريط النبض — حالة سريعة -->
+        <div class="empire-pulse-row">
+            <div class="empire-pulse-cell">
+                <span class="empire-dot"></span>
+                <span class="lbl">حالة الديوان</span>
+                <span class="val" style="color:#2ecc71;">نشط</span>
+            </div>
+            <div class="empire-pulse-divider"></div>
+            <div class="empire-pulse-cell">
+                <span class="icon">📅</span>
+                <span class="lbl">اليوم</span>
+                <span class="val" id="hero-date">—</span>
+            </div>
+            <div class="empire-pulse-divider"></div>
+            <div class="empire-pulse-cell">
+                <span class="icon">🕐</span>
+                <span class="lbl">الوقت</span>
+                <span class="val" id="hero-time">—</span>
+            </div>
+            <div class="empire-pulse-divider"></div>
+            <div class="empire-pulse-cell">
+                <span class="icon">📚</span>
+                <span class="lbl">صفوف</span>
+                <span class="val" id="hero-grades-count">—</span>
+            </div>
+            <div class="empire-pulse-divider"></div>
+            <div class="empire-pulse-cell">
+                <span class="icon">📋</span>
+                <span class="lbl">دروس</span>
+                <span class="val" id="hero-lessons-count">—</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- 💎 الكنوز — اختصارات سريعة -->
+    <div class="empire-treasures-t">
+        <div class="treasure-t t-prep" onclick="document.querySelector('.btn-prep').click()">
+            <div class="bg-icon">📋</div>
+            <div class="lbl">التحضيرات الجاهزة</div>
+            <div class="num"><i class="fas fa-book-open" style="font-size:1.8rem;"></i></div>
+            <div class="sub">دخول مباشر للتحضيرات</div>
+            <div class="trend">📚 جاهزة للاستخدام</div>
+        </div>
+        <div class="treasure-t t-res" onclick="document.querySelector('.btn-res').click()">
+            <div class="bg-icon">📁</div>
+            <div class="lbl">موارد المنهج</div>
+            <div class="num"><i class="fas fa-folder-open" style="font-size:1.8rem;"></i></div>
+            <div class="sub">كتب · أدلة · نشرات</div>
+            <div class="trend">🏛️ مكتبة شاملة</div>
+        </div>
+        <div class="treasure-t t-bank" onclick="document.querySelector('.btn-bank').click()">
+            <div class="bg-icon">❓</div>
+            <div class="lbl">بنك الأسئلة</div>
+            <div class="num"><i class="fas fa-question-circle" style="font-size:1.8rem;"></i></div>
+            <div class="sub">آلاف الأسئلة المُصنّفة</div>
+            <div class="trend">💎 موزّعة على الدروس</div>
+        </div>
+        <div class="treasure-t t-exam" onclick="document.querySelector('.btn-sub').click()">
+            <div class="bg-icon">🛡️</div>
+            <div class="lbl">اشتراكي</div>
+            <div class="num" id="treasure-sub-status"><i class="fas fa-shield-alt" style="font-size:1.8rem;"></i></div>
+            <div class="sub" id="treasure-sub-detail">اضغط للمراجعة</div>
+            <div class="trend">⚜️ الدعم والتفعيل</div>
+        </div>
     </div>
 
     <!-- ══ قسم التحضيرات ══ -->
@@ -1162,6 +1563,9 @@
         populateResGrades();
         checkSubStatus();
         loadProfileSection();
+        // 👑 حدّث Hero بعد كل شيء
+        if (typeof updateHeroStats === 'function') updateHeroStats();
+        if (typeof updateTeacherHero === 'function') updateTeacherHero();
     }
 
     async function loadCurriculum() {
@@ -1633,7 +2037,13 @@
             const exp   = document.getElementById('sub-status-expiry');
             const box   = document.getElementById('sub-status-box');
             if (!icon) return;
+            // 👑 حدّث الكنز
             if (d.active) {
+                var daysLeft = null;
+                if (d.expiry) {
+                    daysLeft = Math.ceil((new Date(d.expiry) - new Date()) / (1000*60*60*24));
+                }
+                if (typeof updateSubStatusTreasure === 'function') updateSubStatusTreasure(true, daysLeft);
                 icon.textContent  = '👑';
                 label.textContent = 'اشتراك ملكي نشط ✅';
                 label.style.color = '#2ecc71';
@@ -1647,6 +2057,7 @@
                     if (diff <= 7) { exp.style.color = '#f39c12'; icon.textContent = '⚠️'; }
                 }
             } else {
+                if (typeof updateSubStatusTreasure === 'function') updateSubStatusTreasure(false, null);
                 icon.textContent  = '🔒';
                 label.textContent = 'لا يوجد اشتراك نشط';
                 label.style.color = 'rgba(255,255,255,0.5)';
@@ -1952,6 +2363,81 @@
         }
         document.querySelector('.nav-btn.btn-prep')?.classList.add('active');
     };
+
+    /* ════════════════════════════════════════════════════════════
+       👑 EMPIRE HERO — تحية ديناميكية + إحصاءات حية
+    ════════════════════════════════════════════════════════════ */
+    function updateTeacherHero() {
+        var now = new Date();
+        var h = now.getHours();
+        var greetEl = document.getElementById('teacher-greeting');
+        if (greetEl) {
+            var msg;
+            if (h < 5)       msg = '🌙 ليلة طيبة، أيها الأستاذ';
+            else if (h < 12) msg = '☀️ صباح الخير، أيها الأستاذ';
+            else if (h < 17) msg = '🌤️ مساء النور، أيها الأستاذ';
+            else if (h < 21) msg = '🌅 مساء الخير، أيها الأستاذ';
+            else             msg = '🌃 ليلة موفّقة، أيها الأستاذ';
+            
+            // أضف اسم الأستاذ إن كان متاحاً
+            try {
+                var teacher = JSON.parse(localStorage.getItem('teacher') || '{}');
+                if (teacher.full_name) msg = msg.replace('، أيها الأستاذ', '، أ. ' + teacher.full_name.split(' ')[0]);
+            } catch(e) {}
+            greetEl.textContent = msg;
+        }
+        
+        var dateEl = document.getElementById('hero-date');
+        var timeEl = document.getElementById('hero-time');
+        if (dateEl) {
+            dateEl.textContent = now.toLocaleDateString('ar-EG', { weekday: 'long', day: 'numeric', month: 'short' });
+        }
+        if (timeEl) {
+            timeEl.textContent = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        }
+    }
+
+    function updateHeroStats() {
+        // عدد الصفوف والدروس من المنهج
+        if (typeof globalCurr !== 'undefined' && globalCurr.length) {
+            var gradesCount = globalCurr.length;
+            var lessonsCount = 0;
+            globalCurr.forEach(function(g) {
+                (g.semesters || []).forEach(function(s) {
+                    (s.units || []).forEach(function(u) {
+                        lessonsCount += (u.lessons || []).length;
+                    });
+                });
+            });
+            var elG = document.getElementById('hero-grades-count');
+            var elL = document.getElementById('hero-lessons-count');
+            if (elG) elG.textContent = gradesCount.toLocaleString('ar-EG');
+            if (elL) elL.textContent = lessonsCount.toLocaleString('ar-EG');
+        }
+    }
+
+    function updateSubStatusTreasure(active, daysLeft) {
+        var statEl = document.getElementById('treasure-sub-status');
+        var detEl = document.getElementById('treasure-sub-detail');
+        if (!statEl) return;
+        if (active) {
+            statEl.innerHTML = '<i class="fas fa-check-circle" style="font-size:1.8rem;color:#2ecc71;"></i>';
+            if (detEl) detEl.textContent = daysLeft != null ? (daysLeft + ' يوم متبقٍ') : 'مفعّل';
+        } else {
+            statEl.innerHTML = '<i class="fas fa-shield-alt" style="font-size:1.8rem;color:#f39c12;"></i>';
+            if (detEl) detEl.textContent = 'بحاجة لتفعيل';
+        }
+    }
+
+    // حدّث الـ hero كل دقيقة
+    setInterval(updateTeacherHero, 60000);
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(updateTeacherHero, 200);
+        setTimeout(updateHeroStats, 1500);
+    });
+    setTimeout(updateTeacherHero, 500);
+    setTimeout(updateHeroStats, 2000);
+
 </script>
 </body>
 </html>
