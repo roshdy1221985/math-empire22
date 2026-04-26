@@ -1642,14 +1642,171 @@ async def parent_search(query: str, request: Request):
     student = st.data[0]
     student.pop("password", None)
 
+    # ═══ التاريخ الكامل ═══
     history = supabase.table("results").select(
         "id, lesson, score, total, timestamp"
-    ).eq("student_id", student["id"]).order("timestamp", desc=True).limit(100).execute().data
+    ).eq("student_id", student["id"]).order("timestamp", desc=True).limit(200).execute().data or []
+
+    # ═══ إحصائيات الجلسات (وقت فعلي في المنصة) ═══
+    from datetime import datetime, timezone, timedelta
+    session_minutes_30d = 0
+    session_minutes_7d = 0
+    session_minutes_total = 0
+    days_active_30d = set()
+    last_seen_iso = None
+    
+    try:
+        now = datetime.now(timezone.utc)
+        cutoff_30d = now - timedelta(days=30)
+        cutoff_7d = now - timedelta(days=7)
+        
+        # جلب كل الجلسات (pagination)
+        all_sessions = []
+        offset = 0
+        for _ in range(20):
+            sess = supabase.table("student_sessions").select(
+                "session_bucket, last_seen"
+            ).eq("student_id", student["id"]).order("session_bucket", desc=True).range(offset, offset + 999).execute()
+            batch = sess.data or []
+            if not batch:
+                break
+            all_sessions.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        for s in all_sessions:
+            session_minutes_total += 5
+            try:
+                bucket_dt = datetime.fromisoformat(s["session_bucket"].replace("Z", "+00:00"))
+                if bucket_dt.tzinfo is None:
+                    bucket_dt = bucket_dt.replace(tzinfo=timezone.utc)
+                if bucket_dt >= cutoff_30d:
+                    session_minutes_30d += 5
+                    days_active_30d.add(bucket_dt.date().isoformat())
+                if bucket_dt >= cutoff_7d:
+                    session_minutes_7d += 5
+                # last seen
+                if s.get("last_seen"):
+                    if last_seen_iso is None or s["last_seen"] > last_seen_iso:
+                        last_seen_iso = s["last_seen"]
+            except Exception:
+                continue
+    except Exception:
+        pass
+    
+    # ═══ ترتيب الطالب في الـ leaderboard ═══
+    rank_in_grade = None
+    rank_total = None
+    grade_total_students = 0
+    try:
+        # جلب كل النتائج للحساب الدقيق
+        all_results = []
+        offset = 0
+        for _ in range(50):
+            rb = supabase.table("results").select(
+                "student_id, student_name, score, grade"
+            ).range(offset, offset + 999).execute()
+            batch = rb.data or []
+            if not batch:
+                break
+            all_results.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        # XP لكل طالب (إجمالي) + XP لكل طالب في نفس الصف
+        from collections import defaultdict
+        xp_total = defaultdict(int)
+        xp_grade = defaultdict(int)  # student_id -> XP, للطلاب في نفس الصف
+        
+        for r in all_results:
+            sid = r.get("student_id")
+            if not sid: continue
+            s_xp = r.get("score") or 0
+            xp_total[sid] += s_xp
+            if r.get("grade") == student.get("grade"):
+                xp_grade[sid] += s_xp
+        
+        # الترتيب الإجمالي
+        sorted_total = sorted(xp_total.items(), key=lambda x: x[1], reverse=True)
+        for idx, (sid, _) in enumerate(sorted_total, 1):
+            if sid == student["id"]:
+                rank_total = idx
+                break
+        
+        # الترتيب داخل نفس الصف
+        sorted_grade = sorted(xp_grade.items(), key=lambda x: x[1], reverse=True)
+        grade_total_students = len(sorted_grade)
+        for idx, (sid, _) in enumerate(sorted_grade, 1):
+            if sid == student["id"]:
+                rank_in_grade = idx
+                break
+    except Exception:
+        pass
+    
+    # ═══ إحصاء الإشعارات الحديثة ═══
+    notifications_count = 0
+    try:
+        cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
+        nt_res = supabase.table("notifications").select("id", count="exact").gte(
+            "created_at", cutoff
+        ).limit(1).execute()
+        notifications_count = nt_res.count if hasattr(nt_res, "count") else 0
+    except Exception:
+        pass
+    
+    # ═══ تحليل الأداء ═══
+    total_tests = len(history)
+    total_score = sum((r.get("score") or 0) for r in history)
+    total_max   = sum((r.get("total") or 0) for r in history)
+    avg_pct     = round((total_score / total_max * 100), 1) if total_max > 0 else 0
+    
+    # تجميع حسب الدرس (نقاط الضعف)
+    lesson_stats = {}
+    for r in history:
+        lesson = r.get("lesson") or "غير محدد"
+        if lesson not in lesson_stats:
+            lesson_stats[lesson] = {"score": 0, "total": 0, "count": 0}
+        lesson_stats[lesson]["score"] += (r.get("score") or 0)
+        lesson_stats[lesson]["total"] += (r.get("total") or 0)
+        lesson_stats[lesson]["count"] += 1
+    
+    weak_lessons = []
+    strong_lessons = []
+    for lesson, st_data in lesson_stats.items():
+        if st_data["total"] > 0 and st_data["count"] >= 2:
+            pct = (st_data["score"] / st_data["total"]) * 100
+            entry = {"lesson": lesson, "pct": round(pct, 1), "count": st_data["count"]}
+            if pct < 65:
+                weak_lessons.append(entry)
+            elif pct >= 85:
+                strong_lessons.append(entry)
+    
+    weak_lessons.sort(key=lambda x: x["pct"])
+    strong_lessons.sort(key=lambda x: -x["pct"])
 
     return {
         "found":   True,
         "student": student,
-        "history": history or [],
+        "history": history,
+        "stats": {
+            "total_xp":             total_score,
+            "total_tests":          total_tests,
+            "avg_score_pct":        avg_pct,
+            "minutes_30d":          session_minutes_30d,
+            "hours_30d":            round(session_minutes_30d / 60, 1),
+            "minutes_7d":           session_minutes_7d,
+            "minutes_total":        session_minutes_total,
+            "days_active_30d":      len(days_active_30d),
+            "last_seen":            last_seen_iso,
+            "rank_total":           rank_total,
+            "rank_in_grade":        rank_in_grade,
+            "grade_total_students": grade_total_students,
+            "notifications_recent": notifications_count,
+            "weak_lessons":         weak_lessons[:5],
+            "strong_lessons":       strong_lessons[:5],
+        },
     }
 
 
@@ -2015,6 +2172,324 @@ async def student_forgot_password(
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 👨‍👩‍👦 PARENT SESSIONS — تسجيل دخول دائم لأولياء الأمور
+# ═══════════════════════════════════════════════════════════════
+
+def _generate_parent_token() -> str:
+    """توليد token عشوائي قوي للجلسة"""
+    import secrets
+    return secrets.token_urlsafe(48)
+
+
+@app.post("/api/parent/login")
+async def parent_login(
+    request: Request,
+    parent_code: str  = Form(...),
+    parent_name: str  = Form(default=""),
+    parent_email: str = Form(default=""),
+    parent_phone: str = Form(default=""),
+):
+    """
+    تسجيل دخول ولي الأمر — يُنشئ session token دائم (180 يوم)
+    + يحفظ بيانات ولي الأمر للتواصل لاحقاً
+    """
+    # rate limit
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=20, window_seconds=60, key_prefix="parent_login"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة — انتظر دقيقة")
+    
+    pc = parent_code.strip().upper()
+    if not pc.startswith("RS-"):
+        pc = f"RS-{pc}"
+    
+    import re as _re
+    if not _re.match(r'^RS-[A-Z0-9]{4,12}$', pc):
+        raise HTTPException(status_code=400, detail="صيغة الكود غير صحيحة")
+    
+    # ابحث عن الطالب
+    try:
+        st = supabase.table("students").select(
+            "id, full_name, grade, parent_email, parent_name"
+        ).eq("parent_code", pc).limit(1).execute()
+        if not st.data:
+            raise HTTPException(status_code=404, detail="لم نعثر على طالب بهذا الكود")
+        student = st.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+    
+    # حدّث بيانات ولي الأمر إن قُدّمت (للتواصل لاحقاً)
+    update_data = {}
+    if parent_name.strip() and not student.get("parent_name"):
+        update_data["parent_name"] = parent_name.strip()[:200]
+    if parent_email.strip():
+        # تحقق صيغة الإيميل
+        if _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', parent_email.strip()):
+            update_data["parent_email"] = parent_email.strip().lower()[:200]
+    if parent_phone.strip():
+        # رقم بسيط (أي طول معقول)
+        clean_phone = _re.sub(r'[^\d+]', '', parent_phone.strip())
+        if 6 <= len(clean_phone) <= 20:
+            update_data["parent_phone"] = clean_phone
+    
+    if update_data:
+        try:
+            supabase.table("students").update(update_data).eq("id", student["id"]).execute()
+        except Exception:
+            pass  # نُكمل حتى لو فشل التحديث
+    
+    # أنشئ session token
+    token = _generate_parent_token()
+    try:
+        supabase.table("parent_sessions").insert({
+            "student_id":    student["id"],
+            "parent_code":   pc,
+            "session_token": token,
+            "parent_name":   parent_name.strip()[:200] or None,
+            "parent_email":  (parent_email.strip().lower() or None) if parent_email else None,
+            "parent_phone":  update_data.get("parent_phone"),
+            "user_agent":    str(request.headers.get("user-agent", ""))[:300],
+        }).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل إنشاء الجلسة: {str(e)[:150]}")
+    
+    return {
+        "status":  "success",
+        "token":   token,
+        "expires_in_days": 180,
+        "student": {
+            "id":         student["id"],
+            "full_name":  student.get("full_name"),
+            "grade":      student.get("grade"),
+        }
+    }
+
+
+@app.get("/api/parent/auto_login/{token}")
+async def parent_auto_login(token: str, request: Request):
+    """
+    دخول تلقائي بـ token — يُستخدم عند تحميل الصفحة
+    """
+    if not token or len(token) < 30:
+        raise HTTPException(status_code=400, detail="token غير صالح")
+    
+    try:
+        sess = supabase.table("parent_sessions").select(
+            "id, student_id, parent_code, parent_name, parent_email, parent_phone, expires_at"
+        ).eq("session_token", token).limit(1).execute()
+        
+        if not sess.data:
+            raise HTTPException(status_code=401, detail="جلسة غير موجودة — سجّل الدخول مرة أخرى")
+        
+        session = sess.data[0]
+        
+        # تحقق من الصلاحية
+        from datetime import datetime, timezone
+        if session.get("expires_at"):
+            try:
+                exp = datetime.fromisoformat(session["expires_at"].replace("Z", "+00:00"))
+                if exp.tzinfo is None:
+                    exp = exp.replace(tzinfo=timezone.utc)
+                if exp < datetime.now(timezone.utc):
+                    # احذف الجلسة المنتهية
+                    supabase.table("parent_sessions").delete().eq("id", session["id"]).execute()
+                    raise HTTPException(status_code=401, detail="انتهت صلاحية الجلسة")
+            except HTTPException:
+                raise
+            except Exception:
+                pass
+        
+        # حدّث last_used_at
+        try:
+            supabase.table("parent_sessions").update({
+                "last_used_at": datetime.now(timezone.utc).isoformat()
+            }).eq("id", session["id"]).execute()
+        except Exception:
+            pass
+        
+        return {
+            "valid": True,
+            "parent_code": session["parent_code"],
+            "parent_name": session.get("parent_name"),
+            "parent_email": session.get("parent_email"),
+            "parent_phone": session.get("parent_phone"),
+            "student_id": session["student_id"],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/parent/logout")
+async def parent_logout(token: str = Form(...)):
+    """تسجيل خروج وحذف الجلسة"""
+    try:
+        supabase.table("parent_sessions").delete().eq("session_token", token).execute()
+    except Exception:
+        pass
+    return {"status": "ok"}
+
+
+@app.post("/api/parent/update_profile")
+async def parent_update_profile(
+    token: str        = Form(...),
+    parent_name: str  = Form(default=""),
+    parent_email: str = Form(default=""),
+    parent_phone: str = Form(default=""),
+):
+    """تحديث بيانات ولي الأمر"""
+    import re as _re
+    
+    # تحقق من الـ token
+    sess = supabase.table("parent_sessions").select(
+        "student_id, id"
+    ).eq("session_token", token).limit(1).execute()
+    
+    if not sess.data:
+        raise HTTPException(status_code=401, detail="جلسة غير موجودة")
+    
+    student_id = sess.data[0]["student_id"]
+    session_id = sess.data[0]["id"]
+    
+    update_student = {}
+    update_session = {}
+    
+    if parent_name.strip():
+        v = parent_name.strip()[:200]
+        update_student["parent_name"] = v
+        update_session["parent_name"] = v
+    
+    if parent_email.strip():
+        em = parent_email.strip().lower()
+        if _re.match(r'^[^@\s]+@[^@\s]+\.[^@\s]+$', em):
+            update_student["parent_email"] = em[:200]
+            update_session["parent_email"] = em[:200]
+        else:
+            raise HTTPException(status_code=400, detail="صيغة البريد الإلكتروني غير صحيحة")
+    
+    if parent_phone.strip():
+        clean_phone = _re.sub(r'[^\d+]', '', parent_phone.strip())
+        if 6 <= len(clean_phone) <= 20:
+            update_student["parent_phone"] = clean_phone
+            update_session["parent_phone"] = clean_phone
+    
+    try:
+        if update_student:
+            supabase.table("students").update(update_student).eq("id", student_id).execute()
+        if update_session:
+            supabase.table("parent_sessions").update(update_session).eq("id", session_id).execute()
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📧 ADMIN — إدارة بريد أولياء الأمور
+# ═══════════════════════════════════════════════════════════════
+@app.get("/api/admin/parent_emails")
+async def admin_list_parent_emails(admin = Depends(get_current_admin)):
+    """
+    قائمة كل أولياء الأمور الذين أدخلوا إيميلاتهم — لإرسال نشرات
+    """
+    try:
+        # جلب من students مع pagination
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, grade, parent_email, parent_name, parent_phone"
+            ).neq("parent_email", "").not_.is_("parent_email", "null").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        # رتّب وحدد الفريد
+        unique_emails = {}
+        for s in all_students:
+            em = (s.get("parent_email") or "").strip().lower()
+            if not em:
+                continue
+            if em not in unique_emails:
+                unique_emails[em] = {
+                    "email": em,
+                    "parent_name": s.get("parent_name") or "",
+                    "parent_phone": s.get("parent_phone") or "",
+                    "students": [],
+                }
+            unique_emails[em]["students"].append({
+                "id": s["id"],
+                "name": s.get("full_name"),
+                "grade": s.get("grade"),
+            })
+        
+        return {
+            "total_emails": len(unique_emails),
+            "total_students_with_email": len(all_students),
+            "parents": list(unique_emails.values()),
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.get("/api/admin/parent_emails/export")
+async def admin_export_parent_emails(admin = Depends(get_current_admin)):
+    """
+    تصدير قائمة الإيميلات كـ CSV
+    """
+    from fastapi.responses import PlainTextResponse
+    try:
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, grade, parent_email, parent_name, parent_phone"
+            ).neq("parent_email", "").not_.is_("parent_email", "null").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_students.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        # CSV
+        lines = ["البريد,اسم ولي الأمر,الهاتف,اسم الطالب,الصف"]
+        for s in all_students:
+            em = (s.get("parent_email") or "").strip()
+            if not em:
+                continue
+            row = [
+                em,
+                (s.get("parent_name") or "").replace(",", " "),
+                (s.get("parent_phone") or "").replace(",", " "),
+                (s.get("full_name") or "").replace(",", " "),
+                (s.get("grade") or "").replace(",", " "),
+            ]
+            lines.append(",".join(row))
+        
+        csv_content = "\n".join(lines)
+        # BOM لـ Excel ليقرأ العربية
+        csv_with_bom = "\ufeff" + csv_content
+        
+        return PlainTextResponse(
+            content=csv_with_bom,
+            headers={
+                "Content-Type": "text/csv; charset=utf-8",
+                "Content-Disposition": 'attachment; filename="parent_emails.csv"'
+            }
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
 
 
 @app.post("/api/admin/update_password")

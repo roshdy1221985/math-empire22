@@ -1668,6 +1668,7 @@
                 <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
                 <div class="nav-link" onclick="showSection('workbook');setTimeout(loadAdminTasks,100);" style="color:#f39c12;"><i class="fas fa-book"></i> 📓 دفتر الأعمال</div>
                 <div class="nav-link" onclick="showSection('motivation');" style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب</div>
+                <div class="nav-link" onclick="showSection('parent-emails');setTimeout(loadParentEmails,100);" style="color:#16a085;"><i class="fas fa-envelope"></i> 📧 إيميلات أولياء الأمور</div>
                 <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
                 <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
                 <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
@@ -2856,7 +2857,79 @@
                 </div>
             </section>
 
-            <!-- ==================== SUB CODES ==================== -->
+
+            <!-- ==================== 📧 PARENT EMAILS ==================== -->
+            <section id="parent-emails" class="section">
+                <div class="card">
+                    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+                        <h2 style="color:#16a085;margin:0;"><i class="fas fa-envelope"></i> 📧 بريد أولياء الأمور</h2>
+                        <div style="display:flex;gap:8px;">
+                            <button onclick="exportParentEmails()" style="background:linear-gradient(135deg,#27ae60,#1e8449);border:none;color:#fff;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:'Cairo';font-weight:bold;">
+                                <i class="fas fa-file-csv"></i> تصدير CSV
+                            </button>
+                            <button onclick="loadParentEmails()" style="background:transparent;border:1px solid rgba(22,160,133,0.4);color:#16a085;padding:10px 18px;border-radius:10px;cursor:pointer;">
+                                <i class="fas fa-sync"></i> تحديث
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <p style="opacity:0.7;font-size:0.9rem;margin-bottom:18px;line-height:1.7;">
+                        قائمة بكل أولياء الأمور الذين أدخلوا إيميلاتهم — يمكنك تصديرها كـ CSV لإرسال نشرات دورية عبر Gmail/Outlook.
+                    </p>
+
+                    <!-- إحصائيات -->
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:18px;">
+                        <div style="background:rgba(22,160,133,0.08);border:1px solid rgba(22,160,133,0.3);border-radius:12px;padding:14px;text-align:center;">
+                            <div style="font-size:0.74rem;color:rgba(255,255,255,0.55);">📧 إيميلات فريدة</div>
+                            <div id="pe-stat-emails" style="font-size:1.8rem;font-weight:900;color:#16a085;">—</div>
+                        </div>
+                        <div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:12px;padding:14px;text-align:center;">
+                            <div style="font-size:0.74rem;color:rgba(255,255,255,0.55);">👨‍👩‍👦 طلاب لديهم بريد ولي أمر</div>
+                            <div id="pe-stat-students" style="font-size:1.8rem;font-weight:900;color:#2ecc71;">—</div>
+                        </div>
+                        <div style="background:rgba(155,89,182,0.08);border:1px solid rgba(155,89,182,0.3);border-radius:12px;padding:14px;text-align:center;">
+                            <div style="font-size:0.74rem;color:rgba(255,255,255,0.55);">📊 معدل التغطية</div>
+                            <div id="pe-stat-coverage" style="font-size:1.8rem;font-weight:900;color:#9b59b6;">—</div>
+                        </div>
+                    </div>
+
+                    <!-- البحث -->
+                    <input type="text" id="pe-search" placeholder="🔍 ابحث بالاسم أو البريد..." 
+                        oninput="filterParentEmails()"
+                        style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:'Cairo';margin-bottom:14px;">
+
+                    <!-- الجدول -->
+                    <div style="overflow-x:auto;">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>📧 البريد</th>
+                                    <th>👤 ولي الأمر</th>
+                                    <th>📱 الهاتف</th>
+                                    <th>👨‍🎓 الأبناء</th>
+                                    <th>الإجراء</th>
+                                </tr>
+                            </thead>
+                            <tbody id="pe-tbody">
+                                <tr><td colspan="5" style="text-align:center;padding:30px;opacity:0.5;">جارٍ التحميل...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- إرشادات لاستخدام الإيميلات -->
+                    <div style="margin-top:20px;background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.3);border-radius:12px;padding:14px;font-size:0.85rem;line-height:1.8;">
+                        <strong style="color:#5dade2;">💡 كيفية إرسال نشرة لكل الإيميلات:</strong>
+                        <ol style="margin:8px 0 0 0;padding-right:20px;color:rgba(255,255,255,0.75);">
+                            <li>اضغط <strong>"تصدير CSV"</strong> لتنزيل الملف</li>
+                            <li>افتح Gmail → اضغط "إنشاء" (Compose)</li>
+                            <li>الصق الإيميلات في حقل <strong>BCC</strong> (مهم للخصوصية!)</li>
+                            <li>اكتب الموضوع والرسالة وأرسل</li>
+                        </ol>
+                    </div>
+                </div>
+            </section>
+
+                        <!-- ==================== SUB CODES ==================== -->
             <section id="sub-codes" class="section">
                 <div class="card">
                     <h2 style="color:var(--gold);"><i class="fas fa-key"></i> مولّد أكواد الاشتراك الملكي 🔐</h2>
@@ -10495,6 +10568,114 @@
             }
         } catch(e) { showToast('❌ خطأ', 'error'); }
         finally { btn.disabled = false; btn.innerHTML = '🚀 أرسل الإشعار'; }
+    }
+
+
+    /* ════════════════════════════════════════════════════════════
+       📧 إدارة بريد أولياء الأمور
+    ════════════════════════════════════════════════════════════ */
+    var _allParentEmails = [];
+
+    async function loadParentEmails() {
+        var tbody = document.getElementById('pe-tbody');
+        if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;opacity:0.5;">⏳ جارٍ التحميل...</td></tr>';
+        try {
+            var res = await authFetch('/api/admin/parent_emails');
+            if (!res || !res.ok) throw new Error('failed');
+            var data = await res.json();
+            _allParentEmails = data.parents || [];
+            
+            // إحصائيات
+            var setEl = function(id, val){ var el=document.getElementById(id); if(el) el.textContent=val; };
+            setEl('pe-stat-emails', data.total_emails);
+            setEl('pe-stat-students', data.total_students_with_email);
+            
+            // معدل التغطية
+            try {
+                var allRes = await authFetch('/api/admin/students/full');
+                if (allRes.ok) {
+                    var allData = await allRes.json();
+                    var totalAll = allData.length || 1;
+                    var pct = Math.round((data.total_students_with_email / totalAll) * 100);
+                    setEl('pe-stat-coverage', pct + '%');
+                }
+            } catch(e) {}
+            
+            renderParentEmails();
+        } catch(e) {
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:#e74c3c;padding:20px;">❌ فشل التحميل</td></tr>';
+        }
+    }
+
+    function filterParentEmails() {
+        renderParentEmails();
+    }
+
+    function renderParentEmails() {
+        var tbody = document.getElementById('pe-tbody');
+        if (!tbody) return;
+        var search = (document.getElementById('pe-search')?.value || '').toLowerCase();
+        var filtered = _allParentEmails.filter(function(p) {
+            if (!search) return true;
+            var hay = (p.email + ' ' + p.parent_name + ' ' + p.parent_phone).toLowerCase();
+            if (hay.indexOf(search) !== -1) return true;
+            return p.students.some(function(s){ return (s.name||'').toLowerCase().indexOf(search) !== -1; });
+        });
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:30px;opacity:0.5;">📭 لا توجد إيميلات بعد</td></tr>';
+            return;
+        }
+        tbody.innerHTML = filtered.map(function(p) {
+            var studentsHtml = p.students.map(function(s) {
+                return '<div style="font-size:0.78rem;color:rgba(255,255,255,0.7);">📚 ' + esc(s.name) + ' <span style="opacity:0.5;">(' + esc(s.grade||'') + ')</span></div>';
+            }).join('');
+            var phoneLink = p.parent_phone 
+                ? '<a href="https://wa.me/' + p.parent_phone.replace(/[^\d+]/g,'') + '" target="_blank" style="color:#25D366;text-decoration:none;"><i class="fab fa-whatsapp"></i> ' + esc(p.parent_phone) + '</a>'
+                : '<span style="opacity:0.4;">—</span>';
+            return '<tr>' +
+                '<td><a href="mailto:' + esc(p.email) + '" style="color:#16a085;text-decoration:none;font-weight:bold;">' + esc(p.email) + '</a></td>' +
+                '<td>' + esc(p.parent_name || '—') + '</td>' +
+                '<td>' + phoneLink + '</td>' +
+                '<td>' + studentsHtml + '</td>' +
+                '<td style="white-space:nowrap;">' +
+                    '<button onclick="copyToClipboard(\'' + esc(p.email) + '\')" style="background:rgba(22,160,133,0.15);border:1px solid rgba(22,160,133,0.4);color:#16a085;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:0.75rem;" title="نسخ"><i class="fas fa-copy"></i></button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+    }
+
+    function copyToClipboard(text) {
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(text).then(function(){ showToast('📋 تم نسخ ' + text, 'success'); });
+        } else {
+            var t = document.createElement('textarea');
+            t.value = text; document.body.appendChild(t); t.select();
+            try { document.execCommand('copy'); showToast('📋 تم النسخ', 'success'); } catch(e) {}
+            document.body.removeChild(t);
+        }
+    }
+
+    async function exportParentEmails() {
+        var btn = event?.target;
+        if (btn) { btn.disabled = true; btn.innerHTML = '⏳ جارٍ التصدير...'; }
+        try {
+            var token = localStorage.getItem('admin_token');
+            var res = await fetch(API_URL + '/api/admin/parent_emails/export', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (!res.ok) throw new Error('failed');
+            var blob = await res.blob();
+            var url = URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url; a.download = 'parent_emails.csv';
+            document.body.appendChild(a); a.click(); a.remove();
+            URL.revokeObjectURL(url);
+            showToast('✅ تم التنزيل', 'success');
+        } catch(e) {
+            showToast('❌ فشل التصدير', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-file-csv"></i> تصدير CSV'; }
+        }
     }
 
 

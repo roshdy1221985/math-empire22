@@ -506,7 +506,7 @@ body {
 /* Progress Bar */
 .progress-card { padding: 24px 28px; }
 .progress-stages { display: flex; flex-direction: column; gap: 12px; margin-top: 5px; }
-.progress-item { }
+
 .progress-item-label {
   display: flex; justify-content: space-between; align-items: center;
   font-size: 0.85rem; margin-bottom: 6px;
@@ -906,13 +906,35 @@ body {
              onkeypress="if(event.key==='Enter') doLogin()">
     </div>
 
+    <!-- 📧 بيانات اختيارية لاستلام النشرات والإشعارات -->
+    <div class="form-group">
+      <label class="form-label" for="parent-email">📧 البريد الإلكتروني <span style="opacity:0.5;font-size:0.75rem;">(اختياري — لاستلام تقارير دورية)</span></label>
+      <input class="form-input" id="parent-email" type="email" placeholder="example@gmail.com" autocomplete="email" inputmode="email">
+    </div>
+    
+    <div class="form-group">
+      <label class="form-label" for="parent-phone">📱 رقم الهاتف <span style="opacity:0.5;font-size:0.75rem;">(اختياري)</span></label>
+      <input class="form-input" id="parent-phone" type="tel" placeholder="مثال: 96812345678" autocomplete="tel" inputmode="tel"
+             onkeypress="if(event.key==='Enter') doLogin()">
+    </div>
+
+    <div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);border-radius:10px;padding:10px;margin-bottom:14px;font-size:0.78rem;color:rgba(255,255,255,0.7);line-height:1.6;">
+      ✨ <strong style="color:#2ecc71;">تسجيل دخول مرة واحدة!</strong><br>
+      بعد الدخول لأول مرة، سيتم حفظ جلستك لمدة 6 أشهر — لن تحتاج لإعادة الدخول.
+    </div>
+
     <button class="btn-royal" onclick="doLogin()">دخول إلى الإمبراطورية ⚔️</button>
 
     <div class="login-error" id="login-error"></div>
 
-    <p style="text-align:center; margin-top:18px; font-size:0.78rem; color:var(--text-muted); line-height:1.6;">
-      لا يوجد حساب؟ تواصل مع الأستاذ رشدي سيد<br>للحصول على الكود المرجعي لبطلك.
-    </p>
+    <div style="text-align:center; margin-top:18px;">
+      <a href="https://api.whatsapp.com/send?phone=96878537653&text=أحتاج%20كود%20ولي%20الأمر%20لابني" target="_blank" style="display:inline-flex;align-items:center;gap:8px;background:rgba(37,211,102,0.12);border:1px solid #25D366;color:#25D366;padding:10px 20px;border-radius:10px;font-size:0.85rem;text-decoration:none;font-weight:bold;transition:0.2s;" onmouseover="this.style.background='rgba(37,211,102,0.25)'" onmouseout="this.style.background='rgba(37,211,102,0.12)'">
+        <i class="fab fa-whatsapp"></i> نسيت الكود؟ تواصل مع الأستاذ رشدي
+      </a>
+      <p style="margin-top:12px; font-size:0.75rem; color:var(--text-muted); line-height:1.6;">
+        🔒 الكود سري — لا تشاركه مع أحد لحماية بيانات ابنك
+      </p>
+    </div>
   </div>
 </div>
 
@@ -931,10 +953,22 @@ body {
       </div>
     </div>
     <div class="topbar-actions">
+      <button class="btn-sm btn-outline" onclick="openParentProfileModal()" style="background:rgba(212,175,55,0.12);border-color:var(--gold);color:var(--gold);"><i class="fas fa-user-edit"></i> بياناتي</button>
+      <button class="btn-sm btn-outline" onclick="contactTeacher()" style="background:rgba(37,211,102,0.12);border-color:#25D366;color:#25D366;"><i class="fab fa-whatsapp"></i> الأستاذ</button>
       <button class="btn-sm btn-outline" onclick="doLogout()">🚪 خروج</button>
-      <button class="btn-sm btn-print" onclick="window.print()">🖨️ استخراج التقرير الملكي المطبوع</button>
+      <button class="btn-sm btn-print" onclick="window.print()">🖨️ التقرير المطبوع</button>
     </div>
   </nav>
+
+  <!-- 👑 Welcome Banner ديناميكي -->
+  <div id="parent-welcome-banner" class="no-print" style="background:linear-gradient(135deg,rgba(212,175,55,0.08) 0%, rgba(20,15,40,0.5) 100%);border:1px solid rgba(212,175,55,0.25);border-radius:18px;padding:18px 22px;margin:0 22px 16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;animation:fadeIn 0.6s ease;">
+    <div style="font-size:2.2rem;filter:drop-shadow(0 0 12px rgba(212,175,55,0.5));">👋</div>
+    <div style="flex:1;min-width:200px;">
+      <div id="welcome-greeting" style="font-size:0.85rem;color:rgba(255,255,255,0.6);margin-bottom:3px;">صباح الخير</div>
+      <div id="welcome-message" style="font-family:'Amiri',serif;font-size:1.3rem;color:var(--gold);font-weight:700;">أهلاً بك في بوابة الديوان الملكي</div>
+      <div id="welcome-now" style="font-size:0.78rem;color:rgba(255,255,255,0.4);margin-top:3px;"></div>
+    </div>
+  </div>
 
   <!-- DEMO BANNER (shown when using demo data) -->
   <div class="demo-banner no-print" id="demo-banner" style="display:none;">
@@ -989,7 +1023,7 @@ body {
       <!-- Stats Panel -->
       <div class="stats-panel">
 
-        <!-- Quick Stats Row -->
+        <!-- Quick Stats Row — مع إحصاءات حقيقية إضافية -->
         <div class="stats-row">
           <div class="g-card stat-card" style="--accent-color: var(--gold);">
             <div class="stat-icon">🏆</div>
@@ -1005,6 +1039,37 @@ body {
             <div class="stat-icon">🎯</div>
             <span class="stat-val" id="stat-accuracy">0%</span>
             <div class="stat-lbl">دقة الإجابات</div>
+          </div>
+          <div class="g-card stat-card" style="--accent-color: #9b59b6;">
+            <div class="stat-icon">⏱️</div>
+            <span class="stat-val" id="stat-time">0</span>
+            <div class="stat-lbl">دقيقة هذا الشهر</div>
+          </div>
+        </div>
+
+        <!-- 📡 الحضور والوقت الفعلي في المنصة (بيانات حقيقية من الجلسات) -->
+        <div class="g-card" style="background:linear-gradient(160deg,rgba(155,89,182,0.08) 0%, rgba(20,15,40,0.5) 100%);border:1px solid rgba(155,89,182,0.3);">
+          <div class="section-title">📡 حضور الطالب الفعلي في المنصة</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-top:14px;">
+            <div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">📅 آخر دخول</div>
+              <div id="parent-last-seen" style="font-size:1rem;font-weight:bold;color:#bb86fc;margin-top:6px;">—</div>
+            </div>
+            <div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">📊 أيام نشاط</div>
+              <div id="parent-active-days" style="font-size:1.6rem;font-weight:900;color:#bb86fc;">—</div>
+              <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">من آخر 30 يوم</div>
+            </div>
+            <div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">⏱️ وقت الأسبوع</div>
+              <div id="parent-time-7d" style="font-size:1.6rem;font-weight:900;color:#bb86fc;">—</div>
+              <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">دقيقة</div>
+            </div>
+            <div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:12px;padding:14px;text-align:center;">
+              <div style="font-size:0.72rem;color:rgba(255,255,255,0.55);">📚 إجمالي الوقت</div>
+              <div id="parent-time-total" style="font-size:1.6rem;font-weight:900;color:#bb86fc;">—</div>
+              <div style="font-size:0.65rem;color:rgba(255,255,255,0.4);">ساعة</div>
+            </div>
           </div>
         </div>
 
@@ -1320,6 +1385,63 @@ function getHistoryBadge(score, total) {
   return              '<span class="badge badge-wr">يحتاج مراجعة 📚</span>';
 }
 
+
+/* ════════════════════════════
+   🔄 AUTO-LOGIN — تسجيل دخول تلقائي
+════════════════════════════ */
+async function tryAutoLogin() {
+  const token = localStorage.getItem("parentSessionToken");
+  if (!token) return false;
+  
+  try {
+    const res = await fetch(`${API_URL}/api/parent/auto_login/${encodeURIComponent(token)}`);
+    if (!res.ok) {
+      // الجلسة منتهية — احذف
+      localStorage.removeItem("parentSessionToken");
+      return false;
+    }
+    const data = await res.json();
+    if (!data.valid || !data.parent_code) return false;
+    
+    // املأ الحقول واستدعِ doLogin
+    const codeEl = document.getElementById("parent-code");
+    const nameEl = document.getElementById("parent-name");
+    const emailEl = document.getElementById("parent-email");
+    const phoneEl = document.getElementById("parent-phone");
+    
+    if (codeEl) codeEl.value = data.parent_code;
+    if (nameEl) nameEl.value = data.parent_name || localStorage.getItem("parentName") || "";
+    if (emailEl) emailEl.value = data.parent_email || "";
+    if (phoneEl) phoneEl.value = data.parent_phone || "";
+    
+    // إخفاء شاشة الدخول وإظهار رسالة تحميل
+    const ov = document.getElementById("login-overlay");
+    if (ov) {
+      ov.innerHTML = `
+        <div style="text-align:center;color:var(--gold);font-family:'Amiri',serif;">
+          <div style="font-size:4rem;margin-bottom:14px;animation:spin 2s linear infinite;display:inline-block;">⏳</div>
+          <h2 style="color:var(--gold);">جارٍ تسجيل دخولك تلقائياً...</h2>
+          <p style="opacity:0.6;font-size:0.9rem;">مرحباً بعودتك! 👋</p>
+        </div>
+        <style>@keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }</style>
+      `;
+    }
+    
+    // استدعِ doLogin الفعلي بعد ميلي ثانية
+    setTimeout(() => doLogin(), 600);
+    return true;
+  } catch(e) {
+    console.warn("[parent] auto-login failed:", e);
+    return false;
+  }
+}
+
+// شغّل auto-login عند تحميل الصفحة
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(tryAutoLogin, 100);
+});
+
+
 /* ════════════════════════════
    LOGIN LOGIC
 ════════════════════════════ */
@@ -1329,9 +1451,11 @@ const API_URL = window.location.origin;
 /* ════════════════════════════
    تحويل بيانات API → نموذج Dashboard
 ════════════════════════════ */
-function mapApiToStudent(apiStudent, apiHistory) {
-  // حساب XP = مجموع درجات جميع النتائج
-  const totalXP = (apiHistory || []).reduce((sum, r) => sum + (r.score || 0), 0);
+function mapApiToStudent(apiStudent, apiHistory, apiStats) {
+  // إن جاءت stats من backend استخدمها (XP حقيقي + كل الإحصاءات)
+  const totalXP = (apiStats && apiStats.total_xp != null)
+    ? apiStats.total_xp
+    : (apiHistory || []).reduce((sum, r) => sum + (r.score || 0), 0);
 
   // تحويل سجل النتائج
   const history = (apiHistory || []).map(r => ({
@@ -1347,11 +1471,12 @@ function mapApiToStudent(apiStudent, apiHistory) {
     grade:      apiStudent.grade     || "—",
     school:     apiStudent.school    || "—",
     joinDate:   apiStudent.created_at || null,
-    parentCode: "RS-" + String(apiStudent.id).padStart(4, "0"),
+    parentCode: apiStudent.parent_code || ("RS-" + String(apiStudent.id).padStart(4, "0")),
     xp:         totalXP,
     history:    history,
-    roadmap:    null,   // سيُستخدم الافتراضي
+    roadmap:    null,
     mistakes:   [],
+    stats:      apiStats || null,  // 🆕 إحصاءات حقيقية من backend
   };
 }
 
@@ -1359,12 +1484,44 @@ function mapApiToStudent(apiStudent, apiHistory) {
    LOGIN LOGIC — API أولاً ثم fallback
 ════════════════════════════ */
 async function doLogin() {
-  const parentName = document.getElementById("parent-name").value.trim();
-  const code       = document.getElementById("parent-code").value.trim().toUpperCase();
-  const btn        = document.querySelector(".btn-royal");
+  const parentName  = document.getElementById("parent-name").value.trim();
+  const code        = document.getElementById("parent-code").value.trim().toUpperCase();
+  const parentEmail = (document.getElementById("parent-email")?.value || "").trim();
+  const parentPhone = (document.getElementById("parent-phone")?.value || "").trim();
+  const btn         = document.querySelector(".btn-royal");
 
   if (!parentName) { showLoginError("⚠️ يرجى إدخال اسم ولي الأمر."); return; }
   if (!code) { showLoginError("⚠️ يرجى إدخال الكود المرجعي للبطل."); return; }
+  
+  // تحقق من صيغة الإيميل إن أُدخل
+  if (parentEmail && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(parentEmail)) {
+    showLoginError("⚠️ صيغة البريد الإلكتروني غير صحيحة.");
+    return;
+  }
+  
+  // 🆕 سجّل جلسة دائمة في backend (مع الإيميل/الهاتف للتواصل لاحقاً)
+  try {
+    const sessFd = new FormData();
+    sessFd.append("parent_code", code);
+    sessFd.append("parent_name", parentName);
+    if (parentEmail) sessFd.append("parent_email", parentEmail);
+    if (parentPhone) sessFd.append("parent_phone", parentPhone);
+    const sessRes = await fetch(`${API_URL}/api/parent/login`, { method: "POST", body: sessFd });
+    if (sessRes.ok) {
+      const sessData = await sessRes.json();
+      if (sessData.token) {
+        localStorage.setItem("parentSessionToken", sessData.token);
+        localStorage.setItem("parentName", parentName);
+        if (parentEmail) localStorage.setItem("parentEmail", parentEmail);
+        if (parentPhone) localStorage.setItem("parentPhone", parentPhone);
+      }
+    } else if (sessRes.status === 404) {
+      showLoginError("❌ لم يُعثر على بطل بهذا الكود — تحقق من البيانات.");
+      return;
+    }
+  } catch(e) {
+    console.warn("[parent] failed to create session:", e);
+  }
 
   // ── تحديد اسم البطل من الكود ──
   // الكود المرجعي: RS-XXXX حيث XXXX هو معرف الطالب
@@ -1384,7 +1541,7 @@ async function doLogin() {
     if (res.ok) {
       const data = await res.json();
       if (data && data.found && data.student) {
-        const student = mapApiToStudent(data.student, data.history || []);
+        const student = mapApiToStudent(data.student, data.history || [], data.stats);
         // لوحة الشرف: جلب بيانات الصف من leaderboard
         let allHeroes = [];
         try {
@@ -1403,6 +1560,7 @@ async function doLogin() {
         if (!allHeroes.length) allHeroes = [student];
         if (btn) { btn.disabled = false; btn.textContent = "دخول إلى الإمبراطورية ⚔️"; }
         document.getElementById("login-error").style.display = "none";
+        try { if (parentName) localStorage.setItem("parentName", parentName); } catch(e) {}
         openDashboard(student, allHeroes, false);
         return;
       } else {
@@ -1460,14 +1618,178 @@ function showLoginError(msg) {
   e.style.animation = "slideDown 0.3s ease";
 }
 
-function doLogout() {
+async function doLogout() {
+  if (!confirm("هل تريد الخروج من بوابة الديوان الملكي؟")) return;
+  
+  // 🆕 احذف الجلسة من backend
+  const token = localStorage.getItem("parentSessionToken");
+  if (token) {
+    try {
+      const fd = new FormData();
+      fd.append("token", token);
+      await fetch(`${API_URL}/api/parent/logout`, { method: "POST", body: fd });
+    } catch(e) {}
+  }
+  
+  // امسح localStorage
+  localStorage.removeItem("parentSessionToken");
+  localStorage.removeItem("parentName");
+  localStorage.removeItem("parentEmail");
+  localStorage.removeItem("parentPhone");
+  
   document.getElementById("dashboard").style.display = "none";
   const ov = document.getElementById("login-overlay");
   ov.style.display = "flex";
   ov.style.animation = "fadeIn 0.4s ease";
   document.getElementById("parent-code").value = "";
   document.getElementById("parent-name").value = "";
+  const emEl = document.getElementById("parent-email");
+  const phEl = document.getElementById("parent-phone");
+  if (emEl) emEl.value = "";
+  if (phEl) phEl.value = "";
   document.getElementById("login-error").style.display = "none";
+}
+
+
+
+/* ════════════════════════════
+   📧 تحديث بريد ولي الأمر من Dashboard
+════════════════════════════ */
+function openParentProfileModal() {
+  // إن لم يكن هناك token (دخل بـ fallback)، لا يمكن الحفظ
+  const token = localStorage.getItem("parentSessionToken");
+  if (!token) {
+    alert("⚠️ هذه الميزة تتطلب تسجيل دخول كامل — أعد الدخول بالكود الصحيح");
+    return;
+  }
+  
+  const prev = document.getElementById("parent-profile-modal");
+  if (prev) prev.remove();
+  
+  const m = document.createElement("div");
+  m.id = "parent-profile-modal";
+  m.style.cssText = "position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);";
+  
+  const curName  = localStorage.getItem("parentName") || "";
+  const curEmail = localStorage.getItem("parentEmail") || "";
+  const curPhone = localStorage.getItem("parentPhone") || "";
+  
+  m.innerHTML = `
+    <div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid var(--gold);border-radius:20px;padding:24px;max-width:440px;width:100%;box-shadow:0 20px 60px rgba(212,175,55,0.4);">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+        <div style="font-size:2.2rem;">📧</div>
+        <h2 style="color:var(--gold);margin:0;font-family:'Amiri',serif;font-size:1.5rem;">بياناتي للتواصل</h2>
+        <div style="flex:1;"></div>
+        <button onclick="document.getElementById('parent-profile-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+      </div>
+      
+      <p style="opacity:0.65;font-size:0.85rem;margin-bottom:16px;line-height:1.7;">
+        💡 أدخل بياناتك لاستلام تقارير دورية عن أداء ابنك ونشرات تعليمية من الأستاذ
+      </p>
+      
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">👤 اسم ولي الأمر</label>
+        <input type="text" id="pp-name" value="${curName}" placeholder="الاسم الكامل" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:inherit;box-sizing:border-box;">
+      </div>
+      
+      <div style="margin-bottom:12px;">
+        <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">📧 البريد الإلكتروني</label>
+        <input type="email" id="pp-email" value="${curEmail}" placeholder="example@gmail.com" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:inherit;box-sizing:border-box;" inputmode="email">
+      </div>
+      
+      <div style="margin-bottom:18px;">
+        <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;display:block;">📱 رقم الهاتف</label>
+        <input type="tel" id="pp-phone" value="${curPhone}" placeholder="مثال: 96812345678" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:11px 14px;border-radius:10px;font-family:inherit;box-sizing:border-box;" inputmode="tel">
+      </div>
+      
+      <button onclick="saveParentProfile()" id="pp-save-btn" style="width:100%;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a1a2e;border:none;padding:13px;border-radius:12px;font-weight:bold;font-family:inherit;font-size:1rem;cursor:pointer;">
+        💾 حفظ البيانات
+      </button>
+    </div>
+  `;
+  document.body.appendChild(m);
+  setTimeout(() => document.getElementById("pp-name")?.focus(), 100);
+}
+
+async function saveParentProfile() {
+  const token = localStorage.getItem("parentSessionToken");
+  if (!token) return;
+  
+  const name  = document.getElementById("pp-name").value.trim();
+  const email = document.getElementById("pp-email").value.trim();
+  const phone = document.getElementById("pp-phone").value.trim();
+  
+  if (email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
+    alert("⚠️ صيغة البريد الإلكتروني غير صحيحة");
+    return;
+  }
+  
+  const btn = document.getElementById("pp-save-btn");
+  btn.disabled = true;
+  btn.textContent = "⏳ جارٍ الحفظ...";
+  
+  try {
+    const fd = new FormData();
+    fd.append("token", token);
+    fd.append("parent_name", name);
+    fd.append("parent_email", email);
+    fd.append("parent_phone", phone);
+    const res = await fetch(`${API_URL}/api/parent/update_profile`, { method: "POST", body: fd });
+    
+    if (res.ok) {
+      // حدّث localStorage
+      if (name)  localStorage.setItem("parentName", name);
+      if (email) localStorage.setItem("parentEmail", email);
+      if (phone) localStorage.setItem("parentPhone", phone);
+      
+      btn.textContent = "✅ تم الحفظ!";
+      setTimeout(() => {
+        document.getElementById("parent-profile-modal")?.remove();
+      }, 1000);
+    } else {
+      const err = await res.json().catch(() => ({}));
+      alert("❌ " + (err.detail || "فشل الحفظ"));
+      btn.disabled = false;
+      btn.textContent = "💾 حفظ البيانات";
+    }
+  } catch(e) {
+    alert("❌ خطأ في الاتصال");
+    btn.disabled = false;
+    btn.textContent = "💾 حفظ البيانات";
+  }
+}
+
+
+/* ════════════════════════════
+   👋 ترحيب ديناميكي بولي الأمر
+════════════════════════════ */
+function updateParentWelcome(parentName, studentName) {
+  const now = new Date();
+  const h = now.getHours();
+  let greet;
+  if (h < 5)       greet = "🌙 ليلة طيبة";
+  else if (h < 12) greet = "☀️ صباح الخير";
+  else if (h < 17) greet = "🌤️ مساء النور";
+  else if (h < 21) greet = "🌅 مساء الخير";
+  else             greet = "🌃 ليلة موفّقة";
+  
+  const greetEl = document.getElementById("welcome-greeting");
+  const msgEl = document.getElementById("welcome-message");
+  const nowEl = document.getElementById("welcome-now");
+  
+  if (greetEl) greetEl.textContent = greet + (parentName ? "، أ. " + parentName : "");
+  if (msgEl) {
+    if (studentName) {
+      msgEl.textContent = `تابع رحلة ${studentName} في إمبراطورية الرياضيات`;
+    } else {
+      msgEl.textContent = "أهلاً بك في بوابة الديوان الملكي";
+    }
+  }
+  if (nowEl) {
+    const dateStr = now.toLocaleDateString("ar-EG", { weekday:"long", day:"numeric", month:"long", year:"numeric" });
+    const timeStr = now.toLocaleTimeString("ar-EG", { hour:"2-digit", minute:"2-digit" });
+    nowEl.textContent = `📅 ${dateStr} • 🕐 ${timeStr}`;
+  }
 }
 
 /* ════════════════════════════
@@ -1487,6 +1809,13 @@ function openDashboard(student, allHeroes, isDemo) {
   if (isDemo) {
     document.getElementById("demo-banner").style.display = "block";
   }
+
+  // 👋 ترحيب ديناميكي
+  try {
+    const parentName = localStorage.getItem("parentName") || "";
+    updateParentWelcome(parentName.split(" ")[0], student.name);
+    setInterval(() => updateParentWelcome(parentName.split(" ")[0], student.name), 60000);
+  } catch(e) {}
 
   // ── Hero Card ──
   const rank    = getRank(student.xp);
@@ -1524,6 +1853,38 @@ function openDashboard(student, allHeroes, isDemo) {
   document.getElementById("stat-lessons").textContent   = student.history ? student.history.length : 0;
   document.getElementById("stat-accuracy").textContent  = accuracy + "%";
 
+  // ── 📡 الحضور الفعلي (من backend stats) ──
+  const stats = student.stats || {};
+  const stTimeEl = document.getElementById("stat-time");
+  if (stTimeEl) stTimeEl.textContent = (stats.minutes_30d || 0).toLocaleString("ar-EG");
+  
+  // آخر دخول
+  const lastSeenEl = document.getElementById("parent-last-seen");
+  if (lastSeenEl && stats.last_seen) {
+    try {
+      const d = new Date(stats.last_seen);
+      const diffMs = Date.now() - d.getTime();
+      const mins = Math.floor(diffMs / 60000);
+      let txt;
+      if (mins < 1)        txt = "الآن";
+      else if (mins < 60)  txt = "منذ " + mins + " دقيقة";
+      else if (mins < 1440) txt = "منذ " + Math.floor(mins/60) + " ساعة";
+      else                 txt = "منذ " + Math.floor(mins/1440) + " يوم";
+      lastSeenEl.textContent = txt;
+    } catch(e) { lastSeenEl.textContent = "—"; }
+  } else if (lastSeenEl) {
+    lastSeenEl.textContent = "لم يدخل بعد";
+  }
+  
+  const activeDaysEl = document.getElementById("parent-active-days");
+  if (activeDaysEl) activeDaysEl.textContent = (stats.days_active_30d || 0).toString();
+  
+  const time7dEl = document.getElementById("parent-time-7d");
+  if (time7dEl) time7dEl.textContent = (stats.minutes_7d || 0).toString();
+  
+  const timeTotalEl = document.getElementById("parent-time-total");
+  if (timeTotalEl) timeTotalEl.textContent = (stats.minutes_total ? (stats.minutes_total / 60).toFixed(1) : "0");
+
   // ── Academic Assessment ──
   const assess = getAssessment(accuracy);
   const circle = document.getElementById("assess-circle");
@@ -1535,11 +1896,18 @@ function openDashboard(student, allHeroes, isDemo) {
   document.getElementById("assess-title").style.color = assess.color;
   document.getElementById("assess-sub").textContent   = assess.sub;
 
-  // ── Leaderboard Rank ──
+  // ── Leaderboard Rank — استخدم الترتيب الحقيقي من backend ──
   const sameGrade = allHeroes.filter(h => h.grade === student.grade).sort((a, b) => b.xp - a.xp);
-  const myRankIdx = sameGrade.findIndex(h => (h.parentCode || h.id) === (student.parentCode || student.id));
-  const myRank    = myRankIdx + 1;
-  const totalPeers = sameGrade.length;
+  // إذا توفر rank_in_grade من backend استخدمه (أكثر دقة)
+  let myRank, totalPeers;
+  if (stats && stats.rank_in_grade && stats.grade_total_students) {
+    myRank = stats.rank_in_grade;
+    totalPeers = stats.grade_total_students;
+  } else {
+    const myRankIdx = sameGrade.findIndex(h => (h.parentCode || h.id) === (student.parentCode || student.id));
+    myRank = myRankIdx >= 0 ? myRankIdx + 1 : 1;
+    totalPeers = sameGrade.length || 1;
+  }
 
   document.getElementById("lb-rank-num").textContent = "#" + myRank;
   document.getElementById("lb-rank-of").textContent  = "من " + totalPeers;
@@ -1637,6 +2005,30 @@ function openDashboard(student, allHeroes, isDemo) {
 /* ════════════════════════════
    BUILD PRINT REPORT
 ════════════════════════════ */
+
+/* ════════════════════════════
+   📱 تواصل مع الأستاذ — رسالة WhatsApp جاهزة
+════════════════════════════ */
+function contactTeacher() {
+  // اجلب بيانات الطالب الحالية لإضافتها في الرسالة
+  let msg = "السلام عليكم أستاذ رشدي\n\n";
+  try {
+    const heroName = document.getElementById("hero-name")?.textContent;
+    const heroGrade = document.getElementById("hero-grade")?.textContent;
+    const heroCode = document.getElementById("hero-code")?.textContent;
+    if (heroName && heroName !== "—") {
+      msg += `أنا ولي أمر الطالب: ${heroName}\n`;
+      if (heroGrade) msg += `الصف: ${heroGrade}\n`;
+      if (heroCode) msg += `كود البطل: ${heroCode}\n`;
+      msg += "\n";
+    }
+  } catch(e) {}
+  msg += "أردت الاستفسار عن:";
+  
+  const url = `https://api.whatsapp.com/send?phone=96878537653&text=${encodeURIComponent(msg)}`;
+  window.open(url, "_blank");
+}
+
 function buildPrintReport(student, assess, myRank, totalPeers, accuracy, roadmap, mistakes) {
   const now  = new Date().toLocaleDateString("ar-EG", { year:"numeric", month:"long", day:"numeric" });
   const rank = getRank(student.xp);
@@ -1670,6 +2062,25 @@ function buildPrintReport(student, assess, myRank, totalPeers, accuracy, roadmap
       <td style="text-align:center; font-weight:700; color:${pct >= 80 ? '#27ae60' : pct >= 50 ? '#e67e22' : '#c0392b'};">${pct}%</td>
     </tr>`;
   }).join("");
+
+  // 📡 إضافة معلومات الحضور للتقرير المطبوع (إن توفرت)
+  try {
+    const stats = student.stats || {};
+    const printAttendDiv = document.getElementById("pr-attendance");
+    if (printAttendDiv) {
+      printAttendDiv.innerHTML = `
+        <div style="background:#f5f0e0;border:1px solid #d4af37;border-radius:8px;padding:12px;margin:14px 0;">
+          <strong style="color:#8b6914;">📡 الحضور الفعلي في المنصة (آخر 30 يوم)</strong><br>
+          <table style="width:100%;margin-top:8px;font-size:0.92rem;">
+            <tr><td>📅 أيام النشاط</td><td style="text-align:left;font-weight:bold;">${stats.days_active_30d || 0} يوم</td></tr>
+            <tr><td>⏱️ وقت الدراسة (آخر 30 يوم)</td><td style="text-align:left;font-weight:bold;">${stats.minutes_30d || 0} دقيقة (${stats.hours_30d || 0} ساعة)</td></tr>
+            <tr><td>📊 آخر دخول</td><td style="text-align:left;font-weight:bold;">${stats.last_seen ? new Date(stats.last_seen).toLocaleDateString("ar-EG") : "لم يدخل بعد"}</td></tr>
+            <tr><td>🏆 الترتيب في الصف</td><td style="text-align:left;font-weight:bold;">#${stats.rank_in_grade || "—"} من ${stats.grade_total_students || "—"}</td></tr>
+          </table>
+        </div>
+      `;
+    }
+  } catch(e) {}
 
   // Recommendations
   const recEl = document.getElementById("pr-recommendations");
