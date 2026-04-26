@@ -1815,7 +1815,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.min.js" integrity="sha512-ovlWyhrYXr3HEhPJsJIqd6+WLrxRThGc5IsRxRVdtT/27NEnRNF0AfQ/+LFFp/UDMpQp4HSyM1lHIsACZW40Ug==" crossorigin="anonymous"></script>
 
     <script>
     /* ================================================================
@@ -6934,6 +6934,35 @@
        🎊 CELEBRATE_CORRECT — دالة موحّدة لاحتفال الإجابة الصحيحة
        تُستخدم في كل مكان: التحدي / المبارزة / النخبة / القدرات / الامتحان
     ════════════════════════════════════════════════════════════ */
+
+    /* 🎊 بديل بسيط للقصاصات إن فشل تحميل المكتبة الخارجية */
+    function _fallbackConfetti(intensity) {
+        var count = intensity === 'mini' ? 30 : intensity === 'big' ? 80 : 50;
+        var colors = ['#d4af37','#fcf6ba','#2ecc71','#3498db','#e74c3c','#9b59b6','#ff9ff3'];
+        var container = document.createElement('div');
+        container.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:99999;overflow:hidden;';
+        document.body.appendChild(container);
+        for (var i = 0; i < count; i++) {
+            var p = document.createElement('div');
+            var size = 6 + Math.random() * 8;
+            var color = colors[Math.floor(Math.random() * colors.length)];
+            var left = Math.random() * 100;
+            var duration = 2 + Math.random() * 2;
+            var rotate = Math.random() * 720;
+            p.style.cssText = 'position:absolute;top:-20px;left:' + left + '%;width:' + size + 'px;height:' + size + 'px;background:' + color + ';border-radius:' + (Math.random() > 0.5 ? '50%' : '2px') + ';transform:rotate(' + rotate + 'deg);animation:fbConfettiFall ' + duration + 's linear forwards;';
+            container.appendChild(p);
+        }
+        // أضف keyframes إن لم تكن موجودة
+        if (!document.getElementById('fb-confetti-style')) {
+            var st = document.createElement('style');
+            st.id = 'fb-confetti-style';
+            st.textContent = '@keyframes fbConfettiFall{to{transform:translateY(100vh) rotate(720deg);opacity:0}}';
+            document.head.appendChild(st);
+        }
+        // احذف الحاوي بعد الانتهاء
+        setTimeout(function(){ container.remove(); }, 4500);
+    }
+
     function celebrateCorrect(intensity) {
         intensity = intensity || 'normal';
         // 1. الصوت دائماً
@@ -6941,7 +6970,11 @@
         // 2. اهتزاز قصير
         if ('vibrate' in navigator) navigator.vibrate(60);
         // 3. القصاصات الورقية الملونة
-        if (typeof confetti !== 'function') return;
+        if (typeof confetti !== 'function') {
+            // ⚠️ المكتبة لم تُحمّل — استخدم البديل البسيط
+            _fallbackConfetti(intensity);
+            return;
+        }
         var counts = { mini: 60, normal: 120, big: 200 };
         var spread = { mini: 60,  normal: 80,  big: 100 };
         var n = counts[intensity] || counts.normal;
@@ -7972,20 +8005,45 @@
             document.head.appendChild(st);
         }
 
-        // iframe معزول
+        // iframe معزول — يستخدم proxy لتجاوز X-Frame-Options
         var frame = document.createElement('iframe');
         frame.id = 'html-lesson-frame';
-        frame.src = fileUrl;
-        frame.setAttribute('sandbox', 'allow-scripts');
+        // استخدم proxy إن توفر lessonId
+        var proxyUrl = (lessonId && Number(lessonId) > 0) 
+            ? (API_URL + '/api/html_lessons/' + lessonId + '/render')
+            : fileUrl;
+        frame.src = proxyUrl;
+        // sandbox مُحسّن للسماح بالعرض الكامل
+        frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups');
         frame.setAttribute('referrerpolicy', 'no-referrer');
         frame.setAttribute('loading', 'lazy');
         frame.style.cssText = 'flex:1;width:100%;border:none;background:#fff;min-height:0;';
+        var loadTimeout = setTimeout(function() {
+            // إذا لم يُحمّل بعد 10 ثوان، اعرض رسالة + رابط بديل
+            if (loader.style.display !== 'none') {
+                loader.style.background = 'rgba(231,76,60,0.2)';
+                loader.innerHTML = '<div style="height:100%;background:#e74c3c;width:100%;"></div>';
+                var errBox = document.createElement('div');
+                errBox.style.cssText = 'background:#fff;padding:30px;text-align:center;color:#1a1a2e;flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-family:\'Cairo\';';
+                errBox.innerHTML = '<div style="font-size:3rem;">⚠️</div>' +
+                    '<h2 style="margin:0;color:#e74c3c;">تعذّر تحميل الدرس</h2>' +
+                    '<p style="opacity:0.7;">قد تكون هناك مشكلة في الاتصال أو الملف</p>' +
+                    '<a href="' + (fileUrl || proxyUrl) + '" target="_blank" style="background:#3498db;color:#fff;padding:10px 22px;border-radius:8px;text-decoration:none;font-weight:bold;">🔗 افتح في تبويب جديد</a>';
+                frame.style.display = 'none';
+                modal.appendChild(errBox);
+            }
+        }, 10000);
         frame.onload = function() {
+            clearTimeout(loadTimeout);
             loader.style.opacity = '0';
             setTimeout(function(){ loader.style.display = 'none'; }, 400);
             if (lessonId) {
                 fetch(API_URL + '/api/html_lessons/' + lessonId + '/view', { method: 'POST' }).catch(function(){});
             }
+        };
+        frame.onerror = function() {
+            clearTimeout(loadTimeout);
+            console.error('[html-lesson] iframe error');
         };
         modal.appendChild(frame);
 

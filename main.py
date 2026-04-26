@@ -3452,6 +3452,68 @@ async def list_html_lessons(grade: str = "", lesson: str = ""):
     return res.data or []
 
 
+
+@app.get("/api/html_lessons/{lesson_id}/render")
+async def render_html_lesson(lesson_id: int, request: Request):
+    """
+    🎯 Proxy لتقديم محتوى HTML lesson مع headers صحيحة لعرضه في iframe.
+    
+    لماذا؟ Supabase Storage يُعيد الملفات مع X-Frame-Options: DENY
+    → لا يمكن عرضها في iframe مباشرةً.
+    → نجلبها من الخادم ونُعيدها مع CSP خفيف يسمح بـ iframe embedding.
+    """
+    try:
+        # جلب الـ file_url من DB
+        res = supabase.table("html_lessons").select("file_url, title").eq("id", lesson_id).limit(1).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الدرس غير موجود")
+        
+        file_url = res.data[0].get("file_url", "")
+        if not file_url:
+            raise HTTPException(status_code=404, detail="الملف غير موجود")
+        
+        # جلب المحتوى من Supabase Storage
+        import httpx
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            r = await client.get(file_url)
+            if r.status_code != 200:
+                raise HTTPException(status_code=502, detail="فشل تحميل المحتوى")
+            html_content = r.text
+        
+        # تنظيف بسيط — منع inline events دون كسر الدرس
+        # نُضيف base target للروابط لتفتح في تبويب جديد
+        if "<head>" in html_content.lower():
+            base_inject = '<base target="_blank">'
+            # ابحث عن <head> case-insensitive
+            import re
+            html_content = re.sub(
+                r'(<head[^>]*>)', 
+                r'\1' + base_inject, 
+                html_content, 
+                count=1, 
+                flags=re.IGNORECASE
+            )
+        
+        # أعد المحتوى مع headers تسمح بـ iframe
+        from fastapi.responses import HTMLResponse
+        response = HTMLResponse(content=html_content)
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        response.headers["Content-Security-Policy"] = "default-src * data: blob: 'unsafe-inline' 'unsafe-eval'; img-src * data: blob:; style-src * 'unsafe-inline'; script-src * 'unsafe-inline' 'unsafe-eval'; frame-ancestors *"
+        # عداد المشاهدات
+        try:
+            view_res = supabase.table("html_lessons").select("view_count").eq("id", lesson_id).limit(1).execute()
+            current = view_res.data[0].get("view_count", 0) if view_res.data else 0
+            supabase.table("html_lessons").update({"view_count": current + 1}).eq("id", lesson_id).execute()
+        except Exception:
+            pass
+        
+        return response
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.post("/api/html_lessons/{lesson_id}/view")
 async def increment_view_count(lesson_id: int):
     """زيادة عداد المشاهدات"""
