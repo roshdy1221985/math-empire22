@@ -874,9 +874,308 @@ body {
 ::-webkit-scrollbar-track { background: var(--navy-2); }
 ::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
-</style>
+
+        /* ═══════════ 🌟 خلفية الجزيئات الفاخرة ═══════════ */
+        #parent-particles {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        
+        /* الشهب الذهبية */
+        .parent-shooting-stars {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            overflow: hidden;
+        }
+        .parent-shooting-stars::before,
+        .parent-shooting-stars::after {
+            content: '';
+            position: absolute; top: 0;
+            width: 2px; height: 2px;
+            background: white; border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(255,255,255,0.6);
+            animation: parentShoot 9s linear infinite;
+        }
+        .parent-shooting-stars::before {
+            top: 15%; left: 90%; animation-delay: 0s;
+        }
+        .parent-shooting-stars::after {
+            top: 55%; left: 80%; animation-delay: 4s;
+            animation-duration: 11s;
+        }
+        @keyframes parentShoot {
+            0%   { transform: translate3d(0, 0, 0) rotate(-15deg); opacity: 0; }
+            5%   { opacity: 1; }
+            70%  { opacity: 1; }
+            100% { transform: translate3d(-700px, 350px, 0) rotate(-15deg); opacity: 0; }
+        }
+        
+        /* تحسين login-overlay */
+        #login-overlay {
+            position: fixed; inset: 0;
+            background: 
+                radial-gradient(ellipse at 20% 0%, rgba(155,89,182,0.1) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 100%, rgba(212,175,55,0.1) 0%, transparent 45%),
+                radial-gradient(circle at center, #1a1a2e 0%, #040d21 100%);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 9999; padding: 20px; overflow-y: auto;
+        }
+        
+        .login-box {
+            position: relative;
+            background: linear-gradient(145deg, rgba(13, 27, 62, 0.85), rgba(4, 13, 33, 0.95));
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.35);
+            border-radius: 28px;
+            padding: 36px 32px;
+            max-width: 460px;
+            width: 100%;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(212, 175, 55, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            animation: parentBoxAppear 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+        }
+        
+        /* shimmer على الإطار */
+        .login-box::before {
+            content: '';
+            position: absolute; inset: -1px;
+            border-radius: 28px;
+            padding: 1px;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(212, 175, 55, 0.6) 50%, 
+                transparent 70%);
+            background-size: 200% 200%;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            animation: shimmerBorder 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes shimmerBorder {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+        
+        @keyframes parentBoxAppear {
+            from { opacity: 0; transform: translateY(40px) scale(0.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* الصورة الشخصية الملكية */
+        .parent-portrait-frame {
+            position: relative;
+            width: 100px; height: 100px;
+            margin: 0 auto 14px;
+            opacity: 0;
+            animation: parentPortraitAppear 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s forwards;
+        }
+        .parent-portrait-frame::before {
+            content: '';
+            position: absolute; inset: -5px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 300% 300%;
+            animation: shimmerFrame 5s ease-in-out infinite;
+            z-index: 1;
+        }
+        .parent-portrait-frame::after {
+            content: '';
+            position: absolute; inset: -14px;
+            border: 1.5px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            animation: rotateRing 25s linear infinite;
+        }
+        .parent-portrait-img {
+            position: absolute; inset: 4px;
+            width: calc(100% - 8px); height: calc(100% - 8px);
+            border-radius: 50%;
+            object-fit: cover; object-position: center top;
+            z-index: 2;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.3), 0 0 25px rgba(212, 175, 55, 0.4);
+            border: 3px solid #0a1942;
+            background: linear-gradient(135deg, #1a1a2e, #0a1942);
+        }
+        .parent-portrait-crown {
+            position: absolute; top: -22px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.4rem;
+            filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.7));
+            z-index: 3;
+            animation: crownFloat 4s ease-in-out infinite;
+        }
+        
+        @keyframes shimmerFrame {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+        @keyframes rotateRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes crownFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(-4px); }
+        }
+        @keyframes parentPortraitAppear {
+            0%   { opacity: 0; transform: scale(0.3) rotate(-90deg); }
+            60%  { opacity: 1; transform: scale(1.1) rotate(8deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        
+        /* التاج الرئيسي القديم — إخفاء */
+        .login-crown { display: none !important; }
+        
+        /* العنوان */
+        .login-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.8rem;
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-align: center;
+            margin: 0 0 6px;
+            animation: shimmerText 6s ease-in-out infinite, fadeUp 0.8s ease 0.5s backwards;
+            letter-spacing: -0.5px;
+        }
+        @keyframes shimmerText {
+            0%, 100% { background-position: 0% center; }
+            50%      { background-position: 100% center; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* زخرفة بين العنوان والوصف */
+        .login-ornament {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin: 8px 0 12px;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.7s forwards;
+        }
+        .login-ornament-line {
+            width: 50px; height: 1px;
+            background: linear-gradient(to right, transparent, #d4af37, transparent);
+        }
+        .login-ornament-diamond {
+            width: 6px; height: 6px;
+            background: #d4af37; transform: rotate(45deg);
+            box-shadow: 0 0 8px #d4af37;
+        }
+        
+        .login-subtitle {
+            text-align: center;
+            opacity: 0;
+            animation: fadeUp 0.8s ease 0.75s forwards;
+        }
+        
+        /* form-group ظهور تسلسلي */
+        .form-group {
+            opacity: 0;
+            animation: fadeUp 0.7s ease forwards;
+        }
+        .form-group:nth-of-type(1) { animation-delay: 0.85s; }
+        .form-group:nth-of-type(2) { animation-delay: 0.95s; }
+        .form-group:nth-of-type(3) { animation-delay: 1.05s; }
+        .form-group:nth-of-type(4) { animation-delay: 1.15s; }
+        
+        /* الزر الملكي — تحسين */
+        .btn-royal {
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            animation: fadeUp 0.7s ease 1.3s forwards;
+        }
+        .btn-royal::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
+        }
+        .btn-royal:hover::before { left: 200%; }
+        .btn-royal:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 30px rgba(212, 175, 55, 0.5);
+        }
+        
+        /* Welcome banner ديناميكي محسّن */
+        #parent-welcome-banner {
+            border-radius: 18px !important;
+            overflow: hidden;
+            position: relative;
+        }
+        #parent-welcome-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%; right: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(
+                from 0deg,
+                transparent 0deg,
+                rgba(212, 175, 55, 0.05) 60deg,
+                transparent 120deg,
+                rgba(155, 89, 182, 0.04) 240deg,
+                transparent 300deg
+            );
+            animation: rotateRing 25s linear infinite;
+            pointer-events: none;
+        }
+        
+        /* تحسين stat-card hover */
+        .stat-card {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .stat-card:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4), 0 0 25px var(--accent-color, rgba(212,175,55,0.3)) !important;
+        }
+        
+        /* Topbar تحسين shimmer */
+        .topbar {
+            position: relative;
+            overflow: hidden;
+        }
+        .topbar::before {
+            content: '';
+            position: absolute;
+            top: 0; right: -100%;
+            width: 30%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.05), transparent);
+            animation: topbarShine 8s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes topbarShine {
+            0%, 90%, 100% { right: -100%; }
+            45%           { right: 130%; }
+        }
+        
+        /* تجاوبية */
+        @media (max-width: 768px) {
+            .parent-portrait-frame { width: 80px; height: 80px; margin-bottom: 10px; }
+            .parent-portrait-crown { font-size: 1.2rem; top: -18px; }
+            .login-title { font-size: 1.5rem; }
+            .login-box { padding: 28px 20px; border-radius: 22px; }
+        }
+        
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01s !important;
+            }
+        }
+
+  </style>
 </head>
 <body>
+
+<canvas id="parent-particles"></canvas>
+<div class="parent-shooting-stars"></div>
+
 
 <!-- ══════════ STARFIELD ══════════ -->
 <div class="stars-bg"></div>
@@ -887,8 +1186,21 @@ body {
 ══════════════════════════════════════════════ -->
 <div id="login-overlay">
   <div class="login-box">
-    <div class="login-crown">👑</div>
+    <!-- 👤 الصورة الشخصية الملكية للأستاذ -->
+    <div class="parent-portrait-frame">
+      <div class="parent-portrait-crown">👑</div>
+      <img class="parent-portrait-img" src="/static/teacher.jpg" alt="الأستاذ رشدي سيد"
+           onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:3.2rem;display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#d4af37,#b8860b);border-radius:50%;\'>👑</div>'">
+    </div>
+    
     <h1 class="login-title">بوابة الديوان الملكي</h1>
+    
+    <div class="login-ornament">
+      <div class="login-ornament-line"></div>
+      <div class="login-ornament-diamond"></div>
+      <div class="login-ornament-line"></div>
+    </div>
+    
     <p class="login-subtitle">
       إذا كان ابنك ينتمي لإمبراطوريتنا،<br>
       فهنا تستطيع متابعة كل خطواته نحو <em>المجد</em>.
@@ -2153,5 +2465,68 @@ document.getElementById("parent-name").addEventListener("keypress", e => {
   if (e.key === "Enter") document.getElementById("parent-username").focus();
 });
 </script>
+
+<script>
+// ═════════ Parent Stars Background ═════════
+(function() {
+    const canvas = document.getElementById('parent-particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        particles = [];
+        if (reduceMotion) return;
+        const isMobile = window.innerWidth < 768;
+        const count = isMobile ? 30 : 80;
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.4,
+                speed: Math.random() * 0.3 + 0.08,
+                blink: Math.random() * 0.002 + 0.0005,
+                color: Math.random() < 0.3 ? 'gold' : 'white'
+            });
+        }
+    }
+    
+    function animate() {
+        if (reduceMotion) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now();
+        particles.forEach(p => {
+            p.y -= p.speed;
+            if (p.y < -5) {
+                p.y = canvas.height + 5;
+                p.x = Math.random() * canvas.width;
+            }
+            const op = Math.abs(Math.sin(t * p.blink));
+            ctx.fillStyle = p.color === 'gold' 
+                ? `rgba(212, 175, 55, ${op * 0.75})` 
+                : `rgba(255, 255, 255, ${op * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            if (p.color === 'gold' && p.size > 1.3) {
+                ctx.fillStyle = `rgba(212, 175, 55, ${op * 0.12})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+    animate();
+})();
+</script>
+
 </body>
 </html>

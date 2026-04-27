@@ -854,9 +854,263 @@
             box-shadow: 0 8px 20px rgba(212,175,55,0.15);
         }
 
-    </style>
+
+        /* ═══════════ 🌟 خلفية الجزيئات الفاخرة ═══════════ */
+        #teachers-particles {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none;
+        }
+        .teachers-shooting-stars {
+            position: fixed; inset: 0; z-index: 1; pointer-events: none;
+            overflow: hidden;
+        }
+        .teachers-shooting-stars::before,
+        .teachers-shooting-stars::after {
+            content: '';
+            position: absolute; top: 0;
+            width: 2px; height: 2px;
+            background: white; border-radius: 50%;
+            box-shadow: 0 0 8px 2px rgba(255,255,255,0.6);
+            animation: tShoot 9s linear infinite;
+        }
+        .teachers-shooting-stars::before {
+            top: 18%; left: 92%; animation-delay: 1s;
+        }
+        .teachers-shooting-stars::after {
+            top: 60%; left: 78%; animation-delay: 5s;
+            animation-duration: 11s;
+        }
+        @keyframes tShoot {
+            0%   { transform: translate3d(0, 0, 0) rotate(-15deg); opacity: 0; }
+            5%   { opacity: 1; }
+            70%  { opacity: 1; }
+            100% { transform: translate3d(-700px, 350px, 0) rotate(-15deg); opacity: 0; }
+        }
+        
+        /* تحسين شاشة الدخول */
+        #access-overlay {
+            background: 
+                radial-gradient(ellipse at 20% 0%, rgba(155,89,182,0.1) 0%, transparent 45%),
+                radial-gradient(ellipse at 80% 100%, rgba(212,175,55,0.1) 0%, transparent 45%),
+                radial-gradient(circle at center, #1a1a2e 0%, #040d21 100%);
+        }
+        
+        .access-box {
+            position: relative;
+            background: linear-gradient(145deg, rgba(13, 27, 62, 0.85), rgba(4, 13, 33, 0.95)) !important;
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(212, 175, 55, 0.35) !important;
+            border-radius: 28px !important;
+            box-shadow: 
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 60px rgba(212, 175, 55, 0.15),
+                inset 0 1px 0 rgba(255, 255, 255, 0.06);
+            animation: tBoxAppear 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s backwards;
+        }
+        
+        .access-box::before {
+            content: '';
+            position: absolute; inset: -1px;
+            border-radius: 28px;
+            padding: 1px;
+            background: linear-gradient(45deg, 
+                transparent 30%, 
+                rgba(212, 175, 55, 0.6) 50%, 
+                transparent 70%);
+            background-size: 200% 200%;
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+                    mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+                    mask-composite: exclude;
+            animation: tShimmerBorder 5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        
+        @keyframes tShimmerBorder {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+        
+        @keyframes tBoxAppear {
+            from { opacity: 0; transform: translateY(40px) scale(0.92); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        /* الصورة الشخصية الملكية */
+        .teacher-portrait-frame {
+            position: relative;
+            width: 110px; height: 110px;
+            margin: 0 auto 16px;
+            opacity: 0;
+            animation: tPortraitAppear 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s forwards;
+        }
+        .teacher-portrait-frame::before {
+            content: '';
+            position: absolute; inset: -5px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 300% 300%;
+            animation: tShimmerFrame 5s ease-in-out infinite;
+            z-index: 1;
+        }
+        .teacher-portrait-frame::after {
+            content: '';
+            position: absolute; inset: -16px;
+            border: 1.5px dashed rgba(212, 175, 55, 0.3);
+            border-radius: 50%;
+            animation: tRotateRing 25s linear infinite;
+        }
+        .teacher-portrait-img {
+            position: absolute; inset: 4px;
+            width: calc(100% - 8px); height: calc(100% - 8px);
+            border-radius: 50%;
+            object-fit: cover; object-position: center top;
+            z-index: 2;
+            box-shadow: inset 0 0 18px rgba(0,0,0,0.3), 0 0 28px rgba(212, 175, 55, 0.45);
+            border: 3px solid #0a1942;
+            background: linear-gradient(135deg, #1a1a2e, #0a1942);
+        }
+        .teacher-portrait-crown {
+            position: absolute; top: -22px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.5rem;
+            filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.7));
+            z-index: 3;
+            animation: tCrownFloat 4s ease-in-out infinite;
+        }
+        
+        @keyframes tShimmerFrame {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+        @keyframes tRotateRing { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes tCrownFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(-4px); }
+        }
+        @keyframes tPortraitAppear {
+            0%   { opacity: 0; transform: scale(0.3) rotate(-90deg); }
+            60%  { opacity: 1; transform: scale(1.1) rotate(8deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        
+        /* عنوان login مع shimmer */
+        .access-box h2 {
+            background: linear-gradient(45deg, #bf953f, #fcf6ba, #b38728, #fbf5b7, #aa771c);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: tShimmerText 6s ease-in-out infinite;
+        }
+        @keyframes tShimmerText {
+            0%, 100% { background-position: 0% center; }
+            50%      { background-position: 100% center; }
+        }
+        
+        /* زخرفة */
+        .teacher-ornament {
+            display: flex; align-items: center; justify-content: center;
+            gap: 8px; margin: 6px 0 16px;
+            opacity: 0;
+            animation: tFadeUp 0.8s ease 0.7s forwards;
+        }
+        .teacher-ornament-line {
+            width: 50px; height: 1px;
+            background: linear-gradient(to right, transparent, #d4af37, transparent);
+        }
+        .teacher-ornament-diamond {
+            width: 6px; height: 6px;
+            background: #d4af37; transform: rotate(45deg);
+            box-shadow: 0 0 8px #d4af37;
+        }
+        @keyframes tFadeUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* تحسين auth-input */
+        .auth-input {
+            transition: all 0.3s ease !important;
+        }
+        .auth-input:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.15), 0 0 20px rgba(212,175,55,0.2) !important;
+            transform: translateY(-1px);
+        }
+        
+        /* الزر الذهبي */
+        .btn-gold-main {
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-gold-main::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            transition: left 0.6s;
+        }
+        .btn-gold-main:hover::before { left: 200%; }
+        
+        /* تحسين empire-hero — أعمق وأفخر */
+        .empire-hero-teacher {
+            position: relative;
+            z-index: 5;
+        }
+        .empire-hero-teacher::after {
+            content: '';
+            position: absolute;
+            top: -30%; right: -30%;
+            width: 60%; height: 160%;
+            background: radial-gradient(circle, rgba(212,175,55,0.08), transparent 70%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* sections — أضف الـ z-index */
+        .section { position: relative; z-index: 5; }
+        .topbar { position: relative; z-index: 100; }
+        
+        /* تحسين hover على بطاقات النوع المختلف */
+        .doc-card, .lesson-card, .teacher-resource-card {
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            position: relative; overflow: hidden;
+        }
+        .doc-card::before, .lesson-card::before, .teacher-resource-card::before {
+            content: '';
+            position: absolute;
+            top: -100%; right: -100%;
+            width: 50%; height: 250%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent);
+            transform: rotate(-25deg);
+            transition: right 0.7s ease;
+            pointer-events: none;
+        }
+        .doc-card:hover::before, .lesson-card:hover::before, .teacher-resource-card:hover::before {
+            right: 200%;
+        }
+        
+        /* تجاوبية */
+        @media (max-width: 768px) {
+            .teacher-portrait-frame { width: 90px; height: 90px; margin-bottom: 12px; }
+            .teacher-portrait-crown { font-size: 1.3rem; top: -20px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01s !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01s !important;
+            }
+        }
+
+        </style>
 </head>
 <body>
+
+<canvas id="teachers-particles"></canvas>
+<div class="teachers-shooting-stars"></div>
+
 
 <canvas id="particles-js"></canvas>
 <audio id="door-sfx" src="/static/door.mp3" preload="auto"></audio>
@@ -865,8 +1119,18 @@
 <!-- ══ overlay الدخول ══ -->
 <div id="access-overlay">
     <div id="login-form" class="access-box">
-        <div style="font-size:2.5rem;margin-bottom:10px;filter:drop-shadow(0 0 16px rgba(212,175,55,0.7));">👑</div>
-        <h2 style="font-family:'Amiri';color:var(--gold);font-size:2.2rem;margin:0 0 6px;">ديوان المعلمين</h2>
+        <!-- 👤 الصورة الشخصية الملكية -->
+        <div class="teacher-portrait-frame">
+            <div class="teacher-portrait-crown">👑</div>
+            <img class="teacher-portrait-img" src="/static/teacher.jpg" alt="الأستاذ رشدي سيد"
+                 onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:3.6rem;display:flex;align-items:center;justify-content:center;height:100%;background:linear-gradient(135deg,#d4af37,#b8860b);border-radius:50%;\'>👑</div>'">
+        </div>
+        <h2 style="font-family:'Amiri';font-size:2.2rem;margin:0 0 6px;">ديوان المعلمين</h2>
+        <div class="teacher-ornament">
+            <div class="teacher-ornament-line"></div>
+            <div class="teacher-ornament-diamond"></div>
+            <div class="teacher-ornament-line"></div>
+        </div>
         <p style="color:rgba(255,255,255,0.5);margin-bottom:24px;font-size:0.9rem;">مرحباً بك يا أستاذ — أدخل بياناتك</p>
         <input type="text"     id="user-login" class="auth-input" placeholder="اسم المستخدم" onkeypress="if(event.key==='Enter')handleLogin()">
         <input type="password" id="pass-login" class="auth-input" placeholder="كلمة المرور"   onkeypress="if(event.key==='Enter')handleLogin()">
@@ -2439,5 +2703,68 @@
     setTimeout(updateHeroStats, 2000);
 
 </script>
+
+<script>
+// ═════════ Teachers Stars Background ═════════
+(function() {
+    const canvas = document.getElementById('teachers-particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    
+    function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        particles = [];
+        if (reduceMotion) return;
+        const isMobile = window.innerWidth < 768;
+        const count = isMobile ? 30 : 80;
+        for (let i = 0; i < count; i++) {
+            particles.push({
+                x: Math.random() * canvas.width,
+                y: Math.random() * canvas.height,
+                size: Math.random() * 2 + 0.4,
+                speed: Math.random() * 0.3 + 0.08,
+                blink: Math.random() * 0.002 + 0.0005,
+                color: Math.random() < 0.3 ? 'gold' : 'white'
+            });
+        }
+    }
+    
+    function animate() {
+        if (reduceMotion) return;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        const t = Date.now();
+        particles.forEach(p => {
+            p.y -= p.speed;
+            if (p.y < -5) {
+                p.y = canvas.height + 5;
+                p.x = Math.random() * canvas.width;
+            }
+            const op = Math.abs(Math.sin(t * p.blink));
+            ctx.fillStyle = p.color === 'gold' 
+                ? `rgba(212, 175, 55, ${op * 0.75})` 
+                : `rgba(255, 255, 255, ${op * 0.5})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            if (p.color === 'gold' && p.size > 1.3) {
+                ctx.fillStyle = `rgba(212, 175, 55, ${op * 0.12})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * 3, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        });
+        requestAnimationFrame(animate);
+    }
+    
+    window.addEventListener('resize', init);
+    init();
+    animate();
+})();
+</script>
+
 </body>
 </html>

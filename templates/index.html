@@ -407,7 +407,127 @@
                 transition-duration: 0.01s !important;
             }
         }
-    </style>
+
+        /* ═══════════ 👤 الصورة الشخصية الملكية ═══════════ */
+        .royal-portrait-frame {
+            position: relative;
+            width: 130px;
+            height: 130px;
+            margin: 0 auto 18px;
+            opacity: 0;
+            animation: portraitAppear 1.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s forwards;
+        }
+        
+        /* الإطار الذهبي الخارجي مع glow */
+        .royal-portrait-frame::before {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            background: var(--gold-grad);
+            background-size: 300% 300%;
+            animation: shimmerFrame 5s ease-in-out infinite;
+            z-index: 1;
+        }
+        
+        /* حلقة الزخرفة الخارجية */
+        .royal-portrait-frame::after {
+            content: '';
+            position: absolute;
+            inset: -16px;
+            border: 2px solid rgba(212, 175, 55, 0.35);
+            border-radius: 50%;
+            border-style: dashed;
+            animation: rotateRing 25s linear infinite;
+        }
+        
+        /* الصورة نفسها */
+        .royal-portrait {
+            position: absolute;
+            inset: 4px;
+            width: calc(100% - 8px);
+            height: calc(100% - 8px);
+            border-radius: 50%;
+            object-fit: cover;
+            object-position: center top;
+            z-index: 2;
+            box-shadow: 
+                inset 0 0 20px rgba(0,0,0,0.3),
+                0 0 35px rgba(212, 175, 55, 0.5);
+            border: 3px solid #0a1942;
+            background: linear-gradient(135deg, #1a1a2e, #0a1942);
+        }
+        
+        /* تاج صغير فوق الصورة */
+        .royal-crown-mini {
+            position: absolute;
+            top: -28px; left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8rem;
+            filter: drop-shadow(0 2px 6px rgba(212, 175, 55, 0.7));
+            z-index: 3;
+            animation: crownFloat 4s ease-in-out infinite;
+        }
+        
+        /* شارة النجمة (تحت الصورة) */
+        .royal-badge {
+            position: absolute;
+            bottom: -8px; left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--gold), var(--gold-deep));
+            color: #1a0d2e;
+            font-size: 0.65rem;
+            font-weight: 900;
+            padding: 4px 12px;
+            border-radius: 20px;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(212, 175, 55, 0.5);
+            z-index: 4;
+            font-family: 'Cairo', sans-serif;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        @keyframes portraitAppear {
+            0%   { opacity: 0; transform: scale(0.2) rotate(-180deg); }
+            60%  { opacity: 1; transform: scale(1.1) rotate(10deg); }
+            100% { opacity: 1; transform: scale(1) rotate(0deg); }
+        }
+        @keyframes shimmerFrame {
+            0%, 100% { background-position: 0% 50%; }
+            50%      { background-position: 100% 50%; }
+        }
+        
+        /* اسم الأستاذ تحت الصورة */
+        .royal-name {
+            display: block;
+            margin-top: 8px;
+            font-family: 'Amiri', serif;
+            font-size: 1.05rem;
+            color: var(--gold-light);
+            text-shadow: 0 0 12px rgba(252, 246, 186, 0.4);
+            opacity: 0;
+            animation: fadeUp 0.9s ease 0.7s forwards;
+        }
+        .royal-title {
+            display: block;
+            font-size: 0.78rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 3px;
+            opacity: 0;
+            animation: fadeUp 0.9s ease 0.85s forwards;
+            letter-spacing: 1px;
+        }
+        
+        /* تجاوبية للجوال */
+        @media (max-width: 768px) {
+            .royal-portrait-frame { width: 100px; height: 100px; margin-bottom: 14px; }
+            .royal-crown-mini { font-size: 1.4rem; top: -22px; }
+            .royal-badge { font-size: 0.6rem; padding: 3px 10px; bottom: -6px; }
+            .royal-name { font-size: 0.92rem; }
+            .royal-title { font-size: 0.7rem; }
+        }
+
+        </style>
 </head>
 <body>
 
@@ -434,11 +554,18 @@
 
     <div class="main-gate">
 
-        <div class="crown-emblem">
-            <div class="crown-icon">👑</div>
+        <!-- 👤 الصورة الشخصية الملكية -->
+        <div class="royal-portrait-frame">
+            <div class="royal-crown-mini">👑</div>
+            <img class="royal-portrait" src="/static/teacher.jpg" alt="الأستاذ رشدي سيد"
+                 onerror="this.style.display='none';this.parentElement.innerHTML='<div class=\'crown-icon\' style=\'font-size:5rem;display:flex;align-items:center;justify-content:center;height:100%;\'>👑</div>'">
+            <div class="royal-badge">إمبراطور الرياضيات</div>
         </div>
+        
+        <span class="royal-name">الأستاذ رشدي سيد</span>
+        <span class="royal-title">⚜️ معلّم الإمبراطورية ⚜️</span>
 
-        <div class="logo">إمبراطورية الرياضيات</div>
+        <div class="logo" style="margin-top:14px;">إمبراطورية الرياضيات</div>
 
         <div class="ornament">
             <div class="ornament-line"></div>
