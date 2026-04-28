@@ -1372,8 +1372,18 @@ async def save_result(
         }).eq("id", student_id).execute()
     except Exception:
         pass
+    
+    # 🏅 فحص الشارات المستحقة تلقائياً
+    new_badges = []
+    try:
+        new_badges = _check_and_grant_achievements(student_id, {
+            "score": score,
+            "total": total,
+        })
+    except Exception:
+        pass
 
-    return {"status": "success"}
+    return {"status": "success", "new_badges": new_badges}
 
 @app.post("/api/student/heartbeat")
 async def student_heartbeat(student_id: int = Form(...)):
@@ -3055,6 +3065,1052 @@ async def admin_export_parent_emails(admin = Depends(get_current_admin)):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e)[:200])
 
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🏅 ACHIEVEMENTS / BADGES SYSTEM
+# ═══════════════════════════════════════════════════════════════
+
+# تعريف كل الشارات المتاحة
+ACHIEVEMENT_DEFINITIONS = {
+    # ─── سلاسل الإنجاز ───
+    "streak_3":  {"name": "🔥 سلسلة 3 أيام",  "icon": "🔥", "color": "#e67e22", "tier": "bronze", "xp": 30,  "description": "دخول 3 أيام متتالية"},
+    "streak_7":  {"name": "⚡ أسبوع متواصل",   "icon": "⚡", "color": "#f39c12", "tier": "silver", "xp": 75,  "description": "دخول 7 أيام متتالية"},
+    "streak_30": {"name": "👑 شهر كامل",       "icon": "👑", "color": "#d4af37", "tier": "gold",   "xp": 300, "description": "دخول 30 يوم متتالي"},
+    
+    # ─── الإتقان ───
+    "perfect_first":   {"name": "💯 أول علامة كاملة",     "icon": "💯", "color": "#2ecc71", "tier": "bronze", "xp": 50,  "description": "أول تحدي بـ 100%"},
+    "perfect_5":       {"name": "🎯 خمس مرات مثالية",     "icon": "🎯", "color": "#27ae60", "tier": "silver", "xp": 100, "description": "5 تحديات بـ 100%"},
+    "perfect_20":      {"name": "🏆 سيد الإتقان",         "icon": "🏆", "color": "#16a085", "tier": "gold",   "xp": 250, "description": "20 تحدي بـ 100%"},
+    
+    # ─── السرعة ───
+    "speed_demon":     {"name": "💨 السريع",              "icon": "💨", "color": "#3498db", "tier": "silver", "xp": 80,  "description": "تحدي بكل الإجابات صحيحة في أقل من دقيقتين"},
+    
+    # ─── الكمية ───
+    "tests_10":        {"name": "📚 المثابر",            "icon": "📚", "color": "#9b59b6", "tier": "bronze", "xp": 50,  "description": "إنجاز 10 تحديات"},
+    "tests_50":        {"name": "🎓 المجتهد",            "icon": "🎓", "color": "#8e44ad", "tier": "silver", "xp": 150, "description": "إنجاز 50 تحدي"},
+    "tests_100":       {"name": "⚔️ المحارب",            "icon": "⚔️", "color": "#6c3483", "tier": "gold",   "xp": 400, "description": "إنجاز 100 تحدي"},
+    "tests_250":       {"name": "🏛️ الأسطورة",          "icon": "🏛️", "color": "#bf953f", "tier": "legendary", "xp": 1000, "description": "إنجاز 250 تحدي"},
+    
+    # ─── الوقت ───
+    "early_bird":      {"name": "🌅 البكور",              "icon": "🌅", "color": "#f1c40f", "tier": "bronze", "xp": 40, "description": "دخول قبل الساعة 7 صباحاً"},
+    "night_owl":       {"name": "🦉 ساهر الليل",          "icon": "🦉", "color": "#34495e", "tier": "bronze", "xp": 40, "description": "دخول بعد منتصف الليل"},
+    
+    # ─── XP الكلي ───
+    "xp_500":          {"name": "🥉 برونزي",              "icon": "🥉", "color": "#cd7f32", "tier": "bronze", "xp": 25, "description": "جمع 500 XP"},
+    "xp_1500":         {"name": "🥈 فضي",                 "icon": "🥈", "color": "#c0c0c0", "tier": "silver", "xp": 75, "description": "جمع 1500 XP"},
+    "xp_5000":         {"name": "🥇 ذهبي",                "icon": "🥇", "color": "#ffd700", "tier": "gold",   "xp": 200, "description": "جمع 5000 XP"},
+    "xp_10000":        {"name": "💎 ماسي",                "icon": "💎", "color": "#b9f2ff", "tier": "legendary", "xp": 500, "description": "جمع 10000 XP"},
+    
+    # ─── متنوع ───
+    "first_test":      {"name": "🎉 البداية",            "icon": "🎉", "color": "#e74c3c", "tier": "bronze", "xp": 20, "description": "إنجاز أول تحدي"},
+    "comeback":        {"name": "💪 العائد القوي",       "icon": "💪", "color": "#16a085", "tier": "silver", "xp": 60, "description": "العودة بعد غياب أسبوع+"},
+    "weekend_warrior": {"name": "🛡️ محارب الإجازة",       "icon": "🛡️", "color": "#27ae60", "tier": "bronze", "xp": 35, "description": "دخول في عطلة نهاية الأسبوع"},
+}
+
+
+def _grant_badge(student_id: int, badge_id: str) -> dict:
+    """يمنح شارة لطالب — يتجاهل لو ممنوحة سابقاً"""
+    if badge_id not in ACHIEVEMENT_DEFINITIONS:
+        return {"granted": False, "reason": "غير معروفة"}
+    
+    badge = ACHIEVEMENT_DEFINITIONS[badge_id]
+    try:
+        # تحقق من عدم التكرار
+        existing = supabase.table("achievements").select("id").eq(
+            "student_id", student_id
+        ).eq("badge_id", badge_id).limit(1).execute()
+        
+        if existing.data:
+            return {"granted": False, "reason": "ممنوحة سابقاً"}
+        
+        # امنح الشارة
+        supabase.table("achievements").insert({
+            "student_id":  student_id,
+            "badge_id":    badge_id,
+            "badge_name":  badge["name"],
+            "badge_icon":  badge["icon"],
+            "badge_color": badge["color"],
+            "badge_tier":  badge["tier"],
+            "description": badge["description"],
+            "xp_reward":   badge["xp"],
+        }).execute()
+        
+        # امنح XP إضافي مكافأة
+        try:
+            st_res = supabase.table("students").select("total_xp").eq("id", student_id).limit(1).execute()
+            if st_res.data:
+                cur_xp = st_res.data[0].get("total_xp") or 0
+                supabase.table("students").update({
+                    "total_xp": cur_xp + badge["xp"]
+                }).eq("id", student_id).execute()
+        except Exception:
+            pass
+        
+        # أرسل push notification
+        try:
+            _push_to_student(
+                student_id,
+                f"{badge['icon']} شارة جديدة!",
+                f"حصلت على شارة \"{badge['name']}\" — +{badge['xp']} XP",
+                url="/student",
+                tag=f"badge_{badge_id}"
+            )
+        except Exception:
+            pass
+        
+        return {"granted": True, "badge": badge}
+    except Exception as e:
+        return {"granted": False, "reason": str(e)[:100]}
+
+
+def _check_and_grant_achievements(student_id: int, context: dict = None) -> list:
+    """
+    يفحص كل الشروط الممكنة ويمنح الشارات المستحقة.
+    context: {"score": 10, "total": 10, "duration_seconds": 90, ...}
+    """
+    granted = []
+    context = context or {}
+    
+    try:
+        # 1. اجلب بيانات الطالب
+        st_res = supabase.table("students").select(
+            "id, total_xp, last_active, created_at"
+        ).eq("id", student_id).limit(1).execute()
+        
+        if not st_res.data:
+            return []
+        
+        student = st_res.data[0]
+        total_xp = student.get("total_xp") or 0
+        
+        # 2. اجلب نتائج الطالب
+        results_res = supabase.table("results").select(
+            "score, total, timestamp"
+        ).eq("student_id", student_id).execute()
+        results = results_res.data or []
+        total_tests = len(results)
+        perfect_count = sum(1 for r in results if r.get("total") and r.get("score") == r.get("total"))
+        
+        # 3. اجلب الجلسات للسلاسل
+        from datetime import datetime, timezone, timedelta
+        sessions_res = supabase.table("student_sessions").select(
+            "session_bucket"
+        ).eq("student_id", student_id).order("session_bucket", desc=True).limit(500).execute()
+        
+        active_dates = set()
+        for s in (sessions_res.data or []):
+            try:
+                bucket_dt = datetime.fromisoformat(s["session_bucket"].replace("Z", "+00:00"))
+                if bucket_dt.tzinfo is None:
+                    bucket_dt = bucket_dt.replace(tzinfo=timezone.utc)
+                active_dates.add(bucket_dt.date())
+            except Exception:
+                continue
+        
+        # حساب أطول سلسلة
+        sorted_dates = sorted(active_dates, reverse=True)
+        max_streak = 0
+        if sorted_dates:
+            current_streak = 1
+            for i in range(1, len(sorted_dates)):
+                if (sorted_dates[i-1] - sorted_dates[i]).days == 1:
+                    current_streak += 1
+                    max_streak = max(max_streak, current_streak)
+                else:
+                    current_streak = 1
+            max_streak = max(max_streak, current_streak)
+        
+        # ─── الفحوصات ───
+        candidates = []
+        
+        # السلاسل
+        if max_streak >= 3:  candidates.append("streak_3")
+        if max_streak >= 7:  candidates.append("streak_7")
+        if max_streak >= 30: candidates.append("streak_30")
+        
+        # عدد التحديات
+        if total_tests >= 1:   candidates.append("first_test")
+        if total_tests >= 10:  candidates.append("tests_10")
+        if total_tests >= 50:  candidates.append("tests_50")
+        if total_tests >= 100: candidates.append("tests_100")
+        if total_tests >= 250: candidates.append("tests_250")
+        
+        # العلامات الكاملة
+        if perfect_count >= 1:  candidates.append("perfect_first")
+        if perfect_count >= 5:  candidates.append("perfect_5")
+        if perfect_count >= 20: candidates.append("perfect_20")
+        
+        # XP
+        if total_xp >= 500:   candidates.append("xp_500")
+        if total_xp >= 1500:  candidates.append("xp_1500")
+        if total_xp >= 5000:  candidates.append("xp_5000")
+        if total_xp >= 10000: candidates.append("xp_10000")
+        
+        # السرعة (من السياق)
+        if (context.get("duration_seconds") and context.get("duration_seconds") < 120
+            and context.get("score") and context.get("total")
+            and context.get("score") == context.get("total")):
+            candidates.append("speed_demon")
+        
+        # الوقت الحالي (للبكور والساهر)
+        now = datetime.now(timezone.utc)
+        # نُحوّل للتوقيت المحلي (عُمان UTC+4)
+        local_h = (now.hour + 4) % 24
+        if 4 <= local_h < 7:
+            candidates.append("early_bird")
+        elif local_h >= 0 and local_h < 4:
+            candidates.append("night_owl")
+        
+        # عطلة نهاية الأسبوع (الجمعة/السبت في عُمان)
+        if now.weekday() in (4, 5):  # Friday=4, Saturday=5
+            candidates.append("weekend_warrior")
+        
+        # العائد القوي (أكثر من أسبوع غياب ثم عودة)
+        if len(sorted_dates) >= 2:
+            gap = (sorted_dates[0] - sorted_dates[1]).days
+            if gap >= 7:
+                candidates.append("comeback")
+        
+        # امنح كل المرشحات (التكرار محظور بالـ UNIQUE)
+        for badge_id in candidates:
+            result = _grant_badge(student_id, badge_id)
+            if result.get("granted"):
+                granted.append(result["badge"])
+    
+    except Exception as e:
+        print(f"[achievements] error: {e}")
+    
+    return granted
+
+
+@app.get("/api/student/{student_id}/achievements")
+async def get_student_achievements(student_id: int, request: Request):
+    """قائمة الشارات الممنوحة لطالب"""
+    try:
+        # rate limit
+        ip = request.client.host if request.client else "unknown"
+        if _is_rate_limited(ip, max_calls=30, window_seconds=60, key_prefix="ach_get"):
+            raise HTTPException(status_code=429, detail="محاولات كثيرة")
+        
+        res = supabase.table("achievements").select("*").eq(
+            "student_id", student_id
+        ).order("earned_at", desc=True).execute()
+        
+        # احسب الإحصائيات
+        earned = res.data or []
+        total_xp_from_badges = sum(b.get("xp_reward", 0) for b in earned)
+        
+        by_tier = {"bronze": 0, "silver": 0, "gold": 0, "legendary": 0}
+        for b in earned:
+            tier = b.get("badge_tier", "bronze")
+            if tier in by_tier:
+                by_tier[tier] += 1
+        
+        return {
+            "earned": earned,
+            "total_count": len(earned),
+            "total_available": len(ACHIEVEMENT_DEFINITIONS),
+            "total_xp_from_badges": total_xp_from_badges,
+            "by_tier": by_tier,
+            "all_badges": [
+                {"id": k, **v, "earned": any(e["badge_id"] == k for e in earned)}
+                for k, v in ACHIEVEMENT_DEFINITIONS.items()
+            ]
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.post("/api/student/{student_id}/check_achievements")
+async def trigger_check_achievements(
+    student_id: int,
+    request: Request,
+    score: int = Form(default=0),
+    total: int = Form(default=0),
+    duration_seconds: int = Form(default=0),
+):
+    """يُستدعى بعد كل تحدي — يفحص ويمنح الشارات الجديدة"""
+    granted = _check_and_grant_achievements(student_id, {
+        "score": score,
+        "total": total,
+        "duration_seconds": duration_seconds,
+    })
+    return {"new_badges": granted}
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🚨 ISSUE REPORTS — بلاغات الأسئلة
+# ═══════════════════════════════════════════════════════════════
+@app.post("/api/student/report_issue")
+async def report_issue(
+    request: Request,
+    student_id: int   = Form(...),
+    student_name: str = Form(default=""),
+    question_id: int  = Form(default=0),
+    issue_type: str   = Form(...),
+    description: str  = Form(default=""),
+):
+    """طالب يبلّغ عن مشكلة في سؤال"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=10, window_seconds=300, key_prefix="report_issue"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة")
+    
+    if issue_type not in ("wrong_answer", "typo", "unclear", "other"):
+        raise HTTPException(status_code=400, detail="نوع غير صالح")
+    
+    try:
+        supabase.table("issue_reports").insert({
+            "student_id":   student_id,
+            "student_name": student_name[:200],
+            "question_id":  question_id if question_id > 0 else None,
+            "issue_type":   issue_type,
+            "description":  description.strip()[:1000],
+        }).execute()
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.get("/api/admin/issue_reports")
+async def list_issue_reports(
+    status: str = "open",
+    admin = Depends(get_current_admin)
+):
+    """قائمة البلاغات"""
+    try:
+        q = supabase.table("issue_reports").select("*")
+        if status and status != "all":
+            q = q.eq("status", status)
+        res = q.order("created_at", desc=True).limit(200).execute()
+        return res.data or []
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.put("/api/admin/issue_reports/{report_id}")
+async def update_issue_report(
+    report_id: int,
+    status: str       = Form(...),
+    admin_notes: str  = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """تحديث حالة البلاغ"""
+    if status not in ("open", "reviewing", "resolved", "dismissed"):
+        raise HTTPException(status_code=400, detail="حالة غير صالحة")
+    
+    update = {"status": status, "admin_notes": admin_notes[:500]}
+    if status in ("resolved", "dismissed"):
+        from datetime import datetime, timezone
+        update["resolved_at"] = datetime.now(timezone.utc).isoformat()
+    
+    try:
+        supabase.table("issue_reports").update(update).eq("id", report_id).execute()
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🎓 TUTORING BOOKINGS — حجز الدروس الخصوصية
+# ═══════════════════════════════════════════════════════════════
+@app.post("/api/tutoring/book")
+async def book_tutoring(
+    request: Request,
+    student_id: int   = Form(...),
+    student_name: str = Form(default=""),
+    parent_phone: str = Form(default=""),
+    booking_date: str = Form(...),
+    booking_time: str = Form(...),
+    topic: str        = Form(default=""),
+    notes: str        = Form(default=""),
+    method: str       = Form(default="whatsapp"),
+):
+    """طالب يحجز جلسة استشارة"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=5, window_seconds=300, key_prefix="tutoring_book"):
+        raise HTTPException(status_code=429, detail="حجوزات كثيرة")
+    
+    if method not in ("whatsapp", "google_meet", "in_person"):
+        method = "whatsapp"
+    
+    try:
+        res = supabase.table("tutoring_bookings").insert({
+            "student_id":   student_id,
+            "student_name": student_name[:200],
+            "parent_phone": _normalize_phone(parent_phone) if parent_phone else None,
+            "booking_date": booking_date,
+            "booking_time": booking_time,
+            "topic":        topic.strip()[:200],
+            "notes":        notes.strip()[:1000],
+            "method":       method,
+        }).execute()
+        
+        # أرسل إشعار للأدمن (push للطالب نفسه)
+        try:
+            _push_to_student(
+                student_id,
+                "📅 تم استلام طلب الحجز",
+                f"موعدك: {booking_date} {booking_time} — في انتظار تأكيد الأستاذ",
+                tag="tutoring_pending"
+            )
+        except Exception:
+            pass
+        
+        return {"status": "success", "booking_id": res.data[0]["id"] if res.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.get("/api/student/{student_id}/bookings")
+async def get_student_bookings(student_id: int):
+    """حجوزات طالب معيّن"""
+    try:
+        res = supabase.table("tutoring_bookings").select("*").eq(
+            "student_id", student_id
+        ).order("booking_date", desc=True).limit(50).execute()
+        return res.data or []
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.get("/api/admin/tutoring_bookings")
+async def admin_list_bookings(
+    status: str = "all",
+    admin = Depends(get_current_admin)
+):
+    """كل الحجوزات للأدمن"""
+    try:
+        q = supabase.table("tutoring_bookings").select("*")
+        if status and status != "all":
+            q = q.eq("status", status)
+        res = q.order("booking_date", desc=False).limit(200).execute()
+        return res.data or []
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.put("/api/admin/tutoring_bookings/{booking_id}")
+async def update_booking(
+    booking_id: int,
+    status: str           = Form(...),
+    meeting_link: str     = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """تحديث حالة الحجز"""
+    if status not in ("pending", "confirmed", "completed", "cancelled"):
+        raise HTTPException(status_code=400, detail="حالة غير صالحة")
+    
+    update = {"status": status}
+    if meeting_link:
+        update["meeting_link"] = meeting_link.strip()[:500]
+    
+    try:
+        # اجلب الحجز للحصول على student_id
+        bk = supabase.table("tutoring_bookings").select("student_id, booking_date, booking_time").eq("id", booking_id).limit(1).execute()
+        
+        supabase.table("tutoring_bookings").update(update).eq("id", booking_id).execute()
+        
+        # أرسل إشعار للطالب
+        if bk.data:
+            sid = bk.data[0]["student_id"]
+            d = bk.data[0].get("booking_date", "")
+            t = bk.data[0].get("booking_time", "")
+            if status == "confirmed":
+                msg = f"📅 موعدك مؤكد: {d} {t}"
+                if meeting_link:
+                    msg += f"\nالرابط: {meeting_link}"
+                _push_to_student(sid, "✅ تم تأكيد الحجز", msg, tag="tutoring_confirmed", url="/student")
+            elif status == "cancelled":
+                _push_to_student(sid, "❌ تم إلغاء الحجز", f"تواصل مع الأستاذ للتفاصيل", tag="tutoring_cancelled")
+        
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🎬 SHORT VIDEOS — الفيديوهات القصيرة
+# ═══════════════════════════════════════════════════════════════
+@app.post("/api/admin/videos")
+async def upload_short_video(
+    title: str         = Form(...),
+    description: str   = Form(default=""),
+    grade: str         = Form(default=""),
+    lesson: str        = Form(default=""),
+    video_url: str     = Form(...),
+    thumbnail_url: str = Form(default=""),
+    duration_sec: int  = Form(default=0),
+    admin = Depends(get_current_admin)
+):
+    """إضافة فيديو قصير (يقبل YouTube/Vimeo URL أو رابط فيديو مباشر)"""
+    if not video_url.startswith(("http://", "https://")):
+        raise HTTPException(status_code=400, detail="رابط الفيديو غير صالح")
+    
+    try:
+        res = supabase.table("short_videos").insert({
+            "title":         title.strip()[:200],
+            "description":   description.strip()[:1000],
+            "grade":         grade[:100],
+            "lesson":        lesson[:200],
+            "video_url":     video_url[:1000],
+            "thumbnail_url": thumbnail_url[:1000] or None,
+            "duration_sec":  max(0, duration_sec),
+        }).execute()
+        return {"status": "success", "id": res.data[0]["id"] if res.data else None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.get("/api/videos")
+async def list_short_videos(grade: str = "", lesson: str = ""):
+    """قائمة الفيديوهات (للطلاب)"""
+    try:
+        q = supabase.table("short_videos").select("*").eq("is_published", True)
+        if grade:  q = q.eq("grade", grade)
+        if lesson: q = q.eq("lesson", lesson)
+        res = q.order("uploaded_at", desc=True).limit(100).execute()
+        return res.data or []
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.post("/api/videos/{video_id}/view")
+async def increment_video_view(video_id: int):
+    """زيادة عداد المشاهدات"""
+    try:
+        cur = supabase.table("short_videos").select("views_count").eq("id", video_id).limit(1).execute()
+        if cur.data:
+            new_count = (cur.data[0].get("views_count") or 0) + 1
+            supabase.table("short_videos").update({"views_count": new_count}).eq("id", video_id).execute()
+        return {"status": "ok"}
+    except Exception:
+        return {"status": "error"}
+
+
+@app.post("/api/videos/{video_id}/like")
+async def toggle_video_like(
+    video_id: int,
+    student_id: int = Form(...),
+):
+    """إعجاب/إلغاء إعجاب فيديو"""
+    try:
+        # تحقق من وجود إعجاب
+        existing = supabase.table("video_likes").select("id").eq(
+            "video_id", video_id
+        ).eq("student_id", student_id).limit(1).execute()
+        
+        if existing.data:
+            # احذف
+            supabase.table("video_likes").delete().eq("id", existing.data[0]["id"]).execute()
+            # نقص العداد
+            cur = supabase.table("short_videos").select("likes_count").eq("id", video_id).limit(1).execute()
+            if cur.data:
+                new_count = max(0, (cur.data[0].get("likes_count") or 0) - 1)
+                supabase.table("short_videos").update({"likes_count": new_count}).eq("id", video_id).execute()
+            return {"liked": False}
+        else:
+            # أضف
+            supabase.table("video_likes").insert({
+                "video_id": video_id,
+                "student_id": student_id,
+            }).execute()
+            cur = supabase.table("short_videos").select("likes_count").eq("id", video_id).limit(1).execute()
+            if cur.data:
+                new_count = (cur.data[0].get("likes_count") or 0) + 1
+                supabase.table("short_videos").update({"likes_count": new_count}).eq("id", video_id).execute()
+            return {"liked": True}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.delete("/api/admin/videos/{video_id}")
+async def delete_video(video_id: int, admin = Depends(get_current_admin)):
+    try:
+        supabase.table("video_likes").delete().eq("video_id", video_id).execute()
+        supabase.table("short_videos").delete().eq("id", video_id).execute()
+        return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+# ═══════════════════════════════════════════════════════════════
+# 💾 BACKUP & EXPORT
+# ═══════════════════════════════════════════════════════════════
+@app.get("/api/admin/export/{table_name}")
+async def export_table_csv(
+    table_name: str,
+    admin = Depends(get_current_admin)
+):
+    """تصدير جدول كـ CSV"""
+    from fastapi.responses import PlainTextResponse
+    
+    # قائمة الجداول المسموح بها
+    allowed = ["students", "results", "questions", "exams", "achievements", 
+               "tutoring_bookings", "issue_reports", "admin_tasks"]
+    if table_name not in allowed:
+        raise HTTPException(status_code=400, detail="جدول غير مسموح")
+    
+    try:
+        # جلب كل البيانات (pagination)
+        all_rows = []
+        offset = 0
+        for _ in range(100):
+            res = supabase.table(table_name).select("*").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch:
+                break
+            all_rows.extend(batch)
+            if len(batch) < 1000:
+                break
+            offset += 1000
+        
+        if not all_rows:
+            csv_content = "(لا توجد بيانات)"
+        else:
+            # CSV header من المفاتيح
+            keys = list(all_rows[0].keys())
+            lines = [",".join(keys)]
+            for row in all_rows:
+                row_values = []
+                for k in keys:
+                    v = row.get(k, "")
+                    if v is None:
+                        v = ""
+                    s = str(v).replace('"', '""').replace(",", "،").replace("\n", " ")
+                    row_values.append(f'"{s}"')
+                lines.append(",".join(row_values))
+            csv_content = "\n".join(lines)
+        
+        # BOM للعربية في Excel
+        csv_with_bom = "\ufeff" + csv_content
+        
+        return PlainTextResponse(
+            content=csv_with_bom,
+            headers={
+                "Content-Type": "text/csv; charset=utf-8",
+                "Content-Disposition": f'attachment; filename="{table_name}_export.csv"'
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🤖 AI ASSISTANT — المساعد الذكي للطالب
+# يستخدم Google Gemini (مجاني) — يحتاج GEMINI_API_KEY في env vars
+# ═══════════════════════════════════════════════════════════════
+
+# قواعد للحماية وتحسين الجودة
+AI_SYSTEM_PROMPT = """أنت مساعد رياضيات ذكي للطلاب في إمبراطورية الرياضيات.
+
+⚜️ قواعدك:
+1. تتكلم بالعربية الفصحى البسيطة المناسبة لطلاب المدارس
+2. تشرح خطوة بخطوة بصبر وحب
+3. لا تعطي الإجابة النهائية مباشرة — اشرح الطريقة وادفع الطالب للتفكير
+4. استخدم أمثلة بسيطة من حياة الطلاب
+5. إذا كان السؤال خارج الرياضيات، اعتذر بلطف
+6. كن مشجّعاً ومحفّزاً — استخدم إيموجي مناسبة بشكل مدروس
+7. لا تتجاوز 200 كلمة في الإجابة
+8. لا تتحدث عن نفسك إلا لو سُئلت
+"""
+
+@app.post("/api/ai/ask")
+async def ai_ask(
+    request: Request,
+    student_id: int = Form(...),
+    question: str   = Form(...),
+    context: str    = Form(default=""),  # سياق اختياري (الدرس الحالي/سؤال معيّن)
+):
+    """
+    🤖 يسأل الطالب المساعد الذكي
+    """
+    # rate limit صارم
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=15, window_seconds=300, key_prefix="ai_ask"):
+        raise HTTPException(status_code=429, detail="استخدمت أسئلة كثيرة — انتظر 5 دقائق")
+    
+    # تحقق من المدخلات
+    q = question.strip()
+    if len(q) < 3:
+        raise HTTPException(status_code=400, detail="السؤال قصير جداً")
+    if len(q) > 1000:
+        raise HTTPException(status_code=400, detail="السؤال طويل — اختصره")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="المساعد الذكي غير مفعّل — تواصل مع الأستاذ"
+        )
+    
+    # بناء الرسالة الكاملة
+    full_prompt = AI_SYSTEM_PROMPT
+    if context.strip():
+        full_prompt += f"\n\n📚 سياق الدرس: {context.strip()[:500]}"
+    full_prompt += f"\n\n❓ سؤال الطالب: {q}\n\n💡 إجابتك:"
+    
+    # استدعاء Gemini API مباشرة عبر REST (لا حاجة لمكتبة)
+    import httpx
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": full_prompt}]}],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 500,
+                "topP": 0.9,
+            },
+            "safetySettings": [
+                {"category": "HARM_CATEGORY_HARASSMENT",        "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                {"category": "HARM_CATEGORY_HATE_SPEECH",       "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_LOW_AND_ABOVE"},
+                {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+            ]
+        }
+        
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(url, json=payload)
+            
+            if r.status_code != 200:
+                err_msg = "فشل الاتصال بالمساعد"
+                try:
+                    err_data = r.json()
+                    if "error" in err_data:
+                        err_msg = err_data["error"].get("message", err_msg)[:150]
+                except:
+                    pass
+                raise HTTPException(status_code=500, detail=err_msg)
+            
+            data = r.json()
+            
+            # استخراج النص
+            answer = ""
+            try:
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        answer = parts[0].get("text", "").strip()
+            except Exception:
+                pass
+            
+            if not answer:
+                # ربما المحتوى مرفوض من safety
+                finish_reason = (candidates[0].get("finishReason", "") if candidates else "")
+                if finish_reason == "SAFETY":
+                    raise HTTPException(status_code=400, detail="السؤال غير مناسب")
+                raise HTTPException(status_code=500, detail="لم نتلقَّ إجابة")
+            
+            # سجّل الاستخدام (اختياري - للإحصاء)
+            try:
+                supabase.table("ai_questions_log").insert({
+                    "student_id": student_id,
+                    "question": q[:500],
+                    "answer_length": len(answer),
+                }).execute()
+            except Exception:
+                pass  # الجدول قد لا يكون موجوداً
+            
+            return {
+                "answer": answer,
+                "model": "gemini-1.5-flash",
+            }
+    
+    except HTTPException:
+        raise
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="استغرق المساعد وقتاً طويلاً — حاول مرة أخرى")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/ai/status")
+async def ai_status():
+    """فحص حالة المساعد الذكي"""
+    has_key = bool(os.getenv("GEMINI_API_KEY", "").strip())
+    return {"enabled": has_key}
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📧 MONTHLY EMAIL REPORTS — التقارير الشهرية لأولياء الأمور
+# ═══════════════════════════════════════════════════════════════
+
+def _generate_monthly_report_html(student: dict, stats: dict, parent_name: str = "") -> str:
+    """يولّد HTML لتقرير شهري احترافي"""
+    
+    name = student.get("full_name", "البطل")
+    grade = student.get("grade", "")
+    
+    rank = stats.get("rank_in_grade") or "—"
+    rank_total = stats.get("grade_total_students") or "—"
+    
+    # الإنجازات
+    perfect = stats.get("perfect_count", 0)
+    avg_pct = stats.get("avg_score_pct", 0)
+    minutes = stats.get("minutes_30d", 0)
+    days_active = stats.get("days_active_30d", 0)
+    total_tests = stats.get("total_tests_30d", 0)
+    
+    # التقييم
+    if avg_pct >= 85:
+        rating_emoji = "🏆"
+        rating_text = "ممتاز"
+        rating_color = "#2ecc71"
+    elif avg_pct >= 70:
+        rating_emoji = "⭐"
+        rating_text = "جيد جداً"
+        rating_color = "#3498db"
+    elif avg_pct >= 50:
+        rating_emoji = "📈"
+        rating_text = "في تحسّن"
+        rating_color = "#f39c12"
+    else:
+        rating_emoji = "💪"
+        rating_text = "يحتاج دعم"
+        rating_color = "#e74c3c"
+    
+    greeting = f"السلام عليكم {parent_name}" if parent_name else "السلام عليكم ولي الأمر الكريم"
+    
+    return f"""<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+<meta charset="UTF-8">
+<style>
+    body {{ font-family: 'Segoe UI', Tahoma, Arial; background: #f5f5f0; margin: 0; padding: 20px; color: #333; }}
+    .container {{ max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 8px 24px rgba(0,0,0,0.1); }}
+    .header {{ background: linear-gradient(135deg, #d4af37, #b8860b); color: white; padding: 30px 20px; text-align: center; }}
+    .header h1 {{ margin: 0 0 8px; font-size: 24px; }}
+    .header p {{ margin: 0; opacity: 0.9; font-size: 14px; }}
+    .greeting {{ padding: 24px; background: #fdfaf0; }}
+    .greeting p {{ margin: 0; line-height: 1.7; font-size: 15px; }}
+    .student-card {{ background: linear-gradient(135deg, #1a1a2e, #0d1b3e); color: white; padding: 24px; text-align: center; }}
+    .student-card h2 {{ margin: 0 0 6px; font-size: 22px; color: #fcf6ba; }}
+    .student-card p {{ margin: 0; opacity: 0.85; font-size: 14px; }}
+    .rating-badge {{ display: inline-block; background: {rating_color}; color: white; padding: 8px 20px; border-radius: 20px; margin-top: 12px; font-weight: bold; }}
+    .stats-grid {{ display: table; width: 100%; padding: 24px; }}
+    .stat-row {{ display: table-row; }}
+    .stat-cell {{ display: table-cell; padding: 14px; text-align: center; border-bottom: 1px solid #eee; }}
+    .stat-num {{ font-size: 28px; font-weight: bold; color: #d4af37; }}
+    .stat-label {{ font-size: 13px; color: #666; margin-top: 4px; }}
+    .insights {{ background: #fdfaf0; padding: 24px; border-top: 3px solid #d4af37; }}
+    .insights h3 {{ color: #b8860b; margin: 0 0 14px; font-size: 18px; }}
+    .insight-item {{ background: white; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px; border-right: 4px solid #d4af37; }}
+    .footer {{ background: #1a1a2e; color: white; padding: 20px; text-align: center; font-size: 12px; }}
+    .footer a {{ color: #d4af37; text-decoration: none; }}
+</style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <h1>👑 التقرير الشهري</h1>
+        <p>إمبراطورية الرياضيات — أ. رشدي سيد</p>
+    </div>
+    
+    <div class="greeting">
+        <p>{greeting}،</p>
+        <p style="margin-top:10px;">يسرّنا أن نُرسل لك تقرير الشهر الماضي عن أداء ابنك في المنصة:</p>
+    </div>
+    
+    <div class="student-card">
+        <h2>{name}</h2>
+        <p>📚 {grade}</p>
+        <div class="rating-badge">{rating_emoji} {rating_text}</div>
+    </div>
+    
+    <div class="stats-grid">
+        <div class="stat-row">
+            <div class="stat-cell">
+                <div class="stat-num">{total_tests}</div>
+                <div class="stat-label">📊 تحديات منجزة</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num">{avg_pct}%</div>
+                <div class="stat-label">🎯 متوسط الدقة</div>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-cell">
+                <div class="stat-num">{minutes}</div>
+                <div class="stat-label">⏱️ دقيقة دراسة</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num">{days_active}</div>
+                <div class="stat-label">📅 يوم نشاط</div>
+            </div>
+        </div>
+        <div class="stat-row">
+            <div class="stat-cell">
+                <div class="stat-num">{perfect}</div>
+                <div class="stat-label">💯 علامة كاملة</div>
+            </div>
+            <div class="stat-cell">
+                <div class="stat-num">#{rank}<span style="font-size:14px;color:#999;">/{rank_total}</span></div>
+                <div class="stat-label">🏆 الترتيب في الصف</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="insights">
+        <h3>💡 ملاحظات الأستاذ</h3>
+        <div class="insight-item">
+            <strong style="color:{rating_color};">{rating_emoji} التقييم العام:</strong>
+            <span>{rating_text} — {('استمر على هذا المستوى الرائع!' if avg_pct >= 70 else 'يحتاج لمزيد من المتابعة والتشجيع')}</span>
+        </div>
+        {"<div class='insight-item'><strong>📈 نشاط جيد:</strong> دخل المنصة " + str(days_active) + " يوم في الشهر الماضي.</div>" if days_active >= 10 else "<div class='insight-item'><strong>⚠️ نشاط قليل:</strong> ندعو ولي الأمر لتشجيع الطالب على دخول المنصة بشكل أكثر انتظاماً.</div>"}
+        {"<div class='insight-item'><strong>🏆 إنجاز رائع:</strong> حقق " + str(perfect) + " علامة كاملة هذا الشهر!</div>" if perfect >= 3 else ""}
+    </div>
+    
+    <div class="footer">
+        <p>هذا تقرير تلقائي شهري من <strong>إمبراطورية الرياضيات</strong></p>
+        <p>للتفاصيل الكاملة: <a href="https://your-domain.com/parent">ادخل بوابة ولي الأمر</a></p>
+        <p style="margin-top:14px;opacity:0.6;">⚜️ الأستاذ رشدي سيد ⚜️</p>
+    </div>
+</div>
+</body>
+</html>"""
+
+
+@app.post("/api/admin/send_monthly_reports")
+async def send_monthly_reports(
+    test_email: str = Form(default=""),  # لو مُدخل: يُرسل لهذا فقط للاختبار
+    admin = Depends(get_current_admin)
+):
+    """
+    📧 يُرسل تقارير شهرية لكل أولياء الأمور بإيميل
+    يستخدم SendGrid أو Mailgun (تحتاج SMTP credentials)
+    """
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_pass = os.getenv("SMTP_PASS", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", smtp_user).strip()
+    smtp_port = int(os.getenv("SMTP_PORT", "587"))
+    
+    if not smtp_host or not smtp_user or not smtp_pass:
+        raise HTTPException(
+            status_code=503,
+            detail="إعدادات البريد غير مكتملة — أضف SMTP_HOST/USER/PASS في env"
+        )
+    
+    # اجلب كل الطلاب الذين لديهم parent_email
+    try:
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, grade, parent_email, parent_name"
+            ).neq("parent_email", "").not_.is_("parent_email", "null").range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            all_students.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل جلب الطلاب: {str(e)[:200]}")
+    
+    if test_email:
+        # وضع اختبار — فقط أول طالب لإيميل اختبار
+        if all_students:
+            all_students = [{**all_students[0], "parent_email": test_email}]
+        else:
+            raise HTTPException(status_code=404, detail="لا يوجد طلاب")
+    
+    sent = 0
+    failed = 0
+    errors = []
+    
+    import smtplib
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
+    from datetime import datetime, timezone, timedelta
+    
+    try:
+        smtp = smtplib.SMTP(smtp_host, smtp_port)
+        smtp.starttls()
+        smtp.login(smtp_user, smtp_pass)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل اتصال SMTP: {str(e)[:200]}")
+    
+    now = datetime.now(timezone.utc)
+    cutoff = now - timedelta(days=30)
+    
+    for student in all_students:
+        try:
+            # احسب الإحصائيات للشهر الماضي
+            results_res = supabase.table("results").select(
+                "score, total, timestamp"
+            ).eq("student_id", student["id"]).gte("timestamp", cutoff.isoformat()).execute()
+            results = results_res.data or []
+            
+            total_tests = len(results)
+            total_score = sum((r.get("score") or 0) for r in results)
+            total_max = sum((r.get("total") or 0) for r in results)
+            avg_pct = round((total_score / total_max * 100), 1) if total_max > 0 else 0
+            perfect_count = sum(1 for r in results if r.get("total") and r.get("score") == r.get("total"))
+            
+            # الجلسات
+            sess_res = supabase.table("student_sessions").select(
+                "session_bucket"
+            ).eq("student_id", student["id"]).gte("session_bucket", cutoff.isoformat()).execute()
+            sessions = sess_res.data or []
+            minutes_30d = len(sessions) * 5
+            days_active = len(set(s["session_bucket"][:10] for s in sessions if s.get("session_bucket")))
+            
+            stats = {
+                "total_tests_30d": total_tests,
+                "avg_score_pct": avg_pct,
+                "minutes_30d": minutes_30d,
+                "days_active_30d": days_active,
+                "perfect_count": perfect_count,
+            }
+            
+            # بناء HTML
+            html_body = _generate_monthly_report_html(
+                student, stats, student.get("parent_name", "")
+            )
+            
+            # إرسال
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = f"📊 تقرير الشهر الماضي للطالب {student['full_name']}"
+            msg["From"] = smtp_from
+            msg["To"] = student["parent_email"]
+            msg.attach(MIMEText(html_body, "html", "utf-8"))
+            
+            smtp.send_message(msg)
+            sent += 1
+            
+            # سجّل في email_log
+            try:
+                supabase.table("email_log").insert({
+                    "parent_email": student["parent_email"],
+                    "student_id": student["id"],
+                    "notif_type": "monthly_report",
+                    "subject": msg["Subject"],
+                }).execute()
+            except Exception:
+                pass
+            
+        except Exception as e:
+            failed += 1
+            errors.append({"student": student.get("full_name"), "error": str(e)[:100]})
+    
+    try:
+        smtp.quit()
+    except Exception:
+        pass
+    
+    return {
+        "status": "done",
+        "sent": sent,
+        "failed": failed,
+        "total": len(all_students),
+        "errors": errors[:10],
+    }
 
 @app.post("/api/admin/update_password")
 async def update_admin_password(

@@ -1455,6 +1455,26 @@
             <span class="btn-icon">⚔️</span><span class="sidebar-label">قبيلتك</span>
         </button>
 
+        <!-- 🏅 شاراتي وإنجازاتي -->
+        <button class="nav-btn shiny-btn btn-badges" id="btn-badges" onclick="openMyAchievements()" style="background:linear-gradient(135deg,#f39c12,#d35400);border-color:#f1c40f;">
+            <span class="btn-icon">🏅</span><span class="sidebar-label">شاراتي <span class="nav-vip-badge" id="badges-count-pill" style="display:none;background:#fff;color:#d35400;">0</span></span>
+        </button>
+
+        <!-- 🎬 الفيديوهات القصيرة -->
+        <button class="nav-btn shiny-btn btn-reels" id="btn-reels" onclick="openShortVideos()" style="background:linear-gradient(135deg,#e91e63,#ad1457);border-color:#f06292;">
+            <span class="btn-icon">🎬</span><span class="sidebar-label">شروحات قصيرة</span>
+        </button>
+
+        <!-- 🎓 احجز جلسة -->
+        <button class="nav-btn shiny-btn btn-tutoring" id="btn-tutoring" onclick="openBookingModal()" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);border-color:#bb86fc;">
+            <span class="btn-icon">🎓</span><span class="sidebar-label">احجز جلسة استشارة</span>
+        </button>
+
+        <!-- 🤖 المساعد الذكي AI -->
+        <button class="nav-btn shiny-btn btn-ai" id="btn-ai" onclick="openAIAssistant()" style="background:linear-gradient(135deg,#1abc9c,#16a085);border-color:#48d1cc;">
+            <span class="btn-icon">🤖</span><span class="sidebar-label">المساعد الذكي <span class="nav-vip-badge" style="background:#fff;color:#16a085;">AI</span></span>
+        </button>
+
         <!-- أرشيفي الدراسي -->
         <button class="nav-btn shiny-btn btn-archive" id="btn-archive" onclick="openMyArchive()">
             <span class="btn-icon">📚</span><span class="sidebar-label">أرشيفي الدراسي</span>
@@ -4192,9 +4212,11 @@
         if (q.image_url) html += `<div style="text-align:center;"><img src="${q.image_url}" class="question-image"></div>`;
         html += `<p style="font-size:1.3rem; margin-bottom:15px;">${esc(q.question)}</p>`;
 
-        html += `<div style="margin-bottom:20px;">
+        html += `<div style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
             <button class="hint-btn" onclick="useHintChallenge()">🧙‍♂️ مساعدة الحكيم (-50 XP)</button>
-            <span id="hint-display"></span>
+            <button onclick="openAIAssistant('اشرح لي طريقة حل هذا السؤال (دون إعطاء الإجابة المباشرة): ' + ${JSON.stringify(esc(q.question || ''))}, ${JSON.stringify(challengeState.lesson || '')})" style="background:linear-gradient(135deg,#1abc9c,#16a085);color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:bold;">🤖 اسأل المساعد</button>
+            <button onclick="openReportIssueModal(${q.id || 0}, ${JSON.stringify(q.question || '')})" style="background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid #e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;" title="أبلغ عن خطأ في السؤال">🚨 أبلغ عن خطأ</button>
+            <span id="hint-display" style="margin-right:auto;"></span>
         </div>`;
         html += `<div id="options-area"></div><div id="feedback" style="text-align:center; margin-top:25px; font-weight:bold; font-size:1.2rem;"></div></div>`;
         area.innerHTML = html;
@@ -5390,7 +5412,21 @@
         fd.append('lesson',       challengeState.lesson);
         fd.append('score',        challengeState.correct);
         fd.append('total',        challengeState.qs.length);
-        try { await fetch(`${API_URL}/api/student/results`, { method: 'POST', body: fd }); } catch {}
+        try {
+            const res = await fetch(`${API_URL}/api/student/results`, { method: 'POST', body: fd });
+            // 🏅 معالجة الشارات الجديدة
+            if (res && res.ok) {
+                try {
+                    const data = await res.json();
+                    if (data.new_badges && Array.isArray(data.new_badges) && data.new_badges.length > 0) {
+                        if (typeof handleNewBadgesFromResult === 'function') {
+                            // تأخير قليل ليبدأ بعد رسالة النتيجة
+                            setTimeout(() => handleNewBadgesFromResult(data.new_badges), 2500);
+                        }
+                    }
+                } catch(e) {}
+            }
+        } catch {}
     }
 
     /* ════════════════════════════════════════════════════
@@ -8363,6 +8399,691 @@
 
     // ── END ELITE STUDENT JS ──
 
-    </script>
+    
+// ════════════════════════════════════════════════════════════
+// 🏅 ACHIEVEMENTS / BADGES SYSTEM
+// ════════════════════════════════════════════════════════════
+
+async function openMyAchievements() {
+    if (!currentUser || !currentUser.id) {
+        if (typeof showToast === 'function') showToast('⚠️ يجب تسجيل الدخول أولاً');
+        return;
+    }
+    
+    // إغلاق modal سابق
+    var prev = document.getElementById('achievements-modal');
+    if (prev) prev.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'achievements-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99988;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;backdrop-filter:blur(10px);overflow:hidden;';
+    modal.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(135deg,#1a0d2e,#3d1c5e);border-bottom:2px solid rgba(243,156,18,0.5);flex-shrink:0;">
+            <div style="font-size:1.8rem;filter:drop-shadow(0 0 12px rgba(243,156,18,0.7));">🏅</div>
+            <div style="flex:1;">
+                <div style="font-weight:bold;color:#f1c40f;font-family:'Cairo';font-size:1.1rem;">شاراتي وإنجازاتي</div>
+                <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);">كل الإنجازات التي حققتها في إمبراطورية الرياضيات</div>
+            </div>
+            <button onclick="document.getElementById('achievements-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+        </div>
+        <div id="ach-content" style="flex:1;overflow-y:auto;padding:20px;">
+            <div style="text-align:center;padding:60px 20px;">
+                <div style="font-size:2.4rem;margin-bottom:14px;">⏳</div>
+                <p style="opacity:0.6;">جارٍ تحميل شاراتك...</p>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    try {
+        var res = await fetch(API_URL + '/api/student/' + currentUser.id + '/achievements');
+        if (!res.ok) throw new Error('failed');
+        var data = await res.json();
+        renderAchievements(data);
+    } catch(e) {
+        document.getElementById('ach-content').innerHTML = '<div style="text-align:center;padding:50px;color:#e74c3c;">❌ فشل تحميل الشارات</div>';
+    }
+}
+
+function renderAchievements(data) {
+    var content = document.getElementById('ach-content');
+    if (!content) return;
+    
+    var earned = data.earned || [];
+    var total = data.total_count || 0;
+    var available = data.total_available || 0;
+    var byTier = data.by_tier || {};
+    var allBadges = data.all_badges || [];
+    
+    var html = '';
+    
+    // ─── الإحصائيات ───
+    html += '<div style="background:linear-gradient(135deg,rgba(243,156,18,0.1),rgba(212,175,55,0.05));border:1px solid rgba(243,156,18,0.3);border-radius:18px;padding:18px;margin-bottom:20px;">';
+    html += '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;">';
+    html += '<div>';
+    html += '<div style="font-size:0.82rem;color:rgba(255,255,255,0.6);margin-bottom:4px;">إجمالي الشارات</div>';
+    html += '<div style="font-size:2.4rem;font-weight:900;color:#f1c40f;line-height:1;">' + total + '<span style="font-size:1.2rem;color:rgba(255,255,255,0.4);">/' + available + '</span></div>';
+    html += '<div style="margin-top:6px;font-size:0.78rem;color:rgba(255,255,255,0.5);">+ ' + (data.total_xp_from_badges || 0) + ' XP من الشارات</div>';
+    html += '</div>';
+    
+    // عدّاد الفئات
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;">';
+    var tiers = [
+        {id:'legendary', icon:'💎', color:'#b9f2ff', label:'أسطوري'},
+        {id:'gold',      icon:'🥇', color:'#ffd700', label:'ذهبي'},
+        {id:'silver',    icon:'🥈', color:'#c0c0c0', label:'فضي'},
+        {id:'bronze',    icon:'🥉', color:'#cd7f32', label:'برونزي'},
+    ];
+    tiers.forEach(function(t) {
+        var count = byTier[t.id] || 0;
+        html += '<div style="text-align:center;background:rgba(0,0,0,0.3);border:1px solid ' + t.color + ';border-radius:12px;padding:10px 14px;min-width:70px;">';
+        html += '<div style="font-size:1.4rem;">' + t.icon + '</div>';
+        html += '<div style="font-size:1.3rem;font-weight:900;color:' + t.color + ';">' + count + '</div>';
+        html += '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);">' + t.label + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+    html += '</div>';
+    
+    // شريط التقدم
+    var pct = available > 0 ? Math.round(total / available * 100) : 0;
+    html += '<div style="margin-top:12px;">';
+    html += '<div style="display:flex;justify-content:space-between;font-size:0.78rem;color:rgba(255,255,255,0.6);margin-bottom:5px;">';
+    html += '<span>التقدم</span><span>' + pct + '%</span>';
+    html += '</div>';
+    html += '<div style="height:8px;background:rgba(0,0,0,0.4);border-radius:8px;overflow:hidden;">';
+    html += '<div style="height:100%;background:linear-gradient(90deg,#f39c12,#f1c40f);width:' + pct + '%;border-radius:8px;transition:width 1s ease;"></div>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    // ─── الشارات: المكتسبة أولاً ───
+    var earnedBadges = allBadges.filter(function(b){ return b.earned; });
+    var lockedBadges = allBadges.filter(function(b){ return !b.earned; });
+    
+    if (earnedBadges.length > 0) {
+        html += '<h3 style="color:#f1c40f;font-family:Amiri;margin:20px 0 12px;">🌟 شاراتك المكتسبة</h3>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;">';
+        earnedBadges.forEach(function(b) {
+            html += renderBadgeCard(b, true);
+        });
+        html += '</div>';
+    }
+    
+    if (lockedBadges.length > 0) {
+        html += '<h3 style="color:rgba(255,255,255,0.5);font-family:Amiri;margin:24px 0 12px;">🔒 شارات لم تُكتسب بعد</h3>';
+        html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;">';
+        lockedBadges.forEach(function(b) {
+            html += renderBadgeCard(b, false);
+        });
+        html += '</div>';
+    }
+    
+    if (earnedBadges.length === 0 && lockedBadges.length === 0) {
+        html += '<div style="text-align:center;padding:60px;opacity:0.5;">لا توجد شارات</div>';
+    }
+    
+    content.innerHTML = html;
+}
+
+function renderBadgeCard(b, earned) {
+    var color = b.color || '#d4af37';
+    var bg = earned 
+        ? 'background:linear-gradient(135deg,' + color + '22,' + color + '08);border:1px solid ' + color + '88;'
+        : 'background:rgba(50,50,80,0.3);border:1px dashed rgba(255,255,255,0.15);opacity:0.5;filter:grayscale(0.7);';
+    
+    return '<div style="' + bg + 'border-radius:14px;padding:14px;text-align:center;transition:transform 0.3s;" onmouseover="this.style.transform=\'translateY(-3px) scale(1.03)\'" onmouseout="this.style.transform=\'\'">' +
+        '<div style="font-size:2.6rem;margin-bottom:6px;filter:drop-shadow(0 0 10px ' + color + '88);">' + b.icon + '</div>' +
+        '<div style="font-weight:bold;color:' + (earned ? color : 'rgba(255,255,255,0.7)') + ';font-size:0.82rem;line-height:1.3;">' + b.name + '</div>' +
+        '<div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;line-height:1.4;">' + (b.description || '') + '</div>' +
+        '<div style="margin-top:6px;font-size:0.7rem;color:#f1c40f;">+' + (b.xp || 0) + ' XP</div>' +
+    '</div>';
+}
+
+// ─── إشعار "شارة جديدة!" — Toast فاخر ───
+function showNewBadgeToast(badge) {
+    var t = document.createElement('div');
+    t.style.cssText = `
+        position:fixed; top:50%; left:50%;
+        transform:translate(-50%,-50%) scale(0);
+        z-index:999999;
+        background:linear-gradient(135deg, ${badge.color}cc, ${badge.color}99);
+        border:3px solid ${badge.color};
+        border-radius:24px;
+        padding:30px 40px;
+        text-align:center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 80px ${badge.color}88;
+        backdrop-filter:blur(10px);
+        animation: badgePopIn 0.6s cubic-bezier(0.34,1.56,0.64,1) forwards, badgePopOut 0.5s ease 4s forwards;
+        min-width: 260px; max-width: 340px;
+    `;
+    t.innerHTML = `
+        <div style="font-size:0.85rem;color:#fff;opacity:0.85;margin-bottom:8px;font-weight:bold;">🎉 شارة جديدة!</div>
+        <div style="font-size:5rem;line-height:1;margin:8px 0;filter:drop-shadow(0 0 20px ${badge.color});animation:badgeBounce 0.6s ease-out 0.3s both;">${badge.icon}</div>
+        <div style="font-size:1.4rem;font-weight:900;color:#fff;margin:8px 0;text-shadow:0 2px 8px rgba(0,0,0,0.5);">${badge.name}</div>
+        <div style="font-size:0.85rem;color:rgba(255,255,255,0.9);line-height:1.5;">${badge.description || ''}</div>
+        <div style="margin-top:14px;background:rgba(0,0,0,0.3);border-radius:50px;padding:6px 14px;display:inline-block;color:#fff;font-weight:bold;">+${badge.xp} XP</div>
+    `;
+    
+    // نُضيف الـ keyframes inline لو لم تكن موجودة
+    if (!document.getElementById('badge-toast-styles')) {
+        var s = document.createElement('style');
+        s.id = 'badge-toast-styles';
+        s.textContent = `
+            @keyframes badgePopIn { from { transform:translate(-50%,-50%) scale(0) rotate(-180deg); } to { transform:translate(-50%,-50%) scale(1) rotate(0); } }
+            @keyframes badgePopOut { from { opacity:1; transform:translate(-50%,-50%) scale(1); } to { opacity:0; transform:translate(-50%,-50%) scale(0.7); } }
+            @keyframes badgeBounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+        `;
+        document.head.appendChild(s);
+    }
+    
+    document.body.appendChild(t);
+    
+    // كونفيتي خفيف
+    if (typeof celebrateCorrect === 'function') {
+        try { celebrateCorrect(0.5); } catch(e) {}
+    }
+    
+    setTimeout(function() { t.remove(); }, 5000);
+}
+
+// ─── معالجة شارات جديدة من submit_result ───
+function handleNewBadgesFromResult(newBadges) {
+    if (!Array.isArray(newBadges) || newBadges.length === 0) return;
+    
+    // أظهر الشارات بفترة 1.5 ثانية بين كل شارة
+    newBadges.forEach(function(badge, i) {
+        setTimeout(function() {
+            showNewBadgeToast(badge);
+        }, i * 1600);
+    });
+    
+    // حدّث العداد في الـ sidebar
+    setTimeout(updateBadgesCounter, 500);
+}
+
+// ─── تحديث عدّاد الشارات في sidebar ───
+async function updateBadgesCounter() {
+    if (!currentUser || !currentUser.id) return;
+    try {
+        var res = await fetch(API_URL + '/api/student/' + currentUser.id + '/achievements');
+        if (!res.ok) return;
+        var data = await res.json();
+        var pill = document.getElementById('badges-count-pill');
+        if (pill) {
+            if ((data.total_count || 0) > 0) {
+                pill.textContent = data.total_count;
+                pill.style.display = 'inline-block';
+            } else {
+                pill.style.display = 'none';
+            }
+        }
+    } catch(e) {}
+}
+
+// تحديث عند الدخول
+setTimeout(updateBadgesCounter, 3000);
+
+
+// ════════════════════════════════════════════════════════════
+// 🎬 SHORT VIDEOS — فيديوهات تفاعلية كـ Reels
+// ════════════════════════════════════════════════════════════
+var _videos = [];
+var _videosIndex = 0;
+
+async function openShortVideos() {
+    var prev = document.getElementById('reels-modal');
+    if (prev) prev.remove();
+    
+    // اجلب الفيديوهات
+    try {
+        var grade = currentUser?.grade ? '?grade=' + encodeURIComponent(currentUser.grade) : '';
+        var res = await fetch(API_URL + '/api/videos' + grade);
+        if (res.ok) _videos = await res.json();
+        // لو لم يجد لصفه — اجلب الكل
+        if (!_videos.length) {
+            res = await fetch(API_URL + '/api/videos');
+            if (res.ok) _videos = await res.json();
+        }
+    } catch(e) { _videos = []; }
+    
+    if (!_videos.length) {
+        if (typeof showToast === 'function') showToast('🎬 لا توجد فيديوهات بعد — تابع لاحقاً!');
+        return;
+    }
+    
+    _videosIndex = 0;
+    renderReelsModal();
+}
+
+function renderReelsModal() {
+    var prev = document.getElementById('reels-modal');
+    if (prev) prev.remove();
+    
+    var v = _videos[_videosIndex];
+    if (!v) return;
+    
+    var modal = document.createElement('div');
+    modal.id = 'reels-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99988;background:#000;display:flex;flex-direction:column;';
+    
+    // استخراج embed URL
+    var embedUrl = v.video_url;
+    var ytMatch = v.video_url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([\w-]+)/);
+    if (ytMatch) {
+        embedUrl = 'https://www.youtube.com/embed/' + ytMatch[1] + '?autoplay=1&rel=0';
+    }
+    var vimeoMatch = v.video_url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) {
+        embedUrl = 'https://player.vimeo.com/video/' + vimeoMatch[1] + '?autoplay=1';
+    }
+    
+    var isEmbed = ytMatch || vimeoMatch;
+    
+    modal.innerHTML = `
+        <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:linear-gradient(135deg,#1a1a2e,#0d1b3e);border-bottom:1px solid rgba(233,30,99,0.4);">
+            <div style="font-size:1.4rem;">🎬</div>
+            <div style="flex:1;">
+                <div style="font-weight:bold;color:#e91e63;font-size:0.95rem;">شروحات قصيرة</div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">${_videosIndex + 1} من ${_videos.length}</div>
+            </div>
+            <button onclick="document.getElementById('reels-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;">✕</button>
+        </div>
+        
+        <div style="flex:1;position:relative;background:#000;">
+            ${isEmbed 
+                ? `<iframe src="${embedUrl}" style="width:100%;height:100%;border:none;" allow="autoplay; encrypted-media" allowfullscreen></iframe>`
+                : `<video src="${v.video_url}" style="width:100%;height:100%;object-fit:contain;" controls autoplay></video>`
+            }
+        </div>
+        
+        <div style="padding:14px 16px;background:linear-gradient(0deg,#0d1b3e,#1a1a2e);">
+            <div style="font-weight:bold;color:#fff;font-size:1rem;margin-bottom:4px;">${esc(v.title)}</div>
+            <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-bottom:10px;">${esc(v.grade||'')} ${v.lesson ? '• ' + esc(v.lesson) : ''}</div>
+            ${v.description ? `<div style="font-size:0.85rem;color:rgba(255,255,255,0.75);margin-bottom:12px;line-height:1.6;">${esc(v.description)}</div>` : ''}
+            
+            <div style="display:flex;gap:10px;align-items:center;justify-content:space-between;">
+                <button onclick="prevReel()" ${_videosIndex === 0 ? 'disabled' : ''} style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:9px 16px;border-radius:10px;cursor:${_videosIndex===0?'not-allowed':'pointer'};font-family:Cairo;opacity:${_videosIndex===0?'0.4':'1'};">⏮ السابق</button>
+                
+                <button onclick="toggleVideoLike(${v.id})" id="reel-like-btn" style="background:linear-gradient(135deg,#e91e63,#ad1457);border:none;color:#fff;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                    ❤️ ${v.likes_count || 0}
+                </button>
+                
+                <button onclick="nextReel()" ${_videosIndex >= _videos.length - 1 ? 'disabled' : ''} style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:9px 16px;border-radius:10px;cursor:${_videosIndex >= _videos.length - 1?'not-allowed':'pointer'};font-family:Cairo;opacity:${_videosIndex >= _videos.length - 1?'0.4':'1'};">التالي ⏭</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // زيادة المشاهدات
+    fetch(API_URL + '/api/videos/' + v.id + '/view', { method: 'POST' }).catch(()=>{});
+}
+
+function nextReel() {
+    if (_videosIndex < _videos.length - 1) {
+        _videosIndex++;
+        renderReelsModal();
+    }
+}
+function prevReel() {
+    if (_videosIndex > 0) {
+        _videosIndex--;
+        renderReelsModal();
+    }
+}
+
+async function toggleVideoLike(videoId) {
+    if (!currentUser?.id) return;
+    try {
+        var fd = new FormData();
+        fd.append('student_id', currentUser.id);
+        var res = await fetch(API_URL + '/api/videos/' + videoId + '/like', { method: 'POST', body: fd });
+        if (res.ok) {
+            var data = await res.json();
+            // حدّث العداد محلياً
+            var v = _videos[_videosIndex];
+            if (v && v.id === videoId) {
+                v.likes_count = (v.likes_count || 0) + (data.liked ? 1 : -1);
+            }
+            var btn = document.getElementById('reel-like-btn');
+            if (btn) btn.innerHTML = (data.liked ? '❤️' : '🤍') + ' ' + (v.likes_count || 0);
+        }
+    } catch(e) {}
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎓 BOOKING — حجز جلسة استشارة
+// ════════════════════════════════════════════════════════════
+function openBookingModal() {
+    if (!currentUser?.id) {
+        if (typeof showToast === 'function') showToast('⚠️ سجّل دخول أولاً');
+        return;
+    }
+    var prev = document.getElementById('booking-modal');
+    if (prev) prev.remove();
+    
+    // أقل تاريخ = غداً
+    var tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    var minDate = tomorrow.toISOString().split('T')[0];
+    
+    var m = document.createElement('div');
+    m.id = 'booking-modal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:99990;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);';
+    m.innerHTML = `
+        <div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid #9b59b6;border-radius:20px;padding:24px;max-width:440px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="font-size:2.2rem;">🎓</div>
+                <h2 style="color:#bb86fc;margin:0;font-family:Amiri;font-size:1.4rem;">احجز جلسة استشارة</h2>
+                <div style="flex:1;"></div>
+                <button onclick="document.getElementById('booking-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            
+            <p style="opacity:0.7;font-size:0.85rem;margin-bottom:16px;line-height:1.7;">
+                💡 احجز موعداً مع الأستاذ رشدي لمناقشة درس صعب أو مراجعة موضوع
+            </p>
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">📅 التاريخ</label>
+            <input type="date" id="bk-date" min="${minDate}" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:12px;">
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">🕐 الوقت المفضّل</label>
+            <input type="time" id="bk-time" value="16:00" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:12px;">
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">📝 الموضوع</label>
+            <input type="text" id="bk-topic" placeholder="مثل: مراجعة المعادلات الخطية" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:12px;">
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">📞 طريقة الجلسة</label>
+            <select id="bk-method" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:12px;">
+                <option value="whatsapp">📱 WhatsApp مكالمة صوتية</option>
+                <option value="google_meet">🎥 Google Meet</option>
+                <option value="in_person">🤝 حضوري</option>
+            </select>
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">💬 ملاحظات (اختيارية)</label>
+            <textarea id="bk-notes" rows="3" placeholder="أي تفاصيل إضافية..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:18px;resize:vertical;"></textarea>
+            
+            <button onclick="submitBooking()" id="bk-save-btn" style="width:100%;background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:13px;border-radius:12px;font-weight:bold;font-family:Cairo;font-size:1rem;cursor:pointer;">📅 طلب الحجز</button>
+            
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:12px;text-align:center;">سيُرسل لك إشعار بمجرد تأكيد الأستاذ</p>
+        </div>
+    `;
+    document.body.appendChild(m);
+}
+
+async function submitBooking() {
+    var date = document.getElementById('bk-date').value;
+    var time = document.getElementById('bk-time').value;
+    var topic = document.getElementById('bk-topic').value.trim();
+    var method = document.getElementById('bk-method').value;
+    var notes = document.getElementById('bk-notes').value.trim();
+    
+    if (!date || !time) { showToast('⚠️ التاريخ والوقت مطلوبان'); return; }
+    
+    var btn = document.getElementById('bk-save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ جارٍ إرسال الطلب...';
+    
+    try {
+        var fd = new FormData();
+        fd.append('student_id', currentUser.id);
+        fd.append('student_name', currentUser.full_name || '');
+        fd.append('booking_date', date);
+        fd.append('booking_time', time);
+        fd.append('topic', topic);
+        fd.append('method', method);
+        fd.append('notes', notes);
+        
+        var res = await fetch(API_URL + '/api/tutoring/book', { method: 'POST', body: fd });
+        if (res.ok) {
+            showToast('✅ تم إرسال طلب الحجز — في انتظار التأكيد', 'success', 5000);
+            document.getElementById('booking-modal')?.remove();
+        } else {
+            showToast('❌ فشل الحجز', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '📅 طلب الحجز';
+        }
+    } catch(e) {
+        showToast('❌ خطأ', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '📅 طلب الحجز';
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🚨 REPORT ISSUE — البلاغ عن سؤال
+// ════════════════════════════════════════════════════════════
+function openReportIssueModal(questionId, questionText) {
+    if (!currentUser?.id) return;
+    
+    var prev = document.getElementById('report-modal');
+    if (prev) prev.remove();
+    
+    var m = document.createElement('div');
+    m.id = 'report-modal';
+    m.style.cssText = 'position:fixed;inset:0;z-index:999990;background:rgba(0,0,0,0.92);display:flex;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(10px);';
+    m.innerHTML = `
+        <div style="background:linear-gradient(160deg,#1a1a2e,#0d1b3e);border:2px solid #e74c3c;border-radius:20px;padding:24px;max-width:420px;width:100%;">
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+                <div style="font-size:2.2rem;">🚨</div>
+                <h2 style="color:#e74c3c;margin:0;font-family:Cairo;font-size:1.3rem;">أبلغ عن مشكلة</h2>
+                <div style="flex:1;"></div>
+                <button onclick="document.getElementById('report-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            
+            ${questionText ? `<div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:10px;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:14px;line-height:1.6;">${esc(questionText.substring(0, 200))}${questionText.length > 200 ? '...' : ''}</div>` : ''}
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:8px;">📋 نوع المشكلة</label>
+            <select id="ri-type" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:14px;">
+                <option value="wrong_answer">❌ الإجابة الصحيحة خاطئة</option>
+                <option value="typo">✏️ خطأ إملائي/طباعي</option>
+                <option value="unclear">❓ السؤال غير واضح</option>
+                <option value="other">🔍 أخرى</option>
+            </select>
+            
+            <label style="font-size:0.85rem;color:rgba(255,255,255,0.7);display:block;margin-bottom:5px;">💬 الوصف (اختياري)</label>
+            <textarea id="ri-desc" rows="3" placeholder="اشرح المشكلة..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;box-sizing:border-box;margin-bottom:18px;resize:vertical;"></textarea>
+            
+            <button onclick="submitIssueReport(${questionId || 0})" id="ri-save-btn" style="width:100%;background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:13px;border-radius:12px;font-weight:bold;font-family:Cairo;font-size:1rem;cursor:pointer;">🚨 إرسال البلاغ</button>
+            
+            <p style="font-size:0.75rem;color:rgba(255,255,255,0.45);margin-top:10px;text-align:center;">شكراً لمساعدتك في تحسين المنصة 💚</p>
+        </div>
+    `;
+    document.body.appendChild(m);
+}
+
+async function submitIssueReport(questionId) {
+    var type = document.getElementById('ri-type').value;
+    var desc = document.getElementById('ri-desc').value.trim();
+    
+    var btn = document.getElementById('ri-save-btn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ جارٍ الإرسال...';
+    
+    try {
+        var fd = new FormData();
+        fd.append('student_id', currentUser.id);
+        fd.append('student_name', currentUser.full_name || '');
+        fd.append('question_id', questionId);
+        fd.append('issue_type', type);
+        fd.append('description', desc);
+        
+        var res = await fetch(API_URL + '/api/student/report_issue', { method: 'POST', body: fd });
+        if (res.ok) {
+            showToast('✅ شكراً! تم استلام بلاغك', 'success', 4000);
+            document.getElementById('report-modal')?.remove();
+        } else {
+            showToast('❌ فشل', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '🚨 إرسال البلاغ';
+        }
+    } catch(e) {
+        showToast('❌ خطأ', 'error');
+        btn.disabled = false;
+        btn.innerHTML = '🚨 إرسال البلاغ';
+    }
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🤖 AI ASSISTANT — المساعد الذكي
+// ════════════════════════════════════════════════════════════
+var _aiHistory = [];
+
+async function openAIAssistant(presetQuestion, contextText) {
+    if (!currentUser?.id) {
+        if (typeof showToast === 'function') showToast('⚠️ سجّل دخول أولاً');
+        return;
+    }
+    
+    var prev = document.getElementById('ai-modal');
+    if (prev) prev.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'ai-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99988;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;backdrop-filter:blur(10px);';
+    modal.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;background:linear-gradient(135deg,#0d2818,#16a085);border-bottom:2px solid rgba(26,188,156,0.6);flex-shrink:0;">
+            <div style="font-size:1.8rem;filter:drop-shadow(0 0 12px rgba(26,188,156,0.7));">🤖</div>
+            <div style="flex:1;">
+                <div style="font-weight:bold;color:#48d1cc;font-family:'Cairo';font-size:1.1rem;">المساعد الذكي</div>
+                <div style="font-size:0.78rem;color:rgba(255,255,255,0.65);">اسأل أي سؤال في الرياضيات وسأشرح لك خطوة بخطوة</div>
+            </div>
+            <button onclick="document.getElementById('ai-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+        </div>
+        
+        <div id="ai-conversation" style="flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px;">
+            <div style="background:rgba(26,188,156,0.08);border:1px solid rgba(26,188,156,0.3);border-radius:14px;padding:16px;align-self:flex-start;max-width:85%;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:1.4rem;">🤖</span>
+                    <strong style="color:#48d1cc;">المساعد:</strong>
+                </div>
+                <div style="line-height:1.7;color:rgba(255,255,255,0.9);">
+                    أهلاً ${esc(currentUser.full_name || 'يا بطل')}! 👋<br>
+                    أنا مساعدك في الرياضيات. اسألني أي سؤال وسأشرح لك خطوة بخطوة.<br>
+                    <span style="font-size:0.82rem;opacity:0.7;display:block;margin-top:8px;">💡 جرّب: "اشرح لي الكسور" أو "كيف أحسب المتوسط؟"</span>
+                </div>
+            </div>
+        </div>
+        
+        <div style="padding:14px 18px;background:linear-gradient(0deg,#0d1b3e,#1a1a2e);border-top:1px solid rgba(26,188,156,0.3);flex-shrink:0;">
+            <div style="display:flex;gap:8px;">
+                <textarea id="ai-question-input" rows="2" placeholder="اكتب سؤالك هنا..." style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(26,188,156,0.4);color:#fff;padding:10px 14px;border-radius:12px;font-family:Cairo;font-size:0.92rem;resize:none;box-sizing:border-box;" onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault();askAI();}"></textarea>
+                <button id="ai-send-btn" onclick="askAI()" style="background:linear-gradient(135deg,#1abc9c,#16a085);border:none;color:#fff;padding:10px 20px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;flex-shrink:0;">
+                    <i class="fas fa-paper-plane"></i> إرسال
+                </button>
+            </div>
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.4);margin-top:6px;text-align:center;">
+                ⚠️ هذا مساعد ذكي — قد يخطئ أحياناً. تحقق دائماً مع الأستاذ.
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    // اختياري: ملء سؤال جاهز
+    if (presetQuestion) {
+        document.getElementById('ai-question-input').value = presetQuestion;
+        if (contextText) window._aiContext = contextText;
+    }
+    
+    setTimeout(function() { document.getElementById('ai-question-input')?.focus(); }, 200);
+}
+
+async function askAI() {
+    var inputEl = document.getElementById('ai-question-input');
+    var sendBtn = document.getElementById('ai-send-btn');
+    var convo = document.getElementById('ai-conversation');
+    
+    if (!inputEl || !convo) return;
+    
+    var q = inputEl.value.trim();
+    if (q.length < 3) return;
+    
+    // أضف السؤال للمحادثة
+    var qDiv = document.createElement('div');
+    qDiv.style.cssText = 'background:rgba(212,175,55,0.1);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:14px;align-self:flex-end;max-width:85%;';
+    qDiv.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <strong style="color:#d4af37;">أنت:</strong>
+            <span style="font-size:1.2rem;">👤</span>
+        </div>
+        <div style="line-height:1.6;color:rgba(255,255,255,0.95);">${esc(q)}</div>
+    `;
+    convo.appendChild(qDiv);
+    
+    // أضف "يكتب..." 
+    var typingDiv = document.createElement('div');
+    typingDiv.id = 'ai-typing';
+    typingDiv.style.cssText = 'background:rgba(26,188,156,0.08);border:1px solid rgba(26,188,156,0.3);border-radius:14px;padding:14px;align-self:flex-start;max-width:85%;';
+    typingDiv.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:1.4rem;">🤖</span>
+            <span style="color:#48d1cc;">يفكّر</span>
+            <span class="ai-dots" style="display:inline-flex;gap:3px;">
+                <span style="width:6px;height:6px;background:#48d1cc;border-radius:50%;animation:aiDot 1.4s infinite;"></span>
+                <span style="width:6px;height:6px;background:#48d1cc;border-radius:50%;animation:aiDot 1.4s 0.2s infinite;"></span>
+                <span style="width:6px;height:6px;background:#48d1cc;border-radius:50%;animation:aiDot 1.4s 0.4s infinite;"></span>
+            </span>
+        </div>
+        <style>@keyframes aiDot { 0%,60%,100% { opacity:0.3 } 30% { opacity:1 } }</style>
+    `;
+    convo.appendChild(typingDiv);
+    convo.scrollTop = convo.scrollHeight;
+    
+    inputEl.value = '';
+    sendBtn.disabled = true;
+    
+    try {
+        var fd = new FormData();
+        fd.append('student_id', currentUser.id);
+        fd.append('question', q);
+        if (window._aiContext) {
+            fd.append('context', window._aiContext);
+            window._aiContext = null;
+        }
+        
+        var res = await fetch(API_URL + '/api/ai/ask', { method: 'POST', body: fd });
+        
+        // احذف typing
+        document.getElementById('ai-typing')?.remove();
+        
+        if (!res.ok) {
+            var err = await res.json().catch(() => ({}));
+            var errMsg = err.detail || 'فشل الاتصال';
+            
+            var errDiv = document.createElement('div');
+            errDiv.style.cssText = 'background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);border-radius:14px;padding:14px;align-self:flex-start;max-width:85%;color:#ff6b6b;';
+            errDiv.innerHTML = '⚠️ ' + esc(errMsg);
+            convo.appendChild(errDiv);
+        } else {
+            var data = await res.json();
+            var ansDiv = document.createElement('div');
+            ansDiv.style.cssText = 'background:rgba(26,188,156,0.08);border:1px solid rgba(26,188,156,0.3);border-radius:14px;padding:16px;align-self:flex-start;max-width:85%;';
+            ansDiv.innerHTML = `
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+                    <span style="font-size:1.4rem;">🤖</span>
+                    <strong style="color:#48d1cc;">المساعد:</strong>
+                </div>
+                <div style="line-height:1.8;color:rgba(255,255,255,0.92);white-space:pre-wrap;">${esc(data.answer || 'لم نتلقَّ إجابة')}</div>
+            `;
+            convo.appendChild(ansDiv);
+        }
+    } catch(e) {
+        document.getElementById('ai-typing')?.remove();
+        var errDiv = document.createElement('div');
+        errDiv.style.cssText = 'background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);border-radius:14px;padding:14px;align-self:flex-start;color:#ff6b6b;';
+        errDiv.innerHTML = '⚠️ خطأ في الاتصال';
+        convo.appendChild(errDiv);
+    } finally {
+        sendBtn.disabled = false;
+        convo.scrollTop = convo.scrollHeight;
+        inputEl.focus();
+    }
+}
+
+
+</script>
 </body>
 </html>

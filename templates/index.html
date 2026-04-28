@@ -767,5 +767,75 @@
         initParticles();
         animate();
     </script>
+
+    <!-- 📱 PWA Install Banner -->
+    <div id="pwa-install-banner" style="display:none;position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a0d2e;padding:14px 22px;border-radius:14px;box-shadow:0 8px 30px rgba(212,175,55,0.5);max-width:380px;width:calc(100% - 40px);font-family:'Cairo',sans-serif;animation:pwaBannerSlide 0.5s ease;">
+        <style>@keyframes pwaBannerSlide { from { opacity:0; transform:translate(-50%,30px); } to { opacity:1; transform:translate(-50%,0); } }</style>
+        <div style="display:flex;align-items:center;gap:12px;">
+            <div style="font-size:2rem;flex-shrink:0;">📱</div>
+            <div style="flex:1;">
+                <div style="font-weight:bold;font-size:0.95rem;line-height:1.3;">ثبّت التطبيق على جهازك</div>
+                <div style="font-size:0.78rem;opacity:0.85;margin-top:2px;">دخول أسرع وتجربة أفضل</div>
+            </div>
+            <button id="pwa-install-yes" style="background:#1a0d2e;color:#d4af37;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;font-family:inherit;font-size:0.85rem;">تثبيت</button>
+            <button onclick="document.getElementById('pwa-install-banner').style.display='none';localStorage.setItem('pwaInstallDismissed','1');" style="background:transparent;border:none;color:#1a0d2e;font-size:1.3rem;cursor:pointer;padding:0 4px;">✕</button>
+        </div>
+    </div>
+
+    <script>
+    // ════════════════════════════════════════════
+    // 📱 PWA — تثبيت التطبيق + Service Worker
+    // ════════════════════════════════════════════
+    
+    // تسجيل Service Worker
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+            navigator.serviceWorker.register('/sw.js')
+                .then(function(reg) { console.log('[PWA] SW registered'); })
+                .catch(function(err) { console.warn('[PWA] SW failed:', err); });
+        });
+    }
+    
+    // التقاط حدث beforeinstallprompt
+    let deferredPrompt = null;
+    
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        // إظهار البانر فقط لو لم يُرفض من قبل + ليس مثبّت بالفعل
+        const dismissed = localStorage.getItem('pwaInstallDismissed');
+        const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+        
+        if (!dismissed && !isStandalone) {
+            setTimeout(function() {
+                const banner = document.getElementById('pwa-install-banner');
+                if (banner) banner.style.display = 'block';
+            }, 3000);
+        }
+    });
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const installBtn = document.getElementById('pwa-install-yes');
+        if (installBtn) {
+            installBtn.addEventListener('click', async function() {
+                if (!deferredPrompt) return;
+                deferredPrompt.prompt();
+                const result = await deferredPrompt.userChoice;
+                console.log('[PWA] User choice:', result.outcome);
+                deferredPrompt = null;
+                document.getElementById('pwa-install-banner').style.display = 'none';
+            });
+        }
+    });
+    
+    // إخفاء البانر إذا تم التثبيت بنجاح
+    window.addEventListener('appinstalled', function() {
+        const banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.style.display = 'none';
+        console.log('[PWA] App installed');
+    });
+    </script>
+
 </body>
 </html>
