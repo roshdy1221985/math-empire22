@@ -1173,7 +1173,10 @@
     <audio id="wrong-sfx"   src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" preload="auto"></audio>
     <audio id="win-sfx"     src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
     <audio id="exam-end-sfx" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" preload="auto"></audio>
-    <audio id="scroll-sfx"  src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+        <audio id="scroll-sfx"  src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <!-- 🎵 نغمة الإشعارات المميزة (royal magical chime) -->
+    <audio id="notify-sfx" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="auto"></audio>
+    <audio id="badge-sfx"  src="https://assets.mixkit.co/active_storage/sfx/1990/1990-preview.mp3" preload="auto"></audio>
 
     <!-- LEVEL UP OVERLAY -->
     <div id="level-up-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100000; justify-content:center; align-items:center; flex-direction:column; text-align:center;">
@@ -2413,6 +2416,7 @@
        TOAST NOTIFICATION
     ================================================================ */
     function showToast(msg, typeOrDuration = 2500, duration = null) {
+            try { if (typeof playNotificationSound === 'function') playNotificationSound(); } catch(e) {}
         // يقبل: showToast(msg) | showToast(msg, 3000) | showToast(msg, 'success', 4000)
         const _dur = typeof typeOrDuration === 'number' ? typeOrDuration : (duration || 2500);
         let toast = document.getElementById('royal-toast');
@@ -4212,10 +4216,16 @@
         if (q.image_url) html += `<div style="text-align:center;"><img src="${q.image_url}" class="question-image"></div>`;
         html += `<p style="font-size:1.3rem; margin-bottom:15px;">${esc(q.question)}</p>`;
 
+        // 🆕 حفظ بيانات السؤال الحالي للأزرار (آمن ضد escaping)
+        window._currentQForButtons = {
+            id: q.id || 0,
+            question: q.question || '',
+            lesson: challengeState.lesson || ''
+        };
         html += `<div style="margin-bottom:20px;display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
             <button class="hint-btn" onclick="useHintChallenge()">🧙‍♂️ مساعدة الحكيم (-50 XP)</button>
-            <button onclick="openAIAssistant('اشرح لي طريقة حل هذا السؤال (دون إعطاء الإجابة المباشرة): ' + ${JSON.stringify(esc(q.question || ''))}, ${JSON.stringify(challengeState.lesson || '')})" style="background:linear-gradient(135deg,#1abc9c,#16a085);color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:bold;">🤖 اسأل المساعد</button>
-            <button onclick="openReportIssueModal(${q.id || 0}, ${JSON.stringify(q.question || '')})" style="background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid #e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;" title="أبلغ عن خطأ في السؤال">🚨 أبلغ عن خطأ</button>
+            <button onclick="askAIForCurrentQuestion()" style="background:linear-gradient(135deg,#1abc9c,#16a085);color:#fff;border:none;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:bold;">🤖 اسأل المساعد</button>
+            <button onclick="reportCurrentQuestion()" style="background:rgba(231,76,60,0.12);color:#e74c3c;border:1px solid #e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;" title="أبلغ عن خطأ في السؤال">🚨 أبلغ عن خطأ</button>
             <span id="hint-display" style="margin-right:auto;"></span>
         </div>`;
         html += `<div id="options-area"></div><div id="feedback" style="text-align:center; margin-top:25px; font-weight:bold; font-size:1.2rem;"></div></div>`;
@@ -5267,7 +5277,12 @@
                 feedEl.innerHTML = `<span style="color:#2ecc71;">🎉 ممتاز! إجابة صحيحة — +50 XP 🌟</span>`;
                 updateStudentXP(50);
                 if ('vibrate' in navigator) navigator.vibrate([50,30,50]);
-                confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 } });
+                // 🎊 احتفال موحّد (يُشغّل الصوت + الكونفيتي)
+                if (typeof celebrateCorrect === 'function') {
+                    celebrateCorrect('normal');
+                } else {
+                    confetti({ particleCount: 60, spread: 80, origin: { y: 0.3 } });
+                }
                 showToast('🌟 أحسنت! +50 XP', 2500);
             } else {
                 feedEl.innerHTML = `<span style="color:#e74c3c;">❌ للأسف خطأ — حاول غداً!</span>`;
@@ -7001,8 +7016,16 @@
 
     function celebrateCorrect(intensity) {
         intensity = intensity || 'normal';
-        // 1. الصوت دائماً
-        try { playSound(document.getElementById('correct-sfx')); } catch(e) {}
+        // 1. الصوت دائماً (مع تشغيل قسري حتى لو isSoundOn = undefined في البداية)
+        try {
+            var sfx = document.getElementById('correct-sfx');
+            if (sfx) {
+                sfx.currentTime = 0;
+                sfx.volume = 0.85;
+                var p = sfx.play();
+                if (p) p.catch(function(){});
+            }
+        } catch(e) {}
         // 2. اهتزاز قصير
         if ('vibrate' in navigator) navigator.vibrate(60);
         // 3. القصاصات الورقية الملونة
@@ -8579,6 +8602,9 @@ function showNewBadgeToast(badge) {
     
     document.body.appendChild(t);
     
+    // 🎵 نغمة الشارة المميزة
+    try { if (typeof playBadgeSound === 'function') playBadgeSound(); } catch(e) {}
+    
     // كونفيتي خفيف
     if (typeof celebrateCorrect === 'function') {
         try { celebrateCorrect(0.5); } catch(e) {}
@@ -9081,6 +9107,65 @@ async function askAI() {
         convo.scrollTop = convo.scrollHeight;
         inputEl.focus();
     }
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🔧 دوال مساعدة آمنة للأزرار
+// ════════════════════════════════════════════════════════════
+
+// 🤖 سؤال المساعد عن السؤال الحالي
+function askAIForCurrentQuestion() {
+    var q = window._currentQForButtons;
+    if (!q || !q.question) {
+        if (typeof showToast === 'function') showToast('⚠️ لا يوجد سؤال نشط');
+        return;
+    }
+    var preset = 'اشرح لي طريقة حل هذا السؤال (دون إعطاء الإجابة المباشرة): ' + q.question;
+    if (typeof openAIAssistant === 'function') {
+        openAIAssistant(preset, q.lesson || '');
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ المساعد الذكي غير متاح');
+    }
+}
+
+// 🚨 الإبلاغ عن السؤال الحالي
+function reportCurrentQuestion() {
+    var q = window._currentQForButtons;
+    if (!q) {
+        if (typeof showToast === 'function') showToast('⚠️ لا يوجد سؤال نشط');
+        return;
+    }
+    if (typeof openReportIssueModal === 'function') {
+        openReportIssueModal(q.id || 0, q.question || '');
+    } else {
+        if (typeof showToast === 'function') showToast('⚠️ نظام البلاغات غير متاح');
+    }
+}
+
+// 🎵 تشغيل نغمة الإشعارات المميّزة
+function playNotificationSound() {
+    try {
+        var sfx = document.getElementById('notify-sfx');
+        if (sfx && (typeof isSoundOn === 'undefined' || isSoundOn)) {
+            sfx.currentTime = 0;
+            sfx.volume = 0.7;
+            sfx.play().catch(function(){});
+        }
+    } catch(e) {}
+}
+
+// 🏅 تشغيل نغمة الشارة (مختلفة)
+function playBadgeSound() {
+    try {
+        var sfx = document.getElementById('badge-sfx');
+        if (sfx && (typeof isSoundOn === 'undefined' || isSoundOn)) {
+            sfx.currentTime = 0;
+            sfx.volume = 0.85;
+            sfx.play().catch(function(){});
+        }
+    } catch(e) {}
 }
 
 
