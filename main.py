@@ -3819,7 +3819,7 @@ async def ai_ask(
             
             return {
                 "answer": answer,
-                "model": "gemini-1.5-flash",
+                "model": "gemini-1.5-flash-latest",
             }
     
     except HTTPException:
