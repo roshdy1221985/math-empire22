@@ -3758,7 +3758,7 @@ async def ai_ask(
     # استدعاء Gemini API مباشرة عبر REST (لا حاجة لمكتبة)
     import httpx
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
         payload = {
             "contents": [{"parts": [{"text": full_prompt}]}],
             "generationConfig": {
