@@ -3633,14 +3633,14 @@
             let freshPool = pool.filter(q => q.id && !_arenaUsedIds.has(q.id));
 
             // إذا استُنفد بنك الأسئلة غير المستخدمة → امسح السجل وابدأ من جديد
-            if (freshPool.length < 10) {
+            if (freshPool.length < 5) {
                 _arenaUsedIds.clear();
                 freshPool = pool.slice();
                 showToast('♻️ تم تجديد بنك الأسئلة — جولة جديدة!', 2000);
             }
 
             // ── 3. خلط عشوائي حقيقي واختيار 5 أسئلة ──
-            const chosen = knuthShuffle(freshPool).slice(0, 10);
+            const chosen = knuthShuffle(freshPool).slice(0, 5);
             chosen.forEach(q => { if (q.id) _arenaUsedIds.add(q.id); });
 
             arenaQs = chosen;
@@ -3677,7 +3677,7 @@
 
     function renderArenaQuestion(q) {
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
-            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 10</div>`;
+            <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 5</div>`;
         if (q.image_url) html += `<img src="${q.image_url}" class="question-image" style="max-height:200px;">`;
         html += `<p class="battle-question">${q.question}</p>
             <div style="text-align:left; margin-bottom:15px;">
@@ -3791,7 +3791,7 @@
         updateArenaScoreBoard();
         setTimeout(() => {
             currentArenaQIndex++;
-            if (currentArenaQIndex < 10) {
+            if (currentArenaQIndex < 5) {
                 playSound(document.getElementById('scroll-sfx'));
                 const qArea = document.getElementById('battle-question-area');
                 qArea.classList.add('fade-out-down');
