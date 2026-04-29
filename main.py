@@ -822,28 +822,93 @@ async def bulk_delete_questions(
     if not variants:
         variants = [grade]
 
-    # عدّ الأسئلة المطابقة لكل صيغة ثم دمجها
+    # 🔍 منطق ذكي مرن — يجلب كل أسئلة الصف ثم يفلتر بـ Python
+    # هذا يحل مشكلة:
+    # 1. الفراغات الزائدة في القيم المخزنة
+    # 2. اختلاف بسيط في النص (مع/بدون أرقام الدرس)
+    # 3. أعمدة semester/unit مفقودة في بعض الصفوف
+
+    def _normalize_curr_text(s):
+        """ينظّف النص للمقارنة المرنة"""
+        if not s:
+            return ""
+        s = str(s).strip()
+        # توحيد الفراغات
+        import re as _re
+        s = _re.sub(r'\s+', ' ', s)
+        # حذف الأقواس والترقيم
+        s = s.replace('  ', ' ')
+        return s.lower()
+
     matched_ids = set()
     matched_preview = []
+    diagnostics = {
+        "total_grade_questions": 0,
+        "filtered_out": {"semester": 0, "unit": 0, "lesson": 0},
+        "sample_db_values": {"semesters": set(), "units": set(), "lessons": set()},
+    }
+
+    norm_semester = _normalize_curr_text(semester)
+    norm_unit     = _normalize_curr_text(unit)
+    norm_lesson   = _normalize_curr_text(lesson)
+
     for v in variants:
-        q = supabase.table("questions").select("id, grade, semester, unit, lesson, question")\
-            .eq("grade", v.strip())
-        if semester:
-            q = q.eq("semester", semester)
-        if unit:
-            q = q.eq("unit", unit)
-        if lesson:
-            q = q.eq("lesson", lesson)
+        # 🛡️ نجلب كل أسئلة الصف بدون فلترة على semester/unit/lesson من قاعدة البيانات
         try:
-            res = q.execute()
-        except Exception:
-            # لو الأعمدة semester/unit لسه ما انضافت لقاعدة البيانات، نرجع للدرس فقط
-            q2 = supabase.table("questions").select("id, grade, lesson, question")\
-                .eq("grade", v.strip())
-            if lesson:
-                q2 = q2.eq("lesson", lesson)
-            res = q2.execute()
-        for row in (res.data or []):
+            res = supabase.table("questions").select(
+                "id, grade, semester, unit, lesson, question"
+            ).eq("grade", v.strip()).execute()
+            rows = res.data or []
+        except Exception as e:
+            # fallback: لو semester/unit مش موجودة في الجدول
+            print(f"[bulk_delete] جلب بأعمدة كاملة فشل: {e}")
+            try:
+                res = supabase.table("questions").select(
+                    "id, grade, lesson, question"
+                ).eq("grade", v.strip()).execute()
+                rows = res.data or []
+                # نُكمّل السطور المفقودة
+                for r in rows:
+                    r.setdefault("semester", "")
+                    r.setdefault("unit", "")
+            except Exception as e2:
+                print(f"[bulk_delete] جلب بسيط فشل أيضاً: {e2}")
+                continue
+
+        diagnostics["total_grade_questions"] += len(rows)
+
+        # 🎯 الفلترة المرنة في Python
+        for row in rows:
+            row_sem    = _normalize_curr_text(row.get("semester", ""))
+            row_unit   = _normalize_curr_text(row.get("unit", ""))
+            row_lesson = _normalize_curr_text(row.get("lesson", ""))
+
+            # تجميع عيّنة من القيم الفعلية في قاعدة البيانات (للتشخيص)
+            if row.get("semester"):
+                diagnostics["sample_db_values"]["semesters"].add(row["semester"])
+            if row.get("unit"):
+                diagnostics["sample_db_values"]["units"].add(row["unit"])
+            if row.get("lesson"):
+                diagnostics["sample_db_values"]["lessons"].add(row["lesson"])
+
+            # فلتر الفصل
+            if norm_semester:
+                if row_sem != norm_semester and norm_semester not in row_sem and row_sem not in norm_semester:
+                    diagnostics["filtered_out"]["semester"] += 1
+                    continue
+
+            # فلتر الوحدة
+            if norm_unit:
+                if row_unit != norm_unit and norm_unit not in row_unit and row_unit not in norm_unit:
+                    diagnostics["filtered_out"]["unit"] += 1
+                    continue
+
+            # فلتر الدرس
+            if norm_lesson:
+                if row_lesson != norm_lesson and norm_lesson not in row_lesson and row_lesson not in norm_lesson:
+                    diagnostics["filtered_out"]["lesson"] += 1
+                    continue
+
             if row["id"] not in matched_ids:
                 matched_ids.add(row["id"])
                 if len(matched_preview) < 5:
@@ -855,12 +920,18 @@ async def bulk_delete_questions(
 
     count = len(matched_ids)
 
+    # تحويل sets إلى lists للـ JSON
+    diagnostics["sample_db_values"]["semesters"] = list(diagnostics["sample_db_values"]["semesters"])[:5]
+    diagnostics["sample_db_values"]["units"]     = list(diagnostics["sample_db_values"]["units"])[:5]
+    diagnostics["sample_db_values"]["lessons"]   = list(diagnostics["sample_db_values"]["lessons"])[:10]
+
     if dry_run:
         return {
             "status": "preview",
             "count": count,
             "preview": matched_preview,
-            "filter": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+            "filter": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson},
+            "diagnostics": diagnostics  # 🩺 تفاصيل للتشخيص
         }
 
     if count == 0:
@@ -3758,7 +3829,7 @@ async def ai_ask(
     # استدعاء Gemini API مباشرة عبر REST (لا حاجة لمكتبة)
     import httpx
     try:
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key={api_key}"
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
         payload = {
             "contents": [{"parts": [{"text": full_prompt}]}],
             "generationConfig": {
@@ -3777,14 +3848,25 @@ async def ai_ask(
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.post(url, json=payload)
             
+            # 🔄 لو الموديل الأساسي فشل (مثلاً deprecated/quota)، جرّب flash-lite كاحتياط
+            if r.status_code == 404 or r.status_code == 429:
+                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+                try:
+                    r = await client.post(fallback_url, json=payload)
+                except Exception:
+                    pass
+            
             if r.status_code != 200:
                 err_msg = "فشل الاتصال بالمساعد"
                 try:
                     err_data = r.json()
                     if "error" in err_data:
-                        err_msg = err_data["error"].get("message", err_msg)[:150]
+                        err_msg = err_data["error"].get("message", err_msg)[:200]
                 except:
                     pass
+                # إن كانت رسالة "model not found" — اقترح حل
+                if "not found" in err_msg.lower() or "not supported" in err_msg.lower():
+                    err_msg = "الموديل غير معروف — تحديث المنصة مطلوب. تواصل مع الأستاذ."
                 raise HTTPException(status_code=500, detail=err_msg)
             
             data = r.json()
@@ -3819,7 +3901,7 @@ async def ai_ask(
             
             return {
                 "answer": answer,
-                "model": "gemini-1.5-flash-latest",
+                "model": "gemini-2.5-flash",
             }
     
     except HTTPException:

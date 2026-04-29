@@ -6,7 +6,27 @@
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- 📊 SheetJS — جربة 3 CDNs بالتسلسل لضمان التحميل -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+    if (typeof XLSX === 'undefined') {
+        console.warn('[XLSX] jsdelivr فشل، تجربة unpkg...');
+        document.write('<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
+    }
+    </script>
+    <script>
+    if (typeof XLSX === 'undefined') {
+        console.warn('[XLSX] unpkg فشل، تجربة cdnjs...');
+        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
+    }
+    </script>
+    <script>
+    if (typeof XLSX === 'undefined') {
+        console.error('[XLSX] ❌ فشل تحميل المكتبة من كل المصادر!');
+    } else {
+        console.log('[XLSX] ✅ المكتبة محمّلة:', XLSX.version || 'unknown');
+    }
+    </script>
     <style>
         :root {
             --gold: #d4af37; --gold2: #fcf6ba; --gold3: #b38728;
@@ -190,8 +210,21 @@
         .unit-node { margin-right: 35px; color: #bbb; font-size: 0.95rem; margin-top: 5px; }
         .lesson-node { margin-right: 45px; color: var(--gold); font-size: 0.9rem; font-weight: bold; }
         
-        .edit-icon { color: var(--blue); cursor: pointer; margin-right: 10px; transition: 0.2s; font-size: 0.9rem;}
-        .edit-icon:hover { transform: scale(1.2); color: #fff; }
+        .edit-icon {
+            color: var(--blue);
+            cursor: pointer;
+            margin-right: 10px;
+            transition: all 0.2s;
+            font-size: 1.05rem;
+            display: inline-block;
+            padding: 5px 8px;
+            border-radius: 6px;
+            background: rgba(52,152,219,0.1);
+            border: 1px solid rgba(52,152,219,0.3);
+        }
+        .edit-icon:hover { transform: scale(1.15); color: #fff; background: rgba(52,152,219,0.3); }
+        .edit-icon[style*="--red"] { background: rgba(231,76,60,0.1); border-color: rgba(231,76,60,0.3); }
+        .edit-icon[style*="--red"]:hover { background: rgba(231,76,60,0.3); color: #fff !important; }
 
         .code-row {
             display: flex;
@@ -2306,12 +2339,17 @@
 
                             <div id="bd-preview" style="display:none; background:rgba(0,0,0,0.3); border:1px solid rgba(231,76,60,0.3); border-radius:10px; padding:12px; margin-bottom:12px; font-size:0.88rem;"></div>
 
-                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
-                                <button onclick="bdPreview()" style="flex:1; min-width:140px; background:rgba(52,152,219,0.15); border:1px solid rgba(52,152,219,0.5); color:#3498db; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
-                                    👁️ معاينة قبل الحذف
+                            <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:8px;">
+                                <button onclick="bdPreview(false)" style="flex:1; min-width:140px; background:rgba(52,152,219,0.15); border:1px solid rgba(52,152,219,0.5); color:#3498db; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold;">
+                                    👁️ معاينة (مرنة)
                                 </button>
                                 <button onclick="bdDelete()" id="bd-delete-btn" disabled style="flex:1; min-width:140px; background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; border:none; padding:10px 18px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold; opacity:0.5;">
                                     🗑️ حذف نهائي
+                                </button>
+                            </div>
+                            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                                <button onclick="bdPreview(true)" style="flex:1; min-width:140px; background:rgba(155,89,182,0.15); border:1px solid rgba(155,89,182,0.5); color:#bb86fc; padding:8px 14px; border-radius:10px; cursor:pointer; font-family:'Cairo'; font-weight:bold; font-size:0.85rem;" title="يبحث بالصف + الدرس فقط (يتجاهل الفصل والوحدة)">
+                                    🎯 معاينة بالدرس فقط (تجاهل الفصل/الوحدة)
                                 </button>
                             </div>
                             <div style="margin-top:8px; font-size:0.75rem; color:rgba(255,255,255,0.4); text-align:center;">
@@ -5566,16 +5604,36 @@
         const file = input.files[0];
         if (!file) return;
 
+        // 🛡️ تحقق من توفر المكتبة
+        if (typeof XLSX === 'undefined') {
+            console.error('[handleExcelFile] XLSX غير محمّلة!');
+            document.getElementById('excel-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل — حدّث الصفحة (Ctrl+F5)';
+            showToast('❌ مكتبة Excel غير متوفرة — تأكد من اتصال الإنترنت', 'error', 5000);
+            return;
+        }
+
         document.getElementById('excel-file-name').textContent = '⏳ جاري قراءة المخطوطة...';
         document.getElementById('import-success-msg').style.display = 'none';
 
         const reader = new FileReader();
+        reader.onerror = function(err) {
+            console.error('[FileReader error]', err);
+            document.getElementById('excel-file-name').textContent = '❌ فشل قراءة الملف من الجهاز';
+        };
         reader.onload = function(e) {
             try {
                 const data = new Uint8Array(e.target.result);
-                const wb   = XLSX.read(data, { type: 'array' });
-                const ws   = wb.Sheets[wb.SheetNames[0]];
+                console.log('[Excel] قراءة ' + data.length + ' بايت...');
+                
+                const wb = XLSX.read(data, { type: 'array' });
+                if (!wb || !wb.SheetNames || !wb.SheetNames.length) {
+                    throw new Error('لم نعثر على أي ورقة في الملف');
+                }
+                console.log('[Excel] الأوراق:', wb.SheetNames);
+                
+                const ws = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                console.log('[Excel] صفوف مقروءة:', rows.length);
 
                 if (!rows || rows.length === 0) {
                     document.getElementById('excel-file-name').textContent = '⚠️ الملف فارغ أو لا يحتوي على بيانات';
@@ -5588,11 +5646,17 @@
                 renderImportPreview(rows);
                 openImportModal();
             } catch(err) {
-                console.error(err);
-                document.getElementById('excel-file-name').textContent = '❌ فشل قراءة الملف، تأكد من صيغته';
+                console.error('[handleExcelFile error]', err);
+                document.getElementById('excel-file-name').textContent = '❌ فشل قراءة الملف: ' + (err.message || 'خطأ غير معروف');
+                showToast('❌ ' + (err.message || 'فشل قراءة الملف'), 'error', 5000);
             }
         };
-        reader.readAsArrayBuffer(file);
+        try {
+            reader.readAsArrayBuffer(file);
+        } catch(readErr) {
+            console.error('[readAsArrayBuffer error]', readErr);
+            document.getElementById('excel-file-name').textContent = '❌ فشل بدء قراءة الملف';
+        }
     }
 
     /** بناء جدول المعاينة */
@@ -6250,20 +6314,46 @@
     function handleCurriculumFile(input) {
         const file = input.files[0];
         if (!file) return;
+
+        // 🛡️ تحقق من توفر المكتبة
+        if (typeof XLSX === 'undefined') {
+            console.error('[handleCurriculumFile] XLSX غير محمّلة!');
+            document.getElementById('curr-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل — حدّث الصفحة (Ctrl+F5)';
+            showToast('❌ مكتبة Excel غير متوفرة — تأكد من اتصال الإنترنت', 'error', 5000);
+            return;
+        }
+
         document.getElementById('curr-file-name').textContent = '⏳ جاري قراءة الهيكل...';
         const reader = new FileReader();
+        reader.onerror = function(err) {
+            console.error('[FileReader error]', err);
+            document.getElementById('curr-file-name').textContent = '❌ فشل قراءة الملف من الجهاز';
+        };
         reader.onload = function(e) {
             try {
                 const data = new Uint8Array(e.target.result);
-                const wb   = XLSX.read(data, { type: 'array' });
-                const ws   = wb.Sheets[wb.SheetNames[0]];
+                console.log('[Curriculum] قراءة ' + data.length + ' بايت...');
+                
+                const wb = XLSX.read(data, { type: 'array' });
+                if (!wb || !wb.SheetNames || !wb.SheetNames.length) {
+                    throw new Error('لم نعثر على أي ورقة في الملف');
+                }
+                console.log('[Curriculum] الأوراق:', wb.SheetNames);
+                
+                const ws = wb.Sheets[wb.SheetNames[0]];
                 const rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
+                console.log('[Curriculum] صفوف:', rows.length);
+                
                 if (!rows || rows.length === 0) {
-                    showToast('⚠️ الملف فارغ أو لا يحتوي على بيانات', 'warning'); return;
+                    showToast('⚠️ الملف فارغ أو لا يحتوي على بيانات', 'warning');
+                    document.getElementById('curr-file-name').textContent = '⚠️ الملف فارغ';
+                    return;
                 }
 
                 // ── اكتشاف الأعمدة تلقائياً ──
                 const colKeys = detectColumnKeys(rows[0]);
+                console.log('[Curriculum] أعمدة مُكتشفة:', colKeys);
+                
                 if (!colKeys.grade || !colKeys.semester || !colKeys.unit || !colKeys.lesson) {
                     const found = Object.keys(rows[0]).join(' | ');
                     showToast(`⚠️ تعذّر اكتشاف الأعمدة. الأعمدة الموجودة: ${found}`, 'warning', 8000);
@@ -6274,11 +6364,17 @@
                 document.getElementById('curr-file-name').textContent = `✅ ${file.name} (${rows.length} صف)`;
                 parseCurriculumRows(rows, colKeys);
             } catch(err) {
-                console.error(err);
-                showToast('❌ فشل قراءة الملف: ' + err.message, 'error', 6000);
+                console.error('[handleCurriculumFile error]', err);
+                showToast('❌ فشل قراءة الملف: ' + (err.message || 'خطأ'), 'error', 6000);
+                document.getElementById('curr-file-name').textContent = '❌ فشل: ' + (err.message || 'غير معروف');
             }
         };
-        reader.readAsArrayBuffer(file);
+        try {
+            reader.readAsArrayBuffer(file);
+        } catch(readErr) {
+            console.error('[readAsArrayBuffer error]', readErr);
+            document.getElementById('curr-file-name').textContent = '❌ فشل بدء قراءة الملف';
+        }
     }
 
     function parseCurriculumRows(rows, colKeys) {
@@ -7931,11 +8027,15 @@
                     return obj;
                 });
             } else {
-                // XLSX — نستخدم SheetJS
-                const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
-                const wb = read(ab);
+                // XLSX — نستخدم المكتبة المحمّلة (أكثر موثوقية)
+                if (typeof XLSX === 'undefined') {
+                    showToast('⚠️ مكتبة Excel لم تُحمَّل بعد — انتظر ثانية وأعد المحاولة', 'warning');
+                    return;
+                }
+                const data = new Uint8Array(ab);
+                const wb = XLSX.read(data, { type: 'array' });
                 const ws = wb.Sheets[wb.SheetNames[0]];
-                rows = utils.sheet_to_json(ws, { defval: '' });
+                rows = XLSX.utils.sheet_to_json(ws, { defval: '' });
             }
 
             // تطبيع أسماء الأعمدة
@@ -8071,7 +8171,13 @@
         if (!file) return;
         try {
             const ab = await file.arrayBuffer();
-            const { read, utils } = await import('https://cdn.sheetjs.com/xlsx-0.20.3/package/xlsx.mjs');
+            // استخدام المكتبة المحمّلة
+            if (typeof XLSX === 'undefined') {
+                showToast('⚠️ مكتبة Excel لم تُحمَّل — أعد المحاولة', 'warning');
+                return;
+            }
+            const read = XLSX.read;
+            const utils = XLSX.utils;
             const wb   = read(ab);
             const ws   = wb.Sheets[wb.SheetNames[0]];
             const rows = utils.sheet_to_json(ws, { defval: '' });
@@ -9366,9 +9472,20 @@
         return {grade:grade, semester:semesterName, unit:unitName, lesson:lesson};
     }
 
-    async function bdPreview(){
+    async function bdPreview(lessonOnly){
         var f = _bdCollectFilter();
         if(!f) return;
+        
+        // 🎯 وضع "الدرس فقط" — يتجاهل semester/unit للأسئلة المرفوعة قديماً
+        if (lessonOnly) {
+            if (!f.lesson) {
+                showToast('⚠️ يجب اختيار الدرس لاستخدام هذا الوضع', 'warning');
+                return;
+            }
+            f.semester = '';
+            f.unit = '';
+            console.log('[bulk_delete] وضع الدرس فقط:', f);
+        }
 
         var pwd = prompt('🔒 أدخل كلمة مرور الأدمن للمعاينة:');
         if(!pwd) return;
@@ -9406,7 +9523,38 @@
             if(f.lesson)   filterDesc += ' • الدرس: <b>'+esc(f.lesson)+'</b>';
 
             if(count === 0){
-                box.innerHTML = '<div style="color:#f39c12;">⚠️ لا توجد أسئلة مطابقة لهذا الفلتر.<br><small>'+filterDesc+'</small></div>';
+                // 🩺 عرض تشخيص ذكي
+                var diag = data.diagnostics || {};
+                var diagHtml = '';
+                
+                if (diag.total_grade_questions === 0) {
+                    diagHtml = '<div style="color:#e74c3c; margin-top:10px; padding:10px; background:rgba(231,76,60,0.1); border-radius:8px;">'
+                             + '🚨 <b>لا توجد أي أسئلة لهذا الصف أصلاً</b> في قاعدة البيانات. تحقق من اسم الصف.</div>';
+                } else {
+                    diagHtml = '<div style="margin-top:14px; padding:12px; background:rgba(243,156,18,0.08); border:1px solid rgba(243,156,18,0.3); border-radius:8px; font-size:0.85rem;">'
+                             + '<div style="color:#f39c12; font-weight:bold; margin-bottom:8px;">🩺 معلومات تشخيصية:</div>'
+                             + '<div style="line-height:1.9;">'
+                             + '📊 الصف يحتوي على <b style="color:var(--gold);">'+diag.total_grade_questions+'</b> سؤال إجمالاً.<br>'
+                             + (diag.filtered_out ? 
+                                '🔍 استُبعد بسبب الفصل: <b>'+(diag.filtered_out.semester||0)+'</b>، '
+                                + 'الوحدة: <b>'+(diag.filtered_out.unit||0)+'</b>، '
+                                + 'الدرس: <b>'+(diag.filtered_out.lesson||0)+'</b><br>' : '')
+                             + '</div></div>';
+                    
+                    // عرض القيم الفعلية في قاعدة البيانات
+                    var samples = diag.sample_db_values || {};
+                    if (samples.semesters && samples.semesters.length) {
+                        diagHtml += '<div style="margin-top:10px; padding:10px; background:rgba(52,152,219,0.08); border-radius:8px; font-size:0.82rem;">'
+                                  + '<div style="color:#5dade2; font-weight:bold; margin-bottom:6px;">📚 القيم الموجودة فعلياً في قاعدة البيانات:</div>';
+                        if (samples.semesters.length) diagHtml += '<div><b>فصول:</b> ' + samples.semesters.map(function(s){return '<code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;">'+esc(s)+'</code>';}).join(' ') + '</div>';
+                        if (samples.units && samples.units.length) diagHtml += '<div style="margin-top:4px;"><b>وحدات:</b> ' + samples.units.map(function(s){return '<code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;">'+esc(s)+'</code>';}).join(' ') + '</div>';
+                        if (samples.lessons && samples.lessons.length) diagHtml += '<div style="margin-top:4px;"><b>دروس (أول 10):</b><br>' + samples.lessons.map(function(s){return '<code style="background:rgba(0,0,0,0.3);padding:1px 5px;border-radius:3px;display:inline-block;margin:2px;">'+esc(s)+'</code>';}).join('') + '</div>';
+                        diagHtml += '</div>';
+                        diagHtml += '<div style="margin-top:8px; color:rgba(255,255,255,0.6); font-size:0.8rem; line-height:1.7;">💡 <b>السبب الأرجح:</b> هذه الأسئلة تم رفعها قبل تفعيل أعمدة الفصل/الوحدة، أو القيم المخزنة تختلف عن المنهج الحالي.</div>';
+                    }
+                }
+                
+                box.innerHTML = '<div style="color:#f39c12;">⚠️ لا توجد أسئلة مطابقة لهذا الفلتر.<br><small>'+filterDesc+'</small></div>' + diagHtml;
                 document.getElementById('bd-delete-btn').disabled = true;
                 document.getElementById('bd-delete-btn').style.opacity = '0.5';
                 return;
@@ -11486,11 +11634,25 @@
         if (card) card.innerHTML = '<div style="font-size:2.4rem;margin-bottom:8px;">⏳</div><div style="font-weight:bold;">جارٍ التصدير...</div>';
         
         try {
-            var token = localStorage.getItem('admin_token');
+            // استخدم اسم التوكن الصحيح (adminToken وليس admin_token)
+            var token = localStorage.getItem('adminToken');
+            if (!token) {
+                showToast('❌ يجب تسجيل الدخول كأدمن أولاً', 'error');
+                return;
+            }
+            
             var res = await fetch(API_URL + '/api/admin/export/' + tableName, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
-            if (!res.ok) throw new Error('failed');
+            
+            if (!res.ok) {
+                var errText = '';
+                try { errText = await res.text(); } catch(_) {}
+                console.error('[export] failed:', res.status, errText);
+                showToast('❌ فشل التصدير (' + res.status + ')', 'error');
+                return;
+            }
+            
             var blob = await res.blob();
             var url = URL.createObjectURL(blob);
             var a = document.createElement('a');
@@ -11502,7 +11664,8 @@
             URL.revokeObjectURL(url);
             showToast('✅ تم تنزيل ' + tableName + '.csv', 'success');
         } catch(e) {
-            showToast('❌ فشل التصدير', 'error');
+            console.error('[export] error:', e);
+            showToast('❌ خطأ في التصدير: ' + (e.message || 'unknown'), 'error');
         } finally {
             if (card && origHtml) setTimeout(function(){ card.innerHTML = origHtml; }, 600);
         }

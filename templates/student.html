@@ -1838,7 +1838,22 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.min.js" integrity="sha512-ovlWyhrYXr3HEhPJsJIqd6+WLrxRThGc5IsRxRVdtT/27NEnRNF0AfQ/+LFFp/UDMpQp4HSyM1lHIsACZW40Ug==" crossorigin="anonymous"></script>
+    <!-- 🎊 canvas-confetti — جربة 3 CDNs بالتسلسل لضمان التحميل -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+    <script>
+    if (typeof confetti === 'undefined') {
+        console.warn('[confetti] jsdelivr فشل، تجربة unpkg...');
+        var s = document.createElement('script');
+        s.src = 'https://unpkg.com/canvas-confetti@1.9.3/dist/confetti.browser.min.js';
+        s.onerror = function() {
+            console.warn('[confetti] unpkg فشل، تجربة cdnjs بدون integrity...');
+            var s2 = document.createElement('script');
+            s2.src = 'https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.min.js';
+            document.head.appendChild(s2);
+        };
+        document.head.appendChild(s);
+    }
+    </script>
 
     <script>
     /* ================================================================
@@ -4444,29 +4459,42 @@
                 showToast('🔄 استُهلكت الفرصة الثانية! حاول مرة أخرى.');
                 return;
             }
-            playSound(document.getElementById('wrong-sfx'));
+            try { playSound(document.getElementById('wrong-sfx')); } catch(_) {}
             f.innerHTML = `<span style="color:#ff5e5e;">${phrasesWrong[Math.floor(Math.random() * phrasesWrong.length)]}<br>الإجابة الصحيحة: ${correct}</span>`;
             challengeState.answersStatus[challengeState.index] = false;
             challengeState._secondChanceUsed = false;
-            // حفظ الخطأ في مستشفى الأرقام
-            if (q) saveMistake(q, user);
+            // حفظ الخطأ في مستشفى الأرقام (محمي)
+            if (q) {
+                try { saveMistake(q, user); } catch(smErr) { console.warn('[saveMistake]', smErr); }
+            }
         }
 
-        // Update stepper
-        const stepperDiv = document.querySelector('.stepper-container');
-        if (stepperDiv) stepperDiv.outerHTML = renderProgressBar();
+        // Update stepper (محمي ضد الأخطاء)
+        try {
+            const stepperDiv = document.querySelector('.stepper-container');
+            if (stepperDiv) stepperDiv.outerHTML = renderProgressBar();
+        } catch(stepErr) { console.warn('[stepper]', stepErr); }
 
         challengeState.index++;
 
-        // ═══ حفظ التقدم بعد كل إجابة (للاستئناف لاحقاً) ═══
-        saveProgress();
+        // ═══ حفظ التقدم بعد كل إجابة (محمي) ═══
+        try { saveProgress(); } catch(spErr) { console.warn('[saveProgress]', spErr); }
 
         setTimeout(() => {
-            if (challengeState.index < challengeState.qs.length) {
-                renderCurrentQuestion();
-            } else {
-                if (isExamMode) clearInterval(examTimerInterval);
-                finishChallenge(false);
+            try {
+                if (challengeState.index < challengeState.qs.length) {
+                    renderCurrentQuestion();
+                } else {
+                    if (isExamMode) clearInterval(examTimerInterval);
+                    finishChallenge(false);
+                }
+            } catch(nextErr) {
+                console.error('[nextQuestion ERROR]', nextErr);
+                // محاولة استمرار حتى لو فشل عرض السؤال التالي
+                try {
+                    if (isExamMode) clearInterval(examTimerInterval);
+                    finishChallenge(false);
+                } catch(_) {}
             }
         }, 2000);
     }
@@ -7016,42 +7044,106 @@
 
     function celebrateCorrect(intensity) {
         intensity = intensity || 'normal';
-        // 1. الصوت دائماً (مع تشغيل قسري حتى لو isSoundOn = undefined في البداية)
+        
+        // ═══════════════════════════════════════
+        // 🔊 الصوت — معزول تماماً، لا يتأثر بأي شيء آخر
+        // ═══════════════════════════════════════
+        _playCorrectSound();
+        
+        // ═══════════════════════════════════════
+        // 📳 الاهتزاز
+        // ═══════════════════════════════════════
+        try {
+            if ('vibrate' in navigator) navigator.vibrate(60);
+        } catch(e) {}
+        
+        // ═══════════════════════════════════════
+        // 🎊 الكونفيتي — معزول تماماً، أي خطأ لن يؤثر على الصوت
+        // ═══════════════════════════════════════
+        _fireConfetti(intensity);
+    }
+    
+    // 🔊 دالة الصوت المعزولة — تُحاول كل الطرق الممكنة
+    function _playCorrectSound() {
         try {
             var sfx = document.getElementById('correct-sfx');
-            if (sfx) {
-                sfx.currentTime = 0;
-                sfx.volume = 0.85;
-                var p = sfx.play();
-                if (p) p.catch(function(){});
+            if (!sfx) return;
+            
+            // إعادة تعيين قبل التشغيل
+            try { sfx.currentTime = 0; } catch(e) {}
+            try { sfx.volume = 0.85; } catch(e) {}
+            try { sfx.muted = false; } catch(e) {}
+            
+            var p = sfx.play();
+            if (p && p.catch) {
+                p.catch(function(err) {
+                    console.warn('[sound] play failed:', err && err.name);
+                    // محاولة ثانية بعد فك القفل
+                    setTimeout(function() {
+                        try {
+                            sfx.currentTime = 0;
+                            sfx.play().catch(function(){});
+                        } catch(e) {}
+                    }, 100);
+                });
             }
-        } catch(e) {}
-        // 2. اهتزاز قصير
-        if ('vibrate' in navigator) navigator.vibrate(60);
-        // 3. القصاصات الورقية الملونة
-        if (typeof confetti !== 'function') {
-            // ⚠️ المكتبة لم تُحمّل — استخدم البديل البسيط
-            _fallbackConfetti(intensity);
-            return;
+        } catch(e) {
+            console.warn('[sound] error:', e);
         }
-        var counts = { mini: 60, normal: 120, big: 200 };
-        var spread = { mini: 60,  normal: 80,  big: 100 };
-        var n = counts[intensity] || counts.normal;
-        var s = spread[intensity] || spread.normal;
-        confetti({
-            particleCount: n,
-            spread: s,
-            origin: { y: 0.65 },
-            colors: ['#d4af37','#fcf6ba','#2ecc71','#3498db','#e74c3c','#9b59b6','#ff9ff3']
-        });
-        // موجة ثانية من الجانبين
-        setTimeout(function() {
-            confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#fff','#2ecc71'] });
-            confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#d4af37','#fff','#e74c3c'] });
-        }, 280);
+    }
+    
+    // 🎊 دالة الكونفيتي المعزولة — أي خطأ لا يكسر باقي البرنامج
+    function _fireConfetti(intensity) {
+        try {
+            var counts = { mini: 60, normal: 120, big: 200 };
+            var spread = { mini: 60, normal: 80, big: 100 };
+            var n = counts[intensity] || counts.normal;
+            var s = spread[intensity] || spread.normal;
+            
+            if (typeof confetti !== 'function') {
+                console.warn('[confetti] غير متاحة');
+                return;
+            }
+            
+            // الموجة الأولى من الأسفل
+            try {
+                confetti({
+                    particleCount: n,
+                    spread: s,
+                    origin: { y: 0.65 },
+                    colors: ['#d4af37','#fcf6ba','#2ecc71','#3498db','#e74c3c','#9b59b6','#ff9ff3']
+                });
+            } catch(e) { console.warn('[confetti] wave 1 failed:', e); }
+            
+            // موجة ثانية من الجانبين
+            setTimeout(function() {
+                try {
+                    confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#fff','#2ecc71'] });
+                } catch(e) { console.warn('[confetti] wave 2L failed:', e); }
+                try {
+                    confetti({ particleCount: Math.round(n*0.6), spread: 100, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#d4af37','#fff','#e74c3c'] });
+                } catch(e) { console.warn('[confetti] wave 2R failed:', e); }
+            }, 280);
+        } catch(e) {
+            console.warn('[confetti] outer error:', e);
+        }
     }
 
-    function playSound(audioEl) { if (isSoundOn && audioEl) { audioEl.currentTime = 0; audioEl.play().catch(() => {}); } }
+    function playSound(audioEl) {
+        if (!audioEl) return;
+        // نُشغّل حتى لو isSoundOn غير مُعرّفة
+        if (typeof isSoundOn !== 'undefined' && !isSoundOn) return;
+        try {
+            audioEl.currentTime = 0;
+            var p = audioEl.play();
+            if (p && p.catch) p.catch(function(err) {
+                // فشل التشغيل — قد يكون بسبب autoplay policy
+                console.warn('[playSound] failed for', audioEl.id, ':', err && err.name);
+            });
+        } catch(e) {
+            console.warn('[playSound] error:', e);
+        }
+    }
 
     /* Gold particle on mouse move (requestAnimationFrame, not direct event) */
     let lastParticleTime = 0;
@@ -7755,9 +7847,24 @@
     }
 
     function _abRender() {
-        var prev = document.getElementById('_ab_modal');
-        if (prev) prev.remove();
+        try {
+            var prev = document.getElementById('_ab_modal');
+            if (prev) prev.remove();
+        } catch(e) {}
+        
+        if (!_ab || !Array.isArray(_ab.qs) || _ab.qs.length === 0) {
+            console.error('[ab] no questions');
+            try { _abFinish(); } catch(_) {}
+            return;
+        }
+        
         if (_ab.cur >= _ab.qs.length) { _abFinish(); return; }
+        
+        if (!_ab.qs[_ab.cur]) {
+            console.error('[ab] q at index', _ab.cur, 'is undefined');
+            try { _abFinish(); } catch(_) {}
+            return;
+        }
 
         var q   = _ab.qs[_ab.cur];
         var num = _ab.cur + 1;
@@ -7831,28 +7938,59 @@
     }
 
     function _abAnswer(userAns) {
-        var btns = document.querySelectorAll('#_ab_opts button');
-        for (var i=0; i<btns.length; i++) btns[i].disabled = true;
-        var inp = document.getElementById('_ab_inp');
-        if (inp) inp.disabled = true;
-        var correct = parseInt(userAns) === _ab.qs[_ab.cur].ans;
+        // 🛡️ كل خطوة محمية ضد الأخطاء — لكي لا يتجمد الاختبار
+        try {
+            var btns = document.querySelectorAll('#_ab_opts button');
+            for (var i=0; i<btns.length; i++) btns[i].disabled = true;
+            var inp = document.getElementById('_ab_inp');
+            if (inp) inp.disabled = true;
+        } catch(e) { console.warn('[ab disable]', e); }
+        
+        var correct = false;
+        try {
+            correct = parseInt(userAns) === _ab.qs[_ab.cur].ans;
+        } catch(e) { console.warn('[ab check]', e); }
+        
         var fb = document.getElementById('_ab_fb');
+        
         if (correct) {
             _ab.ok++;
             _ab.xp += 10;
-            if (fb) { fb.textContent = '✅ أحسنت!'; fb.style.color = '#2ecc71'; }
+            try { if (fb) { fb.textContent = '✅ أحسنت!'; fb.style.color = '#2ecc71'; } } catch(e) {}
             try { playSound(document.getElementById('correct-sfx')); } catch(e) {}
-            // 🎊 قصاصات احتفالية
-            confetti({ particleCount: 60, spread: 65, origin: { y: 0.6 }, colors: ['#bb86fc','#fff','#2ecc71','#f39c12'] });
-            setTimeout(function() {
-                confetti({ particleCount: 40, spread: 80, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#bb86fc','#fff'] });
-                confetti({ particleCount: 40, spread: 80, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#2ecc71','#bb86fc','#fff'] });
-            }, 220);
+            // 🎊 قصاصات احتفالية (محمية - لو المكتبة لم تُحمّل لا يتعطل الاختبار)
+            try {
+                if (typeof confetti === 'function') {
+                    confetti({ particleCount: 60, spread: 65, origin: { y: 0.6 }, colors: ['#bb86fc','#fff','#2ecc71','#f39c12'] });
+                    setTimeout(function() {
+                        try {
+                            confetti({ particleCount: 40, spread: 80, angle: 60,  origin: { x: 0, y: 0.7 }, colors: ['#d4af37','#bb86fc','#fff'] });
+                            confetti({ particleCount: 40, spread: 80, angle: 120, origin: { x: 1, y: 0.7 }, colors: ['#2ecc71','#bb86fc','#fff'] });
+                        } catch(e) { console.warn('[ab confetti2]', e); }
+                    }, 220);
+                }
+            } catch(e) { console.warn('[ab confetti]', e); }
         } else {
-            if (fb) { fb.innerHTML = '❌ الصحيح: <strong style="color:#f39c12;">' + _ab.qs[_ab.cur].ans + '</strong>'; fb.style.color = '#e74c3c'; }
+            try {
+                if (fb) {
+                    fb.innerHTML = '❌ الصحيح: <strong style="color:#f39c12;">' + _ab.qs[_ab.cur].ans + '</strong>';
+                    fb.style.color = '#e74c3c';
+                }
+            } catch(e) {}
             try { playSound(document.getElementById('wrong-sfx')); } catch(e) {}
         }
-        setTimeout(function() { _ab.cur++; _abRender(); }, 800);
+        
+        // ✅ الانتقال للسؤال التالي (محمي - أي خطأ سابق لن يمنع التقدم)
+        setTimeout(function() {
+            try {
+                _ab.cur++;
+                _abRender();
+            } catch(e) {
+                console.error('[ab render next]', e);
+                // محاولة إنهاء الاختبار بدلاً من التجمد
+                try { _abFinish(); } catch(_) {}
+            }
+        }, 800);
     }
 
     function _abAbort() {
@@ -9168,6 +9306,289 @@ function playBadgeSound() {
     } catch(e) {}
 }
 
+
+
+// ════════════════════════════════════════════════════════════
+// 🔓 Audio Unlock — لكسر autoplay policy في المتصفحات
+// يعمل عند أول تفاعل من المستخدم
+// ════════════════════════════════════════════════════════════
+(function() {
+    var audioUnlocked = false;
+    var audioIds = ['correct-sfx', 'wrong-sfx', 'win-sfx', 'notify-sfx', 'badge-sfx', 'sword-sfx', 'door-sfx', 'scroll-sfx', 'podium-sfx', 'applause-sfx', 'exam-end-sfx'];
+    
+    function unlockAudio() {
+        if (audioUnlocked) return;
+        audioUnlocked = true;
+        
+        var unlocked = 0;
+        audioIds.forEach(function(id) {
+            try {
+                var el = document.getElementById(id);
+                if (!el) return;
+                
+                // حفظ volume الأصلي
+                var originalVolume = el.volume;
+                
+                // نُلغي الصوت ونُشغّل ثم نُوقف فوراً — يكسر autoplay policy
+                el.volume = 0;
+                var p = el.play();
+                if (p && p.then) {
+                    p.then(function() {
+                        el.pause();
+                        el.currentTime = 0;
+                        el.volume = originalVolume;
+                        unlocked++;
+                    }).catch(function(err) {
+                        // قد يفشل بسبب reasons أخرى — نُعيد volume على أي حال
+                        el.volume = originalVolume;
+                    });
+                } else {
+                    el.pause();
+                    el.currentTime = 0;
+                    el.volume = originalVolume;
+                    unlocked++;
+                }
+            } catch(e) {}
+        });
+        
+        // ✅ تأكيد فك القفل
+        setTimeout(function() {
+            console.log('[audio] 🔓 unlocked (' + unlocked + '/' + audioIds.length + ')');
+        }, 500);
+    }
+    
+    // فعّل عند أول تفاعل
+    ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(function(ev) {
+        document.addEventListener(ev, unlockAudio, { once: true, passive: true, capture: true });
+    });
+})();
+
+
+// ════════════════════════════════════════════════════════════
+// 🎊 كونفيتي مدمج كامل (Canvas) — يعمل دائماً بدون CDN
+// مربعات ملونة تطلق من الأسفل للأعلى مع جاذبية وحركة واقعية
+// ════════════════════════════════════════════════════════════
+(function() {
+    // ─── منطق الاختيار الذكي ───
+    // نختبر المكتبة الأصلية بشكل عميق + نُغلّفها لمنع مشاكل الـ Worker
+    var nativeWorks = false;
+    var nativeConfetti = null;
+    
+    try {
+        if (typeof confetti === 'function' && confetti.toString().indexOf('builtin-confetti') === -1) {
+            nativeConfetti = confetti;
+            // اختبار سريع
+            var testResult = nativeConfetti({ particleCount: 1, spread: 0, origin: { x: -1, y: -1 } });
+            nativeWorks = (testResult === null || (testResult && typeof testResult.then === 'function'));
+        }
+    } catch(e) {
+        console.warn('[confetti] المكتبة الأصلية بها خطأ:', e);
+        nativeWorks = false;
+    }
+    
+    if (nativeWorks && nativeConfetti) {
+        console.log('[confetti] المكتبة الأصلية محمّلة — تغليفها لمنع مشاكل Web Worker');
+        
+        // نُنشئ نسخة بدون Worker (تُلغي مشاكل artifact preview/CSP)
+        // canvas-confetti.create() يأخذ canvas مخصص + خيار useWorker
+        var customCanvas = null;
+        var customConfetti = null;
+        try {
+            customCanvas = document.createElement('canvas');
+            customCanvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:99999;';
+            document.body.appendChild(customCanvas);
+            
+            // create() متاح في canvas-confetti 1.4.0+
+            if (typeof nativeConfetti.create === 'function') {
+                customConfetti = nativeConfetti.create(customCanvas, {
+                    resize: true,
+                    useWorker: false  // 🔑 المفتاح: لا Worker = لا مشاكل أمنية
+                });
+                console.log('[confetti] تم إنشاء instance بدون Worker ✅');
+            }
+        } catch(createErr) {
+            console.warn('[confetti] فشل create():', createErr);
+        }
+        
+        // نُغلّف confetti لتستخدم instance المخصص + fallback
+        window.confetti = function(opts) {
+            try {
+                if (customConfetti) {
+                    return customConfetti(opts);
+                }
+                // fallback: المكتبة الأصلية مباشرة
+                return nativeConfetti(opts);
+            } catch(callErr) {
+                console.warn('[confetti] فشل الاستدعاء، استخدام المدمج:', callErr);
+                if (typeof builtinConfettiBackup === 'function') {
+                    return builtinConfettiBackup(opts);
+                }
+            }
+        };
+        
+        // ننشئ نسخة احتياطية مدمجة جاهزة للنداء
+        window._setupBuiltinConfettiBackup = true;
+    } else {
+        console.log('[confetti] استخدام كونفيتي مدمج ملحمي 🎊');
+    }
+    
+    console.log('[confetti] استخدام كونفيتي مدمج ملحمي 🎊');
+    
+    // إنشاء canvas دائم في الصفحة
+    var canvas = document.getElementById('builtin-confetti-canvas');
+    if (!canvas) {
+        canvas = document.createElement('canvas');
+        canvas.id = 'builtin-confetti-canvas';
+        canvas.style.cssText = 'position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:99999;';
+        document.body.appendChild(canvas);
+    }
+    var ctx = canvas.getContext('2d');
+    
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+    
+    var particles = [];
+    var animating = false;
+    
+    function ConfettiParticle(opts) {
+        var x = opts.x;
+        var y = opts.y;
+        var color = opts.color;
+        var angle = opts.angle;       // زاوية الإطلاق (راديان)
+        var velocity = opts.velocity; // سرعة الانطلاق
+        var spread = opts.spread;
+        
+        // اتجاه عشوائي ضمن نطاق spread
+        var spreadRad = (spread * Math.PI / 180);
+        var actualAngle = angle + (Math.random() - 0.5) * spreadRad;
+        var v = velocity * (0.7 + Math.random() * 0.5);
+        
+        return {
+            x: x,
+            y: y,
+            vx: Math.cos(actualAngle) * v,
+            vy: Math.sin(actualAngle) * v,  // الزاوية لأعلى = vy سالبة
+            color: color,
+            // مربع أو دائرة (50/50)
+            shape: Math.random() < 0.5 ? 'square' : 'circle',
+            size: 6 + Math.random() * 6,
+            rotation: Math.random() * Math.PI * 2,
+            rotationSpeed: (Math.random() - 0.5) * 0.4,
+            tick: 0,
+            life: 100 + Math.random() * 80,
+            gravity: 0.18,
+            drag: 0.985,
+            wobble: Math.random() * Math.PI * 2,
+            wobbleSpeed: 0.05 + Math.random() * 0.06,
+        };
+    }
+    
+    function step(p) {
+        p.tick++;
+        // تطبيق الفيزياء
+        p.vy += p.gravity;
+        p.vx *= p.drag;
+        p.vy *= p.drag;
+        // wobble خفيف للحركة الطبيعية
+        p.wobble += p.wobbleSpeed;
+        p.x += p.vx + Math.sin(p.wobble) * 0.4;
+        p.y += p.vy;
+        p.rotation += p.rotationSpeed;
+        return p.tick < p.life && p.y < canvas.height + 30;
+    }
+    
+    function draw(p) {
+        var alpha = 1;
+        if (p.tick > p.life * 0.7) {
+            alpha = 1 - (p.tick - p.life * 0.7) / (p.life * 0.3);
+        }
+        ctx.save();
+        ctx.globalAlpha = Math.max(0, alpha);
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rotation);
+        ctx.fillStyle = p.color;
+        if (p.shape === 'square') {
+            // مربع مع tilt — يبدو كقصاصة ورقية تتقلب
+            var w = p.size;
+            var h = p.size * (0.4 + Math.abs(Math.sin(p.wobble)) * 0.6);
+            ctx.fillRect(-w/2, -h/2, w, h);
+        } else {
+            ctx.beginPath();
+            ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    
+    function animate() {
+        if (!particles.length) {
+            animating = false;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
+        }
+        animating = true;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var alive = [];
+        for (var i = 0; i < particles.length; i++) {
+            var p = particles[i];
+            if (step(p)) {
+                draw(p);
+                alive.push(p);
+            }
+        }
+        particles = alive;
+        requestAnimationFrame(animate);
+    }
+    
+    function builtinConfetti(opts) {
+        opts = opts || {};
+        var count = opts.particleCount || 60;
+        var origin = opts.origin || { x: 0.5, y: 0.5 };
+        var spread = opts.spread || 70;
+        var startVelocity = opts.startVelocity || 22;
+        var angle = opts.angle != null ? opts.angle : 90; // 90 = للأعلى
+        var colors = opts.colors || [
+            '#d4af37', '#fcf6ba', '#2ecc71', '#3498db', '#e74c3c', '#9b59b6', '#f39c12', '#fff'
+        ];
+        
+        // تحويل الزاوية: 90 درجة في معيار مكتبة canvas-confetti = للأعلى
+        // لكن في canvas الزاوية 0 = يمين، -90 (أو 270) = للأعلى
+        // إذن نحوّل: angleDeg = 90 → angleRad = -PI/2 (للأعلى)
+        var angleRad = -(angle * Math.PI / 180);
+        
+        var startX = canvas.width * origin.x;
+        var startY = canvas.height * origin.y;
+        
+        for (var i = 0; i < count; i++) {
+            particles.push(ConfettiParticle({
+                x: startX + (Math.random() - 0.5) * 30,
+                y: startY,
+                color: colors[Math.floor(Math.random() * colors.length)],
+                angle: angleRad,
+                velocity: startVelocity,
+                spread: spread,
+            }));
+        }
+        
+        if (!animating) animate();
+        return Promise.resolve();
+    }
+    
+    // علامة لتمييزها عن المكتبة الأصلية
+    builtinConfetti.toString = function() { return 'function builtin-confetti() {}'; };
+    
+    // 🛡️ نُسجّل المحرك المدمج كـ backup عام دائماً
+    window.builtinConfettiBackup = builtinConfetti;
+    
+    // إذا لم نستخدم المكتبة الأصلية، نُعيّن window.confetti للمدمج
+    if (!nativeWorks) {
+        window.confetti = builtinConfetti;
+    }
+})();
 
 </script>
 </body>
