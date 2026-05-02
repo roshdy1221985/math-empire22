@@ -1276,6 +1276,9 @@
         <button class="nav-btn btn-bank shiny-btn" onclick="showSection('bank',this)">
             <span class="btn-icon">❓</span> <span>بنك الأسئلة</span>
         </button>
+        <button class="nav-btn btn-lessons shiny-btn" onclick="showSection('lessons',this);loadInteractiveLessons();" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);">
+            <span class="btn-icon">📚</span> <span>الدروس التفاعلية</span>
+        </button>
         <button class="nav-btn btn-sub shiny-btn" onclick="showSection('support',this)">
             <span class="btn-icon">🛡️</span> <span>الدعم والاشتراك</span>
         </button>
@@ -1740,6 +1743,59 @@
             </div>
         </div>
     </div>
+
+
+    <!-- ══ قسم الدروس التفاعلية ══ -->
+    <div id="section-lessons" class="section">
+        <div style="background:linear-gradient(160deg,rgba(155,89,182,0.1),rgba(0,8,20,0.9));border:2px solid #9b59b6;border-radius:24px;padding:30px;margin-bottom:24px;text-align:center;">
+            <div style="font-size:3rem;margin-bottom:10px;">📚</div>
+            <h2 style="color:#bb86fc;font-family:'Amiri';margin:0 0 8px;font-size:1.8rem;">مكتبة الدروس التفاعلية</h2>
+            <p style="color:rgba(255,255,255,0.65);margin:0;font-size:0.95rem;">دروس HTML تفاعلية ملحمية لكل صفوف المنهج — استخدمها في حصصك أو شاركها مع طلابك</p>
+        </div>
+        
+        <!-- فلاتر الاختيار -->
+        <div style="background:rgba(0,31,63,0.4);border:1px solid rgba(155,89,182,0.3);border-radius:16px;padding:20px;margin-bottom:20px;">
+            <h3 style="color:#bb86fc;margin:0 0 14px;font-size:1.05rem;">🔍 فلترة الدروس</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🎓 الصف</label>
+                    <select id="il-grade" onchange="ilUpdateSemesters();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                        <option value="">كل الصفوف</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📅 الفصل</label>
+                    <select id="il-semester" onchange="ilUpdateUnits();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                        <option value="">كل الفصول</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📦 الوحدة</label>
+                    <select id="il-unit" onchange="ilUpdateLessons();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                        <option value="">كل الوحدات</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📖 الدرس</label>
+                    <select id="il-lesson" onchange="ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                        <option value="">كل الدروس</option>
+                    </select>
+                </div>
+            </div>
+            <div id="il-stats" style="margin-top:14px;padding:10px 14px;background:rgba(155,89,182,0.06);border-radius:8px;font-size:0.85rem;color:rgba(255,255,255,0.75);">
+                ⏳ جارٍ التحميل...
+            </div>
+        </div>
+        
+        <!-- شبكة الدروس -->
+        <div id="il-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;">
+            <div style="grid-column:1/-1;text-align:center;padding:60px;color:rgba(255,255,255,0.4);">
+                <div style="font-size:3rem;margin-bottom:14px;">⏳</div>
+                <div>جارٍ تحميل الدروس...</div>
+            </div>
+        </div>
+    </div>
+
 
 </main>
 
@@ -2764,6 +2820,175 @@
     init();
     animate();
 })();
+
+// ════════════════════════════════════════════════════════════
+// 📚 INTERACTIVE LESSONS — Teachers
+// ════════════════════════════════════════════════════════════
+var _ilAllLessons = [];
+var _ilCurriculum = [];
+
+async function loadInteractiveLessons() {
+    // اجلب المنهج لملء القوائم
+    if (!_ilCurriculum.length) {
+        try {
+            var cRes = await fetch(API_URL + '/api/curriculum/full_tree');
+            if (cRes.ok) {
+                _ilCurriculum = await cRes.json();
+                _ilFillGrades();
+            }
+        } catch(e) { console.warn('[il] curr fetch:', e); }
+    }
+    
+    // اجلب كل الدروس
+    try {
+        var res = await fetch(API_URL + '/api/html_lessons');
+        if (!res.ok) throw new Error('فشل');
+        _ilAllLessons = await res.json();
+        ilApplyFilter();
+    } catch(e) {
+        document.getElementById('il-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ff6b6b;">❌ فشل تحميل الدروس</div>';
+    }
+}
+
+function _ilFillGrades() {
+    var sel = document.getElementById('il-grade');
+    if (!sel || sel.options.length > 1) return;
+    _ilCurriculum.forEach(function(g) {
+        var opt = document.createElement('option');
+        opt.value = g.name;
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+    });
+}
+
+function ilUpdateSemesters() {
+    var grade = document.getElementById('il-grade').value;
+    var sel = document.getElementById('il-semester');
+    sel.innerHTML = '<option value="">كل الفصول</option>';
+    if (!grade) return;
+    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
+    if (!g || !g.semesters) return;
+    g.semesters.forEach(function(s) {
+        var opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+    });
+    ilUpdateUnits();
+}
+
+function ilUpdateUnits() {
+    var grade = document.getElementById('il-grade').value;
+    var sem   = document.getElementById('il-semester').value;
+    var sel   = document.getElementById('il-unit');
+    sel.innerHTML = '<option value="">كل الوحدات</option>';
+    if (!grade || !sem) return;
+    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
+    if (!g) return;
+    var s = g.semesters.find(function(x) { return x.name === sem; });
+    if (!s || !s.units) return;
+    s.units.forEach(function(u) {
+        var opt = document.createElement('option');
+        opt.value = u.name;
+        opt.textContent = u.name;
+        sel.appendChild(opt);
+    });
+    ilUpdateLessons();
+}
+
+function ilUpdateLessons() {
+    var grade = document.getElementById('il-grade').value;
+    var sem   = document.getElementById('il-semester').value;
+    var unit  = document.getElementById('il-unit').value;
+    var sel   = document.getElementById('il-lesson');
+    sel.innerHTML = '<option value="">كل الدروس</option>';
+    if (!grade || !sem || !unit) return;
+    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
+    if (!g) return;
+    var s = g.semesters.find(function(x) { return x.name === sem; });
+    if (!s) return;
+    var u = s.units.find(function(x) { return x.name === unit; });
+    if (!u || !u.lessons) return;
+    u.lessons.forEach(function(l) {
+        var name = typeof l === 'string' ? l : (l.name || '');
+        if (!name) return;
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+    });
+}
+
+function ilApplyFilter() {
+    var grade  = document.getElementById('il-grade').value;
+    var sem    = document.getElementById('il-semester').value;
+    var unit   = document.getElementById('il-unit').value;
+    var lesson = document.getElementById('il-lesson').value;
+    
+    var filtered = _ilAllLessons.filter(function(l) {
+        if (grade  && l.grade !== grade)       return false;
+        if (sem    && l.semester !== sem)      return false;
+        if (unit   && l.unit !== unit)         return false;
+        if (lesson && l.lesson !== lesson)     return false;
+        return true;
+    });
+    
+    // إحصائية
+    var statsEl = document.getElementById('il-stats');
+    if (statsEl) {
+        statsEl.innerHTML = '📊 عدد الدروس المعروضة: <strong style="color:#bb86fc;">' + filtered.length + '</strong> من أصل <strong>' + _ilAllLessons.length + '</strong>';
+    }
+    
+    // الشبكة
+    var grid = document.getElementById('il-grid');
+    if (!grid) return;
+    
+    if (!filtered.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:50px;background:rgba(255,255,255,0.03);border-radius:14px;border:1px dashed rgba(255,255,255,0.1);"><div style="font-size:3rem;margin-bottom:10px;">📭</div><div style="color:rgba(255,255,255,0.5);">لا توجد دروس تطابق الفلتر</div></div>';
+        return;
+    }
+    
+    var html = '';
+    filtered.forEach(function(l) {
+        var date = l.uploaded_at ? new Date(l.uploaded_at).toLocaleDateString('ar-EG', { month: 'short', day: 'numeric' }) : '';
+        var sizeKb = l.file_size_kb ? Math.round(l.file_size_kb) + ' KB' : '';
+        
+        html += `
+            <div style="background:linear-gradient(145deg,rgba(155,89,182,0.08),rgba(11,14,20,0.7));border:1px solid rgba(155,89,182,0.25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:all 0.3s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#bb86fc'" onmouseout="this.style.transform='';this.style.borderColor='rgba(155,89,182,0.25)'" onclick="ilOpenLesson(${l.id})">
+                <div style="font-size:2rem;text-align:center;">📚</div>
+                <div style="font-weight:bold;color:#bb86fc;font-size:1rem;line-height:1.4;">${esc(l.title || 'بدون عنوان')}</div>
+                <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7;">
+                    🎓 ${esc(l.grade || '')}<br>
+                    ${l.lesson ? '📖 ' + esc(l.lesson) : ''}
+                </div>
+                ${l.description ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.03);padding:8px;border-radius:6px;line-height:1.6;max-height:60px;overflow:hidden;">' + esc(l.description) + '</div>' : ''}
+                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px;">
+                    <span>👁️ ${l.view_count || 0} مشاهدة</span>
+                    <span>${date}</span>
+                </div>
+                <button onclick="event.stopPropagation();ilOpenLesson(${l.id})" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.88rem;margin-top:6px;">
+                    🚀 فتح الدرس
+                </button>
+            </div>
+        `;
+    });
+    grid.innerHTML = html;
+}
+
+function ilOpenLesson(lessonId) {
+    if (!lessonId) return;
+    // فتح في نافذة جديدة
+    window.open(API_URL + '/api/html_lessons/' + lessonId + '/render', '_blank', 'noopener');
+}
+
+function esc(s) {
+    if (s === null || s === undefined) return '';
+    return String(s).replace(/[&<>"']/g, function(c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+
+
 </script>
 
 </body>

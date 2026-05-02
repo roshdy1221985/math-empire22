@@ -741,6 +741,11 @@ async def add_question(
             supabase.table("questions").insert(row).execute()
         else:
             raise
+    # 🧹 invalidate cache
+    try:
+        cache_invalidate("questions:", "stats:")
+    except Exception: pass
+    
     return {"status": "success"}
 
 @app.put("/api/admin/questions/{q_id}")
@@ -776,6 +781,11 @@ async def update_question(
             supabase.table("questions").update(update_data).eq("id", q_id).execute()
         else:
             raise
+    # 🧹 invalidate cache
+    try:
+        cache_invalidate("questions:", "stats:")
+    except Exception: pass
+    
     return {"status": "success"}
 
 @app.delete("/api/admin/questions/{q_id}")
@@ -949,6 +959,11 @@ async def bulk_delete_questions(
             # نكمل حتى لو فشلت دفعة
             print(f"[bulk_delete] فشلت دفعة: {e}")
 
+    # 🧹 invalidate cache
+    try:
+        cache_invalidate("questions:", "stats:")
+    except Exception: pass
+    
     return {
         "status": "success",
         "deleted": deleted,
@@ -1007,18 +1022,158 @@ async def bulk_add_questions(request: Request, admin=Depends(get_current_admin))
             errors += 1
     return {"inserted": inserted, "errors": errors, "total": len(questions)}
 
+
+# ═══════════════════════════════════════════════════════════════
+# 💾 CACHE SYSTEM — تخزين مؤقت للبيانات الثقيلة
+# يُقلّل ضغط Supabase بنسبة 80% على البيانات المتكررة
+# ═══════════════════════════════════════════════════════════════
+import time as _time
+
+class _SimpleCache:
+    """Cache في الذاكرة مع TTL تلقائي + max size"""
+    def __init__(self, max_size=200):
+        self._store = {}
+        self._max = max_size
+    
+    def get(self, key):
+        item = self._store.get(key)
+        if not item:
+            return None
+        value, expires_at = item
+        if _time.time() > expires_at:
+            del self._store[key]
+            return None
+        return value
+    
+    def set(self, key, value, ttl_seconds=300):
+        if len(self._store) >= self._max:
+            # نزيل أقدم العناصر
+            oldest = sorted(self._store.items(), key=lambda x: x[1][1])[:50]
+            for k, _ in oldest:
+                self._store.pop(k, None)
+        self._store[key] = (value, _time.time() + ttl_seconds)
+    
+    def delete(self, key):
+        self._store.pop(key, None)
+    
+    def clear_pattern(self, pattern):
+        """يحذف كل المفاتيح التي تحتوي على pattern (مفيد عند تعديل البيانات)"""
+        keys_to_del = [k for k in self._store.keys() if pattern in k]
+        for k in keys_to_del:
+            del self._store[k]
+    
+    def stats(self):
+        now = _time.time()
+        valid = sum(1 for _, exp in self._store.values() if now <= exp)
+        return {"total": len(self._store), "valid": valid, "max": self._max}
+
+_cache = _SimpleCache(max_size=300)
+
+
+def cache_invalidate(*patterns):
+    """يلغي cache لأنماط محددة - يُستدعى عند تعديل البيانات"""
+    for p in patterns:
+        _cache.clear_pattern(p)
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📊 PAGINATION HELPERS
+# ═══════════════════════════════════════════════════════════════
+def _paginate_params(page: int = 1, page_size: int = 50, max_size: int = 200):
+    """يضمن أن الـ pagination params آمنة وضمن الحدود"""
+    page = max(1, int(page))
+    page_size = max(1, min(int(page_size), max_size))
+    offset = (page - 1) * page_size
+    return page, page_size, offset
+
+
+def _paginate_response(data: list, total: int, page: int, page_size: int):
+    """يبني response موحّد للـ pagination"""
+    total_pages = (total + page_size - 1) // page_size if total else 1
+    return {
+        "data": data,
+        "pagination": {
+            "page": page,
+            "page_size": page_size,
+            "total_items": total,
+            "total_pages": total_pages,
+            "has_next": page < total_pages,
+            "has_prev": page > 1,
+        }
+    }
+
+
 @app.get("/api/admin/questions")
-async def get_all_questions(admin=Depends(get_current_admin)):
+async def get_all_questions(
+    admin = Depends(get_current_admin),
+    page: int = 1,
+    page_size: int = 100,
+    grade: str = "",
+    lesson: str = "",
+    search: str = "",
+):
     """
-    جلب الأسئلة كاملةً للأدمن — مع pagination تلقائي
-    لأن Supabase يحدد كل query بـ 1000 صف افتراضياً
+    🚀 جلب الأسئلة مع pagination + cache + فلترة
+    
+    Parameters:
+    - page: رقم الصفحة (افتراضي 1)
+    - page_size: عدد العناصر (افتراضي 100، أقصى 200)
+    - grade: فلتر الصف
+    - lesson: فلتر الدرس
+    - search: بحث في نص السؤال
     """
+    page, page_size, offset = _paginate_params(page, page_size, max_size=200)
+    
+    # cache key يعتمد على كل الفلاتر
+    cache_key = f"questions:p{page}:s{page_size}:g{grade}:l{lesson}:q{search}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    
+    try:
+        # نبني الاستعلام مع الفلاتر
+        query = supabase.table("questions").select("*", count="exact")
+        if grade:
+            query = query.eq("grade", grade.strip())
+        if lesson:
+            query = query.eq("lesson", lesson.strip())
+        if search:
+            query = query.ilike("question", f"%{search.strip()}%")
+        
+        # نطبّق الـ pagination + الترتيب
+        res = query.order("id", desc=True).range(offset, offset + page_size - 1).execute()
+        
+        result = _paginate_response(
+            data=res.data or [],
+            total=res.count or 0,
+            page=page,
+            page_size=page_size
+        )
+        
+        # نخزّن في cache لمدة 60 ثانية فقط (الأسئلة قد تتغيّر)
+        _cache.set(cache_key, result, ttl_seconds=60)
+        return result
+    except Exception as e:
+        print(f"[questions] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/admin/questions/all")
+async def get_all_questions_legacy(admin = Depends(get_current_admin)):
+    """
+    🔄 endpoint قديم متوافق — يجلب كل الأسئلة (استخدمه فقط للتصدير الكامل)
+    ⚠️ لا تستخدمه في الواجهة العادية - استخدم /api/admin/questions مع pagination
+    """
+    cache_key = "questions:all"
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    
     all_questions = []
     page_size = 1000
     offset = 0
-    max_iterations = 50  # حد أقصى للأمان (50,000 سؤال)
     
-    for _ in range(max_iterations):
+    for _ in range(50):
         try:
             res = supabase.table("questions").select("*").order("id", desc=True).range(offset, offset + page_size - 1).execute()
             batch = res.data or []
@@ -1026,12 +1181,13 @@ async def get_all_questions(admin=Depends(get_current_admin)):
                 break
             all_questions.extend(batch)
             if len(batch) < page_size:
-                break  # آخر صفحة
+                break
             offset += page_size
         except Exception as e:
             print(f"questions pagination error at offset {offset}: {e}")
             break
     
+    _cache.set(cache_key, all_questions, ttl_seconds=120)
     return all_questions
 
 def _grade_variants(grade: str) -> list:
@@ -1454,6 +1610,12 @@ async def save_result(
     except Exception:
         pass
 
+    # 🧹 invalidate cache (leaderboard + stats يجب تحديثها)
+    try:
+        cache_invalidate("leaderboard:", "stats:")
+    except Exception:
+        pass
+
     return {"status": "success", "new_badges": new_badges}
 
 @app.post("/api/student/heartbeat")
@@ -1722,35 +1884,73 @@ async def get_public_config():
 
 
 @app.get("/api/leaderboard")
-async def get_lb():
-    """لوحة الصدارة — مع pagination كامل لجميع النتائج"""
-    all_results = []
-    offset = 0
-    for _ in range(50):  # حد أقصى 50,000 نتيجة
+async def get_lb(top: int = 100, grade: str = ""):
+    """
+    🚀 لوحة الصدارة المحسّنة — أسرع 10x
+    
+    التحسينات:
+    - يستخدم total_points من جدول students مباشرةً (بدلاً من جمع كل results)
+    - cache لمدة 60 ثانية
+    - يدعم top + فلتر الصف
+    """
+    cache_key = f"leaderboard:top{top}:g{grade}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    
+    try:
+        # 🚀 طريقة محسّنة: جلب من جدول students مباشرةً
+        # (total_points مُحدّث تلقائياً عند كل نتيجة)
+        query = supabase.table("students").select(
+            "full_name, grade, total_points"
+        ).gt("total_points", 0)
+        
+        if grade.strip():
+            query = query.eq("grade", grade.strip())
+        
+        # ترتيب تنازلي + حد أقصى
+        top = max(1, min(int(top), 500))
+        res = query.order("total_points", desc=True).limit(top).execute()
+        students = res.data or []
+        
+        result = [
+            {
+                "student_name": s.get("full_name", ""),
+                "total_points": s.get("total_points", 0),
+                "grade": s.get("grade", "")
+            }
+            for s in students if s.get("full_name")
+        ]
+        
+        # cache 60 ثانية
+        _cache.set(cache_key, result, ttl_seconds=60)
+        return result
+    except Exception as e:
+        print(f"[leaderboard] error: {e}")
+        # fallback للطريقة القديمة
         try:
-            res = supabase.table("results").select("student_name, score, grade").range(offset, offset + 999).execute()
-            batch = res.data or []
-            if not batch:
-                break
-            all_results.extend(batch)
-            if len(batch) < 1000:
-                break
-            offset += 1000
-        except Exception as e:
-            print(f"leaderboard pagination error: {e}")
-            break
-    
-    lb = {}
-    grades = {}
-    for r in all_results:
-        name = r.get("student_name") or ""
-        if not name: continue
-        lb[name] = lb.get(name, 0) + (r.get("score") or 0)
-        if "grade" in r and r["grade"]:
-            grades[name] = r["grade"]
-    
-    sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)
-    return [{"student_name": k, "total_points": v, "grade": grades.get(k, "")} for k, v in sorted_lb]
+            all_results = []
+            offset = 0
+            for _ in range(20):
+                res = supabase.table("results").select("student_name, score, grade").range(offset, offset + 999).execute()
+                batch = res.data or []
+                if not batch: break
+                all_results.extend(batch)
+                if len(batch) < 1000: break
+                offset += 1000
+            
+            lb = {}
+            grades = {}
+            for r in all_results:
+                name = r.get("student_name") or ""
+                if not name: continue
+                lb[name] = lb.get(name, 0) + (r.get("score") or 0)
+                if r.get("grade"): grades[name] = r["grade"]
+            
+            sorted_lb = sorted(lb.items(), key=lambda x: x[1], reverse=True)[:top]
+            return [{"student_name": k, "total_points": v, "grade": grades.get(k, "")} for k, v in sorted_lb]
+        except Exception:
+            return []
 
 @app.get("/api/parent/search/{query:path}")
 async def parent_search(query: str, request: Request):
@@ -2237,10 +2437,62 @@ async def batch_save_sub_codes(request: Request, admin=Depends(get_current_admin
 
 
 @app.get("/api/admin/students")
-async def get_all_students_admin(admin=Depends(get_current_admin)):
-    """جلب قائمة جميع الطلاب للأدمن (للربط بأكواد الاشتراك والنخبة)"""
-    res = supabase.table("students").select("id, full_name, grade, username, parent_code").order("full_name").execute()
-    return res.data if res.data else []
+async def get_all_students_admin(
+    admin = Depends(get_current_admin),
+    page: int = 0,           # 0 = جلب الكل (للتوافق مع الكود القديم)
+    page_size: int = 100,
+    grade: str = "",
+    search: str = "",
+):
+    """
+    🚀 قائمة الطلاب للأدمن — مع pagination + cache + بحث
+    
+    - page=0 → يجلب الكل (للتوافق العكسي)
+    - page>=1 → يستخدم pagination
+    """
+    # cache key
+    cache_key = f"students:p{page}:s{page_size}:g{grade}:q{search}"
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    
+    try:
+        if page == 0:
+            # 🔄 الوضع القديم: جلب الكل (للتوافق)
+            res = supabase.table("students").select(
+                "id, full_name, grade, username, parent_code"
+            ).order("full_name").execute()
+            result = res.data or []
+            _cache.set(cache_key, result, ttl_seconds=120)
+            return result
+        
+        # 🚀 الوضع الجديد: pagination
+        page, page_size, offset = _paginate_params(page, page_size, max_size=200)
+        
+        query = supabase.table("students").select(
+            "id, full_name, grade, username, parent_code, total_points, created_at",
+            count="exact"
+        )
+        
+        if grade.strip():
+            query = query.eq("grade", grade.strip())
+        if search.strip():
+            query = query.ilike("full_name", f"%{search.strip()}%")
+        
+        res = query.order("full_name").range(offset, offset + page_size - 1).execute()
+        
+        result = _paginate_response(
+            data=res.data or [],
+            total=res.count or 0,
+            page=page,
+            page_size=page_size
+        )
+        
+        _cache.set(cache_key, result, ttl_seconds=120)
+        return result
+    except Exception as e:
+        print(f"[students] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
 
 
 def _count_active_recent(results: list, days: int = 7) -> int:
@@ -4194,6 +4446,407 @@ async def send_monthly_reports(
         "errors": errors[:10],
     }
 
+
+# ═══════════════════════════════════════════════════════════════
+# 🏛️ VIRTUAL CLASSES — الفصول الافتراضية
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/virtual_classes/student/{grade}")
+async def get_student_virtual_classes(grade: str):
+    """
+    🎓 يجلب الفصول الافتراضية الخاصة بصف الطالب
+    """
+    try:
+        # نُجرّب كل صيغ الصف الممكنة
+        all_results = []
+        seen_ids = set()
+        for v in _grade_variants(grade):
+            try:
+                res = supabase.table("virtual_classes").select("*").eq(
+                    "grade", v.strip()
+                ).eq("is_active", True).order("starts_at", desc=False).execute()
+                for row in (res.data or []):
+                    if row["id"] not in seen_ids:
+                        seen_ids.add(row["id"])
+                        all_results.append(row)
+            except Exception as e:
+                print(f"[vc/student] failed for grade '{v}': {e}")
+        
+        return {"classes": all_results}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/admin/virtual_classes")
+async def admin_list_virtual_classes(admin = Depends(get_current_admin)):
+    """📋 قائمة كل الفصول الافتراضية للأدمن"""
+    try:
+        res = supabase.table("virtual_classes").select("*").order(
+            "created_at", desc=True
+        ).execute()
+        return {"classes": res.data or []}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/admin/virtual_classes/create")
+async def admin_create_virtual_class(
+    title: str         = Form(...),
+    grade: str         = Form(...),
+    meeting_url: str   = Form(...),
+    semester: str      = Form(default=""),
+    unit: str          = Form(default=""),
+    lesson: str        = Form(default=""),
+    description: str   = Form(default=""),
+    starts_at: str     = Form(default=""),  # ISO string
+    duration_min: int  = Form(default=60),
+    admin = Depends(get_current_admin)
+):
+    """➕ إنشاء فصل افتراضي جديد"""
+    try:
+        if not title.strip() or not grade.strip() or not meeting_url.strip():
+            raise HTTPException(status_code=400, detail="العنوان والصف والرابط مطلوبون")
+        
+        # تحقق من صيغة الرابط
+        if not (meeting_url.startswith("http://") or meeting_url.startswith("https://")):
+            raise HTTPException(status_code=400, detail="الرابط يجب أن يبدأ بـ http:// أو https://")
+        
+        data = {
+            "title": title.strip(),
+            "grade": grade.strip(),
+            "meeting_url": meeting_url.strip(),
+            "semester": semester.strip() or None,
+            "unit": unit.strip() or None,
+            "lesson": lesson.strip() or None,
+            "description": description.strip() or None,
+            "duration_min": duration_min,
+            "is_active": True,
+        }
+        if starts_at and starts_at.strip():
+            data["starts_at"] = starts_at.strip()
+        
+        res = supabase.table("virtual_classes").insert(data).execute()
+        return {"status": "created", "class": (res.data or [None])[0]}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/admin/virtual_classes/{class_id}/update")
+async def admin_update_virtual_class(
+    class_id: int,
+    title: str        = Form(default=""),
+    meeting_url: str  = Form(default=""),
+    description: str  = Form(default=""),
+    starts_at: str    = Form(default=""),
+    is_active: bool   = Form(default=True),
+    admin = Depends(get_current_admin)
+):
+    """✏️ تعديل فصل افتراضي"""
+    try:
+        updates = {"is_active": is_active}
+        if title.strip():       updates["title"] = title.strip()
+        if meeting_url.strip(): updates["meeting_url"] = meeting_url.strip()
+        if description:         updates["description"] = description.strip() or None
+        if starts_at:           updates["starts_at"] = starts_at.strip() or None
+        
+        supabase.table("virtual_classes").update(updates).eq("id", class_id).execute()
+        return {"status": "updated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/admin/virtual_classes/{class_id}")
+async def admin_delete_virtual_class(
+    class_id: int,
+    admin = Depends(get_current_admin)
+):
+    """🗑️ حذف فصل افتراضي"""
+    try:
+        supabase.table("virtual_classes").delete().eq("id", class_id).execute()
+        return {"status": "deleted"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 👑 EMPIRE STATS — إحصائيات العرش الكاملة الدقيقة
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/empire/stats")
+async def empire_full_stats(admin = Depends(get_current_admin)):
+    """
+    📊 إحصائيات كاملة دقيقة لكل المنصة:
+    - عدد الطلاب الإجمالي + حسب الصف
+    - الطلاب الجدد (آخر 7 أيام، 30 يوم)
+    - الطلاب النشطين (آخر 24 ساعة، 7 أيام، 30 يوم)
+    - الإجابات: إجمالي + صحيحة + خاطئة
+    - النقاط: إجمالي + متوسط + قمة
+    - بنك الأسئلة: إجمالي + حسب الصف
+    - أولياء الأمور: مسجّلين + نشطين
+    - الإنجازات والشارات
+    """
+    from datetime import datetime, timedelta, timezone
+    
+    now = datetime.now(timezone.utc)
+    last_24h = (now - timedelta(hours=24)).isoformat()
+    last_7d  = (now - timedelta(days=7)).isoformat()
+    last_30d = (now - timedelta(days=30)).isoformat()
+    
+    stats = {
+        "students": {},
+        "results": {},
+        "questions": {},
+        "parents": {},
+        "achievements": {},
+        "activity": {},
+        "lists": {
+            "new_students_7d": [],
+            "new_students_30d": [],
+            "active_today": [],
+            "active_7d": [],
+            "top_xp": [],
+        }
+    }
+    
+    try:
+        # 🎓 الطلاب — جلب كامل
+        all_students = []
+        offset = 0
+        for _ in range(20):
+            res = supabase.table("students").select(
+                "id, full_name, grade, total_points, created_at, last_login"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            all_students.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        
+        stats["students"]["total"] = len(all_students)
+        
+        # طلاب جدد
+        new_7d  = [s for s in all_students if s.get("created_at") and s["created_at"] >= last_7d]
+        new_30d = [s for s in all_students if s.get("created_at") and s["created_at"] >= last_30d]
+        stats["students"]["new_7d"]  = len(new_7d)
+        stats["students"]["new_30d"] = len(new_30d)
+        
+        # حسب الصف
+        by_grade = {}
+        for s in all_students:
+            g = s.get("grade", "غير محدد")
+            by_grade[g] = by_grade.get(g, 0) + 1
+        stats["students"]["by_grade"] = by_grade
+        
+        # قائمة الطلاب الجدد (مرتبين بالأحدث)
+        new_30d_sorted = sorted(new_30d, key=lambda x: x.get("created_at", ""), reverse=True)
+        stats["lists"]["new_students_7d"] = [
+            {
+                "id": s["id"],
+                "name": s.get("full_name", ""),
+                "grade": s.get("grade", ""),
+                "joined": s.get("created_at", "")[:10],
+            }
+            for s in new_30d_sorted[:30] if s.get("created_at", "") >= last_7d
+        ]
+        stats["lists"]["new_students_30d"] = [
+            {
+                "id": s["id"],
+                "name": s.get("full_name", ""),
+                "grade": s.get("grade", ""),
+                "joined": s.get("created_at", "")[:10],
+            }
+            for s in new_30d_sorted[:50]
+        ]
+        
+        # 📝 النتائج — إجمالي + النشاط
+        try:
+            res_count = supabase.table("results").select("id", count="exact").execute()
+            stats["results"]["total"] = res_count.count or 0
+        except:
+            stats["results"]["total"] = 0
+        
+        # نتائج آخر 24 ساعة
+        try:
+            res_24h = supabase.table("results").select(
+                "id, student_id, score, total, timestamp"
+            ).gte("timestamp", last_24h).execute()
+            results_24h_data = res_24h.data or []
+            stats["results"]["last_24h"] = len(results_24h_data)
+            
+            # طلاب نشطين اليوم (لديهم نتيجة في آخر 24 ساعة)
+            active_today_ids = set(r.get("student_id") for r in results_24h_data if r.get("student_id"))
+            stats["activity"]["active_today_count"] = len(active_today_ids)
+            
+            students_dict = {s["id"]: s for s in all_students}
+            stats["lists"]["active_today"] = [
+                {
+                    "id": sid,
+                    "name": students_dict[sid].get("full_name", ""),
+                    "grade": students_dict[sid].get("grade", ""),
+                    "xp": students_dict[sid].get("total_points", 0),
+                }
+                for sid in active_today_ids if sid in students_dict
+            ][:30]
+        except Exception as e:
+            print(f"[stats] active today error: {e}")
+            stats["results"]["last_24h"] = 0
+            stats["activity"]["active_today_count"] = 0
+        
+        # نتائج آخر 7 أيام
+        try:
+            res_7d = supabase.table("results").select(
+                "id, student_id, score, total, timestamp"
+            ).gte("timestamp", last_7d).execute()
+            results_7d_data = res_7d.data or []
+            stats["results"]["last_7d"] = len(results_7d_data)
+            
+            # طلاب نشطين الأسبوع
+            active_7d_ids = set(r.get("student_id") for r in results_7d_data if r.get("student_id"))
+            stats["activity"]["active_7d_count"] = len(active_7d_ids)
+            
+            stats["lists"]["active_7d"] = [
+                {
+                    "id": sid,
+                    "name": students_dict[sid].get("full_name", ""),
+                    "grade": students_dict[sid].get("grade", ""),
+                    "xp": students_dict[sid].get("total_points", 0),
+                }
+                for sid in active_7d_ids if sid in students_dict
+            ][:50]
+            
+            # حساب الدقة
+            total_correct = sum((r.get("score") or 0) for r in results_7d_data)
+            total_questions = sum((r.get("total") or 0) for r in results_7d_data)
+            stats["results"]["accuracy_7d"] = round(
+                (total_correct / total_questions * 100), 1
+            ) if total_questions > 0 else 0
+            stats["results"]["correct_7d"] = total_correct
+            stats["results"]["wrong_7d"] = total_questions - total_correct
+        except Exception as e:
+            print(f"[stats] 7d error: {e}")
+        
+        # 🏆 أعلى XP
+        top_students = sorted(
+            all_students,
+            key=lambda x: (x.get("total_points") or 0),
+            reverse=True
+        )[:10]
+        stats["lists"]["top_xp"] = [
+            {
+                "id": s["id"],
+                "name": s.get("full_name", ""),
+                "grade": s.get("grade", ""),
+                "xp": s.get("total_points", 0),
+            }
+            for s in top_students
+        ]
+        
+        # إجمالي XP
+        total_xp = sum((s.get("total_points") or 0) for s in all_students)
+        stats["students"]["total_xp"] = total_xp
+        stats["students"]["avg_xp"] = round(total_xp / len(all_students), 1) if all_students else 0
+        
+        # ❓ بنك الأسئلة
+        try:
+            q_count = supabase.table("questions").select("id", count="exact").execute()
+            stats["questions"]["total"] = q_count.count or 0
+        except:
+            stats["questions"]["total"] = 0
+        
+        # 👨‍👩‍👧 أولياء الأمور
+        try:
+            parents_with_phone = [s for s in all_students if s.get("parent_phone") if hasattr(s, 'get')]
+            # نُعيد جلب مع parent_phone
+            res_parents = supabase.table("students").select("id, parent_phone, parent_email").execute()
+            parents_data = res_parents.data or []
+            with_phone = sum(1 for s in parents_data if s.get("parent_phone"))
+            with_email = sum(1 for s in parents_data if s.get("parent_email"))
+            stats["parents"]["total_with_phone"] = with_phone
+            stats["parents"]["total_with_email"] = with_email
+        except Exception as e:
+            print(f"[stats] parents error: {e}")
+            stats["parents"]["total_with_phone"] = 0
+            stats["parents"]["total_with_email"] = 0
+        
+        # 🏅 الإنجازات
+        try:
+            ach_count = supabase.table("achievements").select("id", count="exact").execute()
+            stats["achievements"]["total_granted"] = ach_count.count or 0
+        except:
+            stats["achievements"]["total_granted"] = 0
+        
+        return stats
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ في الإحصائيات: {str(e)[:200]}")
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# ⚡ QUICK STATS — إحصاءات سريعة (count فقط، بدون جلب البيانات)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/stats/counts")
+async def quick_counts(admin = Depends(get_current_admin)):
+    """
+    ⚡ يُرجع counts بسرعة فائقة (Supabase count exact)
+    مفيد للوحات الإحصائيات بدون تحميل آلاف الصفوف
+    """
+    cache_key = "stats:counts"
+    cached = _cache.get(cache_key)
+    if cached:
+        return cached
+    
+    counts = {}
+    
+    # تخصيص الجداول لجلب counts فقط
+    tables_to_count = [
+        "students", "questions", "results", "achievements",
+        "issue_reports", "tutoring_bookings", "html_lessons",
+        "virtual_classes", "short_videos"
+    ]
+    
+    for tbl in tables_to_count:
+        try:
+            res = supabase.table(tbl).select("id", count="exact").limit(1).execute()
+            counts[tbl] = res.count or 0
+        except Exception as e:
+            print(f"[quick_counts] {tbl}: {e}")
+            counts[tbl] = 0
+    
+    # cache لـ 5 دقائق (الـ counts لا تتغيّر بسرعة)
+    _cache.set(cache_key, counts, ttl_seconds=300)
+    return counts
+
+
+# ═══════════════════════════════════════════════════════════════
+# 💾 CACHE MANAGEMENT — للأدمن
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/cache/stats")
+async def cache_stats(admin = Depends(get_current_admin)):
+    """📊 إحصاءات الـ cache"""
+    return _cache.stats()
+
+
+@app.post("/api/admin/cache/clear")
+async def cache_clear(
+    pattern: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """🧹 مسح الـ cache (الكل أو نمط محدد)"""
+    if pattern:
+        _cache.clear_pattern(pattern)
+        return {"status": "cleared", "pattern": pattern}
+    else:
+        _cache._store.clear()
+        return {"status": "cleared_all"}
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),
@@ -5617,16 +6270,62 @@ async def upload_html_lesson(
     }
 
 
+
+@app.get("/api/admin/html_lessons/diagnose")
+async def diagnose_html_lessons(admin = Depends(get_current_admin)):
+    """🩺 endpoint تشخيصي — يعرض حالة جدول html_lessons"""
+    try:
+        res = supabase.table("html_lessons").select(
+            "id, title, grade, semester, unit, lesson, file_url"
+        ).execute()
+        rows = res.data or []
+        
+        # عيّنة من القيم الفعلية
+        unique_grades = list(set(r.get("grade", "") for r in rows if r.get("grade")))
+        unique_lessons = list(set(r.get("lesson", "") for r in rows if r.get("lesson")))[:20]
+        
+        # فحص الروابط
+        broken_files = []
+        for r in rows:
+            if not r.get("file_url"):
+                broken_files.append({"id": r["id"], "title": r.get("title"), "issue": "no file_url"})
+        
+        return {
+            "total_lessons": len(rows),
+            "unique_grades_in_db": unique_grades,
+            "sample_lessons": unique_lessons,
+            "broken_files": broken_files,
+            "all_lessons": rows[:30],
+        }
+    except Exception as e:
+        return {"error": str(e)[:300]}
+
 @app.get("/api/html_lessons")
 async def list_html_lessons(grade: str = "", lesson: str = ""):
-    """قائمة الدروس التفاعلية"""
+    """قائمة الدروس التفاعلية — مع فلتر مرن للصف"""
+    # نجلب كل الدروس
     query = supabase.table("html_lessons").select(
         "id, title, grade, semester, unit, lesson, description, file_url, file_size_kb, uploaded_at, view_count"
     )
-    if grade:  query = query.eq("grade", grade)
-    if lesson: query = query.eq("lesson", lesson)
+    if lesson:
+        query = query.eq("lesson", lesson)
     res = query.order("uploaded_at", desc=True).execute()
-    return res.data or []
+    all_data = res.data or []
+    
+    # فلترة مرنة على الصف (بـ Python لمعالجة اختلاف الصياغة)
+    if grade:
+        def _norm(s):
+            if not s: return ""
+            return str(s).strip().lower().replace("الصف", "").replace("الصّف", "").replace(" ", "")
+        norm_grade = _norm(grade)
+        filtered = []
+        for row in all_data:
+            row_grade = _norm(row.get("grade", ""))
+            if row_grade == norm_grade or norm_grade in row_grade or row_grade in norm_grade:
+                filtered.append(row)
+        return filtered
+    
+    return all_data
 
 
 

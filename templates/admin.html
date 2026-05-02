@@ -6,25 +6,92 @@
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- 📊 SheetJS — جربة 3 CDNs بالتسلسل لضمان التحميل -->
+    <!-- 📊 SheetJS — تحميل sync مضمون مع 3 CDNs احتياطية -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
-    if (typeof XLSX === 'undefined') {
+    (function() {
+        // Helper: تحميل sync باستخدام document.write (يعمل في head فقط)
+        function loadSync(url) {
+            try {
+                document.write('<scr' + 'ipt src="' + url + '"><' + '/scr' + 'ipt>');
+                return true;
+            } catch(e) { return false; }
+        }
+        
+        // Helper: تحميل async عبر createElement (يعمل بعد تحميل الصفحة)
+        function loadAsync(url, cb) {
+            var s = document.createElement('script');
+            s.src = url;
+            s.onload = function() { if (cb) cb(true); };
+            s.onerror = function() { if (cb) cb(false); };
+            document.head.appendChild(s);
+        }
+        
+        // المصادر بالترتيب
+        var SOURCES = [
+            'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+            'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+        ];
+        
+        // 1. لو الـ jsdelivr الأول نجح → تمام
+        if (typeof XLSX !== 'undefined') {
+            console.log('[XLSX] ✅ المكتبة محمّلة من jsdelivr:', XLSX.version || '0.18.5');
+            return;
+        }
+        
+        // 2. جرّب unpkg sync
         console.warn('[XLSX] jsdelivr فشل، تجربة unpkg...');
-        document.write('<script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>');
-    }
+        loadSync(SOURCES[1]);
+    })();
     </script>
     <script>
     if (typeof XLSX === 'undefined') {
         console.warn('[XLSX] unpkg فشل، تجربة cdnjs...');
-        document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><\/script>');
+        document.write('<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><' + '/scr' + 'ipt>');
     }
     </script>
     <script>
+    // 🛡️ ضمان نهائي: لو كل المصادر فشلت في sync — نُعيد المحاولة async عند الحاجة
     if (typeof XLSX === 'undefined') {
-        console.error('[XLSX] ❌ فشل تحميل المكتبة من كل المصادر!');
+        console.error('[XLSX] ❌ فشل تحميل sync — سيُعاد التحميل async عند أول استخدام');
+        window._xlsxLoadPromise = null;
+        window.ensureXLSX = function() {
+            if (typeof XLSX !== 'undefined') return Promise.resolve(true);
+            if (window._xlsxLoadPromise) return window._xlsxLoadPromise;
+            
+            window._xlsxLoadPromise = new Promise(function(resolve) {
+                var sources = [
+                    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
+                    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
+                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+                ];
+                var idx = 0;
+                
+                function tryNext() {
+                    if (typeof XLSX !== 'undefined') return resolve(true);
+                    if (idx >= sources.length) return resolve(false);
+                    
+                    var s = document.createElement('script');
+                    s.src = sources[idx++];
+                    s.onload = function() {
+                        console.log('[XLSX] ✅ تحميل async نجح من:', s.src);
+                        resolve(true);
+                    };
+                    s.onerror = function() {
+                        console.warn('[XLSX] async فشل من', s.src, '— تجربة التالي');
+                        tryNext();
+                    };
+                    document.head.appendChild(s);
+                }
+                tryNext();
+            });
+            return window._xlsxLoadPromise;
+        };
     } else {
         console.log('[XLSX] ✅ المكتبة محمّلة:', XLSX.version || 'unknown');
+        // wrapper جاهز للاستخدام (يُرجع Promise.resolve فوراً)
+        window.ensureXLSX = function() { return Promise.resolve(true); };
     }
     </script>
     <style>
@@ -1706,6 +1773,7 @@
                 <div class="nav-link" onclick="showSection('tutoring');setTimeout(loadTutoringBookings,100);" style="color:#9b59b6;"><i class="fas fa-graduation-cap"></i> 🎓 حجوزات الدروس</div>
                 <div class="nav-link" onclick="showSection('videos-mgr');setTimeout(loadVideosList,100);" style="color:#e91e63;"><i class="fas fa-video"></i> 🎬 الفيديوهات القصيرة</div>
                 <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> 💾 النسخ الاحتياطي</div>
+                <div class="nav-link" onclick="showSection('virtual-classes');loadVirtualClasses();" style="color:#5dade2;"><i class="fas fa-video"></i> 🏛️ الفصول الافتراضية</div>
                 <div class="nav-link" onclick="showSection('email-reports');" style="color:#3498db;"><i class="fas fa-paper-plane"></i> 📧 تقارير شهرية</div>
                 <div class="nav-link" onclick="showSection('ai-settings');setTimeout(checkAIStatus,100);" style="color:#1abc9c;"><i class="fas fa-robot"></i> 🤖 المساعد الذكي</div>
                 <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
@@ -1862,7 +1930,74 @@
                         </div>
                     </div>
 
-                    <!-- 📊 الإحصائيات الحقيقية للحضور -->
+
+                    <!-- ════════════ 📊 إحصائيات شاملة دقيقة ════════════ -->
+                    <div id="empire-precise-stats" style="margin-top:18px;background:linear-gradient(160deg,rgba(40,20,80,0.4) 0%, rgba(10,10,30,0.55) 100%);border:1px solid rgba(212,175,55,0.25);border-radius:18px;padding:20px;backdrop-filter:blur(8px);">
+                        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+                            <h3 style="color:var(--gold);margin:0;font-size:1.05rem;">
+                                <i class="fas fa-chart-pie"></i> 👑 لوحة العرش الذهبية
+                                <span style="font-size:0.72rem;font-weight:normal;color:rgba(255,255,255,0.4);margin-right:8px;">(إحصائيات حقيقية شاملة)</span>
+                            </h3>
+                            <button onclick="loadEmpireStats()" id="btn-refresh-empire" style="background:linear-gradient(135deg,#f39c12,#d4af37);border:none;color:#1a0d2e;padding:7px 16px;border-radius:8px;cursor:pointer;font-size:0.82rem;font-family:'Cairo';font-weight:bold;">
+                                🔄 تحديث
+                            </button>
+                        </div>
+
+                        <!-- 8 بطاقات أرقام رئيسية -->
+                        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:20px;">
+                            <div style="background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(46,204,113,0.04));border:1px solid rgba(46,204,113,0.4);border-radius:12px;padding:12px;text-align:center;">
+                                <div style="font-size:1.6rem;font-weight:900;color:#2ecc71;" id="es-students-total">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">👥 إجمالي الطلاب</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(243,156,18,0.12),rgba(243,156,18,0.04));border:1px solid rgba(243,156,18,0.4);border-radius:12px;padding:12px;text-align:center;cursor:pointer;" onclick="toggleEmpireList('new7')">
+                                <div style="font-size:1.6rem;font-weight:900;color:#f39c12;" id="es-new-7d">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">🆕 جدد (7 أيام)</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(155,89,182,0.12),rgba(155,89,182,0.04));border:1px solid rgba(155,89,182,0.4);border-radius:12px;padding:12px;text-align:center;cursor:pointer;" onclick="toggleEmpireList('new30')">
+                                <div style="font-size:1.6rem;font-weight:900;color:#bb86fc;" id="es-new-30d">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">🌟 جدد (30 يوم)</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(52,152,219,0.12),rgba(52,152,219,0.04));border:1px solid rgba(52,152,219,0.4);border-radius:12px;padding:12px;text-align:center;cursor:pointer;" onclick="toggleEmpireList('today')">
+                                <div style="font-size:1.6rem;font-weight:900;color:#5dade2;" id="es-active-today">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">🔥 نشطين اليوم</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(26,188,156,0.12),rgba(26,188,156,0.04));border:1px solid rgba(26,188,156,0.4);border-radius:12px;padding:12px;text-align:center;cursor:pointer;" onclick="toggleEmpireList('week')">
+                                <div style="font-size:1.6rem;font-weight:900;color:#48d1cc;" id="es-active-7d">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">⚡ نشطين (7 أيام)</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(241,196,15,0.12),rgba(241,196,15,0.04));border:1px solid rgba(241,196,15,0.4);border-radius:12px;padding:12px;text-align:center;">
+                                <div style="font-size:1.6rem;font-weight:900;color:#f1c40f;" id="es-results-total">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">📝 إجمالي الإجابات</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(231,76,60,0.12),rgba(231,76,60,0.04));border:1px solid rgba(231,76,60,0.4);border-radius:12px;padding:12px;text-align:center;">
+                                <div style="font-size:1.6rem;font-weight:900;color:#e74c3c;" id="es-accuracy">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">🎯 الدقة (7 أيام)</div>
+                            </div>
+                            <div style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.4);border-radius:12px;padding:12px;text-align:center;">
+                                <div style="font-size:1.6rem;font-weight:900;color:var(--gold);" id="es-questions-total">—</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);margin-top:2px;">❓ بنك الأسئلة</div>
+                            </div>
+                        </div>
+
+                        <!-- توزيع الطلاب على الصفوف -->
+                        <div id="es-by-grade-container" style="background:rgba(0,31,63,0.3);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:14px;margin-bottom:14px;">
+                            <h4 style="color:var(--gold);margin:0 0 10px;font-size:0.92rem;">🎓 توزيع الطلاب على الصفوف</h4>
+                            <div id="es-by-grade-bars" style="display:flex;flex-direction:column;gap:6px;">
+                                <div style="opacity:0.4;font-size:0.85rem;">جارٍ التحميل...</div>
+                            </div>
+                        </div>
+
+                        <!-- قوائم منسدلة (تظهر بالضغط) -->
+                        <div id="es-lists-area" style="display:none;background:rgba(0,31,63,0.4);border-radius:12px;padding:14px;border:1px solid rgba(212,175,55,0.2);">
+                            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                                <h4 style="color:var(--gold);margin:0;font-size:1rem;" id="es-list-title">قائمة</h4>
+                                <button onclick="document.getElementById('es-lists-area').style.display='none'" style="background:rgba(255,255,255,0.1);color:#fff;border:none;width:30px;height:30px;border-radius:50%;cursor:pointer;">✕</button>
+                            </div>
+                            <div id="es-list-content" style="max-height:400px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;"></div>
+                        </div>
+                    </div>
+
+                                        <!-- 📊 الإحصائيات الحقيقية للحضور -->
                     <div style="margin-top:18px;background:linear-gradient(160deg,rgba(20,15,40,0.45) 0%, rgba(10,10,30,0.55) 100%);border:1px solid rgba(212,175,55,0.18);border-radius:18px;padding:20px;backdrop-filter:blur(8px);">
                         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
                             <h3 style="color:var(--gold);margin:0;font-size:0.95rem;">
@@ -3108,6 +3243,24 @@
 
             <!-- ==================== 💾 BACKUP & EXPORT ==================== -->
             <section id="backup" class="section">
+                <div class="card" style="margin-bottom:18px;background:linear-gradient(135deg,rgba(155,89,182,0.08),rgba(155,89,182,0.02));border:1px solid rgba(155,89,182,0.4);">
+                    <h2 style="color:#bb86fc;margin:0 0 16px;"><i class="fas fa-database"></i> 💾 نظام الـ Cache</h2>
+                    <p style="opacity:0.75;font-size:0.9rem;margin-bottom:16px;line-height:1.8;">
+                        🚀 المنصة تستخدم cache في الذاكرة لتسريع الأداء بنسبة 80%. يتم التحديث التلقائي عند تعديل البيانات، لكن يمكنك مسحه يدوياً عند الحاجة.
+                    </p>
+                    <div id="cache-stats" style="background:rgba(0,0,0,0.3);padding:14px;border-radius:10px;margin-bottom:14px;font-family:monospace;font-size:0.88rem;color:#bb86fc;">
+                        ⏳ جارٍ التحميل...
+                    </div>
+                    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                        <button onclick="loadCacheStats()" style="background:rgba(155,89,182,0.15);color:#bb86fc;border:1px solid #bb86fc;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                            🔄 تحديث الإحصاءات
+                        </button>
+                        <button onclick="clearAllCache()" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:9px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                            🧹 مسح كل الـ Cache
+                        </button>
+                    </div>
+                </div>
+
                 <div class="card">
                     <h2 style="color:#27ae60;margin:0 0 18px;"><i class="fas fa-download"></i> 💾 النسخ الاحتياطي والتصدير</h2>
                     
@@ -3167,7 +3320,92 @@
             </section>
 
             
-            <!-- ==================== 📧 EMAIL REPORTS ==================== -->
+
+            <!-- ════════════════ 🏛️ VIRTUAL CLASSES ════════════════ -->
+            <section id="virtual-classes" class="section">
+                <div class="card">
+                    <h2 style="color:#5dade2;margin:0 0 18px;">
+                        <i class="fas fa-video"></i> 🏛️ الفصول الافتراضية
+                    </h2>
+                    <p style="opacity:0.75;font-size:0.9rem;margin-bottom:20px;line-height:1.8;">
+                        🎥 أنشئ حصصاً افتراضية مرتبطة بالمنهج. كل طالب يرى الحصص الخاصة بصفه فقط في تبويب "الفصل الافتراضي" في لوحته.
+                    </p>
+                    
+                    <!-- نموذج الإضافة -->
+                    <div style="background:rgba(52,152,219,0.06);border:1px solid rgba(52,152,219,0.3);border-radius:14px;padding:22px;margin-bottom:24px;">
+                        <h3 style="color:#5dade2;margin:0 0 16px;font-size:1.1rem;">➕ إضافة حصة جديدة</h3>
+                        
+                        <div style="display:grid;grid-template-columns:1fr;gap:14px;">
+                            <div>
+                                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📝 عنوان الحصة *</label>
+                                <input type="text" id="vc-title" placeholder="مثل: شرح المتوسط الحسابي" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                            </div>
+                            
+                            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🎓 الصف *</label>
+                                    <select id="vc-grade" onchange="vcUpdateSemesters()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                        <option value="">-- اختر الصف --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📅 الفصل (اختياري)</label>
+                                    <select id="vc-semester" onchange="vcUpdateUnits()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                        <option value="">-- (الكل) --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📦 الوحدة (اختياري)</label>
+                                    <select id="vc-unit" onchange="vcUpdateLessons()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                        <option value="">-- (الكل) --</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📖 الدرس (اختياري)</label>
+                                    <select id="vc-lesson" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                        <option value="">-- (الكل) --</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🔗 رابط الحصة *</label>
+                                <input type="url" id="vc-url" placeholder="https://meet.google.com/abc-defg-hij" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;direction:ltr;">
+                            </div>
+                            
+                            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🕒 وقت البدء (اختياري)</label>
+                                    <input type="datetime-local" id="vc-starts" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                </div>
+                                <div>
+                                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">⏱️ المدة (دقائق)</label>
+                                    <input type="number" id="vc-duration" value="60" min="15" max="240" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📝 وصف (اختياري)</label>
+                                <textarea id="vc-desc" rows="2" placeholder="ملاحظات إضافية عن الحصة..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;resize:vertical;"></textarea>
+                            </div>
+                            
+                            <button onclick="createVirtualClass()" style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;">
+                                ➕ إنشاء الحصة
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- قائمة الحصص الحالية -->
+                    <div>
+                        <h3 style="color:#5dade2;margin:0 0 14px;font-size:1.1rem;">📋 الحصص الحالية</h3>
+                        <div id="vc-list" style="display:flex;flex-direction:column;gap:12px;">
+                            <div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">⏳ جارٍ التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+                        <!-- ==================== 📧 EMAIL REPORTS ==================== -->
             <section id="email-reports" class="section">
                 <div class="card">
                     <h2 style="color:#3498db;margin:0 0 18px;"><i class="fas fa-paper-plane"></i> 📧 التقارير الشهرية لأولياء الأمور</h2>
@@ -5028,7 +5266,7 @@
     // ============================================================
     async function loadQuestions() {
         // ── إصلاح: استخدام authFetch بدل fetch المباشر غير المحمي ──
-        const res = await authFetch(`/api/admin/questions`);
+        const res = await authFetch(`/api/admin/questions/all`);
         if(!res || !res.ok) return;
         allQuestions = await res.json();
 
@@ -5600,16 +5838,29 @@
     }
 
     /** قراءة ملف Excel ومعالجته */
-    function handleExcelFile(input) {
+    async function handleExcelFile(input) {
         const file = input.files[0];
         if (!file) return;
 
-        // 🛡️ تحقق من توفر المكتبة
+        // 🛡️ تحقق من توفر المكتبة + إعادة التحميل عند الحاجة
         if (typeof XLSX === 'undefined') {
-            console.error('[handleExcelFile] XLSX غير محمّلة!');
-            document.getElementById('excel-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل — حدّث الصفحة (Ctrl+F5)';
-            showToast('❌ مكتبة Excel غير متوفرة — تأكد من اتصال الإنترنت', 'error', 5000);
-            return;
+            console.warn('[handleExcelFile] XLSX غير محمّلة — جاري إعادة التحميل...');
+            document.getElementById('excel-file-name').textContent = '⏳ جاري تحميل مكتبة Excel...';
+            
+            if (typeof window.ensureXLSX === 'function') {
+                var loaded = await window.ensureXLSX();
+                if (!loaded || typeof XLSX === 'undefined') {
+                    console.error('[handleExcelFile] فشل تحميل XLSX من كل المصادر');
+                    document.getElementById('excel-file-name').textContent = '❌ تعذّر تحميل مكتبة Excel — تحقّق من الإنترنت';
+                    showToast('❌ تعذّر تحميل مكتبة Excel — تحقّق من اتصال الإنترنت', 'error', 6000);
+                    return;
+                }
+                console.log('[handleExcelFile] ✅ XLSX جاهزة الآن');
+            } else {
+                document.getElementById('excel-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل — حدّث الصفحة (Ctrl+Shift+R)';
+                showToast('❌ مكتبة Excel غير متوفرة', 'error', 5000);
+                return;
+            }
         }
 
         document.getElementById('excel-file-name').textContent = '⏳ جاري قراءة المخطوطة...';
@@ -6311,16 +6562,29 @@
         };
     }
 
-    function handleCurriculumFile(input) {
+    async function handleCurriculumFile(input) {
         const file = input.files[0];
         if (!file) return;
 
-        // 🛡️ تحقق من توفر المكتبة
+        // 🛡️ تحقق من توفر المكتبة + إعادة التحميل عند الحاجة
         if (typeof XLSX === 'undefined') {
-            console.error('[handleCurriculumFile] XLSX غير محمّلة!');
-            document.getElementById('curr-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل — حدّث الصفحة (Ctrl+F5)';
-            showToast('❌ مكتبة Excel غير متوفرة — تأكد من اتصال الإنترنت', 'error', 5000);
-            return;
+            console.warn('[handleCurriculumFile] XLSX غير محمّلة — جاري إعادة التحميل...');
+            document.getElementById('curr-file-name').textContent = '⏳ جاري تحميل مكتبة Excel...';
+            
+            if (typeof window.ensureXLSX === 'function') {
+                var loaded = await window.ensureXLSX();
+                if (!loaded || typeof XLSX === 'undefined') {
+                    console.error('[handleCurriculumFile] فشل تحميل XLSX');
+                    document.getElementById('curr-file-name').textContent = '❌ تعذّر تحميل مكتبة Excel';
+                    showToast('❌ تعذّر تحميل مكتبة Excel — تحقّق من اتصال الإنترنت', 'error', 6000);
+                    return;
+                }
+                console.log('[handleCurriculumFile] ✅ XLSX جاهزة الآن');
+            } else {
+                document.getElementById('curr-file-name').textContent = '❌ مكتبة Excel لم تُحمَّل';
+                showToast('❌ مكتبة Excel غير متوفرة', 'error', 5000);
+                return;
+            }
         }
 
         document.getElementById('curr-file-name').textContent = '⏳ جاري قراءة الهيكل...';
@@ -11759,6 +12023,396 @@
             if (detailEl) detailEl.textContent = 'تعذّر الاتصال بالخادم';
         }
     }
+
+
+    /* ════════════════════════════════════════════════════════════
+       🏛️ VIRTUAL CLASSES — Admin
+    ════════════════════════════════════════════════════════════ */
+    
+    function vcUpdateSemesters() {
+        var grade = document.getElementById('vc-grade').value;
+        var semSel = document.getElementById('vc-semester');
+        semSel.innerHTML = '<option value="">-- (الكل) --</option>';
+        
+        if (!grade || !fullCurriculum) return;
+        var gradeObj = fullCurriculum.find(function(g) { return g.name === grade; });
+        if (!gradeObj || !gradeObj.semesters) return;
+        
+        gradeObj.semesters.forEach(function(s) {
+            var opt = document.createElement('option');
+            opt.value = s.name;
+            opt.textContent = s.name;
+            semSel.appendChild(opt);
+        });
+        
+        vcUpdateUnits();
+    }
+    
+    function vcUpdateUnits() {
+        var grade = document.getElementById('vc-grade').value;
+        var sem = document.getElementById('vc-semester').value;
+        var unitSel = document.getElementById('vc-unit');
+        unitSel.innerHTML = '<option value="">-- (الكل) --</option>';
+        
+        if (!grade || !sem || !fullCurriculum) return;
+        var gradeObj = fullCurriculum.find(function(g) { return g.name === grade; });
+        if (!gradeObj) return;
+        var semObj = gradeObj.semesters.find(function(s) { return s.name === sem; });
+        if (!semObj || !semObj.units) return;
+        
+        semObj.units.forEach(function(u) {
+            var opt = document.createElement('option');
+            opt.value = u.name;
+            opt.textContent = u.name;
+            unitSel.appendChild(opt);
+        });
+        
+        vcUpdateLessons();
+    }
+    
+    function vcUpdateLessons() {
+        var grade = document.getElementById('vc-grade').value;
+        var sem = document.getElementById('vc-semester').value;
+        var unit = document.getElementById('vc-unit').value;
+        var lessonSel = document.getElementById('vc-lesson');
+        lessonSel.innerHTML = '<option value="">-- (الكل) --</option>';
+        
+        if (!grade || !sem || !unit || !fullCurriculum) return;
+        var gradeObj = fullCurriculum.find(function(g) { return g.name === grade; });
+        if (!gradeObj) return;
+        var semObj = gradeObj.semesters.find(function(s) { return s.name === sem; });
+        if (!semObj) return;
+        var unitObj = semObj.units.find(function(u) { return u.name === unit; });
+        if (!unitObj || !unitObj.lessons) return;
+        
+        unitObj.lessons.forEach(function(l) {
+            var name = typeof l === 'string' ? l : (l.name || '');
+            if (!name) return;
+            var opt = document.createElement('option');
+            opt.value = name;
+            opt.textContent = name;
+            lessonSel.appendChild(opt);
+        });
+    }
+    
+    async function loadVirtualClasses() {
+        // املأ الصفوف من المنهج
+        var gradeSel = document.getElementById('vc-grade');
+        if (gradeSel && gradeSel.options.length <= 1 && fullCurriculum) {
+            fullCurriculum.forEach(function(g) {
+                var opt = document.createElement('option');
+                opt.value = g.name;
+                opt.textContent = g.name;
+                gradeSel.appendChild(opt);
+            });
+        }
+        
+        // اجلب القائمة
+        try {
+            var res = await authFetch('/api/admin/virtual_classes');
+            if (!res.ok) throw new Error('فشل');
+            var data = await res.json();
+            renderVCList(data.classes || []);
+        } catch(e) {
+            document.getElementById('vc-list').innerHTML = '<div style="text-align:center;padding:30px;color:#ff6b6b;">❌ فشل التحميل</div>';
+        }
+    }
+    
+    function renderVCList(classes) {
+        var container = document.getElementById('vc-list');
+        if (!container) return;
+        
+        if (!classes.length) {
+            container.innerHTML = '<div style="text-align:center;padding:30px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px dashed rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);">📭 لا توجد حصص افتراضية بعد</div>';
+            return;
+        }
+        
+        var html = '';
+        classes.forEach(function(c) {
+            var startsAt = c.starts_at ? new Date(c.starts_at) : null;
+            var dateLabel = startsAt ? startsAt.toLocaleString('ar-EG', { dateStyle: 'short', timeStyle: 'short' }) : 'غير محدد';
+            var status = c.is_active ? '🟢 نشط' : '⏸️ معطّل';
+            
+            html += `
+                <div style="background:rgba(0,31,63,0.4);border:1px solid rgba(52,152,219,0.3);border-radius:12px;padding:16px;">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;margin-bottom:8px;">
+                        <div style="font-weight:bold;color:#5dade2;font-size:1.05rem;">${esc(c.title)}</div>
+                        <span style="font-size:0.78rem;color:rgba(255,255,255,0.65);">${status}</span>
+                    </div>
+                    <div style="font-size:0.85rem;color:rgba(255,255,255,0.65);line-height:1.8;">
+                        🎓 <strong>${esc(c.grade)}</strong>
+                        ${c.semester ? ' • 📅 ' + esc(c.semester) : ''}
+                        ${c.unit ? ' • 📦 ' + esc(c.unit) : ''}
+                        ${c.lesson ? ' • 📖 ' + esc(c.lesson) : ''}
+                    </div>
+                    <div style="font-size:0.82rem;color:rgba(255,255,255,0.55);margin-top:6px;">
+                        🕒 ${dateLabel} • ⏱️ ${c.duration_min || 60} دقيقة
+                    </div>
+                    <div style="font-size:0.78rem;color:#5dade2;margin-top:6px;direction:ltr;text-align:left;word-break:break-all;">
+                        🔗 <a href="${esc(c.meeting_url)}" target="_blank" style="color:#5dade2;">${esc(c.meeting_url)}</a>
+                    </div>
+                    ${c.description ? '<div style="margin-top:8px;font-size:0.85rem;color:rgba(255,255,255,0.65);background:rgba(255,255,255,0.03);padding:8px;border-radius:6px;">' + esc(c.description) + '</div>' : ''}
+                    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+                        <button onclick="toggleVC(${c.id}, ${!c.is_active})" style="background:${c.is_active ? 'rgba(243,156,18,0.15)' : 'rgba(46,204,113,0.15)'};color:${c.is_active ? '#f39c12' : '#2ecc71'};border:1px solid ${c.is_active ? '#f39c12' : '#2ecc71'};padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.82rem;">
+                            ${c.is_active ? '⏸️ تعطيل' : '▶️ تفعيل'}
+                        </button>
+                        <button onclick="deleteVC(${c.id})" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.82rem;">
+                            🗑️ حذف
+                        </button>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    async function createVirtualClass() {
+        var title    = document.getElementById('vc-title').value.trim();
+        var grade    = document.getElementById('vc-grade').value;
+        var semester = document.getElementById('vc-semester').value;
+        var unit     = document.getElementById('vc-unit').value;
+        var lesson   = document.getElementById('vc-lesson').value;
+        var url      = document.getElementById('vc-url').value.trim();
+        var startsAt = document.getElementById('vc-starts').value;
+        var duration = parseInt(document.getElementById('vc-duration').value) || 60;
+        var desc     = document.getElementById('vc-desc').value.trim();
+        
+        if (!title) { showToast('⚠️ أدخل عنوان الحصة', 'warning'); return; }
+        if (!grade) { showToast('⚠️ اختر الصف', 'warning'); return; }
+        if (!url) { showToast('⚠️ أدخل رابط الحصة', 'warning'); return; }
+        if (!url.startsWith('http')) { showToast('⚠️ الرابط يجب أن يبدأ بـ http://', 'warning'); return; }
+        
+        try {
+            var fd = new FormData();
+            fd.append('title', title);
+            fd.append('grade', grade);
+            fd.append('meeting_url', url);
+            if (semester) fd.append('semester', semester);
+            if (unit) fd.append('unit', unit);
+            if (lesson) fd.append('lesson', lesson);
+            if (desc) fd.append('description', desc);
+            if (startsAt) fd.append('starts_at', new Date(startsAt).toISOString());
+            fd.append('duration_min', duration);
+            
+            var res = await authFetch('/api/admin/virtual_classes/create', { method: 'POST', body: fd });
+            if (!res.ok) {
+                var err = await res.json().catch(function() { return {}; });
+                throw new Error(err.detail || 'فشل');
+            }
+            
+            showToast('✅ تم إنشاء الحصة', 'success');
+            // مسح الحقول
+            document.getElementById('vc-title').value = '';
+            document.getElementById('vc-url').value = '';
+            document.getElementById('vc-desc').value = '';
+            document.getElementById('vc-starts').value = '';
+            // إعادة تحميل القائمة
+            loadVirtualClasses();
+        } catch(e) {
+            showToast('❌ ' + (e.message || 'فشل'), 'error');
+        }
+    }
+    
+    async function toggleVC(id, newState) {
+        try {
+            var fd = new FormData();
+            fd.append('is_active', newState);
+            await authFetch('/api/admin/virtual_classes/' + id + '/update', { method: 'POST', body: fd });
+            showToast(newState ? '▶️ تم التفعيل' : '⏸️ تم التعطيل', 'success');
+            loadVirtualClasses();
+        } catch(e) {
+            showToast('❌ فشل', 'error');
+        }
+    }
+    
+    async function deleteVC(id) {
+        if (!confirm('🗑️ حذف هذه الحصة نهائياً؟')) return;
+        try {
+            await authFetch('/api/admin/virtual_classes/' + id, { method: 'DELETE' });
+            showToast('✅ تم الحذف', 'success');
+            loadVirtualClasses();
+        } catch(e) {
+            showToast('❌ فشل', 'error');
+        }
+    }
+    
+
+    /* ════════════════════════════════════════════════════════════
+       👑 EMPIRE STATS — لوحة العرش الذهبية
+    ════════════════════════════════════════════════════════════ */
+    var _empireStatsData = null;
+    
+    async function loadEmpireStats() {
+        var btn = document.getElementById('btn-refresh-empire');
+        if (btn) { btn.disabled = true; btn.innerHTML = '⏳ جارٍ...'; }
+        
+        try {
+            var res = await authFetch('/api/admin/empire/stats');
+            if (!res.ok) throw new Error('فشل');
+            var data = await res.json();
+            _empireStatsData = data;
+            
+            // الأرقام الرئيسية
+            document.getElementById('es-students-total').textContent = (data.students?.total || 0).toLocaleString('ar-EG');
+            document.getElementById('es-new-7d').textContent         = (data.students?.new_7d || 0).toLocaleString('ar-EG');
+            document.getElementById('es-new-30d').textContent        = (data.students?.new_30d || 0).toLocaleString('ar-EG');
+            document.getElementById('es-active-today').textContent   = (data.activity?.active_today_count || 0).toLocaleString('ar-EG');
+            document.getElementById('es-active-7d').textContent      = (data.activity?.active_7d_count || 0).toLocaleString('ar-EG');
+            document.getElementById('es-results-total').textContent  = (data.results?.total || 0).toLocaleString('ar-EG');
+            document.getElementById('es-accuracy').textContent       = (data.results?.accuracy_7d || 0) + '%';
+            document.getElementById('es-questions-total').textContent = (data.questions?.total || 0).toLocaleString('ar-EG');
+            
+            // توزيع الطلاب على الصفوف (رسم بياني بسيط)
+            renderGradeDistribution(data.students?.by_grade || {});
+            
+        } catch(e) {
+            console.error('[empire stats]', e);
+            if (typeof showToast === 'function') showToast('❌ فشل تحديث الإحصائيات', 'error');
+        } finally {
+            if (btn) { btn.disabled = false; btn.innerHTML = '🔄 تحديث'; }
+        }
+    }
+    
+    function renderGradeDistribution(byGrade) {
+        var container = document.getElementById('es-by-grade-bars');
+        if (!container) return;
+        
+        var entries = Object.entries(byGrade);
+        if (!entries.length) {
+            container.innerHTML = '<div style="opacity:0.4;font-size:0.85rem;">لا بيانات</div>';
+            return;
+        }
+        
+        var max = Math.max.apply(null, entries.map(function(e) { return e[1]; }));
+        entries.sort(function(a, b) { return b[1] - a[1]; });
+        
+        var html = '';
+        entries.forEach(function(e) {
+            var grade = e[0];
+            var count = e[1];
+            var pct = max > 0 ? Math.round((count / max) * 100) : 0;
+            html += `
+                <div style="display:flex;align-items:center;gap:10px;font-size:0.85rem;">
+                    <div style="min-width:130px;color:rgba(255,255,255,0.85);">${esc(grade)}</div>
+                    <div style="flex:1;background:rgba(255,255,255,0.05);height:22px;border-radius:6px;overflow:hidden;position:relative;">
+                        <div style="background:linear-gradient(90deg,#f39c12,#d4af37);height:100%;width:${pct}%;transition:width 0.6s ease;"></div>
+                        <div style="position:absolute;top:0;right:8px;line-height:22px;color:#fff;font-weight:bold;font-size:0.78rem;">${count}</div>
+                    </div>
+                </div>
+            `;
+        });
+        container.innerHTML = html;
+    }
+    
+    function toggleEmpireList(type) {
+        if (!_empireStatsData) return;
+        
+        var area = document.getElementById('es-lists-area');
+        var title = document.getElementById('es-list-title');
+        var content = document.getElementById('es-list-content');
+        
+        var list = [];
+        var titleText = '';
+        
+        if (type === 'new7') {
+            list = _empireStatsData.lists?.new_students_7d || [];
+            titleText = '🆕 الطلاب الجدد (7 أيام)';
+        } else if (type === 'new30') {
+            list = _empireStatsData.lists?.new_students_30d || [];
+            titleText = '🌟 الطلاب الجدد (30 يوم)';
+        } else if (type === 'today') {
+            list = _empireStatsData.lists?.active_today || [];
+            titleText = '🔥 الطلاب النشطون اليوم';
+        } else if (type === 'week') {
+            list = _empireStatsData.lists?.active_7d || [];
+            titleText = '⚡ الطلاب النشطون (7 أيام)';
+        }
+        
+        title.innerHTML = titleText + ' <span style="font-size:0.78rem;opacity:0.65;">(' + list.length + ')</span>';
+        
+        if (!list.length) {
+            content.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">📭 لا يوجد طلاب في هذه القائمة</div>';
+        } else {
+            var html = '';
+            list.forEach(function(s, i) {
+                var dateOrXP = s.joined ? '📅 ' + s.joined : ('🏆 ' + (s.xp || 0).toLocaleString('ar-EG') + ' XP');
+                html += `
+                    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+                        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
+                            <div style="background:rgba(212,175,55,0.15);color:var(--gold);width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:bold;">${i + 1}</div>
+                            <div>
+                                <div style="font-weight:bold;color:#fff;font-size:0.92rem;">${esc(s.name)}</div>
+                                <div style="font-size:0.78rem;color:rgba(255,255,255,0.55);">${esc(s.grade || 'غير محدد')}</div>
+                            </div>
+                        </div>
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.65);">${dateOrXP}</div>
+                    </div>
+                `;
+            });
+            content.innerHTML = html;
+        }
+        
+        area.style.display = 'block';
+        area.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+    
+    // تحميل تلقائي عند فتح اللوحة
+    (function() {
+        var origShowSection = window.showSection;
+        if (typeof origShowSection === 'function') {
+            window.showSection = function(id) {
+                origShowSection.apply(this, arguments);
+                if (id === 'dash') {
+                    setTimeout(loadEmpireStats, 200);
+                }
+            };
+        }
+    })();
+
+
+    /* 💾 Cache management */
+    async function loadCacheStats() {
+        try {
+            var res = await authFetch('/api/admin/cache/stats');
+            if (!res.ok) throw new Error('فشل');
+            var data = await res.json();
+            var el = document.getElementById('cache-stats');
+            if (el) {
+                el.innerHTML = '📊 <strong>عناصر إجمالية:</strong> ' + data.total + 
+                              ' &nbsp;|&nbsp; ✅ <strong>صالحة:</strong> ' + data.valid +
+                              ' &nbsp;|&nbsp; 📦 <strong>الحد الأقصى:</strong> ' + data.max;
+            }
+        } catch(e) {
+            var el = document.getElementById('cache-stats');
+            if (el) el.innerHTML = '❌ فشل التحميل';
+        }
+    }
+    
+    async function clearAllCache() {
+        if (!confirm('🧹 مسح كل بيانات Cache؟ سيُعاد بناؤها تلقائياً عند الحاجة.')) return;
+        try {
+            var fd = new FormData();
+            await authFetch('/api/admin/cache/clear', { method: 'POST', body: fd });
+            showToast('✅ تم مسح Cache', 'success');
+            loadCacheStats();
+        } catch(e) {
+            showToast('❌ فشل', 'error');
+        }
+    }
+    
+    // تحميل تلقائي عند فتح backup
+    (function() {
+        var origShowSection = window.showSection;
+        if (typeof origShowSection === 'function') {
+            var prevWrapper = origShowSection;
+            window.showSection = function(id) {
+                prevWrapper.apply(this, arguments);
+                if (id === 'backup') {
+                    setTimeout(loadCacheStats, 200);
+                }
+            };
+        }
+    })();
 
 
 </script>

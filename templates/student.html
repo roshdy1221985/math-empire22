@@ -1165,18 +1165,18 @@
 
     <!-- AUDIO -->
     <audio id="door-sfx"    src="/static/door.mp3"    preload="auto"></audio>
-    <audio id="notif-sfx"   src="https://assets.mixkit.co/active_storage/sfx/2870/2870-preview.mp3" preload="auto"></audio>
+    <audio id="notif-sfx"   src="/static/sounds/notif-old.mp3" preload="auto"></audio>
     <audio id="sword-sfx"   src="/static/sword.mp3"   preload="auto"></audio>
-    <audio id="podium-sfx"  src="https://assets.mixkit.co/active_storage/sfx/2014/2014-preview.mp3" preload="auto"></audio>
-    <audio id="applause-sfx" src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-    <audio id="correct-sfx" src="https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3" preload="auto"></audio>
-    <audio id="wrong-sfx"   src="https://assets.mixkit.co/active_storage/sfx/2003/2003-preview.mp3" preload="auto"></audio>
-    <audio id="win-sfx"     src="https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3" preload="auto"></audio>
-    <audio id="exam-end-sfx" src="https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3" preload="auto"></audio>
-        <audio id="scroll-sfx"  src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3" preload="auto"></audio>
+    <audio id="podium-sfx"  src="/static/sounds/podium.mp3" preload="auto"></audio>
+    <audio id="applause-sfx" src="/static/sounds/win.mp3" preload="auto"></audio>
+    <audio id="correct-sfx" src="/static/sounds/correct.mp3" preload="auto"></audio>
+    <audio id="wrong-sfx"   src="/static/sounds/wrong.mp3" preload="auto"></audio>
+    <audio id="win-sfx"     src="/static/sounds/win.mp3" preload="auto"></audio>
+    <audio id="exam-end-sfx" src="/static/sounds/exam-end.mp3" preload="auto"></audio>
+        <audio id="scroll-sfx"  src="/static/sounds/scroll.mp3" preload="auto"></audio>
     <!-- 🎵 نغمة الإشعارات المميزة (royal magical chime) -->
-    <audio id="notify-sfx" src="https://assets.mixkit.co/active_storage/sfx/270/270-preview.mp3" preload="auto"></audio>
-    <audio id="badge-sfx"  src="https://assets.mixkit.co/active_storage/sfx/1990/1990-preview.mp3" preload="auto"></audio>
+    <audio id="notify-sfx" src="/static/sounds/notify.mp3" preload="auto"></audio>
+    <audio id="badge-sfx"  src="/static/sounds/badge.mp3" preload="auto"></audio>
 
     <!-- LEVEL UP OVERLAY -->
     <div id="level-up-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.95); z-index:100000; justify-content:center; align-items:center; flex-direction:column; text-align:center;">
@@ -1453,9 +1453,9 @@
             <span class="btn-icon">🏆</span><span class="sidebar-label">ديوان المجد والكنوز</span>
         </button>
 
-        <!-- مجموعة الدراسة -->
-        <button class="nav-btn shiny-btn btn-clan" id="btn-clan" onclick="openClanHub()">
-            <span class="btn-icon">⚔️</span><span class="sidebar-label">قبيلتك</span>
+        <!-- 🏛️ الفصل الافتراضي -->
+        <button class="nav-btn shiny-btn btn-vclass" id="btn-vclass" onclick="openVirtualClasses()" style="background:linear-gradient(135deg,#3498db,#2980b9);border-color:#5dade2;">
+            <span class="btn-icon">🏛️</span><span class="sidebar-label">الفصل الافتراضي <span class="nav-vip-badge" id="vc-count-pill" style="display:none;background:#fff;color:#2980b9;">0</span></span>
         </button>
 
         <!-- 🏅 شاراتي وإنجازاتي -->
@@ -8090,38 +8090,73 @@
 
         // 🔧 اجلب كل الدروس بدون فلترة backend — نفلتر بـ JS
         var grade = (currentUser && currentUser.grade) ? currentUser.grade : '';
+        console.log('[lessons] جلب الدروس للصف:', grade);
         var allLessons = [];
         try {
+            // 🔑 نجلب بدون فلتر — ونفلتر في JS بمنطق ذكي
             var res = await fetch(API_URL + '/api/html_lessons');
-            if (res.ok) allLessons = await res.json();
-        } catch(e) {}
+            console.log('[lessons] status:', res.status);
+            if (res.ok) {
+                allLessons = await res.json();
+                console.log('[lessons] تم جلب ' + allLessons.length + ' درس من السيرفر');
+                if (allLessons.length > 0) {
+                    console.log('[lessons] الصفوف الموجودة:', Array.from(new Set(allLessons.map(function(L){return L.grade;}))));
+                }
+            } else {
+                console.error('[lessons] فشل الجلب — status:', res.status);
+            }
+        } catch(e) {
+            console.error('[lessons] خطأ في الجلب:', e);
+        }
         
         // نخزّن للوصول من الفلاتر
         window._hllAll = allLessons || [];
         window._hllStudentGrade = grade;
-        window._hllShowAll = false;
+        window._hllShowAll = false; // ⚜️ الطلاب يرون فقط دروس صفهم
         
-        // فلتر ذكي: تطابق جزئي (يحل مشكلة "الصف الثامن" vs "الثامن")
+        // فلتر ذكي: تطابق مرن يعالج كل الصياغات
         function matchesGrade(lessonGrade, studentGrade) {
             if (!lessonGrade || !studentGrade) return false;
-            var lg = String(lessonGrade).trim().toLowerCase();
-            var sg = String(studentGrade).trim().toLowerCase();
-            if (lg === sg) return true;
-            var clean = function(s) { return s.replace(/الصف|الصّف|\s+/g, '').trim(); };
-            if (clean(lg) === clean(sg)) return true;
-            if (lg.indexOf(sg) !== -1 || sg.indexOf(lg) !== -1) return true;
+            
+            // تنظيف عميق للسلاسل
+            function deepClean(s) {
+                if (!s) return '';
+                return String(s)
+                    .trim()
+                    .toLowerCase()
+                    .replace(/الصف|الصّف/g, '')
+                    .replace(/\s+/g, '')
+                    .replace(/[ًٌٍَُِّْ]/g, ''); // حذف التشكيل
+            }
+            
+            // خريطة الأرقام العربية
+            var ar2num = {
+                'الأول':'1','الاول':'1','الثاني':'2','الثالث':'3','الرابع':'4','الخامس':'5',
+                'السادس':'6','السابع':'7','الثامن':'8','التاسع':'9','العاشر':'10',
+                'الحاديعشر':'11','الثانيعشر':'12'
+            };
+            
+            var lg_clean = deepClean(lessonGrade);
+            var sg_clean = deepClean(studentGrade);
+            
+            if (lg_clean === sg_clean) return true;
+            if (lg_clean.indexOf(sg_clean) !== -1 || sg_clean.indexOf(lg_clean) !== -1) return true;
+            
+            // 🔑 المطابقة عبر الرقم: "السادس" = "6"
+            var lg_num = ar2num[lg_clean] || lg_clean;
+            var sg_num = ar2num[sg_clean] || sg_clean;
+            if (lg_num === sg_num) return true;
+            if (lg_num.indexOf(sg_num) !== -1 || sg_num.indexOf(lg_num) !== -1) return true;
+            
             return false;
         }
         window._hllMatchesGrade = matchesGrade;
         
         // فلترة الدروس الخاصة بالصف
         var lessons = grade ? allLessons.filter(function(L){ return matchesGrade(L.grade, grade); }) : allLessons.slice();
+        console.log('[lessons] بعد فلترة الصف:', lessons.length, 'درس مطابق لـ', grade);
         
-        // إن لم يجد شيئاً مطابقاً ولكن هناك دروس → اعرض كل الدروس
-        if (lessons.length === 0 && allLessons.length > 0) {
-            window._hllShowAll = true;
-            lessons = allLessons.slice();
-        }
+        // 🛡️ إذا لم يجد دروساً مطابقة لصفه — نعرض رسالة واضحة
 
         var content = document.getElementById('hll-content');
         if (!content) return;
@@ -9589,6 +9624,430 @@ function playBadgeSound() {
         window.confetti = builtinConfetti;
     }
 })();
+
+
+// ════════════════════════════════════════════════════════════
+// 🎵 نظام صوتي احتياطي مدمج (Web Audio API)
+// لا يحتاج ملفات — يولّد النغمات برمجياً
+// يعمل دائماً، حتى لو فشلت ملفات MP3
+// ════════════════════════════════════════════════════════════
+window.SoundEngine = (function() {
+    var audioCtx = null;
+    var unlocked = false;
+    
+    function getCtx() {
+        if (!audioCtx) {
+            try {
+                var Ctx = window.AudioContext || window.webkitAudioContext;
+                if (Ctx) audioCtx = new Ctx();
+            } catch(e) {
+                console.warn('[SoundEngine] AudioContext unavailable:', e);
+            }
+        }
+        return audioCtx;
+    }
+    
+    function unlock() {
+        if (unlocked) return;
+        var ctx = getCtx();
+        if (!ctx) return;
+        try {
+            if (ctx.state === 'suspended') ctx.resume();
+            // نُشغّل صوت صامت لكسر القفل
+            var o = ctx.createOscillator();
+            var g = ctx.createGain();
+            g.gain.value = 0;
+            o.connect(g); g.connect(ctx.destination);
+            o.start(0); o.stop(ctx.currentTime + 0.001);
+            unlocked = true;
+            console.log('[SoundEngine] 🔓 unlocked');
+        } catch(e) {}
+    }
+    
+    // نغمة بسيطة من oscillator
+    function playTone(freq, duration, type, gainStart, gainEnd) {
+        var ctx = getCtx();
+        if (!ctx) return;
+        try {
+            if (ctx.state === 'suspended') ctx.resume();
+            var o = ctx.createOscillator();
+            var g = ctx.createGain();
+            o.type = type || 'sine';
+            o.frequency.value = freq;
+            g.gain.setValueAtTime(gainStart || 0.3, ctx.currentTime);
+            g.gain.exponentialRampToValueAtTime(gainEnd || 0.01, ctx.currentTime + duration);
+            o.connect(g); g.connect(ctx.destination);
+            o.start(ctx.currentTime);
+            o.stop(ctx.currentTime + duration);
+        } catch(e) {}
+    }
+    
+    // تسلسل نغمات
+    function playSequence(notes) {
+        var ctx = getCtx();
+        if (!ctx) return;
+        notes.forEach(function(n, i) {
+            setTimeout(function() {
+                playTone(n.freq, n.dur || 0.15, n.type || 'sine', n.gain || 0.25, 0.001);
+            }, (n.delay || (i * 80)));
+        });
+    }
+    
+    return {
+        unlock: unlock,
+        
+        // ✅ نغمة الإجابة الصحيحة — صعود ثلاثي مبهج
+        correct: function() {
+            playSequence([
+                { freq: 523.25, dur: 0.12, type: 'triangle', gain: 0.3, delay: 0 },    // C5
+                { freq: 659.25, dur: 0.12, type: 'triangle', gain: 0.3, delay: 80 },   // E5
+                { freq: 783.99, dur: 0.20, type: 'triangle', gain: 0.35, delay: 160 }, // G5
+            ]);
+        },
+        
+        // ❌ نغمة الإجابة الخاطئة — هبوط
+        wrong: function() {
+            playSequence([
+                { freq: 311.13, dur: 0.15, type: 'sawtooth', gain: 0.2, delay: 0 },   // Eb4
+                { freq: 233.08, dur: 0.25, type: 'sawtooth', gain: 0.18, delay: 100 }, // Bb3
+            ]);
+        },
+        
+        // 🏆 نغمة الفوز — fanfare كامل
+        win: function() {
+            playSequence([
+                { freq: 523.25, dur: 0.12, type: 'triangle', gain: 0.3, delay: 0 },
+                { freq: 659.25, dur: 0.12, type: 'triangle', gain: 0.3, delay: 100 },
+                { freq: 783.99, dur: 0.12, type: 'triangle', gain: 0.3, delay: 200 },
+                { freq: 1046.5, dur: 0.30, type: 'triangle', gain: 0.4, delay: 300 },
+            ]);
+        },
+        
+        // 🔔 نغمة الإشعار — chime لطيفة (royal)
+        notify: function() {
+            playSequence([
+                { freq: 880.00, dur: 0.08, type: 'sine', gain: 0.2, delay: 0 },
+                { freq: 1108.7, dur: 0.15, type: 'sine', gain: 0.18, delay: 60 },
+            ]);
+        },
+        
+        // 🏅 نغمة الشارة — sparkle
+        badge: function() {
+            playSequence([
+                { freq: 1318.5, dur: 0.10, type: 'sine', gain: 0.25, delay: 0 },
+                { freq: 1568.0, dur: 0.10, type: 'sine', gain: 0.25, delay: 80 },
+                { freq: 1975.5, dur: 0.20, type: 'sine', gain: 0.3,  delay: 160 },
+            ]);
+        },
+        
+        // 🚪 صوت الباب
+        door: function() {
+            playTone(150, 0.3, 'sawtooth', 0.15, 0.001);
+        },
+        
+        // ⚔️ صوت السيف
+        sword: function() {
+            playTone(200, 0.1, 'sawtooth', 0.2, 0.001);
+            setTimeout(function() { playTone(800, 0.05, 'square', 0.15, 0.001); }, 50);
+        },
+        
+        // 📜 صوت السكروول
+        scroll: function() {
+            playTone(400, 0.15, 'sine', 0.15, 0.001);
+        },
+        
+        // 📝 نهاية الاختبار
+        examEnd: function() {
+            playSequence([
+                { freq: 659.25, dur: 0.20, type: 'triangle', gain: 0.3, delay: 0 },
+                { freq: 783.99, dur: 0.20, type: 'triangle', gain: 0.3, delay: 200 },
+                { freq: 1046.5, dur: 0.40, type: 'triangle', gain: 0.4, delay: 400 },
+            ]);
+        },
+        
+        // 🥇 منصة التتويج
+        podium: function() {
+            playSequence([
+                { freq: 523.25, dur: 0.15, type: 'triangle', gain: 0.3, delay: 0 },
+                { freq: 783.99, dur: 0.15, type: 'triangle', gain: 0.3, delay: 150 },
+                { freq: 1046.5, dur: 0.30, type: 'triangle', gain: 0.4, delay: 300 },
+            ]);
+        },
+    };
+})();
+
+// 🔓 فك القفل عند أول تفاعل
+['click', 'touchstart', 'pointerdown', 'keydown'].forEach(function(ev) {
+    document.addEventListener(ev, function() {
+        try { window.SoundEngine.unlock(); } catch(e) {}
+    }, { once: true, passive: true, capture: true });
+});
+
+// ════════════════════════════════════════════════════════════
+// 🎵 ربط دالة playSound بنظام Web Audio (احتياطي ذكي)
+// إذا فشل ملف MP3 → استخدم Web Audio
+// ════════════════════════════════════════════════════════════
+(function() {
+    // نحفظ الـ original
+    var _origPlaySound = window.playSound;
+    
+    window.playSound = function(audioEl) {
+        if (!audioEl) return;
+        if (typeof isSoundOn !== 'undefined' && !isSoundOn) return;
+        
+        // محاولة 1: الملف الأصلي MP3
+        try {
+            audioEl.currentTime = 0;
+            var p = audioEl.play();
+            if (p && p.then) {
+                p.catch(function(err) {
+                    // فشل — استخدم Web Audio بدلاً منه
+                    console.warn('[playSound] MP3 failed, using Web Audio fallback:', audioEl.id);
+                    _playFallback(audioEl.id);
+                });
+            }
+            return;
+        } catch(e) {
+            console.warn('[playSound] MP3 error:', e);
+            _playFallback(audioEl.id);
+        }
+    };
+    
+    function _playFallback(id) {
+        if (!window.SoundEngine) return;
+        try {
+            switch(id) {
+                case 'correct-sfx':   SoundEngine.correct(); break;
+                case 'wrong-sfx':     SoundEngine.wrong(); break;
+                case 'win-sfx':       SoundEngine.win(); break;
+                case 'notify-sfx':
+                case 'notif-sfx':     SoundEngine.notify(); break;
+                case 'badge-sfx':     SoundEngine.badge(); break;
+                case 'door-sfx':      SoundEngine.door(); break;
+                case 'sword-sfx':     SoundEngine.sword(); break;
+                case 'scroll-sfx':    SoundEngine.scroll(); break;
+                case 'exam-end-sfx':  SoundEngine.examEnd(); break;
+                case 'podium-sfx':    SoundEngine.podium(); break;
+                case 'applause-sfx':  SoundEngine.win(); break;
+                default:              SoundEngine.notify();
+            }
+        } catch(e) { console.warn('[fallback]', e); }
+    }
+    
+    // تحسين playNotificationSound و playBadgeSound
+    window.playNotificationSound = function() {
+        if (typeof isSoundOn !== 'undefined' && !isSoundOn) return;
+        try {
+            var sfx = document.getElementById('notify-sfx');
+            if (sfx) {
+                sfx.currentTime = 0;
+                sfx.volume = 0.7;
+                var p = sfx.play();
+                if (p && p.then) {
+                    p.catch(function() {
+                        if (window.SoundEngine) SoundEngine.notify();
+                    });
+                }
+            } else if (window.SoundEngine) {
+                SoundEngine.notify();
+            }
+        } catch(e) {
+            if (window.SoundEngine) SoundEngine.notify();
+        }
+    };
+    
+    window.playBadgeSound = function() {
+        if (typeof isSoundOn !== 'undefined' && !isSoundOn) return;
+        try {
+            var sfx = document.getElementById('badge-sfx');
+            if (sfx) {
+                sfx.currentTime = 0;
+                sfx.volume = 0.85;
+                var p = sfx.play();
+                if (p && p.then) {
+                    p.catch(function() {
+                        if (window.SoundEngine) SoundEngine.badge();
+                    });
+                }
+            } else if (window.SoundEngine) {
+                SoundEngine.badge();
+            }
+        } catch(e) {
+            if (window.SoundEngine) SoundEngine.badge();
+        }
+    };
+})();
+
+
+// ════════════════════════════════════════════════════════════
+// 🏛️ VIRTUAL CLASSES — الفصل الافتراضي للطالب
+// ════════════════════════════════════════════════════════════
+async function openVirtualClasses() {
+    if (!currentUser?.grade) {
+        if (typeof showToast === 'function') showToast('⚠️ سجّل دخول أولاً');
+        return;
+    }
+    
+    var prev = document.getElementById('vc-modal');
+    if (prev) prev.remove();
+    
+    var modal = document.createElement('div');
+    modal.id = 'vc-modal';
+    modal.style.cssText = 'position:fixed;inset:0;z-index:99988;background:rgba(0,0,0,0.95);display:flex;flex-direction:column;backdrop-filter:blur(10px);overflow-y:auto;';
+    modal.innerHTML = `
+        <div style="position:sticky;top:0;background:linear-gradient(135deg,#001f3f,#003366);padding:16px 18px;display:flex;align-items:center;gap:12px;border-bottom:2px solid var(--gold);z-index:10;">
+            <div style="font-size:1.8rem;filter:drop-shadow(0 0 12px rgba(212,175,55,0.7));">🏛️</div>
+            <div style="flex:1;">
+                <div style="font-weight:bold;color:var(--gold);font-family:'Amiri';font-size:1.2rem;">الفصول الافتراضية</div>
+                <div style="font-size:0.78rem;color:rgba(255,255,255,0.65);">الحصص المباشرة لـ ${esc(currentUser.grade || '')}</div>
+            </div>
+            <button onclick="document.getElementById('vc-modal').remove()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1rem;flex-shrink:0;">✕</button>
+        </div>
+        <div id="vc-content" style="padding:20px;flex:1;">
+            <div style="text-align:center;padding:60px 20px;color:rgba(255,255,255,0.5);">
+                <div style="font-size:3rem;margin-bottom:14px;">⏳</div>
+                <div>جارٍ جلب الحصص...</div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    
+    try {
+        var res = await fetch(API_URL + '/api/virtual_classes/student/' + encodeURIComponent(currentUser.grade));
+        if (!res.ok) throw new Error('فشل الجلب');
+        var data = await res.json();
+        var classes = data.classes || [];
+        renderVirtualClasses(classes);
+        
+        // تحديث عداد الزر
+        var pill = document.getElementById('vc-count-pill');
+        if (pill) {
+            if (classes.length > 0) {
+                pill.style.display = 'inline-block';
+                pill.textContent = classes.length;
+            } else {
+                pill.style.display = 'none';
+            }
+        }
+    } catch(e) {
+        document.getElementById('vc-content').innerHTML = '<div style="text-align:center;padding:60px;color:#ff6b6b;">❌ فشل تحميل الحصص</div>';
+    }
+}
+
+function renderVirtualClasses(classes) {
+    var container = document.getElementById('vc-content');
+    if (!container) return;
+    
+    if (!classes || classes.length === 0) {
+        container.innerHTML = `
+            <div style="text-align:center;padding:60px 20px;background:rgba(52,152,219,0.05);border:1px dashed rgba(52,152,219,0.3);border-radius:16px;">
+                <div style="font-size:4rem;margin-bottom:14px;">🏛️</div>
+                <div style="color:var(--text-white);font-weight:bold;font-size:1.1rem;margin-bottom:8px;">لا توجد حصص افتراضية حالياً</div>
+                <div style="color:rgba(255,255,255,0.5);font-size:0.9rem;">سيُعلن الأستاذ عن الحصص هنا قريباً ⚜️</div>
+            </div>
+        `;
+        return;
+    }
+    
+    var html = '<div style="display:flex;flex-direction:column;gap:14px;">';
+    
+    classes.forEach(function(c) {
+        var startsAt = c.starts_at ? new Date(c.starts_at) : null;
+        var dateLabel = '';
+        var statusBadge = '';
+        var now = new Date();
+        
+        if (startsAt) {
+            var diffMs = startsAt - now;
+            var diffMin = Math.round(diffMs / 60000);
+            
+            if (diffMin > 60) {
+                var hrs = Math.floor(diffMin / 60);
+                dateLabel = '🕒 يبدأ بعد ' + hrs + ' ساعة';
+                statusBadge = '<span style="background:rgba(243,156,18,0.2);color:#f39c12;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:bold;">⏳ قادمة</span>';
+            } else if (diffMin > 0) {
+                dateLabel = '🟢 يبدأ بعد ' + diffMin + ' دقيقة';
+                statusBadge = '<span style="background:rgba(46,204,113,0.2);color:#2ecc71;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:bold;">🟢 قريبة جداً</span>';
+            } else {
+                var endMs = startsAt.getTime() + (c.duration_min || 60) * 60000;
+                if (now.getTime() <= endMs) {
+                    dateLabel = '🔴 جارية الآن!';
+                    statusBadge = '<span style="background:rgba(231,76,60,0.2);color:#e74c3c;padding:4px 10px;border-radius:8px;font-size:0.75rem;font-weight:bold;animation:pulse 1s ease-in-out infinite;">🔴 مباشرة</span>';
+                } else {
+                    dateLabel = '⏸️ انتهت';
+                    statusBadge = '<span style="background:rgba(149,165,166,0.2);color:#95a5a6;padding:4px 10px;border-radius:8px;font-size:0.75rem;">⏸️ منتهية</span>';
+                }
+            }
+            
+            var d = startsAt;
+            var dateStr = d.toLocaleDateString('ar-EG', { weekday: 'long', month: 'long', day: 'numeric' });
+            var timeStr = d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
+            dateLabel += '<br><span style="font-size:0.78rem;opacity:0.7;">' + dateStr + ' — ' + timeStr + '</span>';
+        }
+        
+        var lessonInfo = '';
+        if (c.semester || c.unit || c.lesson) {
+            var parts = [];
+            if (c.semester) parts.push('📅 ' + esc(c.semester));
+            if (c.unit)     parts.push('📦 ' + esc(c.unit));
+            if (c.lesson)   parts.push('📖 ' + esc(c.lesson));
+            lessonInfo = '<div style="font-size:0.85rem;color:rgba(255,255,255,0.65);margin:8px 0;line-height:1.7;">' + parts.join(' • ') + '</div>';
+        }
+        
+        html += `
+            <div style="background:linear-gradient(145deg,rgba(0,31,63,0.6),rgba(11,14,20,0.7));border:1px solid rgba(52,152,219,0.3);border-radius:16px;padding:18px;transition:all 0.3s;">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+                    <div style="font-weight:bold;color:var(--gold);font-size:1.05rem;flex:1;min-width:200px;">${esc(c.title || 'حصة افتراضية')}</div>
+                    ${statusBadge}
+                </div>
+                ${lessonInfo}
+                ${c.description ? '<div style="background:rgba(255,255,255,0.04);padding:10px 12px;border-radius:8px;margin:10px 0;font-size:0.88rem;line-height:1.7;">' + esc(c.description) + '</div>' : ''}
+                ${dateLabel ? '<div style="color:#5dade2;font-size:0.92rem;margin:10px 0;">' + dateLabel + '</div>' : ''}
+                <a href="${esc(c.meeting_url)}" target="_blank" rel="noopener" style="display:inline-block;background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;padding:10px 22px;border-radius:10px;text-decoration:none;font-weight:bold;margin-top:10px;font-family:Cairo;">
+                    🚀 الانضمام للحصة
+                </a>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+}
+
+// تحديث عدّاد الفصول عند تسجيل الدخول
+async function _updateVCBadgeOnLogin() {
+    if (!currentUser?.grade) return;
+    try {
+        var res = await fetch(API_URL + '/api/virtual_classes/student/' + encodeURIComponent(currentUser.grade));
+        if (!res.ok) return;
+        var data = await res.json();
+        var classes = data.classes || [];
+        
+        // عدّ الحصص النشطة (لم تنته بعد)
+        var now = new Date();
+        var active = classes.filter(function(c) {
+            if (!c.starts_at) return true;
+            var ends = new Date(c.starts_at).getTime() + (c.duration_min || 60) * 60000;
+            return now.getTime() <= ends;
+        });
+        
+        var pill = document.getElementById('vc-count-pill');
+        if (pill && active.length > 0) {
+            pill.style.display = 'inline-block';
+            pill.textContent = active.length;
+        }
+    } catch(e) {}
+}
+
+// نستدعيها بعد تسجيل الدخول
+setTimeout(function() {
+    if (typeof currentUser !== 'undefined' && currentUser?.grade) {
+        _updateVCBadgeOnLogin();
+        // تحديث كل 5 دقائق
+        setInterval(_updateVCBadgeOnLogin, 5 * 60 * 1000);
+    }
+}, 3000);
+
 
 </script>
 </body>
