@@ -3410,6 +3410,11 @@
                 <div class="card">
                     <h2 style="color:#3498db;margin:0 0 18px;"><i class="fas fa-paper-plane"></i> 📧 التقارير الشهرية لأولياء الأمور</h2>
                     
+                    <!-- 🩺 شريط حالة النظام -->
+                    <div id="er-status-bar" style="background:rgba(52,152,219,0.08);border:1px solid rgba(52,152,219,0.3);border-radius:10px;padding:12px;margin-bottom:18px;font-size:0.9rem;">
+                        <div id="er-status-text">⏳ جارٍ فحص حالة النظام...</div>
+                    </div>
+                    
                     <p style="opacity:0.75;font-size:0.9rem;margin-bottom:20px;line-height:1.8;">
                         📨 إرسال تقرير شهري احترافي بـ HTML أنيق لكل ولي أمر مُسجّل بريده.
                         التقرير يحتوي على: التحديات المنجزة، متوسط الأداء، الترتيب، أيام النشاط، وملاحظات الأستاذ.
@@ -11972,6 +11977,16 @@
             
             var data = await res.json();
             
+            // معالجة حالة "لا يوجد متلقّون"
+            if (data.status === 'no_recipients') {
+                if (resultDiv) resultDiv.innerHTML = '<div style="background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.5);border-radius:12px;padding:16px;color:#f39c12;">' +
+                    '<div style="font-weight:bold;font-size:1rem;margin-bottom:6px;">⚠️ لا يوجد متلقّون</div>' +
+                    '<div style="font-size:0.88rem;line-height:1.7;">' + (data.warning || 'لم يُسجّل أي ولي أمر بريداً إلكترونياً بعد. اطلب من أولياء الأمور تسجيل بريدهم في بوابة ولي الأمر، أو أضفه يدوياً من قسم إدارة الطلاب.') + '</div></div>';
+                if (typeof showToast === 'function') showToast('⚠️ لا يوجد متلقّون لإرسال التقارير', 'warning');
+                if (btn) { btn.disabled = false; btn.innerHTML = '🚀 إرسال التقارير لكل أولياء الأمور'; }
+                return;
+            }
+            
             var html = '<div style="background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.4);border-radius:12px;padding:16px;">';
             html += '<div style="font-weight:bold;color:#2ecc71;font-size:1.05rem;margin-bottom:8px;">✅ تمت العملية</div>';
             html += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px;">';
@@ -12246,10 +12261,26 @@
         var btn = document.getElementById('btn-refresh-empire');
         if (btn) { btn.disabled = true; btn.innerHTML = '⏳ جارٍ...'; }
         
+        console.log('[empire] جارٍ جلب الإحصائيات...');
+        
         try {
             var res = await authFetch('/api/admin/empire/stats');
-            if (!res.ok) throw new Error('فشل');
+            console.log('[empire] status:', res.status);
+            
+            if (!res.ok) {
+                var errText = '';
+                try {
+                    var errData = await res.json();
+                    errText = errData.detail || JSON.stringify(errData).slice(0, 200);
+                } catch(_) {
+                    errText = 'HTTP ' + res.status;
+                }
+                console.error('[empire] error:', errText);
+                throw new Error(errText);
+            }
+            
             var data = await res.json();
+            console.log('[empire] data received:', data);
             _empireStatsData = data;
             
             // الأرقام الرئيسية
@@ -12267,7 +12298,21 @@
             
         } catch(e) {
             console.error('[empire stats]', e);
-            if (typeof showToast === 'function') showToast('❌ فشل تحديث الإحصائيات', 'error');
+            // عرض الخطأ بوضوح في كل البطاقات
+            ['es-students-total','es-new-7d','es-new-30d','es-active-today','es-active-7d','es-results-total','es-accuracy','es-questions-total'].forEach(function(id) {
+                var el = document.getElementById(id);
+                if (el) el.textContent = '❌';
+            });
+            
+            // إظهار رسالة خطأ في توزيع الصفوف
+            var bars = document.getElementById('es-by-grade-bars');
+            if (bars) {
+                bars.innerHTML = '<div style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.4);padding:14px;border-radius:8px;color:#ff6b6b;font-size:0.88rem;">' +
+                    '❌ <b>فشل تحميل الإحصائيات</b><br><small style="opacity:0.85;">' + (e.message || 'خطأ غير معروف') + '</small>' +
+                    '<br><br><small>📋 افتح Console (F12) لتفاصيل أكثر، أو أعد المحاولة بعد ثوانٍ.</small></div>';
+            }
+            
+            if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل تحديث الإحصائيات'), 'error');
         } finally {
             if (btn) { btn.disabled = false; btn.innerHTML = '🔄 تحديث'; }
         }
@@ -12409,6 +12454,59 @@
                 prevWrapper.apply(this, arguments);
                 if (id === 'backup') {
                     setTimeout(loadCacheStats, 200);
+                }
+            };
+        }
+    })();
+
+
+    /* 🩺 فحص حالة نظام التقارير عند الفتح */
+    async function checkEmailReportsStatus() {
+        var statusEl = document.getElementById('er-status-text');
+        if (!statusEl) return;
+        
+        try {
+            // نحاول استدعاء dummy للسيرفر للفحص
+            var fd = new FormData();
+            fd.append('test_email', '__check_smtp_status__@noop.invalid');
+            var res = await authFetch('/api/admin/send_monthly_reports', { method: 'POST', body: fd });
+            
+            if (!res.ok) {
+                var err = await res.json().catch(function() { return {}; });
+                var msg = err.detail || '';
+                
+                if (msg.indexOf('SMTP') !== -1 || msg.indexOf('بريد') !== -1) {
+                    statusEl.innerHTML = '<div style="color:#e74c3c;">❌ <b>SMTP غير مُهيّأ</b><br><small style="opacity:0.8;">يجب إضافة SMTP_HOST, SMTP_USER, SMTP_PASS في إعدادات Render</small></div>';
+                } else if (msg.indexOf('parent_email') !== -1 || msg.indexOf('migration') !== -1) {
+                    statusEl.innerHTML = '<div style="color:#f39c12;">⚠️ <b>عمود parent_email مفقود</b><br><small style="opacity:0.8;">شغّل parent_email_migration.sql على Supabase</small></div>';
+                } else if (res.status === 401 || res.status === 403) {
+                    statusEl.innerHTML = '<div style="color:#e74c3c;">❌ غير مُصرّح — أعد تسجيل الدخول</div>';
+                } else {
+                    statusEl.innerHTML = '<div style="color:#e74c3c;">❌ خطأ: ' + esc(msg) + '</div>';
+                }
+            } else {
+                // SMTP يعمل — نعرض حالة الجاهزية
+                var data = await res.json();
+                if (data.status === 'no_recipients') {
+                    statusEl.innerHTML = '<div style="color:#f39c12;">⚠️ <b>SMTP يعمل ✅</b> لكن لا يوجد طلاب بـ parent_email</div>';
+                } else {
+                    statusEl.innerHTML = '<div style="color:#2ecc71;">✅ <b>النظام جاهز</b> — يمكنك إرسال التقارير</div>';
+                }
+            }
+        } catch(e) {
+            statusEl.innerHTML = '<div style="color:#e74c3c;">❌ تعذّر فحص الحالة: ' + e.message + '</div>';
+        }
+    }
+    
+    // فحص تلقائي عند فتح القسم
+    (function() {
+        var origShowSection = window.showSection;
+        if (typeof origShowSection === 'function') {
+            var prev = origShowSection;
+            window.showSection = function(id) {
+                prev.apply(this, arguments);
+                if (id === 'email-reports') {
+                    setTimeout(checkEmailReportsStatus, 200);
                 }
             };
         }

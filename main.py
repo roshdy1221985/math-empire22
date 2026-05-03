@@ -4310,6 +4310,39 @@ def _generate_monthly_report_html(student: dict, stats: dict, parent_name: str =
 </html>"""
 
 
+@app.get("/api/admin/email/status")
+async def email_status_diagnose(admin = Depends(get_current_admin)):
+    """🩺 تشخيص حالة إعدادات البريد"""
+    smtp_host = os.getenv("SMTP_HOST", "").strip()
+    smtp_user = os.getenv("SMTP_USER", "").strip()
+    smtp_pass = os.getenv("SMTP_PASS", "").strip()
+    smtp_from = os.getenv("SMTP_FROM", smtp_user).strip()
+    smtp_port = os.getenv("SMTP_PORT", "587").strip()
+    
+    # عدّ الطلاب الذين لديهم parent_email
+    parents_with_email = 0
+    try:
+        res = supabase.table("students").select("id", count="exact").not_.is_("parent_email", "null").execute()
+        parents_with_email = res.count or 0
+    except Exception:
+        pass
+    
+    masked_user = (smtp_user[:3] + "***" + smtp_user[-10:]) if len(smtp_user) > 13 else (smtp_user[:3] + "***" if smtp_user else "(غير مُعرّف)")
+    
+    return {
+        "smtp_configured": bool(smtp_host and smtp_user and smtp_pass),
+        "smtp_host": smtp_host or "(غير مُعرّف)",
+        "smtp_port": smtp_port,
+        "smtp_user": masked_user,
+        "smtp_pass_set": bool(smtp_pass),
+        "parents_with_email_count": parents_with_email,
+        "missing_vars": [
+            v for v in ["SMTP_HOST", "SMTP_USER", "SMTP_PASS"]
+            if not os.getenv(v, "").strip()
+        ]
+    }
+
+
 @app.post("/api/admin/send_monthly_reports")
 async def send_monthly_reports(
     test_email: str = Form(default=""),  # لو مُدخل: يُرسل لهذا فقط للاختبار
@@ -4331,19 +4364,49 @@ async def send_monthly_reports(
             detail="إعدادات البريد غير مكتملة — أضف SMTP_HOST/USER/PASS في env"
         )
     
-    # اجلب كل الطلاب الذين لديهم parent_email
+    # اجلب كل الطلاب الذين لديهم parent_email (مع معالجة لو العمود غير موجود)
     try:
         all_students = []
         offset = 0
         for _ in range(20):
-            res = supabase.table("students").select(
-                "id, full_name, grade, parent_email, parent_name"
-            ).neq("parent_email", "").not_.is_("parent_email", "null").range(offset, offset + 999).execute()
+            try:
+                # نحاول الفلتر بـ parent_email
+                res = supabase.table("students").select(
+                    "id, full_name, grade, parent_email, parent_name"
+                ).neq("parent_email", "").not_.is_("parent_email", "null").range(offset, offset + 999).execute()
+            except Exception as e_filter:
+                # لو العمود غير موجود، نجلب الكل ونفلتر بـ Python
+                print(f"[reports] العمود parent_email غير قابل للفلترة، نفلتر يدوياً: {e_filter}")
+                try:
+                    res = supabase.table("students").select(
+                        "id, full_name, grade, parent_email, parent_name"
+                    ).range(offset, offset + 999).execute()
+                except Exception as e2:
+                    # العمود غير موجود نهائياً
+                    raise HTTPException(
+                        status_code=503,
+                        detail="❌ عمود parent_email غير موجود في قاعدة البيانات. شغّل ملف parent_email_migration.sql أولاً"
+                    )
+            
             batch = res.data or []
             if not batch: break
-            all_students.extend(batch)
+            # فلترة يدوية للأمان
+            valid = [s for s in batch if s.get("parent_email") and "@" in str(s.get("parent_email", ""))]
+            all_students.extend(valid)
             if len(batch) < 1000: break
             offset += 1000
+        
+        if not all_students:
+            return {
+                "status": "no_recipients",
+                "sent": 0,
+                "failed": 0,
+                "total": 0,
+                "errors": [],
+                "warning": "⚠️ لا يوجد أي طالب لديه parent_email مسجّل. يجب أولاً إضافة بريد ولي الأمر للطلاب."
+            }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"فشل جلب الطلاب: {str(e)[:200]}")
     
@@ -4575,6 +4638,16 @@ async def admin_delete_virtual_class(
 # 👑 EMPIRE STATS — إحصائيات العرش الكاملة الدقيقة
 # ═══════════════════════════════════════════════════════════════
 
+@app.get("/api/admin/empire/ping")
+async def empire_ping(admin = Depends(get_current_admin)):
+    """🏓 يُختبر استجابة endpoint البسيط (للتشخيص)"""
+    try:
+        res = supabase.table("students").select("id", count="exact").limit(1).execute()
+        return {"ok": True, "students_count": res.count or 0}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:200]}
+
+
 @app.get("/api/admin/empire/stats")
 async def empire_full_stats(admin = Depends(get_current_admin)):
     """
@@ -4615,15 +4688,40 @@ async def empire_full_stats(admin = Depends(get_current_admin)):
         # 🎓 الطلاب — جلب كامل
         all_students = []
         offset = 0
+        # نُجرّب أعمدة محتملة (last_login أو last_active)
+        select_cols_options = [
+            "id, full_name, grade, total_points, created_at, last_active",
+            "id, full_name, grade, total_points, created_at, last_login",
+            "id, full_name, grade, total_points, created_at",
+            "id, full_name, grade, total_points",
+            "id, full_name, grade",
+        ]
+        select_cols = None
+        for cols in select_cols_options:
+            try:
+                # نحاول مع صفحة اختبار
+                test_res = supabase.table("students").select(cols).limit(1).execute()
+                select_cols = cols
+                break
+            except Exception:
+                continue
+        
+        if not select_cols:
+            select_cols = "id, full_name, grade"
+        
+        print(f"[empire] using columns: {select_cols}")
+        
         for _ in range(20):
-            res = supabase.table("students").select(
-                "id, full_name, grade, total_points, created_at, last_login"
-            ).range(offset, offset + 999).execute()
-            batch = res.data or []
-            if not batch: break
-            all_students.extend(batch)
-            if len(batch) < 1000: break
-            offset += 1000
+            try:
+                res = supabase.table("students").select(select_cols).range(offset, offset + 999).execute()
+                batch = res.data or []
+                if not batch: break
+                all_students.extend(batch)
+                if len(batch) < 1000: break
+                offset += 1000
+            except Exception as e:
+                print(f"[empire] students fetch error: {e}")
+                break
         
         stats["students"]["total"] = len(all_students)
         
@@ -6327,6 +6425,128 @@ async def list_html_lessons(grade: str = "", lesson: str = ""):
     
     return all_data
 
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📚 STUDENT LESSONS — دروس الطالب (تفاعلية + مخططة من المنهج)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/student/lessons_overview")
+async def student_lessons_overview(grade: str = ""):
+    """
+    📚 يُرجع نظرة شاملة لطالب صف معين:
+    - الدروس التفاعلية المتوفرة (HTML uploaded)
+    - الدروس المخططة من المنهج (لم تُرفع بعد)
+    
+    يُساعد الطالب على رؤية كل دروس صفه + معرفة المتوفر والقادم
+    """
+    if not grade.strip():
+        raise HTTPException(status_code=400, detail="grade مطلوب")
+    
+    # دالة تنظيف
+    def _norm(s):
+        if not s: return ""
+        return str(s).strip().lower().replace("الصف", "").replace("الصّف", "").replace(" ", "")
+    
+    norm_grade = _norm(grade)
+    
+    result = {
+        "grade": grade,
+        "interactive_lessons": [],   # دروس HTML مرفوعة
+        "planned_lessons": [],        # دروس من المنهج (لم تُرفع)
+        "stats": {
+            "total_curriculum_lessons": 0,
+            "uploaded_count": 0,
+            "planned_count": 0,
+        }
+    }
+    
+    # 1️⃣ جلب الدروس التفاعلية المرفوعة
+    try:
+        all_html = supabase.table("html_lessons").select(
+            "id, title, grade, semester, unit, lesson, description, file_url, uploaded_at, view_count"
+        ).order("uploaded_at", desc=True).execute()
+        
+        for r in (all_html.data or []):
+            row_grade = _norm(r.get("grade", ""))
+            if row_grade == norm_grade or norm_grade in row_grade or row_grade in norm_grade:
+                result["interactive_lessons"].append(r)
+        
+        result["stats"]["uploaded_count"] = len(result["interactive_lessons"])
+    except Exception as e:
+        print(f"[lessons_overview] html_lessons error: {e}")
+    
+    # 2️⃣ جلب المنهج المخطط لصف الطالب
+    try:
+        # نُحاول جلب hierarchy: grades → semesters → units → lessons
+        struct = supabase.table("grades").select(
+            "id, name, semesters(id, name, units(id, name, lessons(id, name)))"
+        ).execute()
+        grades_data = struct.data or []
+        
+        # ابحث عن صف الطالب
+        student_grade_node = None
+        for g in grades_data:
+            if _norm(g.get("name", "")) == norm_grade:
+                student_grade_node = g
+                break
+            # محاولة partial match
+            g_norm = _norm(g.get("name", ""))
+            if g_norm and (g_norm in norm_grade or norm_grade in g_norm):
+                student_grade_node = g
+                break
+        
+        if not student_grade_node:
+            print(f"[lessons_overview] لم يُعثر على grade node لـ '{grade}'")
+            return result
+        
+        # نبني قائمة بكل دروس المنهج لهذا الصف
+        all_curriculum_lessons = []
+        for s in (student_grade_node.get("semesters") or []):
+            sem_name = s.get("name", "")
+            for u in (s.get("units") or []):
+                unit_name = u.get("name", "")
+                for L in (u.get("lessons") or []):
+                    lesson_name = L.get("name", "")
+                    if not lesson_name: continue
+                    all_curriculum_lessons.append({
+                        "id": L.get("id"),
+                        "name": lesson_name,
+                        "unit": unit_name,
+                        "semester": sem_name,
+                    })
+        
+        result["stats"]["total_curriculum_lessons"] = len(all_curriculum_lessons)
+        
+        # 3️⃣ نحدّد أي درس من المنهج "تم رفعه" بالفعل
+        uploaded_lesson_names = set()
+        for L in result["interactive_lessons"]:
+            ln = (L.get("lesson") or "").strip().lower()
+            if ln:
+                uploaded_lesson_names.add(ln)
+        
+        # 4️⃣ الدروس المخططة = دروس المنهج التي لم تُرفع
+        for L in all_curriculum_lessons:
+            ln = L["name"].strip().lower()
+            if ln not in uploaded_lesson_names:
+                # نتحقق من partial match أيضاً
+                is_uploaded = False
+                for uploaded_name in uploaded_lesson_names:
+                    if uploaded_name in ln or ln in uploaded_name:
+                        is_uploaded = True
+                        break
+                if not is_uploaded:
+                    result["planned_lessons"].append(L)
+        
+        result["stats"]["planned_count"] = len(result["planned_lessons"])
+        
+    except Exception as e:
+        print(f"[lessons_overview] curriculum error: {e}")
+        import traceback
+        traceback.print_exc()
+    
+    return result
 
 
 @app.get("/api/html_lessons/{lesson_id}/render")

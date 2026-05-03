@@ -1104,6 +1104,357 @@
             }
         }
 
+        
+        /* ═══════════════════════════════════════════════════
+           📘 INTERACTIVE LESSON CARDS — نمط الواجهة الرئيسية
+        ═══════════════════════════════════════════════════ */
+        .il-gate-card {
+            background: linear-gradient(145deg, rgba(13, 27, 62, 0.6), rgba(4, 13, 33, 0.8));
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            border-radius: 24px;
+            padding: 32px 22px;
+            cursor: pointer;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative; 
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-height: 280px;
+        }
+        
+        /* glow على hover */
+        .il-gate-card::before {
+            content: '';
+            position: absolute; inset: 0;
+            background: radial-gradient(circle at 50% 0%, rgba(212,175,55,0.18) 0%, transparent 60%);
+            opacity: 0; 
+            transition: opacity 0.4s;
+            pointer-events: none;
+        }
+        
+        /* تأثير "سيف يلمع" */
+        .il-gate-card::after {
+            content: '';
+            position: absolute;
+            top: -150%; right: -50%;
+            width: 60%; height: 300%;
+            background: linear-gradient(
+                90deg,
+                transparent 0%,
+                rgba(255, 255, 255, 0.06) 45%,
+                rgba(255, 255, 255, 0.12) 50%,
+                rgba(255, 255, 255, 0.06) 55%,
+                transparent 100%
+            );
+            transform: rotate(-25deg);
+            transition: right 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        
+        .il-gate-card:hover {
+            transform: translateY(-12px) scale(1.02);
+            border-color: var(--gold);
+            box-shadow:
+                0 25px 60px rgba(0, 0, 0, 0.5),
+                0 0 50px rgba(212, 175, 55, 0.3);
+        }
+        .il-gate-card:hover::before { opacity: 1; }
+        .il-gate-card:hover::after  { right: 150%; }
+        
+        /* أيقونة الكتاب الدائرية */
+        .il-gate-icon-wrap {
+            position: relative; z-index: 2;
+            display: flex; align-items: center; justify-content: center;
+            width: 80px; height: 80px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: rgba(212, 175, 55, 0.1);
+            border: 1px solid rgba(212, 175, 55, 0.4);
+            transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .il-gate-card:hover .il-gate-icon-wrap {
+            transform: scale(1.12) rotate(-5deg);
+            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
+            border-color: var(--gold);
+        }
+        .il-gate-icon {
+            font-size: 2.8rem;
+            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.5));
+            transition: all 0.3s;
+        }
+        .il-gate-card:hover .il-gate-icon {
+            filter: drop-shadow(0 0 22px rgba(212, 175, 55, 0.9));
+        }
+        
+        /* عنوان الدرس بخط ذهبي ملحمي */
+        .il-card-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.35rem;
+            font-weight: 700;
+            text-align: center;
+            background: linear-gradient(135deg, #f39c12, #d4af37, #fcf6ba, #d4af37, #b38728);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.5;
+            position: relative;
+            z-index: 2;
+            min-height: 2.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: ilTitleShimmer 4s ease-in-out infinite;
+        }
+        @keyframes ilTitleShimmer {
+            0%, 100% { background-position: 0% center; }
+            50%      { background-position: 100% center; }
+        }
+        
+        /* المعلومات الإضافية */
+        .il-card-meta {
+            text-align: center;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.65);
+            line-height: 1.8;
+            position: relative;
+            z-index: 2;
+        }
+        .il-card-meta strong { color: var(--gold); }
+        
+        /* أزرار الإجراءات */
+        .il-card-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: auto;
+            position: relative;
+            z-index: 2;
+        }
+        .il-action-btn {
+            padding: 10px 12px;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 0.86rem;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .il-action-btn:hover { transform: translateY(-2px); }
+        
+        .il-btn-open {
+            background: linear-gradient(135deg, #9b59b6, #6c3483);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(155, 89, 182, 0.4);
+        }
+        .il-btn-open:hover { box-shadow: 0 8px 22px rgba(155, 89, 182, 0.6); }
+        
+        .il-btn-download {
+            background: linear-gradient(135deg, #3498db, #2471a3);
+            color: #fff;
+            box-shadow: 0 4px 14px rgba(52, 152, 219, 0.4);
+        }
+        .il-btn-download:hover { box-shadow: 0 8px 22px rgba(52, 152, 219, 0.6); }
+        
+        .il-btn-copy {
+            grid-column: 1 / -1;
+            background: linear-gradient(135deg, rgba(46, 204, 113, 0.2), rgba(46, 204, 113, 0.08));
+            border: 1px solid rgba(46, 204, 113, 0.5) !important;
+            color: #2ecc71;
+            margin-top: 4px;
+        }
+        .il-btn-copy:hover {
+            background: linear-gradient(135deg, #2ecc71, #1e8449);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(46, 204, 113, 0.5);
+        }
+        
+        /* badge صغير للإحصاءات */
+        .il-card-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: rgba(212, 175, 55, 0.55);
+            padding: 6px 10px;
+            background: rgba(212, 175, 55, 0.04);
+            border-radius: 8px;
+            border: 1px solid rgba(212, 175, 55, 0.15);
+            position: relative;
+            z-index: 2;
+        }
+
+        
+        /* ═══════════════════════════════════════════════════
+           👑 SIDEBAR ملحمي محسّن — ديوان المعلمين
+        ═══════════════════════════════════════════════════ */
+        .sidebar {
+            background: linear-gradient(180deg, #050a1a 0%, #0a1228 50%, #050a1a 100%);
+            position: relative;
+        }
+        
+        /* عنصر زخرفي ذهبي علوي */
+        .sidebar-crown-deco {
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.4rem;
+            opacity: 0.7;
+            filter: drop-shadow(0 0 12px var(--gold));
+            z-index: 2;
+            pointer-events: none;
+            animation: crownFloat 4s ease-in-out infinite;
+        }
+        @keyframes crownFloat {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50%      { transform: translateX(-50%) translateY(-4px); }
+        }
+        
+        /* صورة المعلم بإطار ذهبي ملحمي */
+        .photo-frame {
+            position: relative;
+            width: 110px !important;
+            height: 110px !important;
+            margin: 30px auto 14px !important;
+            border-radius: 50% !important;
+            padding: 4px !important;
+            background: conic-gradient(from 0deg, var(--gold), #fcf6ba, var(--gold), #b38728, var(--gold)) !important;
+            animation: framRotate 8s linear infinite !important;
+            z-index: 1;
+        }
+        @keyframes framRotate {
+            from { transform: rotate(0deg); }
+            to   { transform: rotate(360deg); }
+        }
+        .photo-frame::after {
+            content: '👑';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.3rem;
+            filter: drop-shadow(0 0 8px var(--gold));
+            z-index: 3;
+        }
+        .teacher-img {
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 50% !important;
+            object-fit: cover !important;
+            background: #001f3f !important;
+            display: block !important;
+            animation: framRotate 8s linear infinite reverse !important;
+        }
+        
+        /* اسم المعلم — خط ذهبي ملحمي */
+        .sidebar h2 {
+            text-align: center;
+            font-family: 'Amiri', serif;
+            font-size: 1.3rem;
+            font-weight: 700;
+            margin: 4px 0 4px;
+            background: linear-gradient(135deg, #f39c12, #d4af37, #fcf6ba, #d4af37) !important;
+            background-size: 200% auto !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            color: transparent !important;
+            animation: shimmerName 4s ease-in-out infinite;
+            position: relative;
+            z-index: 1;
+        }
+        @keyframes shimmerName {
+            0%, 100% { background-position: 0% center; }
+            50%      { background-position: 100% center; }
+        }
+        
+        .sidebar-sub {
+            text-align: center;
+            font-size: 0.78rem !important;
+            color: rgba(212, 175, 55, 0.7) !important;
+            margin-bottom: 14px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+        
+        /* فاصل ذهبي زخرفي */
+        .sidebar-divider {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin: 10px 16px 16px;
+            position: relative;
+            z-index: 1;
+        }
+        .sidebar-divider-line {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, var(--gold), transparent);
+        }
+        .sidebar-divider-diamond {
+            width: 6px; height: 6px;
+            background: var(--gold);
+            transform: rotate(45deg);
+            box-shadow: 0 0 10px var(--gold);
+        }
+        
+        /* عنوان قسم */
+        .sidebar-section-title {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--gold);
+            margin: 14px 14px 8px;
+            padding: 6px 12px;
+            background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.02));
+            border-radius: 8px;
+            border-right: 3px solid var(--gold);
+            letter-spacing: 0.4px;
+            font-family: 'Cairo', sans-serif;
+            text-shadow: 0 1px 4px rgba(212, 175, 55, 0.3);
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        /* نُحسّن أزرار التنقّل */
+        .nav-btn {
+            margin: 6px 14px !important;
+            padding: 11px 14px !important;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+        }
+        .nav-btn:hover { transform: translateX(-3px) !important; }
+        
+        /* تنويعات ألوان أكثر إشراقاً */
+        .btn-prep    { border-color:#3498db !important; color:#5dade2 !important; background:linear-gradient(135deg, rgba(52,152,219,0.12), rgba(52,152,219,0.04)) !important; }
+        .btn-prep:hover, .btn-prep.active { background:linear-gradient(135deg,#1565c0,#3498db) !important; color:#fff !important; box-shadow:0 8px 24px rgba(52,152,219,0.5) !important; }
+        
+        .btn-res     { border-color:#f39c12 !important; color:#f39c12 !important; background:linear-gradient(135deg, rgba(243,156,18,0.12), rgba(243,156,18,0.04)) !important; }
+        .btn-res:hover, .btn-res.active { background:linear-gradient(135deg,#e67e22,#f39c12) !important; color:#1a0d2e !important; box-shadow:0 8px 24px rgba(243,156,18,0.5) !important; }
+        
+        .btn-bank    { border-color:#9b59b6 !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(155,89,182,0.12), rgba(155,89,182,0.04)) !important; }
+        .btn-bank:hover, .btn-bank.active { background:linear-gradient(135deg,#6c3483,#9b59b6) !important; color:#fff !important; box-shadow:0 8px 24px rgba(155,89,182,0.5) !important; }
+        
+        .btn-lessons { border-color:#bb86fc !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(187,134,252,0.12), rgba(187,134,252,0.04)) !important; }
+        .btn-lessons:hover, .btn-lessons.active { background:linear-gradient(135deg,#9b59b6,#bb86fc) !important; color:#fff !important; box-shadow:0 8px 24px rgba(187,134,252,0.5) !important; }
+        
+        .btn-sub     { border-color:var(--gold) !important; color:var(--gold) !important; background:linear-gradient(135deg, rgba(212,175,55,0.12), rgba(212,175,55,0.04)) !important; }
+        .btn-sub:hover, .btn-sub.active { background:var(--gold-grad) !important; color:#1a0d2e !important; box-shadow:0 8px 24px rgba(212,175,55,0.6) !important; }
+        
+        .btn-profile { border-color:#48d1cc !important; color:#48d1cc !important; background:linear-gradient(135deg, rgba(72,209,204,0.12), rgba(72,209,204,0.04)) !important; }
+        .btn-profile:hover, .btn-profile.active { background:linear-gradient(135deg,#16a085,#48d1cc) !important; color:#fff !important; box-shadow:0 8px 24px rgba(72,209,204,0.5) !important; }
+
+
         </style>
 </head>
 <body>
@@ -1256,43 +1607,63 @@
 <aside class="sidebar">
     <div class="sidebar-stars" id="sidebar-stars"></div>
 
-    <!-- صورة + اسم -->
-    <div class="photo-frame" style="animation:none;">
+    <!-- 👑 زخرفة علوية -->
+    <div class="sidebar-crown-deco">⚜️</div>
+
+    <!-- 📸 صورة المعلم بإطار ذهبي ملحمي -->
+    <div class="photo-frame">
         <img class="teacher-img" src="/static/teacher.jpg"
              onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2275%22>👨‍🏫</text></svg>'">
     </div>
     <h2 id="teacher-display-name">أستاذ</h2>
-    <p class="sidebar-sub">ديوان المعلمين · عُمان 2026</p>
+    <p class="sidebar-sub">⚜️ ديوان المعلمين ⚜️</p>
 
-    <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin-bottom:14px;position:relative;z-index:1;"></div>
+    <!-- 💎 فاصل ذهبي زخرفي -->
+    <div class="sidebar-divider">
+        <div class="sidebar-divider-line"></div>
+        <div class="sidebar-divider-diamond"></div>
+        <div class="sidebar-divider-line"></div>
+    </div>
 
     <nav>
+        <!-- 📚 القسم 1: المحتوى التعليمي -->
+        <div class="sidebar-section-title">📚 المحتوى التعليمي</div>
         <button class="nav-btn btn-prep shiny-btn" onclick="showSection('preparations',this)">
             <span class="btn-icon">📋</span> <span>التحضيرات الجاهزة</span>
         </button>
         <button class="nav-btn btn-res shiny-btn" onclick="showSection('resources',this)">
             <span class="btn-icon">📁</span> <span>موارد المنهج</span>
         </button>
+        <button class="nav-btn btn-lessons shiny-btn" onclick="showSection('lessons',this);loadInteractiveLessons();">
+            <span class="btn-icon">📘</span> <span>الدروس التفاعلية</span>
+        </button>
+        
+        <!-- 🛠️ القسم 2: الأدوات -->
+        <div class="sidebar-section-title">🛠️ أدوات المعلم</div>
         <button class="nav-btn btn-bank shiny-btn" onclick="showSection('bank',this)">
             <span class="btn-icon">❓</span> <span>بنك الأسئلة</span>
         </button>
-        <button class="nav-btn btn-lessons shiny-btn" onclick="showSection('lessons',this);loadInteractiveLessons();" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);">
-            <span class="btn-icon">📚</span> <span>الدروس التفاعلية</span>
+        
+        <!-- ⚙️ القسم 3: الحساب والدعم -->
+        <div class="sidebar-section-title">⚙️ الحساب والدعم</div>
+        <button class="nav-btn btn-profile shiny-btn" onclick="showSection('profile',this)">
+            <span class="btn-icon">👤</span> <span>الملف الشخصي</span>
         </button>
         <button class="nav-btn btn-sub shiny-btn" onclick="showSection('support',this)">
             <span class="btn-icon">🛡️</span> <span>الدعم والاشتراك</span>
         </button>
-        <button class="nav-btn btn-profile shiny-btn" onclick="showSection('profile',this)">
-            <span class="btn-icon">👤</span> <span>الملف الشخصي</span>
-        </button>
     </nav>
 
     <div class="sidebar-bottom-logo">
-        <div style="height:1px;background:linear-gradient(90deg,transparent,var(--border),transparent);margin-bottom:14px;"></div>
+        <div class="sidebar-divider">
+            <div class="sidebar-divider-line"></div>
+            <div class="sidebar-divider-diamond"></div>
+            <div class="sidebar-divider-line"></div>
+        </div>
         <button class="btn-logout-small" onclick="logout()">
             <i class="fas fa-sign-out-alt"></i> مغادرة الديوان
         </button>
-        <a href="/" style="text-decoration:none;color:rgba(255,255,255,0.35);font-size:0.8rem;display:block;margin-top:8px;">
+        <a href="/" style="text-decoration:none;color:rgba(212,175,55,0.5);font-size:0.78rem;display:block;margin-top:10px;text-align:center;font-weight:600;">
             🏠 العودة للمنصة
         </a>
     </div>
@@ -1747,42 +2118,45 @@
 
     <!-- ══ قسم الدروس التفاعلية ══ -->
     <div id="section-lessons" class="section">
-        <div style="background:linear-gradient(160deg,rgba(155,89,182,0.1),rgba(0,8,20,0.9));border:2px solid #9b59b6;border-radius:24px;padding:30px;margin-bottom:24px;text-align:center;">
-            <div style="font-size:3rem;margin-bottom:10px;">📚</div>
-            <h2 style="color:#bb86fc;font-family:'Amiri';margin:0 0 8px;font-size:1.8rem;">مكتبة الدروس التفاعلية</h2>
-            <p style="color:rgba(255,255,255,0.65);margin:0;font-size:0.95rem;">دروس HTML تفاعلية ملحمية لكل صفوف المنهج — استخدمها في حصصك أو شاركها مع طلابك</p>
+        <div style="background:linear-gradient(160deg,rgba(212,175,55,0.08),rgba(0,8,20,0.9));border:2px solid var(--gold);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <!-- زخرفة -->
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;filter:drop-shadow(0 0 20px var(--gold));">⚜️</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(212,175,55,0.6));">📘</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#f39c12,#d4af37,#fcf6ba,#d4af37,#b38728);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">مكتبة الدروس التفاعلية</h2>
+            <p style="color:rgba(212,175,55,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">⚜️ دروس HTML تفاعلية ملحمية لكل صفوف المنهج ⚜️</p>
+            <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">استخدمها في حصصك · شاركها مع طلابك · حمّلها للاستخدام دون اتصال</p>
         </div>
         
         <!-- فلاتر الاختيار -->
-        <div style="background:rgba(0,31,63,0.4);border:1px solid rgba(155,89,182,0.3);border-radius:16px;padding:20px;margin-bottom:20px;">
-            <h3 style="color:#bb86fc;margin:0 0 14px;font-size:1.05rem;">🔍 فلترة الدروس</h3>
+        <div style="background:linear-gradient(135deg,rgba(0,31,63,0.5),rgba(11,14,20,0.6));border:1px solid rgba(212,175,55,0.3);border-radius:18px;padding:22px;margin-bottom:22px;box-shadow:0 4px 24px rgba(212,175,55,0.06);">
+            <h3 style="color:var(--gold);margin:0 0 14px;font-size:1.1rem;font-family:'Amiri';font-weight:700;">🔍 فلترة الدروس</h3>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;">
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🎓 الصف</label>
-                    <select id="il-grade" onchange="ilUpdateSemesters();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                    <select id="il-grade" onchange="ilUpdateSemesters();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:Cairo;font-weight:600;">
                         <option value="">كل الصفوف</option>
                     </select>
                 </div>
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📅 الفصل</label>
-                    <select id="il-semester" onchange="ilUpdateUnits();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                    <select id="il-semester" onchange="ilUpdateUnits();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:Cairo;font-weight:600;">
                         <option value="">كل الفصول</option>
                     </select>
                 </div>
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📦 الوحدة</label>
-                    <select id="il-unit" onchange="ilUpdateLessons();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                    <select id="il-unit" onchange="ilUpdateLessons();ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:Cairo;font-weight:600;">
                         <option value="">كل الوحدات</option>
                     </select>
                 </div>
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">📖 الدرس</label>
-                    <select id="il-lesson" onchange="ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;">
+                    <select id="il-lesson" onchange="ilApplyFilter()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:10px 12px;border-radius:10px;font-family:Cairo;font-weight:600;">
                         <option value="">كل الدروس</option>
                     </select>
                 </div>
             </div>
-            <div id="il-stats" style="margin-top:14px;padding:10px 14px;background:rgba(155,89,182,0.06);border-radius:8px;font-size:0.85rem;color:rgba(255,255,255,0.75);">
+            <div id="il-stats" style="margin-top:14px;padding:12px 16px;background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(212,175,55,0.02));border:1px solid rgba(212,175,55,0.25);border-radius:10px;font-size:0.9rem;color:rgba(255,255,255,0.85);font-weight:600;">
                 ⏳ جارٍ التحميل...
             </div>
         </div>
@@ -2954,21 +3328,39 @@ function ilApplyFilter() {
         var sizeKb = l.file_size_kb ? Math.round(l.file_size_kb) + ' KB' : '';
         
         html += `
-            <div style="background:linear-gradient(145deg,rgba(155,89,182,0.08),rgba(11,14,20,0.7));border:1px solid rgba(155,89,182,0.25);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;transition:all 0.3s;cursor:pointer;" onmouseover="this.style.transform='translateY(-4px)';this.style.borderColor='#bb86fc'" onmouseout="this.style.transform='';this.style.borderColor='rgba(155,89,182,0.25)'" onclick="ilOpenLesson(${l.id})">
-                <div style="font-size:2rem;text-align:center;">📚</div>
-                <div style="font-weight:bold;color:#bb86fc;font-size:1rem;line-height:1.4;">${esc(l.title || 'بدون عنوان')}</div>
-                <div style="font-size:0.82rem;color:rgba(255,255,255,0.6);line-height:1.7;">
-                    🎓 ${esc(l.grade || '')}<br>
-                    ${l.lesson ? '📖 ' + esc(l.lesson) : ''}
+            <div class="il-gate-card" onclick="ilOpenLesson(${l.id})">
+                <!-- 📚 أيقونة دائرية -->
+                <div class="il-gate-icon-wrap">
+                    <div class="il-gate-icon">📘</div>
                 </div>
-                ${l.description ? '<div style="font-size:0.82rem;color:rgba(255,255,255,0.55);background:rgba(255,255,255,0.03);padding:8px;border-radius:6px;line-height:1.6;max-height:60px;overflow:hidden;">' + esc(l.description) + '</div>' : ''}
-                <div style="display:flex;justify-content:space-between;align-items:center;font-size:0.75rem;color:rgba(255,255,255,0.4);margin-top:4px;">
+                
+                <!-- عنوان ذهبي ملحمي -->
+                <div class="il-card-title">${esc(l.title || 'بدون عنوان')}</div>
+                
+                <!-- معلومات الدرس -->
+                <div class="il-card-meta">
+                    🎓 <strong>${esc(l.grade || '')}</strong>
+                    ${l.lesson ? '<br>📖 ' + esc(l.lesson) : ''}
+                </div>
+                
+                <!-- إحصاءات -->
+                <div class="il-card-stats">
                     <span>👁️ ${l.view_count || 0} مشاهدة</span>
-                    <span>${date}</span>
+                    <span>📅 ${date}</span>
                 </div>
-                <button onclick="event.stopPropagation();ilOpenLesson(${l.id})" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.88rem;margin-top:6px;">
-                    🚀 فتح الدرس
-                </button>
+                
+                <!-- أزرار الإجراءات -->
+                <div class="il-card-actions">
+                    <button class="il-action-btn il-btn-open" onclick="event.stopPropagation();ilOpenLesson(${l.id})">
+                        🚀 فتح
+                    </button>
+                    <button class="il-action-btn il-btn-download" onclick="event.stopPropagation();ilDownloadLesson(${l.id}, ${JSON.stringify(l.title || 'lesson').replace(/\"/g, '&quot;')})">
+                        💾 تنزيل
+                    </button>
+                    <button class="il-action-btn il-btn-copy" onclick="event.stopPropagation();ilCopyLessonLink(${l.id})">
+                        📋 نسخ رابط الدرس
+                    </button>
+                </div>
             </div>
         `;
     });
@@ -2986,6 +3378,72 @@ function esc(s) {
     return String(s).replace(/[&<>"']/g, function(c) {
         return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
     });
+}
+
+
+
+// 💾 تنزيل الدرس كملف HTML
+async function ilDownloadLesson(lessonId, title) {
+    if (!lessonId) return;
+    try {
+        // نجلب HTML الدرس
+        var url = API_URL + '/api/html_lessons/' + lessonId + '/render';
+        var res = await fetch(url);
+        if (!res.ok) {
+            alert('❌ فشل تنزيل الدرس');
+            return;
+        }
+        var htmlContent = await res.text();
+        
+        // ننشئ blob ونزّله
+        var blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+        var blobUrl = URL.createObjectURL(blob);
+        var safeName = (title || 'lesson').replace(/[^\u0600-\u06FF\w\s-]/g, '').replace(/\s+/g, '_');
+        if (!safeName) safeName = 'lesson_' + lessonId;
+        
+        var a = document.createElement('a');
+        a.href = blobUrl;
+        a.download = safeName + '.html';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(blobUrl);
+        
+        if (typeof showToast === 'function') showToast('✅ تم التنزيل: ' + safeName + '.html', 'success');
+    } catch(e) {
+        console.error('[il download]', e);
+        alert('❌ خطأ في التنزيل');
+    }
+}
+
+// 📋 نسخ رابط الدرس
+async function ilCopyLessonLink(lessonId) {
+    if (!lessonId) return;
+    var url = window.location.origin + '/api/html_lessons/' + lessonId + '/render';
+    
+    try {
+        // نُجرّب Clipboard API الحديث
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(url);
+            if (typeof showToast === 'function') showToast('📋 تم نسخ الرابط', 'success');
+            return;
+        }
+        
+        // Fallback لطريقة قديمة
+        var ta = document.createElement('textarea');
+        ta.value = url;
+        ta.style.position = 'fixed';
+        ta.style.left = '-9999px';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        ta.remove();
+        if (typeof showToast === 'function') showToast('📋 تم نسخ الرابط', 'success');
+    } catch(e) {
+        console.error('[il copy]', e);
+        // آخر محاولة: نعرض الرابط للمستخدم لينسخه يدوياً
+        prompt('انسخ الرابط (Ctrl+C):', url);
+    }
 }
 
 
