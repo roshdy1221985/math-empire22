@@ -1109,8 +1109,10 @@
            📘 INTERACTIVE LESSON CARDS — نمط الواجهة الرئيسية
         ═══════════════════════════════════════════════════ */
         .il-gate-card {
+            --card-color: #2ecc71;
+            --card-glow: rgba(46, 204, 113, 0.4);
             background: linear-gradient(145deg, rgba(13, 27, 62, 0.6), rgba(4, 13, 33, 0.8));
-            border: 1px solid rgba(212, 175, 55, 0.3);
+            border: 2px solid var(--card-color);
             border-radius: 24px;
             padding: 32px 22px;
             cursor: pointer;
@@ -1124,11 +1126,17 @@
             min-height: 280px;
         }
         
+        /* 🎨 ألوان متناوبة — كل بطاقة بلون مختلف */
+        .il-gate-card:nth-child(4n+1) { --card-color: #2ecc71; --card-glow: rgba(46, 204, 113, 0.5); }   /* أخضر */
+        .il-gate-card:nth-child(4n+2) { --card-color: #3498db; --card-glow: rgba(52, 152, 219, 0.5); }   /* أزرق */
+        .il-gate-card:nth-child(4n+3) { --card-color: #9b59b6; --card-glow: rgba(155, 89, 182, 0.5); }   /* بنفسجي */
+        .il-gate-card:nth-child(4n+4) { --card-color: #d4af37; --card-glow: rgba(212, 175, 55, 0.5); }   /* ذهبي */
+        
         /* glow على hover */
         .il-gate-card::before {
             content: '';
             position: absolute; inset: 0;
-            background: radial-gradient(circle at 50% 0%, rgba(212,175,55,0.18) 0%, transparent 60%);
+            background: radial-gradient(circle at 50% 0%, var(--card-glow) 0%, transparent 60%);
             opacity: 0; 
             transition: opacity 0.4s;
             pointer-events: none;
@@ -1155,10 +1163,9 @@
         
         .il-gate-card:hover {
             transform: translateY(-12px) scale(1.02);
-            border-color: var(--gold);
             box-shadow:
                 0 25px 60px rgba(0, 0, 0, 0.5),
-                0 0 50px rgba(212, 175, 55, 0.3);
+                0 0 50px var(--card-glow);
         }
         .il-gate-card:hover::before { opacity: 1; }
         .il-gate-card:hover::after  { right: 150%; }
@@ -1170,22 +1177,22 @@
             width: 80px; height: 80px;
             margin: 0 auto;
             border-radius: 50%;
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px solid rgba(212, 175, 55, 0.4);
+            background: rgba(255, 255, 255, 0.04);
+            border: 2px solid var(--card-color);
             transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
         }
         .il-gate-card:hover .il-gate-icon-wrap {
             transform: scale(1.12) rotate(-5deg);
-            box-shadow: 0 8px 30px rgba(212, 175, 55, 0.4);
-            border-color: var(--gold);
+            box-shadow: 0 8px 30px var(--card-glow);
+            background: var(--card-glow);
         }
         .il-gate-icon {
             font-size: 2.8rem;
-            filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.5));
+            filter: drop-shadow(0 0 12px var(--card-glow));
             transition: all 0.3s;
         }
         .il-gate-card:hover .il-gate-icon {
-            filter: drop-shadow(0 0 22px rgba(212, 175, 55, 0.9));
+            filter: drop-shadow(0 0 22px var(--card-color));
         }
         
         /* عنوان الدرس بخط ذهبي ملحمي */
@@ -3202,52 +3209,96 @@ var _ilAllLessons = [];
 var _ilCurriculum = [];
 
 async function loadInteractiveLessons() {
-    // اجلب المنهج لملء القوائم
+    console.log('[il] loadInteractiveLessons() بدأت');
+    
+    // اجلب المنهج لملء القوائم (دائماً لضمان تحديث)
     if (!_ilCurriculum.length) {
         try {
-            var cRes = await fetch(API_URL + '/api/curriculum/full_tree');
+            console.log('[il] جلب هيكل المنهج...');
+            var cRes = await fetch(API_URL + '/api/curriculum/structure');
+            console.log('[il] curriculum status:', cRes.status);
             if (cRes.ok) {
                 _ilCurriculum = await cRes.json();
+                console.log('[il] curriculum loaded:', _ilCurriculum.length, 'صف');
                 _ilFillGrades();
+            } else {
+                console.error('[il] فشل جلب المنهج');
             }
-        } catch(e) { console.warn('[il] curr fetch:', e); }
+        } catch(e) { 
+            console.error('[il] curr fetch error:', e); 
+        }
+    } else {
+        console.log('[il] المنهج محمّل مسبقاً:', _ilCurriculum.length);
+        _ilFillGrades();
     }
     
     // اجلب كل الدروس
     try {
+        console.log('[il] جلب الدروس التفاعلية...');
         var res = await fetch(API_URL + '/api/html_lessons');
-        if (!res.ok) throw new Error('فشل');
+        console.log('[il] lessons status:', res.status);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
         _ilAllLessons = await res.json();
+        console.log('[il] lessons loaded:', _ilAllLessons.length);
+        if (_ilAllLessons.length > 0) {
+            console.log('[il] الصفوف الموجودة:', Array.from(new Set(_ilAllLessons.map(function(L){return L.grade;}))));
+        }
         ilApplyFilter();
     } catch(e) {
-        document.getElementById('il-grid').innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ff6b6b;">❌ فشل تحميل الدروس</div>';
+        console.error('[il] lessons fetch error:', e);
+        var grid = document.getElementById('il-grid');
+        if (grid) grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ff6b6b;">❌ فشل تحميل الدروس: ' + e.message + '</div>';
     }
 }
 
 function _ilFillGrades() {
     var sel = document.getElementById('il-grade');
-    if (!sel || sel.options.length > 1) return;
+    if (!sel) {
+        console.warn('[il] il-grade dropdown not found yet');
+        return;
+    }
+    // امسح الخيارات القديمة (احتفظ بالأول "كل الصفوف")
+    while (sel.options.length > 1) sel.remove(1);
+    
+    if (!_ilCurriculum || !_ilCurriculum.length) {
+        console.warn('[il] _ilCurriculum فارغ');
+        return;
+    }
+    
     _ilCurriculum.forEach(function(g) {
+        if (!g || !g.name) return;
         var opt = document.createElement('option');
         opt.value = g.name;
         opt.textContent = g.name;
         sel.appendChild(opt);
     });
+    console.log('[il] تم ملء', sel.options.length - 1, 'صف');
 }
 
 function ilUpdateSemesters() {
     var grade = document.getElementById('il-grade').value;
     var sel = document.getElementById('il-semester');
+    if (!sel) return;
     sel.innerHTML = '<option value="">كل الفصول</option>';
     if (!grade) return;
-    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
-    if (!g || !g.semesters) return;
+    
+    // مطابقة مرنة للـ grade name
+    var g = _ilCurriculum.find(function(x) { 
+        return x && x.name && (x.name === grade || x.name.trim() === grade.trim());
+    });
+    if (!g || !g.semesters) {
+        console.warn('[il] لم يُعثر على بيانات الفصول لـ:', grade);
+        return;
+    }
+    
     g.semesters.forEach(function(s) {
+        if (!s || !s.name) return;
         var opt = document.createElement('option');
         opt.value = s.name;
         opt.textContent = s.name;
         sel.appendChild(opt);
     });
+    console.log('[il] تم ملء', g.semesters.length, 'فصل لـ', grade);
     ilUpdateUnits();
 }
 
@@ -3255,13 +3306,17 @@ function ilUpdateUnits() {
     var grade = document.getElementById('il-grade').value;
     var sem   = document.getElementById('il-semester').value;
     var sel   = document.getElementById('il-unit');
+    if (!sel) return;
     sel.innerHTML = '<option value="">كل الوحدات</option>';
     if (!grade || !sem) return;
-    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
+    
+    var g = _ilCurriculum.find(function(x) { return x && x.name === grade; });
     if (!g) return;
-    var s = g.semesters.find(function(x) { return x.name === sem; });
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
     if (!s || !s.units) return;
+    
     s.units.forEach(function(u) {
+        if (!u || !u.name) return;
         var opt = document.createElement('option');
         opt.value = u.name;
         opt.textContent = u.name;
@@ -3275,16 +3330,19 @@ function ilUpdateLessons() {
     var sem   = document.getElementById('il-semester').value;
     var unit  = document.getElementById('il-unit').value;
     var sel   = document.getElementById('il-lesson');
+    if (!sel) return;
     sel.innerHTML = '<option value="">كل الدروس</option>';
     if (!grade || !sem || !unit) return;
-    var g = _ilCurriculum.find(function(x) { return x.name === grade; });
+    
+    var g = _ilCurriculum.find(function(x) { return x && x.name === grade; });
     if (!g) return;
-    var s = g.semesters.find(function(x) { return x.name === sem; });
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
     if (!s) return;
-    var u = s.units.find(function(x) { return x.name === unit; });
+    var u = (s.units || []).find(function(x) { return x && x.name === unit; });
     if (!u || !u.lessons) return;
+    
     u.lessons.forEach(function(l) {
-        var name = typeof l === 'string' ? l : (l.name || '');
+        var name = typeof l === 'string' ? l : (l && l.name ? l.name : '');
         if (!name) return;
         var opt = document.createElement('option');
         opt.value = name;
@@ -3299,13 +3357,25 @@ function ilApplyFilter() {
     var unit   = document.getElementById('il-unit').value;
     var lesson = document.getElementById('il-lesson').value;
     
+    console.log('[il] فلترة:', { grade: grade, sem: sem, unit: unit, lesson: lesson });
+    
+    // مطابقة مرنة — تتجاوز الفراغات والاختلافات الطفيفة
+    function flexMatch(a, b) {
+        if (!a || !b) return false;
+        var na = String(a).trim().toLowerCase().replace(/\s+/g, ' ');
+        var nb = String(b).trim().toLowerCase().replace(/\s+/g, ' ');
+        return na === nb || na.indexOf(nb) !== -1 || nb.indexOf(na) !== -1;
+    }
+    
     var filtered = _ilAllLessons.filter(function(l) {
-        if (grade  && l.grade !== grade)       return false;
-        if (sem    && l.semester !== sem)      return false;
-        if (unit   && l.unit !== unit)         return false;
-        if (lesson && l.lesson !== lesson)     return false;
+        if (grade  && !flexMatch(l.grade, grade))       return false;
+        if (sem    && !flexMatch(l.semester, sem))      return false;
+        if (unit   && !flexMatch(l.unit, unit))         return false;
+        if (lesson && !flexMatch(l.lesson, lesson))     return false;
         return true;
     });
+    
+    console.log('[il] نتيجة الفلترة:', filtered.length, 'درس');
     
     // إحصائية
     var statsEl = document.getElementById('il-stats');

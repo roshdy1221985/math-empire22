@@ -6,93 +6,70 @@
     <title>لوحة التحكم الملكية | الأستاذ رشدي سيد</title>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <!-- 📊 SheetJS — تحميل sync مضمون مع 3 CDNs احتياطية -->
+    <!-- ════════════════════════════════════════════════════════
+         📊 SheetJS (XLSX) — نظام تحميل قوي ومُختبر
+         يُحاول 3 مصادر بالتسلسل + احتياطي async
+    ════════════════════════════════════════════════════════ -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script>
+    // 🛡️ ensureXLSX: يضمن تحميل المكتبة عند الحاجة
     (function() {
-        // Helper: تحميل sync باستخدام document.write (يعمل في head فقط)
-        function loadSync(url) {
-            try {
-                document.write('<scr' + 'ipt src="' + url + '"><' + '/scr' + 'ipt>');
-                return true;
-            } catch(e) { return false; }
-        }
-        
-        // Helper: تحميل async عبر createElement (يعمل بعد تحميل الصفحة)
-        function loadAsync(url, cb) {
-            var s = document.createElement('script');
-            s.src = url;
-            s.onload = function() { if (cb) cb(true); };
-            s.onerror = function() { if (cb) cb(false); };
-            document.head.appendChild(s);
-        }
-        
-        // المصادر بالترتيب
-        var SOURCES = [
+        var XLSX_SOURCES = [
             'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
             'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
-            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
+            'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js',
+            'https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js'
         ];
         
-        // 1. لو الـ jsdelivr الأول نجح → تمام
         if (typeof XLSX !== 'undefined') {
-            console.log('[XLSX] ✅ المكتبة محمّلة من jsdelivr:', XLSX.version || '0.18.5');
+            console.log('[XLSX] ✅ المكتبة محمّلة فوراً:', XLSX.version || '0.18.5');
+            window.ensureXLSX = function() { return Promise.resolve(true); };
             return;
         }
         
-        // 2. جرّب unpkg sync
-        console.warn('[XLSX] jsdelivr فشل، تجربة unpkg...');
-        loadSync(SOURCES[1]);
-    })();
-    </script>
-    <script>
-    if (typeof XLSX === 'undefined') {
-        console.warn('[XLSX] unpkg فشل، تجربة cdnjs...');
-        document.write('<scr' + 'ipt src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"><' + '/scr' + 'ipt>');
-    }
-    </script>
-    <script>
-    // 🛡️ ضمان نهائي: لو كل المصادر فشلت في sync — نُعيد المحاولة async عند الحاجة
-    if (typeof XLSX === 'undefined') {
-        console.error('[XLSX] ❌ فشل تحميل sync — سيُعاد التحميل async عند أول استخدام');
-        window._xlsxLoadPromise = null;
+        console.warn('[XLSX] لم تُحمّل sync — تجهيز ensureXLSX async');
+        
+        var _loadPromise = null;
         window.ensureXLSX = function() {
             if (typeof XLSX !== 'undefined') return Promise.resolve(true);
-            if (window._xlsxLoadPromise) return window._xlsxLoadPromise;
+            if (_loadPromise) return _loadPromise;
             
-            window._xlsxLoadPromise = new Promise(function(resolve) {
-                var sources = [
-                    'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
-                    'https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js',
-                    'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js'
-                ];
+            _loadPromise = new Promise(function(resolve) {
                 var idx = 0;
-                
                 function tryNext() {
-                    if (typeof XLSX !== 'undefined') return resolve(true);
-                    if (idx >= sources.length) return resolve(false);
-                    
+                    if (typeof XLSX !== 'undefined') {
+                        console.log('[XLSX] ✅ المكتبة جاهزة الآن');
+                        return resolve(true);
+                    }
+                    if (idx >= XLSX_SOURCES.length) {
+                        console.error('[XLSX] ❌ فشل كل المصادر');
+                        return resolve(false);
+                    }
+                    var url = XLSX_SOURCES[idx++];
+                    console.log('[XLSX] جاري تجربة:', url);
                     var s = document.createElement('script');
-                    s.src = sources[idx++];
+                    s.src = url;
                     s.onload = function() {
-                        console.log('[XLSX] ✅ تحميل async نجح من:', s.src);
-                        resolve(true);
+                        if (typeof XLSX !== 'undefined') {
+                            console.log('[XLSX] ✅ نجح من:', url);
+                            resolve(true);
+                        } else {
+                            tryNext();
+                        }
                     };
                     s.onerror = function() {
-                        console.warn('[XLSX] async فشل من', s.src, '— تجربة التالي');
+                        console.warn('[XLSX] فشل:', url);
                         tryNext();
                     };
                     document.head.appendChild(s);
                 }
                 tryNext();
             });
-            return window._xlsxLoadPromise;
+            return _loadPromise;
         };
-    } else {
-        console.log('[XLSX] ✅ المكتبة محمّلة:', XLSX.version || 'unknown');
-        // wrapper جاهز للاستخدام (يُرجع Promise.resolve فوراً)
-        window.ensureXLSX = function() { return Promise.resolve(true); };
-    }
+    })();
     </script>
     <style>
         :root {
@@ -5819,10 +5796,19 @@
     }
 
     /** تحميل قالب Excel فارغ */
-    function downloadExcelTemplate() {
+    async function downloadExcelTemplate() {
         if (typeof XLSX === 'undefined') {
-            showToast('⚠️ مكتبة SheetJS غير محملة، انتظر لحظة.', 'warning');
-            return;
+            showToast('⏳ جاري تحميل مكتبة Excel...', 'warning', 2000);
+            if (typeof window.ensureXLSX === 'function') {
+                var loaded = await window.ensureXLSX();
+                if (!loaded || typeof XLSX === 'undefined') {
+                    showToast('❌ تعذّر تحميل مكتبة Excel — تحقّق من الاتصال', 'error', 5000);
+                    return;
+                }
+            } else {
+                showToast('⚠️ مكتبة SheetJS غير محملة، حدّث الصفحة (Ctrl+Shift+R)', 'warning');
+                return;
+            }
         }
         const headers = ['الصف', 'الدرس', 'نوع التحدي', 'نص السؤال', 'الخيارات', 'الإجابة الصحيحة'];
         const sampleRows = [
@@ -6532,8 +6518,19 @@
         parsedCurriculumData = {};
     }
 
-    function downloadCurriculumTemplate() {
-        if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة SheetJS لم تُحمَّل بعد', 'warning'); return; }
+    async function downloadCurriculumTemplate() {
+        if (typeof XLSX === 'undefined') {
+            showToast('⏳ جاري تحميل مكتبة Excel...', 'warning', 2000);
+            if (typeof window.ensureXLSX === 'function') {
+                var loaded = await window.ensureXLSX();
+                if (!loaded || typeof XLSX === 'undefined') {
+                    showToast('❌ تعذّر تحميل مكتبة Excel', 'error', 5000);
+                    return;
+                }
+            } else {
+                showToast('⚠️ مكتبة SheetJS لم تُحمَّل', 'warning'); return;
+            }
+        }
         const headers = ['الصف', 'الفصل', 'الوحدة', 'الدرس'];
         const sampleRows = [
             ['الصف الخامس', 'الفصل الأول', 'الوحدة الأولى: الأعداد', 'درس الأعداد الطبيعية'],
@@ -7592,9 +7589,18 @@
         win.document.close();
     }
 
-    function exportReportExcel() {
+    async function exportReportExcel() {
         if (!_reportData) { showToast('⚠️ يرجى تحميل التقرير أولاً','warning'); return; }
-        if (typeof XLSX === 'undefined') { showToast('⚠️ مكتبة Excel غير محملة','error'); return; }
+        if (typeof XLSX === 'undefined') {
+            showToast('⏳ جاري تحميل مكتبة Excel...', 'warning', 2000);
+            if (typeof window.ensureXLSX === 'function') {
+                var loaded = await window.ensureXLSX();
+                if (!loaded || typeof XLSX === 'undefined') {
+                    showToast('❌ تعذّر تحميل Excel', 'error', 5000);
+                    return;
+                }
+            } else { showToast('⚠️ مكتبة Excel غير محملة','error'); return; }
+        }
         const students = _reportData.students || [];
         const wsData = [
             ['#','الاسم الكامل','اسم المستخدم','الصف','XP','الاختبارات','الدقة %','الدروس','الرتبة'],
