@@ -4967,11 +4967,21 @@ async def teacher_exam_preview(
     count = max(1, min(int(count), 50))
     
     try:
-        query = supabase.table("questions").select("*").eq("grade", grade.strip())
-        if lesson.strip():
-            query = query.eq("lesson", lesson.strip())
-        res = query.execute()
-        all_questions = res.data or []
+        # 🔄 استخدام _grade_variants لدعم كل صيغ اسم الصف
+        variants = _grade_variants(grade) or [grade.strip()]
+        
+        all_questions = []
+        seen_ids = set()
+        
+        for v in variants:
+            query = supabase.table("questions").select("*").eq("grade", v.strip())
+            if lesson.strip():
+                query = query.ilike("lesson", lesson.strip())
+            res = query.execute()
+            for q in (res.data or []):
+                if q.get("id") not in seen_ids:
+                    seen_ids.add(q.get("id"))
+                    all_questions.append(q)
         
         def _norm(s):
             return str(s or "").strip().lower()
@@ -4979,24 +4989,25 @@ async def teacher_exam_preview(
         if semester.strip():
             ns = _norm(semester)
             all_questions = [q for q in all_questions if 
-                _norm(q.get("semester")) == ns or ns in _norm(q.get("semester"))]
+                _norm(q.get("semester")) == ns or ns in _norm(q.get("semester")) or _norm(q.get("semester")) in ns]
         
         if unit.strip():
             nu = _norm(unit)
             all_questions = [q for q in all_questions if 
-                _norm(q.get("unit")) == nu or nu in _norm(q.get("unit"))]
+                _norm(q.get("unit")) == nu or nu in _norm(q.get("unit")) or _norm(q.get("unit")) in nu]
         
+        # فلترة بنوع السؤال — ندعم q_type (الصيغة الصحيحة في DB)
         if types != "all":
             type_map = {
-                "mcq":   ["اختياري", "متعدد", "اختر"],
-                "tf":    ["صواب", "خطأ"],
-                "short": ["قصير"],
+                "mcq":   ["mcq", "اختياري", "متعدد"],
+                "tf":    ["true_false", "tf", "صواب", "خطأ"],
+                "short": ["short", "essay", "قصير", "مقالي"],
             }
             keywords = type_map.get(types, [])
             if keywords:
                 filtered = []
                 for q in all_questions:
-                    qtype = _norm(q.get("type") or q.get("question_type") or "")
+                    qtype = _norm(q.get("q_type") or q.get("type") or q.get("question_type") or "")
                     if any(k in qtype for k in keywords):
                         filtered.append(q)
                 if filtered:
@@ -5041,21 +5052,31 @@ async def teacher_exam_build_pdf(
 ):
     """📄 بناء ورقة اختبار جاهزة كـ HTML قابل للطباعة"""
     try:
-        query = supabase.table("questions").select("*").eq("grade", grade.strip())
-        if lesson.strip():
-            query = query.eq("lesson", lesson.strip())
-        res = query.execute()
-        all_questions = res.data or []
+        # 🔄 _grade_variants لدعم كل الصياغات
+        variants = _grade_variants(grade) or [grade.strip()]
+        
+        all_questions = []
+        seen_ids = set()
+        
+        for v in variants:
+            query = supabase.table("questions").select("*").eq("grade", v.strip())
+            if lesson.strip():
+                query = query.ilike("lesson", lesson.strip())
+            res = query.execute()
+            for q in (res.data or []):
+                if q.get("id") not in seen_ids:
+                    seen_ids.add(q.get("id"))
+                    all_questions.append(q)
         
         def _norm(s):
             return str(s or "").strip().lower()
         
         if semester.strip():
             ns = _norm(semester)
-            all_questions = [q for q in all_questions if _norm(q.get("semester")) == ns or ns in _norm(q.get("semester"))]
+            all_questions = [q for q in all_questions if _norm(q.get("semester")) == ns or ns in _norm(q.get("semester")) or _norm(q.get("semester")) in ns]
         if unit.strip():
             nu = _norm(unit)
-            all_questions = [q for q in all_questions if _norm(q.get("unit")) == nu or nu in _norm(q.get("unit"))]
+            all_questions = [q for q in all_questions if _norm(q.get("unit")) == nu or nu in _norm(q.get("unit")) or _norm(q.get("unit")) in nu]
         
         import random
         random.shuffle(all_questions)
@@ -5077,7 +5098,9 @@ async def teacher_exam_build_pdf(
         for i, q in enumerate(questions, 1):
             q_text = (q.get("question") or "").replace("<", "&lt;").replace(">", "&gt;")
             options = q.get("options") or q.get("choices") or ""
-            correct = q.get("correct_answer") or q.get("answer") or ""
+            # نقرأ من كل الأعمدة المحتملة
+            correct = (q.get("correct_answer") or q.get("answer") or 
+                       q.get("correct") or q.get("right_answer") or "")
             
             opts_list = []
             if options:
@@ -5551,6 +5574,498 @@ async def teacher_certificate_batch(
     
     from fastapi.responses import HTMLResponse
     return HTMLResponse(content=full_html)
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🤖 TEACHER AI ASSISTANT — مساعد المعلم التربوي
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/teacher/ai_assistant")
+async def teacher_ai_assistant(
+    request: Request,
+    message: str         = Form(...),
+    history: str         = Form(default="[]"),     # JSON array of past messages
+    grade: str           = Form(default=""),
+    subject: str         = Form(default="الرياضيات"),
+):
+    """
+    🤖 مساعد تربوي ذكي — يجيب أسئلة المعلم في:
+    - شرح المفاهيم بطرق مختلفة
+    - اقتراح أنشطة تعليمية
+    - تحسين تحضير
+    - معالجة صعوبات الطلاب
+    - إعطاء أمثلة حياتية
+    """
+    # rate limit
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=20, window_seconds=60):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة جداً، انتظر دقيقة")
+    
+    if not message.strip():
+        raise HTTPException(status_code=400, detail="الرسالة فارغة")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ خدمة AI غير مُهيّأة (GEMINI_API_KEY مفقود)")
+    
+    # نُحدّد دور AI بدقة
+    system_prompt = f"""أنت مساعد تربوي ذكي متخصص في تعليم {subject} للمراحل المدرسية.
+دورك مساعدة المعلم على:
+1. شرح المفاهيم الرياضية بطرق مبسّطة ومتنوّعة
+2. اقتراح أنشطة تعليمية وألعاب صفية ممتعة
+3. تقديم أمثلة حياتية واقعية
+4. معالجة صعوبات تعلّم الطلاب
+5. تحسين خطط الدروس والتحضيرات
+6. اقتراح طرق تقويم متنوعة
+
+ملاحظات مهمة:
+- استخدم لغة عربية فصيحة وسهلة
+- أعطِ إجابات عملية تطبيقية
+- استخدم نقاط منظمة عند الحاجة
+- اقترح أكثر من حل/طريقة عند الإمكان
+- كن إيجابياً ومُلهماً
+{f'- المعلم يدرّس {grade}' if grade else ''}
+"""
+    
+    # نبني تاريخ المحادثة
+    contents = []
+    try:
+        import json as _json
+        past = _json.loads(history) if history else []
+        for msg in past[-10:]:  # آخر 10 رسائل فقط
+            role = "user" if msg.get("role") == "user" else "model"
+            text = msg.get("content", "").strip()
+            if text:
+                contents.append({"role": role, "parts": [{"text": text}]})
+    except Exception:
+        pass
+    
+    contents.append({"role": "user", "parts": [{"text": message}]})
+    
+    try:
+        import httpx
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        
+        payload = {
+            "system_instruction": {
+                "parts": [{"text": system_prompt}]
+            },
+            "contents": contents,
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 1500,
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            res = await client.post(url, json=payload)
+            
+            if res.status_code != 200:
+                # نحاول flash-lite كاحتياط
+                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+                res = await client.post(fallback_url, json=payload)
+            
+            if res.status_code != 200:
+                err_data = res.json() if res.content else {}
+                err_msg = (err_data.get("error", {}).get("message", "") or "")[:200]
+                raise HTTPException(status_code=503, detail=f"AI رفض الاستجابة: {err_msg}")
+            
+            data = res.json()
+            
+            try:
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+            except (KeyError, IndexError):
+                raise HTTPException(status_code=500, detail="استجابة AI فارغة")
+            
+            return {
+                "status": "ok",
+                "response": text,
+                "model": "gemini-2.5-flash"
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[teacher_ai] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📓 LESSON PLAN GENERATOR — منشئ التحضيرات بالـ AI
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/teacher/generate_lesson_plan")
+async def generate_lesson_plan(
+    request: Request,
+    grade: str           = Form(...),
+    lesson_name: str     = Form(...),
+    duration: int        = Form(default=45),    # بالدقائق
+    objectives_focus: str = Form(default=""),    # محاور تركيز خاصة
+    style: str           = Form(default="standard"),  # standard | interactive | discovery
+):
+    """
+    📓 يولّد تحضير درس متكامل بالـ AI ثم يبني HTML احترافي للطباعة
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=10, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    if not lesson_name.strip():
+        raise HTTPException(status_code=400, detail="اسم الدرس مطلوب")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY غير مُهيّأ")
+    
+    style_hints = {
+        "standard":    "تحضير تقليدي منظم بأسلوب وزاري",
+        "interactive": "تحضير يركّز على التعلّم النشط والأنشطة التفاعلية",
+        "discovery":   "تحضير بأسلوب التعلّم بالاكتشاف والاستقصاء",
+    }
+    style_text = style_hints.get(style, style_hints["standard"])
+    
+    prompt = f"""أنشئ تحضير درس متكامل واحترافي بصيغة JSON صارمة بالمواصفات التالية:
+
+📚 المعلومات الأساسية:
+- الصف: {grade}
+- الدرس: {lesson_name}
+- المدة: {duration} دقيقة
+- الأسلوب: {style_text}
+{f'- محاور التركيز: {objectives_focus}' if objectives_focus else ''}
+
+⚙️ المطلوب JSON بالحقول التالية فقط (لا تُضف أي نص خارج JSON):
+
+{{
+  "general_objectives": ["هدف عام 1", "هدف عام 2", "هدف عام 3"],
+  "behavioral_objectives": ["أن يتمكن الطالب من...", "أن يستنتج...", "أن يحلّ..."],
+  "tools": ["أداة 1", "أداة 2"],
+  "introduction": {{
+    "duration": 5,
+    "activities": ["نشاط التمهيد 1", "نشاط 2"]
+  }},
+  "presentation": {{
+    "duration": 25,
+    "steps": [
+      {{"title": "عنوان الخطوة", "content": "شرح مفصّل + أمثلة"}}
+    ]
+  }},
+  "activities": [
+    {{"title": "نشاط 1", "type": "فردي/جماعي", "description": "...", "duration": 5}}
+  ],
+  "evaluation": {{
+    "duration": 10,
+    "questions": ["سؤال تقويمي 1", "سؤال 2", "سؤال 3"]
+  }},
+  "homework": "وصف الواجب المنزلي",
+  "common_difficulties": ["صعوبة 1 وحلّها", "صعوبة 2"],
+  "real_life_examples": ["مثال حياتي 1", "مثال 2"]
+}}
+
+⚠️ أعطِ JSON فقط بدون أي نص قبله أو بعده، بدون ```json أو ```.
+"""
+    
+    try:
+        import httpx
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        
+        payload = {
+            "contents": [{"role": "user", "parts": [{"text": prompt}]}],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 3000,
+                "responseMimeType": "application/json",
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=90.0) as client:
+            res = await client.post(url, json=payload)
+            
+            if res.status_code != 200:
+                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+                res = await client.post(fallback_url, json=payload)
+            
+            if res.status_code != 200:
+                raise HTTPException(status_code=503, detail="AI لم يستجب")
+            
+            data = res.json()
+            
+            try:
+                raw_text = data["candidates"][0]["content"]["parts"][0]["text"].strip()
+                # تنظيف JSON
+                if raw_text.startswith("```"):
+                    raw_text = raw_text.split("```")[1]
+                    if raw_text.startswith("json"):
+                        raw_text = raw_text[4:]
+                raw_text = raw_text.strip()
+                
+                import json as _json
+                plan = _json.loads(raw_text)
+            except Exception as e:
+                raise HTTPException(status_code=500, detail=f"AI أخرج JSON غير صالح: {str(e)[:100]}")
+            
+            return {
+                "status": "ok",
+                "plan": plan,
+                "meta": {
+                    "grade": grade,
+                    "lesson_name": lesson_name,
+                    "duration": duration,
+                    "style": style,
+                }
+            }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[lesson_plan] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/lesson_plan_pdf")
+async def lesson_plan_pdf(
+    plan_json: str       = Form(...),
+    grade: str           = Form(...),
+    lesson_name: str     = Form(...),
+    duration: int        = Form(default=45),
+    teacher_name: str    = Form(default=""),
+    school_name: str     = Form(default=""),
+    date: str            = Form(default=""),
+):
+    """📄 يحوّل تحضير JSON إلى HTML احترافي للطباعة"""
+    try:
+        import json as _json
+        plan = _json.loads(plan_json)
+        
+        from datetime import datetime
+        if not date:
+            date = datetime.now().strftime("%Y/%m/%d")
+        
+        # نبني الأقسام
+        def render_list(items, css_class=""):
+            if not items: return ""
+            html = '<ul class="' + css_class + '">'
+            for it in items:
+                if isinstance(it, dict):
+                    html += '<li>'
+                    if it.get("title"):
+                        html += '<b>' + str(it["title"]) + ':</b> '
+                    if it.get("description"):
+                        html += str(it["description"])
+                    if it.get("content"):
+                        html += str(it["content"])
+                    html += '</li>'
+                else:
+                    html += '<li>' + str(it) + '</li>'
+            html += '</ul>'
+            return html
+        
+        # الأهداف
+        gen_obj = render_list(plan.get("general_objectives", []))
+        beh_obj = render_list(plan.get("behavioral_objectives", []))
+        tools = render_list(plan.get("tools", []))
+        
+        # التمهيد
+        intro = plan.get("introduction", {})
+        intro_html = ""
+        if intro:
+            intro_html = '<div class="time-badge">⏱️ ' + str(intro.get("duration", 5)) + ' دقائق</div>'
+            intro_html += render_list(intro.get("activities", []))
+        
+        # العرض
+        present = plan.get("presentation", {})
+        present_html = ""
+        if present:
+            present_html = '<div class="time-badge">⏱️ ' + str(present.get("duration", 25)) + ' دقيقة</div>'
+            for step in present.get("steps", []):
+                if isinstance(step, dict):
+                    present_html += '<div class="step-block">'
+                    present_html += '<h4>📌 ' + str(step.get("title", "")) + '</h4>'
+                    present_html += '<p>' + str(step.get("content", "")) + '</p>'
+                    present_html += '</div>'
+                else:
+                    present_html += '<p>' + str(step) + '</p>'
+        
+        # الأنشطة
+        activities = plan.get("activities", [])
+        activities_html = ""
+        for act in activities:
+            if isinstance(act, dict):
+                activities_html += '<div class="activity-block">'
+                activities_html += '<div class="act-header">'
+                activities_html += '<span class="act-title">🎯 ' + str(act.get("title", "")) + '</span>'
+                if act.get("type"):
+                    activities_html += '<span class="act-type">' + str(act["type"]) + '</span>'
+                if act.get("duration"):
+                    activities_html += '<span class="act-time">⏱️ ' + str(act["duration"]) + ' د</span>'
+                activities_html += '</div>'
+                activities_html += '<p>' + str(act.get("description", "")) + '</p>'
+                activities_html += '</div>'
+        
+        # التقويم
+        evaluation = plan.get("evaluation", {})
+        eval_html = ""
+        if evaluation:
+            eval_html = '<div class="time-badge">⏱️ ' + str(evaluation.get("duration", 10)) + ' دقائق</div>'
+            eval_html += render_list(evaluation.get("questions", []))
+        
+        # الواجب
+        homework = plan.get("homework", "")
+        difficulties = render_list(plan.get("common_difficulties", []))
+        examples = render_list(plan.get("real_life_examples", []))
+        
+        css = """
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Cairo', sans-serif; padding: 25px; max-width: 850px; margin: 0 auto; line-height: 1.8; color: #000; background: #fff; }
+            .header { text-align: center; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 3px double #1565c0; }
+            .school { font-size: 17px; font-weight: 700; color: #555; margin-bottom: 4px; }
+            h1 { font-family: 'Amiri', serif; font-size: 34px; color: #1565c0; margin: 6px 0; }
+            .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-top: 14px; }
+            .meta-item { background: #e3f2fd; padding: 8px 14px; border-radius: 6px; font-size: 14px; border-right: 4px solid #1565c0; }
+            section { margin: 22px 0; padding: 18px; background: #fafafa; border: 1px solid #eee; border-radius: 8px; page-break-inside: avoid; }
+            section h2 { font-family: 'Amiri', serif; color: #1565c0; font-size: 22px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #1565c0; }
+            section ul { padding-right: 22px; }
+            section li { margin: 6px 0; line-height: 1.9; }
+            .time-badge { display: inline-block; background: #fff3e0; color: #e65100; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 13px; margin-bottom: 10px; }
+            .step-block { margin: 12px 0; padding: 12px 14px; background: #fff; border-right: 4px solid #1976d2; border-radius: 4px; }
+            .step-block h4 { color: #1976d2; margin-bottom: 6px; font-size: 16px; }
+            .step-block p { font-size: 14px; line-height: 1.8; }
+            .activity-block { margin: 10px 0; padding: 12px 14px; background: #fff; border-right: 4px solid #f57c00; border-radius: 4px; }
+            .act-header { display: flex; gap: 10px; align-items: center; margin-bottom: 6px; flex-wrap: wrap; }
+            .act-title { font-weight: 700; color: #e65100; font-size: 15px; }
+            .act-type { background: #fff3e0; color: #e65100; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+            .act-time { background: #e3f2fd; color: #1565c0; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+            .homework-box { background: #fff8e1; border: 2px solid #ffa726; padding: 14px; border-radius: 8px; }
+            .signature { display: flex; justify-content: space-between; margin-top: 40px; font-size: 14px; }
+            .sign-block { text-align: center; min-width: 200px; }
+            .sign-line { border-top: 2px solid #000; margin-top: 50px; padding-top: 6px; }
+            .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 9999; }
+            .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; }
+            .controls button.green { background: #43a047; }
+            @media print { .controls { display: none !important; } body { padding: 15px; } @page { size: A4; margin: 1cm; } }
+        """
+        
+        # نُغلّف الأقسام
+        def section_block(title, content):
+            if not content or content == "":
+                return ""
+            return '<section><h2>' + title + '</h2>' + content + '</section>'
+        
+        sections_html = ""
+        sections_html += section_block("🎯 الأهداف العامة", gen_obj)
+        sections_html += section_block("📋 الأهداف السلوكية", beh_obj)
+        sections_html += section_block("🛠️ الوسائل والأدوات", tools)
+        sections_html += section_block("🚀 التمهيد", intro_html)
+        sections_html += section_block("📚 العرض والشرح", present_html)
+        sections_html += section_block("📝 الأنشطة والتطبيقات", activities_html)
+        sections_html += section_block("✅ التقويم", eval_html)
+        if homework:
+            sections_html += '<section><h2>📌 الواجب المنزلي</h2><div class="homework-box">' + homework + '</div></section>'
+        sections_html += section_block("⚠️ صعوبات شائعة وحلولها", difficulties)
+        sections_html += section_block("🌟 أمثلة من الحياة", examples)
+        
+        full_html = (
+            '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n'
+            '<meta charset="UTF-8">\n<title>' + lesson_name + '</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+            '<style>' + css + '</style>\n</head>\n<body>\n'
+            '<div class="controls">'
+            '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
+            '<button class="green" onclick="window.close()">✕ إغلاق</button>'
+            '</div>\n'
+            '<div class="header">'
+            + (('<div class="school">' + school_name + '</div>') if school_name else '') +
+            '<h1>📓 ' + lesson_name + '</h1>'
+            '<div class="meta-grid">'
+            '<div class="meta-item">📚 ' + grade + '</div>'
+            '<div class="meta-item">⏱️ ' + str(duration) + ' دقيقة</div>'
+            '<div class="meta-item">📅 ' + date + '</div>'
+            + (('<div class="meta-item">👨‍🏫 ' + teacher_name + '</div>') if teacher_name else '') +
+            '</div>'
+            '</div>\n'
+            + sections_html +
+            '<div class="signature">'
+            '<div class="sign-block"><div class="sign-line">المعلم ' + (teacher_name or '') + '</div></div>'
+            '<div class="sign-block"><div class="sign-line">المراجع</div></div>'
+            '</div>\n'
+            '</body>\n</html>'
+        )
+        
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=full_html)
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ في بناء PDF: {str(e)[:200]}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🎬 SHORT VIDEOS LIBRARY — مكتبة الفيديوهات للمعلمين
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/teacher/videos/list")
+async def teacher_videos_list(
+    grade: str = "",
+    unit: str = "",
+    lesson: str = "",
+    search: str = "",
+):
+    """🎬 قائمة الفيديوهات التعليمية المتاحة للمعلمين"""
+    try:
+        # محاولة جلب من جدول short_videos
+        try:
+            res = supabase.table("short_videos").select("*").eq("is_active", True).order("created_at", desc=True).execute()
+            all_videos = res.data or []
+        except Exception:
+            # لو الجدول غير موجود
+            return {"status": "ok", "videos": [], "count": 0, "warning": "جدول الفيديوهات غير موجود بعد"}
+        
+        # فلترة
+        def _norm(s): return str(s or "").strip().lower()
+        
+        if grade.strip():
+            ng = _norm(grade)
+            all_videos = [v for v in all_videos if 
+                _norm(v.get("grade")) == ng or ng in _norm(v.get("grade")) or _norm(v.get("grade")) in ng]
+        
+        if unit.strip():
+            nu = _norm(unit)
+            all_videos = [v for v in all_videos if _norm(v.get("unit")) == nu or nu in _norm(v.get("unit"))]
+        
+        if lesson.strip():
+            nl = _norm(lesson)
+            all_videos = [v for v in all_videos if _norm(v.get("lesson")) == nl or nl in _norm(v.get("lesson"))]
+        
+        if search.strip():
+            ns = _norm(search)
+            all_videos = [v for v in all_videos if 
+                ns in _norm(v.get("title")) or ns in _norm(v.get("description"))]
+        
+        return {
+            "status": "ok",
+            "videos": all_videos,
+            "count": len(all_videos),
+        }
+    
+    except Exception as e:
+        print(f"[videos] error: {e}")
+        return {"status": "error", "videos": [], "count": 0, "error": str(e)[:200]}
+
+
+@app.post("/api/teacher/videos/{video_id}/track_view")
+async def teacher_track_video_view(video_id: int):
+    """📊 تتبّع مشاهدة فيديو من المعلم"""
+    try:
+        # ننقّب الـ view_count
+        cur = supabase.table("short_videos").select("view_count").eq("id", video_id).maybe_single().execute()
+        if cur and cur.data:
+            new_count = (cur.data.get("view_count") or 0) + 1
+            supabase.table("short_videos").update({"view_count": new_count}).eq("id", video_id).execute()
+            return {"status": "ok", "view_count": new_count}
+    except Exception as e:
+        print(f"[track_view] error: {e}")
+    return {"status": "ok"}
 
 
 @app.post("/api/admin/update_password")
