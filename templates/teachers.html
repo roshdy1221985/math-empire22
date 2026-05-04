@@ -1460,6 +1460,12 @@
         
         .btn-profile { border-color:#48d1cc !important; color:#48d1cc !important; background:linear-gradient(135deg, rgba(72,209,204,0.12), rgba(72,209,204,0.04)) !important; }
         .btn-profile:hover, .btn-profile.active { background:linear-gradient(135deg,#16a085,#48d1cc) !important; color:#fff !important; box-shadow:0 8px 24px rgba(72,209,204,0.5) !important; }
+        
+        .btn-exam:hover, .btn-exam.active { background:linear-gradient(135deg,#c0392b,#e74c3c) !important; color:#fff !important; box-shadow:0 8px 24px rgba(231,76,60,0.5) !important; }
+        .btn-cert:hover, .btn-cert.active { background:linear-gradient(135deg,#0e7d6c,#16a085) !important; color:#fff !important; box-shadow:0 8px 24px rgba(22,160,133,0.5) !important; }
+        .btn-visual:hover, .btn-visual.active { background:linear-gradient(135deg,#e67e22,#f39c12) !important; color:#1a0d2e !important; box-shadow:0 8px 24px rgba(243,156,18,0.5) !important; }
+        .btn-schedule:hover, .btn-schedule.active { background:linear-gradient(135deg,#6c3483,#9b59b6) !important; color:#fff !important; box-shadow:0 8px 24px rgba(155,89,182,0.5) !important; }
+        .btn-profile:hover, .btn-profile.active { background:linear-gradient(135deg,#16a085,#48d1cc) !important; color:#fff !important; box-shadow:0 8px 24px rgba(72,209,204,0.5) !important; }
 
 
         </style>
@@ -1649,6 +1655,18 @@
         <div class="sidebar-section-title">🛠️ أدوات المعلم</div>
         <button class="nav-btn btn-bank shiny-btn" onclick="showSection('bank',this)">
             <span class="btn-icon">❓</span> <span>بنك الأسئلة</span>
+        </button>
+        <button class="nav-btn btn-exam shiny-btn" onclick="showSection('exam-gen',this)" style="border-color:#e74c3c !important; color:#ff7676 !important; background:linear-gradient(135deg, rgba(231,76,60,0.12), rgba(231,76,60,0.04)) !important;">
+            <span class="btn-icon">📝</span> <span>مولّد الاختبارات</span>
+        </button>
+        <button class="nav-btn btn-cert shiny-btn" onclick="showSection('certificates',this)" style="border-color:#16a085 !important; color:#48d1cc !important; background:linear-gradient(135deg, rgba(22,160,133,0.12), rgba(22,160,133,0.04)) !important;">
+            <span class="btn-icon">🏆</span> <span>الشهادات والقوالب</span>
+        </button>
+        <button class="nav-btn btn-visual shiny-btn" onclick="showSection('visual-maker',this)" style="border-color:#f39c12 !important; color:#f9c74f !important; background:linear-gradient(135deg, rgba(243,156,18,0.12), rgba(243,156,18,0.04)) !important;">
+            <span class="btn-icon">🎨</span> <span>صانع المسائل البصرية</span>
+        </button>
+        <button class="nav-btn btn-schedule shiny-btn" onclick="showSection('schedule-tpl',this)" style="border-color:#9b59b6 !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(155,89,182,0.12), rgba(155,89,182,0.04)) !important;">
+            <span class="btn-icon">📅</span> <span>قوالب جداول الحصص</span>
         </button>
         
         <!-- ⚙️ القسم 3: الحساب والدعم -->
@@ -2120,6 +2138,390 @@
                 <div class="skeleton" style="height:80px;border-radius:14px;"></div>
             </div>
         </div>
+    </div>
+
+
+    
+    <!-- ══════════════════════════════════════════════════════
+         📝 قسم مولّد الاختبارات الفوري
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-exam-gen" class="section">
+        <!-- Header ملحمي -->
+        <div style="background:linear-gradient(160deg,rgba(231,76,60,0.08),rgba(0,8,20,0.9));border:2px solid #e74c3c;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#e74c3c;">📋</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(231,76,60,0.6));">📝</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#ff7676,#e74c3c,#ffadad,#e74c3c,#c0392b);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">مولّد الاختبارات الفوري</h2>
+            <p style="color:rgba(255,118,118,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">⚡ اختر صف ودرس → احصل على ورقة اختبار PDF احترافية ⚡</p>
+            <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">يوفّر ساعات من العمل · جاهز للطباعة · يحتوي ورقة الإجابات</p>
+        </div>
+
+        <!-- النموذج -->
+        <div style="display:grid;grid-template-columns:1fr;gap:18px;">
+            
+            <!-- معلومات الاختبار -->
+            <div class="glass-card" style="padding:22px;">
+                <h3 style="color:#ff7676;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📋 معلومات الاختبار</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📝 عنوان الاختبار</label>
+                        <input type="text" id="exam-title" value="اختبار رياضيات" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🏫 اسم المدرسة</label>
+                        <input type="text" id="exam-school" placeholder="مدرسة..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👨‍🏫 اسم المعلم</label>
+                        <input type="text" id="exam-teacher" placeholder="الأستاذ..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🏛️ الفصل (اختياري)</label>
+                        <input type="text" id="exam-class" placeholder="مثل: 8/أ" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- اختيار الصف والدرس -->
+            <div class="glass-card" style="padding:22px;">
+                <h3 style="color:#ff7676;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎯 اختيار المحتوى</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🎓 الصف *</label>
+                        <select id="exg-grade" onchange="exgUpdateSemesters()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="">-- اختر الصف --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📅 الفصل</label>
+                        <select id="exg-semester" onchange="exgUpdateUnits()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="">كل الفصول</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📦 الوحدة</label>
+                        <select id="exg-unit" onchange="exgUpdateLessons()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="">كل الوحدات</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📖 الدرس</label>
+                        <select id="exg-lesson" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="">كل دروس الوحدة</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إعدادات الاختبار -->
+            <div class="glass-card" style="padding:22px;">
+                <h3 style="color:#ff7676;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">⚙️ إعدادات الاختبار</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🔢 عدد الأسئلة</label>
+                        <input type="number" id="exg-count" value="10" min="3" max="50" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">⭐ الدرجة الكلية</label>
+                        <input type="number" id="exg-marks" value="20" min="5" max="200" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📌 نوع الأسئلة</label>
+                        <select id="exg-types" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="all">كل الأنواع</option>
+                            <option value="mcq">اختياري متعدد فقط</option>
+                            <option value="tf">صواب/خطأ فقط</option>
+                            <option value="short">إجابة قصيرة فقط</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">✅ الخيارات</label>
+                        <div style="display:flex;flex-direction:column;gap:6px;">
+                            <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                <input type="checkbox" id="exg-show-marks" checked> إظهار درجة كل سؤال
+                            </label>
+                            <label style="display:flex;align-items:center;gap:6px;font-size:0.85rem;cursor:pointer;">
+                                <input type="checkbox" id="exg-include-answers" checked> إضافة ورقة الإجابات
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- إحصاءات وأزرار -->
+            <div class="glass-card" style="padding:22px;text-align:center;">
+                <div id="exg-stats" style="margin-bottom:16px;padding:14px;background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.25);border-radius:12px;color:rgba(255,255,255,0.85);font-weight:600;display:none;">
+                    ⏳ جارٍ التحميل...
+                </div>
+                <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+                    <button onclick="exgPreview()" style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:14px 32px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(52,152,219,0.4);">
+                        👁️ معاينة الأسئلة
+                    </button>
+                    <button onclick="exgGenerate()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:14px 32px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(231,76,60,0.5);">
+                        🚀 إنشاء الاختبار
+                    </button>
+                </div>
+            </div>
+
+            <!-- منطقة المعاينة -->
+            <div id="exg-preview" style="display:none;"></div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         🏆 قسم الشهادات والقوالب
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-certificates" class="section">
+        <!-- Header ملحمي -->
+        <div style="background:linear-gradient(160deg,rgba(22,160,133,0.08),rgba(0,8,20,0.9));border:2px solid #16a085;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#48d1cc;">⚜️</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(72,209,204,0.6));">🏆</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#48d1cc,#16a085,#7fffd4,#16a085,#0e7d6c);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">شهادات التقدير الملحمية</h2>
+            <p style="color:rgba(72,209,204,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">🌟 5 تصاميم احترافية · طباعة فردية أو دفعة كاملة 🌟</p>
+        </div>
+
+        <!-- اختيار التصميم -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#48d1cc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎨 اختر التصميم</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
+                <div class="cert-template active" data-template="gold" onclick="selectCertTemplate('gold')" style="background:#fefae0;border:3px solid #d4af37;border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#5d4e1f;">
+                    <div style="font-size:2.5rem;">👑</div>
+                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الذهبي الملكي</div>
+                </div>
+                <div class="cert-template" data-template="royal" onclick="selectCertTemplate('royal')" style="background:#f0e8ff;border:3px solid rgba(91,62,138,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#3d2666;">
+                    <div style="font-size:2.5rem;">🎖️</div>
+                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الملكي البنفسجي</div>
+                </div>
+                <div class="cert-template" data-template="modern" onclick="selectCertTemplate('modern')" style="background:#f0f9ff;border:3px solid rgba(14,165,233,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#0369a1;">
+                    <div style="font-size:2.5rem;">🏆</div>
+                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">العصري الأزرق</div>
+                </div>
+                <div class="cert-template" data-template="classic" onclick="selectCertTemplate('classic')" style="background:#fff5e6;border:3px solid rgba(201,116,45,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#7a4317;">
+                    <div style="font-size:2.5rem;">📜</div>
+                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الكلاسيكي</div>
+                </div>
+                <div class="cert-template" data-template="floral" onclick="selectCertTemplate('floral')" style="background:#fff0f5;border:3px solid rgba(214,51,132,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#831843;">
+                    <div style="font-size:2.5rem;">🌸</div>
+                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الزهري الأنيق</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- وضعية الإنشاء -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#48d1cc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📝 طريقة الإنشاء</h3>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+                <button onclick="setCertMode('single')" id="cert-mode-single-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#48d1cc,#16a085);color:#fff;border:none;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                    👤 شهادة واحدة
+                </button>
+                <button onclick="setCertMode('batch')" id="cert-mode-batch-btn" style="flex:1;min-width:150px;background:rgba(72,209,204,0.1);color:#48d1cc;border:1px solid #48d1cc;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                    👥 طباعة دفعة
+                </button>
+            </div>
+
+            <!-- نمط شهادة واحدة -->
+            <div id="cert-single-form">
+                <div style="display:grid;grid-template-columns:1fr;gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👤 اسم الطالب *</label>
+                        <input type="text" id="cert-name" placeholder="محمد أحمد" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- نمط دفعة -->
+            <div id="cert-batch-form" style="display:none;">
+                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👥 أسماء الطلاب (اسم في كل سطر)</label>
+                <textarea id="cert-names-list" rows="8" placeholder="محمد أحمد&#10;سارة علي&#10;أحمد محمد&#10;..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;resize:vertical;"></textarea>
+                <p style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:6px;">💡 يمكنك لصق قائمة طلاب فصل كامل (حد أقصى 50 شهادة)</p>
+            </div>
+
+            <!-- بيانات مشتركة -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-top:16px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🌟 سبب التقدير</label>
+                    <input type="text" id="cert-achievement" value="التميّز في الرياضيات" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🎓 الصف</label>
+                    <input type="text" id="cert-grade" placeholder="الصف السادس" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🏫 المدرسة</label>
+                    <input type="text" id="cert-school" placeholder="مدرسة..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👨‍🏫 المعلم</label>
+                    <input type="text" id="cert-teacher" placeholder="الأستاذ..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+            </div>
+            
+            <div style="margin-top:14px;">
+                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📝 نص إضافي (اختياري — للنمط الفردي فقط)</label>
+                <input type="text" id="cert-extra" placeholder="ملاحظة تشجيعية..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+            </div>
+        </div>
+
+        <!-- زر الإنشاء -->
+        <div class="glass-card" style="padding:22px;text-align:center;">
+            <button onclick="generateCertificate()" id="cert-generate-btn" style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:16px 40px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.1rem;box-shadow:0 6px 18px rgba(22,160,133,0.5);">
+                🎯 إنشاء الشهادة وفتحها للطباعة
+            </button>
+            <p style="margin-top:12px;font-size:0.82rem;color:rgba(255,255,255,0.5);line-height:1.7;">💡 ستفتح الشهادة في نافذة جديدة جاهزة للطباعة أو الحفظ كـ PDF</p>
+        </div>
+    </div>
+
+
+
+    
+    <!-- ══════════════════════════════════════════════════════
+         🎨 قسم صانع المسائل البصرية
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-visual-maker" class="section">
+        <!-- Header -->
+        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:2px solid #f39c12;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#f39c12;">📐</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(243,156,18,0.6));">🎨</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#f9c74f,#f39c12,#fdd835,#f39c12,#e67e22);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">صانع المسائل البصرية</h2>
+            <p style="color:rgba(249,199,79,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">📐 رسم أشكال هندسية ومحاور أعداد ورسوم بيانية احترافية في ثوانٍ 📊</p>
+            <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">حفظ كصورة PNG عالية الجودة لاستخدامها في حصصك</p>
+        </div>
+
+        <!-- اختيار النوع -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎯 اختر نوع الشكل</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
+                <div class="vm-tool" data-tool="triangle" onclick="vmSelectTool('triangle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">📐</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">مثلث</div>
+                </div>
+                <div class="vm-tool" data-tool="rectangle" onclick="vmSelectTool('rectangle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">▭</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">مستطيل</div>
+                </div>
+                <div class="vm-tool" data-tool="circle" onclick="vmSelectTool('circle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">⭕</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">دائرة</div>
+                </div>
+                <div class="vm-tool" data-tool="circle-sector" onclick="vmSelectTool('circle-sector')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">🥧</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">قطاع دائري</div>
+                </div>
+                <div class="vm-tool" data-tool="number-line" onclick="vmSelectTool('number-line')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">📏</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">محور أعداد</div>
+                </div>
+                <div class="vm-tool" data-tool="bar-chart" onclick="vmSelectTool('bar-chart')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">📊</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">رسم بياني عمودي</div>
+                </div>
+                <div class="vm-tool" data-tool="pie-chart" onclick="vmSelectTool('pie-chart')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">🥧</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">رسم دائري</div>
+                </div>
+                <div class="vm-tool" data-tool="grid" onclick="vmSelectTool('grid')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">▦</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">شبكة هندسية</div>
+                </div>
+                <div class="vm-tool" data-tool="fraction-bar" onclick="vmSelectTool('fraction-bar')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:2rem;">🟧</div>
+                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">شريط كسور</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- لوحة الإعدادات + المعاينة -->
+        <div style="display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start;" id="vm-main-grid">
+            <!-- الإعدادات -->
+            <div class="glass-card" style="padding:20px;position:sticky;top:20px;">
+                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 14px;font-size:1.1rem;">⚙️ الإعدادات</h3>
+                <div id="vm-controls">
+                    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-align:center;padding:20px;">🎯 اختر نوع الشكل أولاً</p>
+                </div>
+            </div>
+
+            <!-- منطقة المعاينة -->
+            <div class="glass-card" style="padding:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                    <h3 style="color:#f9c74f;font-family:'Amiri';margin:0;font-size:1.1rem;">👁️ المعاينة</h3>
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="vmDownload('png')" id="vm-btn-png" disabled style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
+                            📥 PNG
+                        </button>
+                        <button onclick="vmDownload('svg')" id="vm-btn-svg" disabled style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
+                            📥 SVG
+                        </button>
+                        <button onclick="vmCopyImage()" id="vm-btn-copy" disabled style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
+                            📋 نسخ
+                        </button>
+                    </div>
+                </div>
+                <div id="vm-preview" style="background:#fff;border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:30px;min-height:400px;display:flex;align-items:center;justify-content:center;">
+                    <div style="text-align:center;color:#999;">
+                        <div style="font-size:4rem;margin-bottom:10px;">🎨</div>
+                        <div style="font-weight:600;">اختر شكلاً وابدأ التصميم</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         📅 قسم قوالب جداول الحصص
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-schedule-tpl" class="section">
+        <!-- Header -->
+        <div style="background:linear-gradient(160deg,rgba(155,89,182,0.08),rgba(0,8,20,0.9));border:2px solid #9b59b6;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#bb86fc;">📋</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(155,89,182,0.6));">📅</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff,#9b59b6,#6c3483);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">قوالب جداول الحصص</h2>
+            <p style="color:rgba(187,134,252,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">📅 جداول حصص أسبوعية احترافية · جداول رصد درجات · سجلّات الحضور</p>
+        </div>
+
+        <!-- اختيار القالب -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#bb86fc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📋 اختر القالب</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+                <div onclick="generateSchedule('weekly')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📅</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">جدول الحصص الأسبوعي</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">7 أيام × 8 حصص — جاهز للملء</p>
+                </div>
+                
+                <div onclick="generateSchedule('grades')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📊</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">جدول رصد الدرجات</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">قائمة طلاب + 6 اختبارات</p>
+                </div>
+                
+                <div onclick="generateSchedule('attendance')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">سجل الحضور والغياب</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">طلاب × أيام الشهر</p>
+                </div>
+                
+                <div onclick="generateSchedule('lesson-plan')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📝</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">قالب تحضير درس</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">أهداف · أنشطة · تقويم</p>
+                </div>
+                
+                <div onclick="generateSchedule('parent-meeting')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">👨‍👩‍👧</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">سجل اجتماع أولياء الأمور</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">توقيعات + ملاحظات</p>
+                </div>
+                
+                <div onclick="generateSchedule('honor-board')" style="background:rgba(155,89,182,0.06);border:2px solid rgba(155,89,182,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(155,89,182,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🏆</div>
+                    <div style="font-weight:700;color:#bb86fc;font-family:'Amiri';font-size:1.05rem;">لوحة شرف الطلاب</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">طباعة وتعليق في الفصل</p>
+                </div>
+            </div>
+        </div>
+
+        <p style="text-align:center;font-size:0.88rem;color:rgba(255,255,255,0.55);line-height:1.8;">💡 اضغط أي قالب لفتحه فوراً جاهزاً للطباعة أو الحفظ كـ PDF</p>
     </div>
 
 
@@ -3516,6 +3918,1168 @@ async function ilCopyLessonLink(lessonId) {
     }
 }
 
+
+
+
+// ════════════════════════════════════════════════════════════
+// 📝 EXAM GENERATOR — مولّد الاختبارات
+// ════════════════════════════════════════════════════════════
+var _exgCurriculum = [];
+var _exgSelectedTemplate = 'gold';
+var _certMode = 'single';
+
+async function loadExamGenerator() {
+    if (!_exgCurriculum.length) {
+        try {
+            var res = await fetch(API_URL + '/api/curriculum/structure');
+            if (res.ok) {
+                _exgCurriculum = await res.json();
+                exgFillGrades();
+            }
+        } catch(e) { console.warn('[exg] curr fetch:', e); }
+    }
+}
+
+function exgFillGrades() {
+    var sel = document.getElementById('exg-grade');
+    if (!sel) return;
+    while (sel.options.length > 1) sel.remove(1);
+    _exgCurriculum.forEach(function(g) {
+        if (!g || !g.name) return;
+        var opt = document.createElement('option');
+        opt.value = g.name;
+        opt.textContent = g.name;
+        sel.appendChild(opt);
+    });
+}
+
+function exgUpdateSemesters() {
+    var grade = document.getElementById('exg-grade').value;
+    var sel = document.getElementById('exg-semester');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">كل الفصول</option>';
+    if (!grade) return;
+    var g = _exgCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g || !g.semesters) return;
+    g.semesters.forEach(function(s) {
+        if (!s || !s.name) return;
+        var opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.name;
+        sel.appendChild(opt);
+    });
+    exgUpdateUnits();
+}
+
+function exgUpdateUnits() {
+    var grade = document.getElementById('exg-grade').value;
+    var sem   = document.getElementById('exg-semester').value;
+    var sel   = document.getElementById('exg-unit');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">كل الوحدات</option>';
+    if (!grade || !sem) return;
+    var g = _exgCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g) return;
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
+    if (!s || !s.units) return;
+    s.units.forEach(function(u) {
+        if (!u || !u.name) return;
+        var opt = document.createElement('option');
+        opt.value = u.name;
+        opt.textContent = u.name;
+        sel.appendChild(opt);
+    });
+    exgUpdateLessons();
+}
+
+function exgUpdateLessons() {
+    var grade = document.getElementById('exg-grade').value;
+    var sem   = document.getElementById('exg-semester').value;
+    var unit  = document.getElementById('exg-unit').value;
+    var sel   = document.getElementById('exg-lesson');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">كل دروس الوحدة</option>';
+    if (!grade || !sem || !unit) return;
+    var g = _exgCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g) return;
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
+    if (!s) return;
+    var u = (s.units || []).find(function(x) { return x && x.name === unit; });
+    if (!u || !u.lessons) return;
+    u.lessons.forEach(function(l) {
+        var name = typeof l === 'string' ? l : (l && l.name ? l.name : '');
+        if (!name) return;
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+    });
+}
+
+async function exgPreview() {
+    var grade = document.getElementById('exg-grade').value;
+    if (!grade) {
+        if (typeof showToast === 'function') showToast('⚠️ اختر الصف أولاً', 'warning');
+        return;
+    }
+    
+    var statsEl = document.getElementById('exg-stats');
+    statsEl.style.display = 'block';
+    statsEl.innerHTML = '⏳ جارٍ جلب الأسئلة...';
+    
+    var params = new URLSearchParams({
+        grade: grade,
+        semester: document.getElementById('exg-semester').value,
+        unit: document.getElementById('exg-unit').value,
+        lesson: document.getElementById('exg-lesson').value,
+        count: document.getElementById('exg-count').value,
+        types: document.getElementById('exg-types').value,
+    });
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/exam_generator/preview?' + params.toString());
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var data = await res.json();
+        
+        statsEl.innerHTML = '✅ <b style="color:#2ecc71;">' + data.selected_count + '</b> سؤال جاهز' +
+                           ' &nbsp;|&nbsp; 📊 الإجمالي المتاح: <b style="color:#5dade2;">' + data.total_available + '</b>';
+        
+        // عرض المعاينة
+        var preview = document.getElementById('exg-preview');
+        preview.style.display = 'block';
+        var html = '<div class="glass-card" style="padding:22px;">';
+        html += '<h3 style="color:#ff7676;font-family:\'Amiri\';margin:0 0 14px;font-size:1.2rem;">👁️ معاينة الأسئلة</h3>';
+        html += '<div style="max-height:500px;overflow-y:auto;">';
+        (data.questions || []).forEach(function(q, i) {
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;margin-bottom:10px;">';
+            html += '<div style="font-weight:600;color:#ff7676;margin-bottom:6px;">' + (i+1) + '. ' + esc(q.question || '') + '</div>';
+            if (q.options) {
+                var opts = typeof q.options === 'string' ? q.options.split(',') : q.options;
+                html += '<div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">' + opts.map(function(o){return esc(o.trim());}).join(' · ') + '</div>';
+            }
+            html += '</div>';
+        });
+        html += '</div></div>';
+        preview.innerHTML = html;
+    } catch(e) {
+        statsEl.innerHTML = '❌ <b style="color:#e74c3c;">' + (e.message || 'خطأ') + '</b>';
+    }
+}
+
+async function exgGenerate() {
+    var grade = document.getElementById('exg-grade').value;
+    if (!grade) {
+        if (typeof showToast === 'function') showToast('⚠️ اختر الصف أولاً', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('title', document.getElementById('exam-title').value || 'اختبار رياضيات');
+    fd.append('school_name', document.getElementById('exam-school').value);
+    fd.append('teacher_name', document.getElementById('exam-teacher').value);
+    fd.append('class_name', document.getElementById('exam-class').value);
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('exg-semester').value);
+    fd.append('unit', document.getElementById('exg-unit').value);
+    fd.append('lesson', document.getElementById('exg-lesson').value);
+    fd.append('count', document.getElementById('exg-count').value);
+    fd.append('types', document.getElementById('exg-types').value);
+    fd.append('total_marks', document.getElementById('exg-marks').value);
+    fd.append('show_marks', document.getElementById('exg-show-marks').checked);
+    fd.append('include_answers', document.getElementById('exg-include-answers').checked);
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/exam_generator/build_pdf', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var html = await res.text();
+        
+        // فتح في نافذة جديدة
+        var w = window.open('', '_blank');
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+        
+        if (typeof showToast === 'function') showToast('✅ الاختبار جاهز للطباعة', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🏆 CERTIFICATES — الشهادات والقوالب
+// ════════════════════════════════════════════════════════════
+function selectCertTemplate(template) {
+    _exgSelectedTemplate = template;
+    document.querySelectorAll('.cert-template').forEach(function(el) {
+        el.classList.remove('active');
+        el.style.boxShadow = '';
+        el.style.transform = '';
+    });
+    var active = document.querySelector('.cert-template[data-template="' + template + '"]');
+    if (active) {
+        active.classList.add('active');
+        active.style.boxShadow = '0 8px 24px rgba(72,209,204,0.4)';
+        active.style.transform = 'translateY(-3px) scale(1.02)';
+    }
+}
+
+function setCertMode(mode) {
+    _certMode = mode;
+    var single = document.getElementById('cert-single-form');
+    var batch = document.getElementById('cert-batch-form');
+    var btnS = document.getElementById('cert-mode-single-btn');
+    var btnB = document.getElementById('cert-mode-batch-btn');
+    
+    if (mode === 'single') {
+        single.style.display = 'block';
+        batch.style.display = 'none';
+        btnS.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
+        btnS.style.color = '#fff';
+        btnS.style.border = 'none';
+        btnB.style.background = 'rgba(72,209,204,0.1)';
+        btnB.style.color = '#48d1cc';
+        btnB.style.border = '1px solid #48d1cc';
+    } else {
+        single.style.display = 'none';
+        batch.style.display = 'block';
+        btnB.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
+        btnB.style.color = '#fff';
+        btnB.style.border = 'none';
+        btnS.style.background = 'rgba(72,209,204,0.1)';
+        btnS.style.color = '#48d1cc';
+        btnS.style.border = '1px solid #48d1cc';
+    }
+}
+
+async function generateCertificate() {
+    var fd = new FormData();
+    fd.append('template', _exgSelectedTemplate);
+    fd.append('achievement', document.getElementById('cert-achievement').value || 'التميّز في الرياضيات');
+    fd.append('grade', document.getElementById('cert-grade').value);
+    fd.append('school_name', document.getElementById('cert-school').value);
+    fd.append('teacher_name', document.getElementById('cert-teacher').value);
+    
+    var endpoint, btn = document.getElementById('cert-generate-btn');
+    var origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ جارٍ الإنشاء...';
+    
+    try {
+        if (_certMode === 'single') {
+            var name = document.getElementById('cert-name').value.trim();
+            if (!name) {
+                if (typeof showToast === 'function') showToast('⚠️ أدخل اسم الطالب', 'warning');
+                btn.disabled = false; btn.innerHTML = origText;
+                return;
+            }
+            fd.append('student_name', name);
+            fd.append('extra_text', document.getElementById('cert-extra').value);
+            endpoint = '/api/teacher/certificate/build';
+        } else {
+            var names = document.getElementById('cert-names-list').value.trim();
+            if (!names) {
+                if (typeof showToast === 'function') showToast('⚠️ أدخل قائمة الأسماء', 'warning');
+                btn.disabled = false; btn.innerHTML = origText;
+                return;
+            }
+            fd.append('student_names', names);
+            endpoint = '/api/teacher/certificate/batch';
+        }
+        
+        var res = await fetch(API_URL + endpoint, { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var html = await res.text();
+        
+        var w = window.open('', '_blank');
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+        
+        if (typeof showToast === 'function') showToast('✅ الشهادة جاهزة للطباعة', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+// تحميل تلقائي عند فتح القسمين
+(function() {
+    var origShow = window.showSection;
+    if (typeof origShow === 'function') {
+        window.showSection = function(name, el) {
+            origShow.call(this, name, el);
+            if (name === 'exam-gen') {
+                setTimeout(loadExamGenerator, 200);
+            } else if (name === 'certificates') {
+                setTimeout(function() {
+                    selectCertTemplate('gold');
+                    setCertMode('single');
+                }, 200);
+            }
+        };
+    }
+})();
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🎨 VISUAL MAKER — صانع المسائل البصرية
+// ════════════════════════════════════════════════════════════
+var _vmCurrentTool = null;
+var _vmCurrentSVG = null;
+
+function vmSelectTool(tool) {
+    _vmCurrentTool = tool;
+    
+    // تمييز الأداة المختارة
+    document.querySelectorAll('.vm-tool').forEach(function(el) {
+        el.style.background = 'rgba(243,156,18,0.06)';
+        el.style.borderColor = 'rgba(243,156,18,0.3)';
+        el.style.transform = '';
+    });
+    var active = document.querySelector('.vm-tool[data-tool="' + tool + '"]');
+    if (active) {
+        active.style.background = 'linear-gradient(135deg,rgba(243,156,18,0.3),rgba(243,156,18,0.1))';
+        active.style.borderColor = '#f39c12';
+        active.style.transform = 'translateY(-2px) scale(1.05)';
+    }
+    
+    // عرض الإعدادات المناسبة
+    vmRenderControls(tool);
+    // رسم أوّلي
+    setTimeout(vmDraw, 100);
+}
+
+function vmRenderControls(tool) {
+    var ctrl = document.getElementById('vm-controls');
+    if (!ctrl) return;
+    
+    var fieldStyle = 'width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:9px 12px;border-radius:8px;font-family:Cairo;font-weight:600;margin-bottom:10px;';
+    var labelStyle = 'display:block;font-size:0.82rem;color:rgba(255,255,255,0.7);margin-bottom:4px;font-weight:600;';
+    
+    var html = '';
+    
+    if (tool === 'triangle') {
+        html += '<label style="' + labelStyle + '">📐 نوع المثلث</label>';
+        html += '<select id="vm-tri-type" onchange="vmDraw()" style="' + fieldStyle + '">';
+        html += '<option value="right">قائم الزاوية</option>';
+        html += '<option value="equilateral">متساوي الأضلاع</option>';
+        html += '<option value="isosceles">متساوي الساقين</option>';
+        html += '<option value="scalene">مختلف الأضلاع</option>';
+        html += '</select>';
+        html += '<label style="' + labelStyle + '">📏 الضلع الأول</label>';
+        html += '<input type="number" id="vm-tri-a" value="6" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">📏 الضلع الثاني</label>';
+        html += '<input type="number" id="vm-tri-b" value="8" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">📏 الضلع الثالث (أو الوتر)</label>';
+        html += '<input type="number" id="vm-tri-c" value="10" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;">';
+        html += '<input type="checkbox" id="vm-tri-labels" checked onchange="vmDraw()"> إظهار التسميات';
+        html += '</label>';
+    }
+    else if (tool === 'rectangle') {
+        html += '<label style="' + labelStyle + '">📏 العرض</label>';
+        html += '<input type="number" id="vm-rect-w" value="10" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">📏 الارتفاع</label>';
+        html += '<input type="number" id="vm-rect-h" value="6" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🎨 لون الحدود</label>';
+        html += '<input type="color" id="vm-rect-color" value="#1976d2" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;">';
+        html += '<input type="checkbox" id="vm-rect-fill" onchange="vmDraw()"> ملء بلون فاتح';
+        html += '</label>';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;margin-top:6px;">';
+        html += '<input type="checkbox" id="vm-rect-labels" checked onchange="vmDraw()"> إظهار القياسات';
+        html += '</label>';
+    }
+    else if (tool === 'circle') {
+        html += '<label style="' + labelStyle + '">⭕ نصف القطر</label>';
+        html += '<input type="number" id="vm-circle-r" value="5" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🎨 اللون</label>';
+        html += '<input type="color" id="vm-circle-color" value="#e74c3c" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;">';
+        html += '<input type="checkbox" id="vm-circle-radius" checked onchange="vmDraw()"> رسم نصف القطر';
+        html += '</label>';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;margin-top:6px;">';
+        html += '<input type="checkbox" id="vm-circle-diameter" onchange="vmDraw()"> رسم القطر';
+        html += '</label>';
+    }
+    else if (tool === 'circle-sector') {
+        html += '<label style="' + labelStyle + '">📐 زاوية القطاع (درجة)</label>';
+        html += '<input type="number" id="vm-sec-angle" value="90" min="1" max="360" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">⭕ نصف القطر</label>';
+        html += '<input type="number" id="vm-sec-r" value="5" min="1" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🎨 لون القطاع</label>';
+        html += '<input type="color" id="vm-sec-color" value="#3498db" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+    }
+    else if (tool === 'number-line') {
+        html += '<label style="' + labelStyle + '">⬅️ أصغر قيمة</label>';
+        html += '<input type="number" id="vm-nl-min" value="-10" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">➡️ أكبر قيمة</label>';
+        html += '<input type="number" id="vm-nl-max" value="10" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">📌 نقاط محدّدة (مفصولة بفواصل)</label>';
+        html += '<input type="text" id="vm-nl-points" placeholder="-3, 0, 5" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🎨 لون النقاط</label>';
+        html += '<input type="color" id="vm-nl-color" value="#e74c3c" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+    }
+    else if (tool === 'bar-chart') {
+        html += '<label style="' + labelStyle + '">📊 البيانات (اسم:قيمة، مفصولة بأسطر)</label>';
+        html += '<textarea id="vm-bar-data" rows="6" oninput="vmDraw()" style="' + fieldStyle + 'resize:vertical;">رياضيات:85\nعلوم:78\nلغة:92\nتاريخ:70</textarea>';
+        html += '<label style="' + labelStyle + '">🎨 لون الأعمدة</label>';
+        html += '<input type="color" id="vm-bar-color" value="#3498db" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+        html += '<label style="' + labelStyle + '">📝 العنوان</label>';
+        html += '<input type="text" id="vm-bar-title" value="درجات الطلاب" oninput="vmDraw()" style="' + fieldStyle + '">';
+    }
+    else if (tool === 'pie-chart') {
+        html += '<label style="' + labelStyle + '">🥧 البيانات (اسم:نسبة، مفصولة بأسطر)</label>';
+        html += '<textarea id="vm-pie-data" rows="6" oninput="vmDraw()" style="' + fieldStyle + 'resize:vertical;">القسم الأول:35\nالقسم الثاني:25\nالقسم الثالث:20\nالقسم الرابع:20</textarea>';
+        html += '<label style="' + labelStyle + '">📝 العنوان</label>';
+        html += '<input type="text" id="vm-pie-title" value="توزيع البيانات" oninput="vmDraw()" style="' + fieldStyle + '">';
+    }
+    else if (tool === 'grid') {
+        html += '<label style="' + labelStyle + '">🔢 عدد الأعمدة</label>';
+        html += '<input type="number" id="vm-grid-cols" value="10" min="2" max="30" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🔢 عدد الصفوف</label>';
+        html += '<input type="number" id="vm-grid-rows" value="10" min="2" max="30" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;">';
+        html += '<input type="checkbox" id="vm-grid-axes" checked onchange="vmDraw()"> إظهار المحاور';
+        html += '</label>';
+        html += '<label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85rem;margin-top:6px;">';
+        html += '<input type="checkbox" id="vm-grid-numbers" onchange="vmDraw()"> إظهار الأرقام';
+        html += '</label>';
+    }
+    else if (tool === 'fraction-bar') {
+        html += '<label style="' + labelStyle + '">🔢 المقام (عدد الأقسام)</label>';
+        html += '<input type="number" id="vm-frac-denom" value="6" min="2" max="20" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🔢 البسط (عدد الأقسام الملوّنة)</label>';
+        html += '<input type="number" id="vm-frac-num" value="3" min="0" oninput="vmDraw()" style="' + fieldStyle + '">';
+        html += '<label style="' + labelStyle + '">🎨 لون التظليل</label>';
+        html += '<input type="color" id="vm-frac-color" value="#e74c3c" oninput="vmDraw()" style="' + fieldStyle + 'height:40px;cursor:pointer;">';
+    }
+    
+    ctrl.innerHTML = html;
+}
+
+function vmDraw() {
+    var preview = document.getElementById('vm-preview');
+    if (!preview || !_vmCurrentTool) return;
+    
+    var svg = '';
+    
+    if (_vmCurrentTool === 'triangle') {
+        svg = vmDrawTriangle();
+    } else if (_vmCurrentTool === 'rectangle') {
+        svg = vmDrawRectangle();
+    } else if (_vmCurrentTool === 'circle') {
+        svg = vmDrawCircle();
+    } else if (_vmCurrentTool === 'circle-sector') {
+        svg = vmDrawSector();
+    } else if (_vmCurrentTool === 'number-line') {
+        svg = vmDrawNumberLine();
+    } else if (_vmCurrentTool === 'bar-chart') {
+        svg = vmDrawBarChart();
+    } else if (_vmCurrentTool === 'pie-chart') {
+        svg = vmDrawPieChart();
+    } else if (_vmCurrentTool === 'grid') {
+        svg = vmDrawGrid();
+    } else if (_vmCurrentTool === 'fraction-bar') {
+        svg = vmDrawFractionBar();
+    }
+    
+    _vmCurrentSVG = svg;
+    preview.innerHTML = svg;
+    
+    // تفعيل الأزرار
+    ['vm-btn-png', 'vm-btn-svg', 'vm-btn-copy'].forEach(function(id) {
+        var b = document.getElementById(id);
+        if (b) { b.disabled = false; b.style.opacity = '1'; }
+    });
+}
+
+// ─── دوال الرسم لكل شكل ───
+function vmDrawTriangle() {
+    var type = document.getElementById('vm-tri-type').value;
+    var a = parseFloat(document.getElementById('vm-tri-a').value) || 6;
+    var b = parseFloat(document.getElementById('vm-tri-b').value) || 8;
+    var c = parseFloat(document.getElementById('vm-tri-c').value) || 10;
+    var showLabels = document.getElementById('vm-tri-labels').checked;
+    
+    var W = 500, H = 400;
+    var cx = W/2, cy = H/2 + 40;
+    var scale = 25;
+    
+    var p1, p2, p3;
+    if (type === 'right') {
+        p1 = { x: cx - a*scale/2, y: cy };
+        p2 = { x: cx + a*scale/2, y: cy };
+        p3 = { x: cx - a*scale/2, y: cy - b*scale };
+    } else if (type === 'equilateral') {
+        var s = a;
+        p1 = { x: cx - s*scale/2, y: cy };
+        p2 = { x: cx + s*scale/2, y: cy };
+        p3 = { x: cx, y: cy - s*scale*0.866 };
+    } else if (type === 'isosceles') {
+        p1 = { x: cx - a*scale/2, y: cy };
+        p2 = { x: cx + a*scale/2, y: cy };
+        p3 = { x: cx, y: cy - b*scale };
+    } else {
+        p1 = { x: cx - a*scale/2, y: cy };
+        p2 = { x: cx + a*scale/2, y: cy };
+        p3 = { x: cx + a*scale/4, y: cy - b*scale*0.8 };
+    }
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:500px;background:#fff;">';
+    svg += '<polygon points="' + p1.x + ',' + p1.y + ' ' + p2.x + ',' + p2.y + ' ' + p3.x + ',' + p3.y + '" fill="rgba(52,152,219,0.1)" stroke="#1976d2" stroke-width="3"/>';
+    
+    // علامة الزاوية القائمة
+    if (type === 'right') {
+        var sq = 14;
+        svg += '<rect x="' + (p1.x) + '" y="' + (p1.y - sq) + '" width="' + sq + '" height="' + sq + '" fill="none" stroke="#1976d2" stroke-width="2"/>';
+    }
+    
+    if (showLabels) {
+        // أسماء الرؤوس
+        svg += '<text x="' + (p1.x - 12) + '" y="' + (p1.y + 18) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">أ</text>';
+        svg += '<text x="' + (p2.x + 6) + '" y="' + (p2.y + 18) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">ب</text>';
+        svg += '<text x="' + (p3.x - 8) + '" y="' + (p3.y - 8) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">ج</text>';
+        // أطوال الأضلاع
+        svg += '<text x="' + ((p1.x + p2.x)/2) + '" y="' + (p1.y + 30) + '" font-family="Cairo" font-size="16" fill="#1976d2" text-anchor="middle">' + a + ' سم</text>';
+        svg += '<text x="' + ((p1.x + p3.x)/2 - 30) + '" y="' + ((p1.y + p3.y)/2) + '" font-family="Cairo" font-size="16" fill="#1976d2">' + b + ' سم</text>';
+        svg += '<text x="' + ((p2.x + p3.x)/2 + 6) + '" y="' + ((p2.y + p3.y)/2) + '" font-family="Cairo" font-size="16" fill="#1976d2">' + c + ' سم</text>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawRectangle() {
+    var w = parseFloat(document.getElementById('vm-rect-w').value) || 10;
+    var h = parseFloat(document.getElementById('vm-rect-h').value) || 6;
+    var color = document.getElementById('vm-rect-color').value;
+    var fill = document.getElementById('vm-rect-fill').checked;
+    var labels = document.getElementById('vm-rect-labels').checked;
+    
+    var W = 500, H = 400;
+    var scale = 25;
+    var rw = w * scale, rh = h * scale;
+    var x = (W - rw) / 2, y = (H - rh) / 2;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:500px;background:#fff;">';
+    var fillAttr = fill ? color + '20' : 'none';
+    svg += '<rect x="' + x + '" y="' + y + '" width="' + rw + '" height="' + rh + '" fill="' + fillAttr + '" stroke="' + color + '" stroke-width="3"/>';
+    
+    if (labels) {
+        // أسماء الرؤوس
+        svg += '<text x="' + (x - 14) + '" y="' + (y + rh + 22) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">أ</text>';
+        svg += '<text x="' + (x + rw + 6) + '" y="' + (y + rh + 22) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">ب</text>';
+        svg += '<text x="' + (x + rw + 6) + '" y="' + (y - 6) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">ج</text>';
+        svg += '<text x="' + (x - 14) + '" y="' + (y - 6) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="#000">د</text>';
+        // قياسات
+        svg += '<text x="' + (x + rw/2) + '" y="' + (y + rh + 22) + '" font-family="Cairo" font-size="16" fill="' + color + '" text-anchor="middle">' + w + ' سم</text>';
+        svg += '<text x="' + (x + rw + 14) + '" y="' + (y + rh/2) + '" font-family="Cairo" font-size="16" fill="' + color + '">' + h + ' سم</text>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawCircle() {
+    var r = parseFloat(document.getElementById('vm-circle-r').value) || 5;
+    var color = document.getElementById('vm-circle-color').value;
+    var showR = document.getElementById('vm-circle-radius').checked;
+    var showD = document.getElementById('vm-circle-diameter').checked;
+    
+    var W = 500, H = 400;
+    var cx = W/2, cy = H/2;
+    var scale = 30;
+    var rad = r * scale;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:500px;background:#fff;">';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rad + '" fill="' + color + '15" stroke="' + color + '" stroke-width="3"/>';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="' + color + '"/>';
+    
+    if (showR) {
+        svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + rad) + '" y2="' + cy + '" stroke="' + color + '" stroke-width="2" stroke-dasharray="5,3"/>';
+        svg += '<text x="' + (cx + rad/2) + '" y="' + (cy - 8) + '" font-family="Cairo" font-size="16" fill="' + color + '" text-anchor="middle">نق = ' + r + '</text>';
+    }
+    if (showD) {
+        svg += '<line x1="' + (cx - rad) + '" y1="' + cy + '" x2="' + (cx + rad) + '" y2="' + cy + '" stroke="' + color + '" stroke-width="2" stroke-dasharray="5,3"/>';
+        svg += '<text x="' + cx + '" y="' + (cy + rad + 24) + '" font-family="Cairo" font-size="16" fill="' + color + '" text-anchor="middle">قطر = ' + (r*2) + '</text>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawSector() {
+    var angle = parseFloat(document.getElementById('vm-sec-angle').value) || 90;
+    var r = parseFloat(document.getElementById('vm-sec-r').value) || 5;
+    var color = document.getElementById('vm-sec-color').value;
+    
+    var W = 500, H = 400;
+    var cx = W/2, cy = H/2;
+    var scale = 30;
+    var rad = r * scale;
+    
+    angle = Math.min(Math.max(angle, 1), 360);
+    var rad_ang = (angle - 90) * Math.PI / 180;
+    var startA = -90 * Math.PI / 180;
+    
+    var x1 = cx + rad * Math.cos(startA);
+    var y1 = cy + rad * Math.sin(startA);
+    var x2 = cx + rad * Math.cos(rad_ang);
+    var y2 = cy + rad * Math.sin(rad_ang);
+    
+    var largeArc = angle > 180 ? 1 : 0;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:500px;background:#fff;">';
+    // الدائرة الكاملة كخلفية باهتة
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rad + '" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>';
+    // القطاع
+    var path = 'M ' + cx + ' ' + cy + ' L ' + x1 + ' ' + y1 + ' A ' + rad + ' ' + rad + ' 0 ' + largeArc + ' 1 ' + x2 + ' ' + y2 + ' Z';
+    svg += '<path d="' + path + '" fill="' + color + '40" stroke="' + color + '" stroke-width="3"/>';
+    // الزاوية
+    svg += '<text x="' + cx + '" y="' + (cy + 8) + '" font-family="Cairo" font-size="20" font-weight="bold" fill="' + color + '" text-anchor="middle">' + angle + '°</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawNumberLine() {
+    var min = parseFloat(document.getElementById('vm-nl-min').value);
+    var max = parseFloat(document.getElementById('vm-nl-max').value);
+    var pointsStr = document.getElementById('vm-nl-points').value;
+    var color = document.getElementById('vm-nl-color').value;
+    
+    if (max <= min) max = min + 10;
+    
+    var W = 700, H = 200;
+    var pad = 50;
+    var lineY = H / 2;
+    var lineW = W - pad*2;
+    var step = lineW / (max - min);
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:700px;background:#fff;">';
+    
+    // الخط
+    svg += '<line x1="' + pad + '" y1="' + lineY + '" x2="' + (W - pad) + '" y2="' + lineY + '" stroke="#000" stroke-width="2"/>';
+    // أسهم
+    svg += '<polygon points="' + (pad - 5) + ',' + lineY + ' ' + (pad + 8) + ',' + (lineY - 6) + ' ' + (pad + 8) + ',' + (lineY + 6) + '" fill="#000"/>';
+    svg += '<polygon points="' + (W - pad + 5) + ',' + lineY + ' ' + (W - pad - 8) + ',' + (lineY - 6) + ' ' + (W - pad - 8) + ',' + (lineY + 6) + '" fill="#000"/>';
+    
+    // علامات
+    for (var i = min; i <= max; i++) {
+        var x = pad + (i - min) * step;
+        svg += '<line x1="' + x + '" y1="' + (lineY - 8) + '" x2="' + x + '" y2="' + (lineY + 8) + '" stroke="#000" stroke-width="2"/>';
+        svg += '<text x="' + x + '" y="' + (lineY + 28) + '" font-family="Cairo" font-size="14" fill="#000" text-anchor="middle">' + i + '</text>';
+    }
+    
+    // النقاط المميّزة
+    if (pointsStr) {
+        var points = pointsStr.split(',').map(function(s){ return parseFloat(s.trim()); }).filter(function(n){ return !isNaN(n); });
+        points.forEach(function(p) {
+            if (p >= min && p <= max) {
+                var px = pad + (p - min) * step;
+                svg += '<circle cx="' + px + '" cy="' + lineY + '" r="8" fill="' + color + '" stroke="#fff" stroke-width="2"/>';
+                svg += '<text x="' + px + '" y="' + (lineY - 20) + '" font-family="Cairo" font-size="14" fill="' + color + '" font-weight="bold" text-anchor="middle">' + p + '</text>';
+            }
+        });
+    }
+    
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawBarChart() {
+    var data = document.getElementById('vm-bar-data').value;
+    var color = document.getElementById('vm-bar-color').value;
+    var title = document.getElementById('vm-bar-title').value;
+    
+    var rows = data.split('\n').map(function(s) {
+        var p = s.split(':');
+        return p.length === 2 ? { label: p[0].trim(), value: parseFloat(p[1].trim()) || 0 } : null;
+    }).filter(function(r){ return r; });
+    
+    if (!rows.length) return '<div style="padding:40px;text-align:center;color:#999;">أدخل بيانات صحيحة</div>';
+    
+    var W = 600, H = 450;
+    var pad = 50, padTop = 60, padBot = 80;
+    var maxV = Math.max.apply(null, rows.map(function(r){ return r.value; }));
+    var barW = (W - pad*2) / rows.length * 0.7;
+    var gap = (W - pad*2) / rows.length * 0.3;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:600px;background:#fff;">';
+    svg += '<text x="' + (W/2) + '" y="35" font-family="Cairo" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">' + title + '</text>';
+    
+    // المحاور
+    svg += '<line x1="' + pad + '" y1="' + padTop + '" x2="' + pad + '" y2="' + (H - padBot) + '" stroke="#000" stroke-width="2"/>';
+    svg += '<line x1="' + pad + '" y1="' + (H - padBot) + '" x2="' + (W - pad) + '" y2="' + (H - padBot) + '" stroke="#000" stroke-width="2"/>';
+    
+    var chartH = H - padTop - padBot;
+    rows.forEach(function(r, i) {
+        var bh = (r.value / maxV) * chartH;
+        var x = pad + i * (barW + gap) + gap/2;
+        var y = H - padBot - bh;
+        svg += '<rect x="' + x + '" y="' + y + '" width="' + barW + '" height="' + bh + '" fill="' + color + '" opacity="0.85" stroke="' + color + '" stroke-width="2"/>';
+        svg += '<text x="' + (x + barW/2) + '" y="' + (y - 6) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#000" text-anchor="middle">' + r.value + '</text>';
+        svg += '<text x="' + (x + barW/2) + '" y="' + (H - padBot + 22) + '" font-family="Cairo" font-size="13" fill="#000" text-anchor="middle">' + r.label + '</text>';
+    });
+    
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawPieChart() {
+    var data = document.getElementById('vm-pie-data').value;
+    var title = document.getElementById('vm-pie-title').value;
+    
+    var rows = data.split('\n').map(function(s) {
+        var p = s.split(':');
+        return p.length === 2 ? { label: p[0].trim(), value: parseFloat(p[1].trim()) || 0 } : null;
+    }).filter(function(r){ return r && r.value > 0; });
+    
+    if (!rows.length) return '<div style="padding:40px;text-align:center;color:#999;">أدخل بيانات صحيحة</div>';
+    
+    var total = rows.reduce(function(s, r){ return s + r.value; }, 0);
+    var W = 600, H = 500;
+    var cx = W/2, cy = 220, r = 140;
+    var colors = ['#3498db', '#e74c3c', '#2ecc71', '#f39c12', '#9b59b6', '#1abc9c', '#e67e22', '#34495e'];
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:600px;background:#fff;">';
+    svg += '<text x="' + (W/2) + '" y="35" font-family="Cairo" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">' + title + '</text>';
+    
+    var startAng = -Math.PI / 2;
+    rows.forEach(function(r, i) {
+        var angSize = (r.value / total) * 2 * Math.PI;
+        var endAng = startAng + angSize;
+        var x1 = cx + r.value/r.value * r * Math.cos(startAng);
+        x1 = cx + r * Math.cos(startAng);
+        var y1 = cy + r * Math.sin(startAng);
+        var x2 = cx + r * Math.cos(endAng);
+        var y2 = cy + r * Math.sin(endAng);
+        var largeArc = angSize > Math.PI ? 1 : 0;
+        var path = 'M ' + cx + ' ' + cy + ' L ' + x1 + ' ' + y1 + ' A ' + r + ' ' + r + ' 0 ' + largeArc + ' 1 ' + x2 + ' ' + y2 + ' Z';
+        var color = colors[i % colors.length];
+        svg += '<path d="' + path + '" fill="' + color + '" stroke="#fff" stroke-width="2"/>';
+        
+        // النسبة
+        var midAng = startAng + angSize/2;
+        var lx = cx + (r * 0.65) * Math.cos(midAng);
+        var ly = cy + (r * 0.65) * Math.sin(midAng);
+        var pct = Math.round(r.value / total * 100);
+        if (pct > 5) {
+            svg += '<text x="' + lx + '" y="' + ly + '" font-family="Cairo" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">' + pct + '%</text>';
+        }
+        
+        startAng = endAng;
+    });
+    
+    // المفتاح
+    var legendY = 400;
+    rows.forEach(function(r, i) {
+        var lx = 50 + (i % 4) * 130;
+        var ly = legendY + Math.floor(i / 4) * 30;
+        var color = colors[i % colors.length];
+        svg += '<rect x="' + lx + '" y="' + ly + '" width="18" height="18" fill="' + color + '"/>';
+        svg += '<text x="' + (lx + 25) + '" y="' + (ly + 14) + '" font-family="Cairo" font-size="13" fill="#000">' + r.label + '</text>';
+    });
+    
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawGrid() {
+    var cols = parseInt(document.getElementById('vm-grid-cols').value) || 10;
+    var rows = parseInt(document.getElementById('vm-grid-rows').value) || 10;
+    var showAxes = document.getElementById('vm-grid-axes').checked;
+    var showNumbers = document.getElementById('vm-grid-numbers').checked;
+    
+    var cellSize = 30;
+    var pad = showNumbers ? 30 : 10;
+    var W = cols * cellSize + pad * 2;
+    var H = rows * cellSize + pad * 2;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:600px;background:#fff;">';
+    
+    // الخطوط الأفقية
+    for (var i = 0; i <= rows; i++) {
+        var y = pad + i * cellSize;
+        svg += '<line x1="' + pad + '" y1="' + y + '" x2="' + (W - pad) + '" y2="' + y + '" stroke="#ccc" stroke-width="1"/>';
+        if (showNumbers && i < rows) {
+            svg += '<text x="' + (pad - 8) + '" y="' + (y + cellSize/2 + 4) + '" font-family="Cairo" font-size="11" fill="#666" text-anchor="end">' + (rows - i) + '</text>';
+        }
+    }
+    // الخطوط العمودية
+    for (var j = 0; j <= cols; j++) {
+        var x = pad + j * cellSize;
+        svg += '<line x1="' + x + '" y1="' + pad + '" x2="' + x + '" y2="' + (H - pad) + '" stroke="#ccc" stroke-width="1"/>';
+        if (showNumbers && j < cols) {
+            svg += '<text x="' + (x + cellSize/2) + '" y="' + (H - pad + 14) + '" font-family="Cairo" font-size="11" fill="#666" text-anchor="middle">' + (j + 1) + '</text>';
+        }
+    }
+    
+    // المحاور بلون أغمق
+    if (showAxes) {
+        var axisX = pad;
+        var axisY = H - pad;
+        svg += '<line x1="' + axisX + '" y1="' + pad + '" x2="' + axisX + '" y2="' + axisY + '" stroke="#000" stroke-width="2"/>';
+        svg += '<line x1="' + axisX + '" y1="' + axisY + '" x2="' + (W - pad) + '" y2="' + axisY + '" stroke="#000" stroke-width="2"/>';
+    }
+    
+    svg += '</svg>';
+    return svg;
+}
+
+function vmDrawFractionBar() {
+    var denom = parseInt(document.getElementById('vm-frac-denom').value) || 6;
+    var num = parseInt(document.getElementById('vm-frac-num').value) || 3;
+    var color = document.getElementById('vm-frac-color').value;
+    
+    if (num > denom) num = denom;
+    if (num < 0) num = 0;
+    
+    var W = 700, H = 250;
+    var barW = 600, barH = 100;
+    var x = (W - barW) / 2, y = (H - barH) / 2 + 20;
+    var cellW = barW / denom;
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:700px;background:#fff;">';
+    
+    // العنوان (الكسر)
+    svg += '<text x="' + (W/2) + '" y="40" font-family="Cairo" font-size="32" font-weight="bold" fill="#000" text-anchor="middle">';
+    svg += num + ' / ' + denom + '</text>';
+    
+    // الشريط
+    for (var i = 0; i < denom; i++) {
+        var cellX = x + i * cellW;
+        var fillColor = i < num ? color : '#fff';
+        svg += '<rect x="' + cellX + '" y="' + y + '" width="' + cellW + '" height="' + barH + '" fill="' + fillColor + '" stroke="#000" stroke-width="2"/>';
+    }
+    
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── دوال التنزيل ───
+function vmDownload(format) {
+    if (!_vmCurrentSVG) return;
+    
+    if (format === 'svg') {
+        var blob = new Blob([_vmCurrentSVG], { type: 'image/svg+xml;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'shape_' + _vmCurrentTool + '_' + Date.now() + '.svg';
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showToast === 'function') showToast('✅ تم التنزيل', 'success');
+    } else if (format === 'png') {
+        // SVG → Canvas → PNG
+        var img = new Image();
+        var blob = new Blob([_vmCurrentSVG], { type: 'image/svg+xml;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        img.onload = function() {
+            var canvas = document.createElement('canvas');
+            canvas.width = img.naturalWidth || 800;
+            canvas.height = img.naturalHeight || 600;
+            var scale = 2; // جودة عالية
+            canvas.width *= scale;
+            canvas.height *= scale;
+            var ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#fff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.scale(scale, scale);
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(function(b) {
+                var u = URL.createObjectURL(b);
+                var a = document.createElement('a');
+                a.href = u;
+                a.download = 'shape_' + _vmCurrentTool + '_' + Date.now() + '.png';
+                a.click();
+                URL.revokeObjectURL(u);
+                if (typeof showToast === 'function') showToast('✅ تم التنزيل', 'success');
+            }, 'image/png');
+            URL.revokeObjectURL(url);
+        };
+        img.src = url;
+    }
+}
+
+function vmCopyImage() {
+    if (!_vmCurrentSVG) return;
+    
+    var img = new Image();
+    var blob = new Blob([_vmCurrentSVG], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    img.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = (img.naturalWidth || 800) * 2;
+        canvas.height = (img.naturalHeight || 600) * 2;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(async function(b) {
+            try {
+                if (navigator.clipboard && window.ClipboardItem) {
+                    var item = new ClipboardItem({ 'image/png': b });
+                    await navigator.clipboard.write([item]);
+                    if (typeof showToast === 'function') showToast('✅ تم النسخ — الصقها في Word/PowerPoint', 'success');
+                } else {
+                    if (typeof showToast === 'function') showToast('❌ المتصفح لا يدعم النسخ — استخدم زر التنزيل', 'warning');
+                }
+            } catch(e) {
+                if (typeof showToast === 'function') showToast('❌ فشل النسخ — استخدم التنزيل', 'error');
+            }
+            URL.revokeObjectURL(url);
+        });
+    };
+    img.src = url;
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 📅 SCHEDULE TEMPLATES — قوالب جداول الحصص
+// ════════════════════════════════════════════════════════════
+function generateSchedule(type) {
+    var html = '';
+    var title = '';
+    
+    if (type === 'weekly') {
+        title = 'جدول الحصص الأسبوعي';
+        html = buildWeeklyScheduleHTML();
+    } else if (type === 'grades') {
+        title = 'جدول رصد الدرجات';
+        html = buildGradesTableHTML();
+    } else if (type === 'attendance') {
+        title = 'سجل الحضور والغياب';
+        html = buildAttendanceHTML();
+    } else if (type === 'lesson-plan') {
+        title = 'قالب تحضير درس';
+        html = buildLessonPlanHTML();
+    } else if (type === 'parent-meeting') {
+        title = 'سجل اجتماع أولياء الأمور';
+        html = buildParentMeetingHTML();
+    } else if (type === 'honor-board') {
+        title = 'لوحة شرف الطلاب';
+        html = buildHonorBoardHTML();
+    }
+    
+    var w = window.open('', '_blank');
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    w.document.title = title;
+}
+
+function _baseHTML(title, body) {
+    return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + title + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; } ' +
+        'body { font-family: \'Cairo\', sans-serif; padding: 25px; color: #000; background: #fff; }' +
+        '.controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }' +
+        '.controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: \'Cairo\', sans-serif; font-weight: 600; }' +
+        '.controls button.green { background: #43a047; }' +
+        '@media print { .controls { display: none !important; } body { padding: 15px; } @page { size: A4; margin: 1cm; } }' +
+        'h1 { font-family: \'Amiri\', serif; text-align: center; font-size: 32px; margin-bottom: 8px; color: #1565c0; }' +
+        '.subtitle { text-align: center; color: #555; margin-bottom: 24px; font-size: 14px; }' +
+        '.school-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; padding: 14px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; }' +
+        '.school-info > div { border-bottom: 1px dashed #999; padding-bottom: 4px; }' +
+        'table { width: 100%; border-collapse: collapse; margin: 14px 0; }' +
+        'th, td { border: 1px solid #333; padding: 10px; text-align: center; font-size: 14px; }' +
+        'th { background: #1565c0; color: #fff; font-weight: 700; }' +
+        'tr:nth-child(even) { background: #f9f9f9; }' +
+        '.empty-row { height: 40px; }' +
+        '</style></head><body>' +
+        '<div class="controls">' +
+        '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>' +
+        '<button class="green" onclick="window.close()">✕ إغلاق</button>' +
+        '</div>' +
+        body +
+        '</body></html>';
+}
+
+function buildWeeklyScheduleHTML() {
+    var days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
+    var periods = 8;
+    
+    var body = '<h1>📅 جدول الحصص الأسبوعي</h1>';
+    body += '<p class="subtitle">السنة الدراسية: ............... &nbsp;·&nbsp; المعلم: ...............</p>';
+    body += '<div class="school-info">';
+    body += '<div><b>المدرسة:</b> ......................</div>';
+    body += '<div><b>المرحلة:</b> ......................</div>';
+    body += '<div><b>التاريخ:</b> ......................</div>';
+    body += '</div>';
+    body += '<table><thead><tr>';
+    body += '<th>الحصة</th>';
+    days.forEach(function(d) { body += '<th>' + d + '</th>'; });
+    body += '</tr></thead><tbody>';
+    for (var i = 1; i <= periods; i++) {
+        body += '<tr>';
+        body += '<th>الحصة ' + i + '</th>';
+        for (var j = 0; j < days.length; j++) body += '<td class="empty-row"></td>';
+        body += '</tr>';
+    }
+    body += '</tbody></table>';
+    
+    return _baseHTML('جدول الحصص الأسبوعي', body);
+}
+
+function buildGradesTableHTML() {
+    var body = '<h1>📊 جدول رصد الدرجات</h1>';
+    body += '<p class="subtitle">المادة: ............... &nbsp;·&nbsp; الصف: ............... &nbsp;·&nbsp; الفصل الدراسي: ...............</p>';
+    body += '<div class="school-info">';
+    body += '<div><b>المدرسة:</b> ......................</div>';
+    body += '<div><b>المعلم:</b> ......................</div>';
+    body += '<div><b>التاريخ:</b> ......................</div>';
+    body += '</div>';
+    body += '<table><thead><tr>';
+    body += '<th style="width:40px;">م</th>';
+    body += '<th style="width:200px;">اسم الطالب</th>';
+    body += '<th>اختبار 1</th><th>اختبار 2</th>';
+    body += '<th>الفصلي 1</th><th>الفصلي 2</th>';
+    body += '<th>المشاركة</th><th>الواجبات</th>';
+    body += '<th style="background:#43a047;">المجموع</th>';
+    body += '</tr></thead><tbody>';
+    for (var i = 1; i <= 35; i++) {
+        body += '<tr><th>' + i + '</th>';
+        for (var j = 0; j < 8; j++) body += '<td class="empty-row"></td>';
+        body += '</tr>';
+    }
+    body += '</tbody></table>';
+    
+    return _baseHTML('جدول رصد الدرجات', body);
+}
+
+function buildAttendanceHTML() {
+    var body = '<h1>✅ سجل الحضور والغياب</h1>';
+    body += '<p class="subtitle">الشهر: ............... &nbsp;·&nbsp; الصف: ...............</p>';
+    body += '<div class="school-info">';
+    body += '<div><b>المدرسة:</b> ......................</div>';
+    body += '<div><b>المعلم:</b> ......................</div>';
+    body += '</div>';
+    body += '<table style="font-size:11px;"><thead><tr>';
+    body += '<th style="width:30px;">م</th>';
+    body += '<th style="width:160px;">اسم الطالب</th>';
+    for (var d = 1; d <= 30; d++) body += '<th style="width:22px;padding:4px 2px;">' + d + '</th>';
+    body += '</tr></thead><tbody>';
+    for (var i = 1; i <= 35; i++) {
+        body += '<tr><th>' + i + '</th><td style="text-align:right;padding-right:8px;"></td>';
+        for (var d = 1; d <= 30; d++) body += '<td style="padding:4px 2px;"></td>';
+        body += '</tr>';
+    }
+    body += '</tbody></table>';
+    body += '<p style="margin-top:14px;font-size:13px;background:#fff3e0;padding:10px;border-radius:6px;border-right:4px solid #f57c00;">';
+    body += '<b>الرموز:</b> ✓ حاضر &nbsp;·&nbsp; ✗ غائب &nbsp;·&nbsp; ت تأخر &nbsp;·&nbsp; م مأذون';
+    body += '</p>';
+    
+    return _baseHTML('سجل الحضور', body);
+}
+
+function buildLessonPlanHTML() {
+    var body = '<h1>📝 تحضير درس</h1>';
+    body += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;padding:14px;background:#e3f2fd;border-radius:8px;">';
+    body += '<div><b>📚 المادة:</b> ......................</div>';
+    body += '<div><b>🎓 الصف:</b> ......................</div>';
+    body += '<div><b>📅 التاريخ:</b> ......................</div>';
+    body += '<div><b>📖 الدرس:</b> ......................</div>';
+    body += '<div><b>⏱️ الزمن:</b> ......................</div>';
+    body += '<div><b>👨‍🏫 المعلم:</b> ......................</div>';
+    body += '</div>';
+    
+    var sections = [
+        ['🎯 الأهداف العامة', 4],
+        ['📋 الأهداف السلوكية', 5],
+        ['🛠️ الوسائل التعليمية', 3],
+        ['🚀 التمهيد', 3],
+        ['📚 العرض والشرح', 6],
+        ['📝 الأنشطة والتطبيقات', 5],
+        ['✅ التقويم', 4],
+        ['📌 الواجب المنزلي', 2],
+        ['💭 ملاحظات وتأملات', 3],
+    ];
+    
+    sections.forEach(function(s) {
+        body += '<h3 style="background:#1565c0;color:#fff;padding:10px 14px;border-radius:6px;margin:14px 0 8px;">' + s[0] + '</h3>';
+        body += '<div style="border:1px solid #ddd;border-radius:6px;padding:14px;background:#fafafa;">';
+        for (var i = 0; i < s[1]; i++) {
+            body += '<div style="border-bottom:1px solid #999;height:28px;margin:6px 0;"></div>';
+        }
+        body += '</div>';
+    });
+    
+    return _baseHTML('تحضير درس', body);
+}
+
+function buildParentMeetingHTML() {
+    var body = '<h1>👨‍👩‍👧 سجل اجتماع أولياء الأمور</h1>';
+    body += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;padding:14px;background:#fff3e0;border-radius:8px;">';
+    body += '<div><b>📅 التاريخ:</b> ......................</div>';
+    body += '<div><b>🕒 الوقت:</b> ......................</div>';
+    body += '<div><b>🏫 المكان:</b> ......................</div>';
+    body += '<div><b>📋 الموضوع:</b> ......................</div>';
+    body += '</div>';
+    
+    body += '<h3 style="margin:16px 0 10px;color:#1565c0;">📋 الأمور المناقشة</h3>';
+    body += '<div style="border:1px solid #ddd;border-radius:6px;padding:14px;background:#fafafa;margin-bottom:20px;">';
+    for (var i = 0; i < 8; i++) body += '<div style="border-bottom:1px solid #999;height:28px;margin:6px 0;"></div>';
+    body += '</div>';
+    
+    body += '<h3 style="margin:16px 0 10px;color:#1565c0;">✍️ التوقيعات</h3>';
+    body += '<table><thead><tr><th style="width:40px;">م</th><th>اسم ولي الأمر</th><th>اسم الطالب</th><th>الصف</th><th>التوقيع</th></tr></thead><tbody>';
+    for (var i = 1; i <= 25; i++) {
+        body += '<tr><th>' + i + '</th>';
+        for (var j = 0; j < 4; j++) body += '<td class="empty-row"></td>';
+        body += '</tr>';
+    }
+    body += '</tbody></table>';
+    
+    return _baseHTML('سجل اجتماع أولياء الأمور', body);
+}
+
+function buildHonorBoardHTML() {
+    var body = '<h1 style="color:#d4af37;">🏆 لوحة شرف الطلاب المتميّزين</h1>';
+    body += '<p class="subtitle">⚜️ تكريماً لجهودهم وتميّزهم ⚜️</p>';
+    body += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px;">';
+    
+    for (var i = 0; i < 9; i++) {
+        body += '<div style="border:4px double #d4af37;border-radius:14px;padding:20px;background:#fefae0;text-align:center;">';
+        body += '<div style="font-size:3rem;">⭐</div>';
+        body += '<div style="border-bottom:2px solid #8b6914;padding:18px 0 6px;font-family:\'Amiri\',serif;font-size:22px;font-weight:bold;color:#5d4e1f;">................................</div>';
+        body += '<div style="margin-top:10px;font-size:14px;color:#8b6914;font-weight:600;">الصف: ........</div>';
+        body += '<div style="margin-top:6px;font-size:12px;color:#5d4e1f;">📅 ........</div>';
+        body += '</div>';
+    }
+    body += '</div>';
+    
+    return _baseHTML('لوحة شرف', body);
+}
+
+
+// تحميل تلقائي عند فتح الأقسام الجديدة
+(function() {
+    var origShow = window.showSection;
+    if (typeof origShow === 'function') {
+        var prev = origShow;
+        window.showSection = function(name, el) {
+            prev.call(this, name, el);
+            if (name === 'visual-maker') {
+                setTimeout(function() {
+                    if (!_vmCurrentTool) vmSelectTool('triangle');
+                }, 200);
+            }
+        };
+    }
+})();
 
 </script>
 

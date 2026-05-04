@@ -4945,6 +4945,614 @@ async def cache_clear(
         return {"status": "cleared_all"}
 
 
+
+# ═══════════════════════════════════════════════════════════════
+# 📝 EXAM GENERATOR — مولّد الاختبارات الفوري للمعلمين
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/teacher/exam_generator/preview")
+async def teacher_exam_preview(
+    grade: str,
+    semester: str = "",
+    unit: str = "",
+    lesson: str = "",
+    count: int = 10,
+    difficulty: str = "mixed",
+    types: str = "all"
+):
+    """📝 معاينة أسئلة لمولّد الاختبار"""
+    if not grade.strip():
+        raise HTTPException(status_code=400, detail="grade مطلوب")
+    
+    count = max(1, min(int(count), 50))
+    
+    try:
+        query = supabase.table("questions").select("*").eq("grade", grade.strip())
+        if lesson.strip():
+            query = query.eq("lesson", lesson.strip())
+        res = query.execute()
+        all_questions = res.data or []
+        
+        def _norm(s):
+            return str(s or "").strip().lower()
+        
+        if semester.strip():
+            ns = _norm(semester)
+            all_questions = [q for q in all_questions if 
+                _norm(q.get("semester")) == ns or ns in _norm(q.get("semester"))]
+        
+        if unit.strip():
+            nu = _norm(unit)
+            all_questions = [q for q in all_questions if 
+                _norm(q.get("unit")) == nu or nu in _norm(q.get("unit"))]
+        
+        if types != "all":
+            type_map = {
+                "mcq":   ["اختياري", "متعدد", "اختر"],
+                "tf":    ["صواب", "خطأ"],
+                "short": ["قصير"],
+            }
+            keywords = type_map.get(types, [])
+            if keywords:
+                filtered = []
+                for q in all_questions:
+                    qtype = _norm(q.get("type") or q.get("question_type") or "")
+                    if any(k in qtype for k in keywords):
+                        filtered.append(q)
+                if filtered:
+                    all_questions = filtered
+        
+        import random
+        random.shuffle(all_questions)
+        selected = all_questions[:count]
+        
+        return {
+            "status": "ok",
+            "total_available": len(all_questions),
+            "selected_count": len(selected),
+            "questions": selected,
+            "filter": {
+                "grade": grade, "semester": semester, "unit": unit,
+                "lesson": lesson, "count": count,
+                "difficulty": difficulty, "types": types,
+            }
+        }
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/exam_generator/build_pdf")
+async def teacher_exam_build_pdf(
+    title: str           = Form(default="اختبار رياضيات"),
+    school_name: str     = Form(default=""),
+    teacher_name: str    = Form(default=""),
+    class_name: str      = Form(default=""),
+    grade: str           = Form(...),
+    semester: str        = Form(default=""),
+    unit: str            = Form(default=""),
+    lesson: str          = Form(default=""),
+    count: int           = Form(default=10),
+    types: str           = Form(default="all"),
+    include_answers: bool = Form(default=True),
+    show_marks: bool     = Form(default=True),
+    total_marks: int     = Form(default=20),
+):
+    """📄 بناء ورقة اختبار جاهزة كـ HTML قابل للطباعة"""
+    try:
+        query = supabase.table("questions").select("*").eq("grade", grade.strip())
+        if lesson.strip():
+            query = query.eq("lesson", lesson.strip())
+        res = query.execute()
+        all_questions = res.data or []
+        
+        def _norm(s):
+            return str(s or "").strip().lower()
+        
+        if semester.strip():
+            ns = _norm(semester)
+            all_questions = [q for q in all_questions if _norm(q.get("semester")) == ns or ns in _norm(q.get("semester"))]
+        if unit.strip():
+            nu = _norm(unit)
+            all_questions = [q for q in all_questions if _norm(q.get("unit")) == nu or nu in _norm(q.get("unit"))]
+        
+        import random
+        random.shuffle(all_questions)
+        questions = all_questions[:max(1, min(count, 50))]
+        
+        if not questions:
+            raise HTTPException(status_code=404, detail="لا توجد أسئلة مطابقة للفلتر")
+        
+        marks_per_q = round(total_marks / len(questions), 2) if show_marks else 0
+        
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y/%m/%d")
+        
+        # نبني محتوى الأسئلة
+        questions_html = ""
+        answers_html = ""
+        arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
+        
+        for i, q in enumerate(questions, 1):
+            q_text = (q.get("question") or "").replace("<", "&lt;").replace(">", "&gt;")
+            options = q.get("options") or q.get("choices") or ""
+            correct = q.get("correct_answer") or q.get("answer") or ""
+            
+            opts_list = []
+            if options:
+                if isinstance(options, list):
+                    opts_list = options
+                elif isinstance(options, str):
+                    opts_list = [o.strip() for o in options.replace("،", ",").split(",") if o.strip()]
+            
+            mark_label = ('<span class="qmark">[' + str(marks_per_q) + ' درجة]</span>') if show_marks else ""
+            
+            q_block = '<div class="question">'
+            q_block += '<div class="q-header"><span class="q-num">' + str(i) + '.</span>'
+            q_block += '<span class="q-text">' + q_text + '</span>' + mark_label + '</div>'
+            
+            if opts_list:
+                q_block += '<div class="q-options">'
+                for idx, opt in enumerate(opts_list[:6]):
+                    letter = arabic_letters[idx] if idx < len(arabic_letters) else str(idx+1)
+                    opt_clean = str(opt).replace("<", "&lt;").replace(">", "&gt;")
+                    q_block += '<div class="q-option"><span class="q-letter">(' + letter + ')</span> ' + opt_clean + '</div>'
+                q_block += '</div>'
+            else:
+                q_block += '<div class="q-answer-lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>'
+            
+            q_block += '</div>'
+            questions_html += q_block
+            
+            ans_clean = str(correct).replace("<", "&lt;").replace(">", "&gt;")
+            answers_html += '<div class="ans-item"><strong>' + str(i) + '.</strong> ' + ans_clean + '</div>'
+        
+        # نبني الـ HTML الكامل
+        css_styles = """
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body {
+                font-family: 'Cairo', sans-serif;
+                background: #fff; color: #000;
+                padding: 30px 25px;
+                max-width: 800px; margin: 0 auto;
+                line-height: 1.8;
+            }
+            .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 18px; margin-bottom: 24px; }
+            .school { font-size: 18px; font-weight: 700; margin-bottom: 4px; }
+            .title-main { font-family: 'Amiri', serif; font-size: 32px; font-weight: 700; margin: 8px 0; }
+            .meta-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-top: 16px; font-size: 14px; }
+            .meta-item { background: #f5f5f5; padding: 6px 14px; border-radius: 4px; border: 1px solid #ddd; }
+            .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; padding: 14px; background: #fafafa; border: 1px solid #ddd; border-radius: 6px; }
+            .student-info > div { border-bottom: 1px dashed #999; padding-bottom: 4px; }
+            .student-info b { color: #444; }
+            .instructions { background: #fff8e1; border-right: 4px solid #f9a825; padding: 12px 16px; margin: 16px 0; font-size: 14px; border-radius: 4px; }
+            .question { margin: 22px 0; padding: 14px; border-radius: 6px; border: 1px solid #eee; page-break-inside: avoid; }
+            .q-header { font-size: 16px; font-weight: 600; margin-bottom: 10px; }
+            .q-num { color: #1976d2; font-weight: 700; margin-left: 6px; }
+            .qmark { color: #d32f2f; font-size: 13px; font-weight: 600; background: #ffebee; padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
+            .q-options { padding-right: 24px; margin-top: 8px; }
+            .q-option { margin: 6px 0; padding: 4px 0; font-size: 15px; }
+            .q-letter { color: #1976d2; font-weight: 700; margin-left: 6px; }
+            .q-answer-lines { margin-top: 8px; padding-right: 16px; }
+            .line { border-bottom: 1px solid #999; height: 28px; margin: 6px 0; }
+            .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #000; text-align: center; font-size: 13px; color: #555; }
+            .signature { display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px; }
+            .sign-block { text-align: center; min-width: 180px; }
+            .sign-line { border-top: 1px solid #000; margin-top: 36px; padding-top: 4px; }
+            .answers-page { page-break-before: always; padding: 20px; background: #f9f9f9; }
+            .answers-title { text-align: center; font-size: 24px; font-weight: 700; background: #1976d2; color: #fff; padding: 14px; border-radius: 6px; margin-bottom: 20px; }
+            .ans-item { padding: 8px 14px; background: #fff; margin: 6px 0; border-right: 4px solid #4caf50; border-radius: 4px; font-size: 15px; }
+            .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 9999; }
+            .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; font-size: 14px; }
+            .controls button:hover { background: #1565c0; }
+            .controls button.green { background: #43a047; }
+            .controls button.green:hover { background: #2e7d32; }
+            @media print { .controls { display: none !important; } body { padding: 15px; } .question { border: none; } }
+        """
+        
+        # بناء meta items
+        meta_items = '<div class="meta-item">📚 ' + grade + '</div>'
+        if semester:
+            meta_items += '<div class="meta-item">📅 ' + semester + '</div>'
+        if unit:
+            meta_items += '<div class="meta-item">📦 ' + unit + '</div>'
+        if lesson:
+            meta_items += '<div class="meta-item">📖 ' + lesson + '</div>'
+        meta_items += '<div class="meta-item">📅 ' + date_str + '</div>'
+        if show_marks:
+            meta_items += '<div class="meta-item">⭐ الدرجة الكلية: ' + str(total_marks) + '</div>'
+        
+        school_block = ('<div class="school">' + school_name + '</div>') if school_name else ''
+        class_text = class_name if class_name else "........................"
+        
+        instructions_text = "اقرأ الأسئلة بعناية قبل الإجابة. "
+        if show_marks:
+            instructions_text += "كل سؤال بـ " + str(marks_per_q) + " درجة. "
+        instructions_text += "اكتب الإجابة في المكان المخصص."
+        
+        teacher_sign = "المعلم " + (teacher_name if teacher_name else "")
+        
+        answers_block = ""
+        if include_answers:
+            answers_block = '<div class="answers-page"><div class="answers-title">📋 ورقة الإجابات النموذجية</div>' + answers_html + '</div>'
+        
+        full_html = (
+            '<!DOCTYPE html>\n'
+            '<html lang="ar" dir="rtl">\n'
+            '<head>\n'
+            '<meta charset="UTF-8">\n'
+            '<title>' + title + '</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+            '<style>' + css_styles + '</style>\n'
+            '</head>\n'
+            '<body>\n'
+            '<div class="controls">'
+            '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
+            '<button class="green" onclick="window.close()">✕ إغلاق</button>'
+            '</div>\n'
+            '<div class="header">'
+            + school_block +
+            '<div class="title-main">' + title + '</div>'
+            '<div class="meta-row">' + meta_items + '</div>'
+            '</div>\n'
+            '<div class="student-info">'
+            '<div><b>اسم الطالب:</b> ........................................</div>'
+            '<div><b>الفصل:</b> ' + class_text + '</div>'
+            '<div><b>رقم الجلوس:</b> ............................</div>'
+            '<div><b>الدرجة:</b> ............ من ' + str(total_marks) + '</div>'
+            '</div>\n'
+            '<div class="instructions"><b>📌 تعليمات:</b> ' + instructions_text + '</div>\n'
+            '<div class="questions">' + questions_html + '</div>\n'
+            '<div class="signature">'
+            '<div class="sign-block"><div class="sign-line">' + teacher_sign + '</div></div>'
+            '<div class="sign-block"><div class="sign-line">المراجع</div></div>'
+            '</div>\n'
+            '<div class="footer">🎓 إمبراطورية الرياضيات &nbsp;·&nbsp; مع تمنياتي بالتوفيق</div>\n'
+            + answers_block +
+            '\n</body>\n</html>'
+        )
+        
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=full_html)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🏆 CERTIFICATES & TEMPLATES — قوالب وشهادات للطباعة
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/teacher/certificate/build")
+async def teacher_certificate_build(
+    template: str       = Form(default="gold"),     # gold | royal | modern | classic | floral
+    student_name: str   = Form(...),
+    achievement: str    = Form(default="التميّز في الرياضيات"),
+    grade: str          = Form(default=""),
+    school_name: str    = Form(default=""),
+    teacher_name: str   = Form(default=""),
+    date: str           = Form(default=""),
+    extra_text: str     = Form(default=""),
+):
+    """🏆 بناء شهادة تقدير قابلة للطباعة"""
+    try:
+        from datetime import datetime
+        if not date:
+            date = datetime.now().strftime("%Y/%m/%d")
+        
+        # تصاميم متنوعة
+        templates_data = {
+            "gold": {
+                "bg_color": "#fefae0",
+                "border": "12px double #d4af37",
+                "title_color": "#8b6914",
+                "name_color": "#5d4e1f",
+                "icon": "👑",
+                "decoration": "⚜️"
+            },
+            "royal": {
+                "bg_color": "#f0e8ff",
+                "border": "10px double #5b3e8a",
+                "title_color": "#3d2666",
+                "name_color": "#2a1a47",
+                "icon": "🎖️",
+                "decoration": "♛"
+            },
+            "modern": {
+                "bg_color": "#f0f9ff",
+                "border": "8px solid #0ea5e9",
+                "title_color": "#0369a1",
+                "name_color": "#082f49",
+                "icon": "🏆",
+                "decoration": "★"
+            },
+            "classic": {
+                "bg_color": "#fff5e6",
+                "border": "10px ridge #c9742d",
+                "title_color": "#7a4317",
+                "name_color": "#4a2607",
+                "icon": "📜",
+                "decoration": "❦"
+            },
+            "floral": {
+                "bg_color": "#fff0f5",
+                "border": "8px double #d63384",
+                "title_color": "#831843",
+                "name_color": "#500724",
+                "icon": "🌸",
+                "decoration": "✿"
+            }
+        }
+        
+        t = templates_data.get(template, templates_data["gold"])
+        
+        css = """
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Cairo', sans-serif; padding: 0; margin: 0; background: #fff; }
+            .cert-page {
+                width: 297mm; height: 210mm;
+                padding: 30px;
+                background: """ + t["bg_color"] + """;
+                border: """ + t["border"] + """;
+                margin: 20px auto;
+                box-sizing: border-box;
+                position: relative;
+                page-break-after: always;
+            }
+            .cert-corner { position: absolute; font-size: 60px; opacity: 0.15; color: """ + t["title_color"] + """; }
+            .cert-corner.tl { top: 30px; left: 30px; }
+            .cert-corner.tr { top: 30px; right: 30px; }
+            .cert-corner.bl { bottom: 30px; left: 30px; }
+            .cert-corner.br { bottom: 30px; right: 30px; }
+            .cert-content {
+                text-align: center; height: 100%;
+                display: flex; flex-direction: column;
+                justify-content: center; align-items: center;
+                position: relative; z-index: 2;
+            }
+            .cert-icon { font-size: 80px; margin-bottom: 14px; }
+            .cert-title {
+                font-family: 'Amiri', serif;
+                font-size: 56px; font-weight: 700;
+                color: """ + t["title_color"] + """;
+                margin-bottom: 8px;
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            }
+            .cert-subtitle {
+                font-size: 22px;
+                color: """ + t["title_color"] + """;
+                margin-bottom: 30px;
+                font-weight: 600;
+            }
+            .cert-text {
+                font-size: 22px; line-height: 2;
+                margin: 12px 0;
+                color: #333;
+            }
+            .cert-name {
+                font-family: 'Amiri', serif;
+                font-size: 60px;
+                font-weight: 700;
+                color: """ + t["name_color"] + """;
+                margin: 20px 0;
+                padding: 14px 40px;
+                border-bottom: 3px solid """ + t["title_color"] + """;
+                display: inline-block;
+            }
+            .cert-achievement {
+                font-size: 24px;
+                color: """ + t["title_color"] + """;
+                font-weight: 600;
+                margin: 14px 0;
+                padding: 10px 24px;
+                background: rgba(255,255,255,0.5);
+                border-radius: 8px;
+                display: inline-block;
+            }
+            .cert-extra {
+                font-size: 18px;
+                color: #555;
+                margin: 14px 30px;
+                font-style: italic;
+            }
+            .cert-footer {
+                display: flex;
+                justify-content: space-around;
+                width: 100%;
+                margin-top: 40px;
+                font-size: 16px;
+            }
+            .cert-sign-block {
+                text-align: center;
+                min-width: 200px;
+            }
+            .cert-sign-line {
+                border-top: 2px solid """ + t["title_color"] + """;
+                margin-top: 60px;
+                padding-top: 6px;
+                color: """ + t["name_color"] + """;
+                font-weight: 600;
+            }
+            .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+            .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; }
+            @media print {
+                .controls { display: none !important; }
+                @page { size: A4 landscape; margin: 0; }
+                body { margin: 0; }
+                .cert-page { margin: 0; box-shadow: none; }
+            }
+        """
+        
+        extra_block = ('<div class="cert-extra">' + extra_text + '</div>') if extra_text else ''
+        teacher_block = teacher_name if teacher_name else "الأستاذ"
+        school_block = school_name if school_name else "المدرسة"
+        grade_text = ('في ' + grade) if grade else ''
+        
+        full_html = (
+            '<!DOCTYPE html>\n'
+            '<html lang="ar" dir="rtl">\n'
+            '<head>\n'
+            '<meta charset="UTF-8">\n'
+            '<title>شهادة تقدير</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+            '<style>' + css + '</style>\n'
+            '</head>\n'
+            '<body>\n'
+            '<div class="controls">'
+            '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
+            '<button onclick="window.close()" style="background:#43a047;">✕ إغلاق</button>'
+            '</div>\n'
+            '<div class="cert-page">'
+            '<div class="cert-corner tl">' + t["decoration"] + '</div>'
+            '<div class="cert-corner tr">' + t["decoration"] + '</div>'
+            '<div class="cert-corner bl">' + t["decoration"] + '</div>'
+            '<div class="cert-corner br">' + t["decoration"] + '</div>'
+            '<div class="cert-content">'
+            '<div class="cert-icon">' + t["icon"] + '</div>'
+            '<div class="cert-title">شهادة تقدير</div>'
+            '<div class="cert-subtitle">Certificate of Excellence</div>'
+            '<div class="cert-text">تُمنح هذه الشهادة إلى الطالب/ـة المتميّز/ـة</div>'
+            '<div class="cert-name">' + student_name + '</div>'
+            '<div class="cert-text">' + grade_text + '</div>'
+            '<div class="cert-text">تقديراً لـ</div>'
+            '<div class="cert-achievement">' + achievement + '</div>'
+            + extra_block +
+            '<div class="cert-footer">'
+            '<div class="cert-sign-block"><div class="cert-sign-line">' + teacher_block + '</div></div>'
+            '<div class="cert-sign-block"><div class="cert-sign-line">📅 ' + date + '</div></div>'
+            '<div class="cert-sign-block"><div class="cert-sign-line">' + school_block + '</div></div>'
+            '</div>'
+            '</div>'
+            '</div>\n'
+            '</body>\n</html>'
+        )
+        
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=full_html)
+    
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ في بناء الشهادة: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/certificate/batch")
+async def teacher_certificate_batch(
+    template: str       = Form(default="gold"),
+    student_names: str  = Form(...),    # أسماء مفصولة بأسطر جديدة
+    achievement: str    = Form(default="التميّز في الرياضيات"),
+    grade: str          = Form(default=""),
+    school_name: str    = Form(default=""),
+    teacher_name: str   = Form(default=""),
+    date: str           = Form(default=""),
+):
+    """🏆 طباعة شهادات متعددة دفعة واحدة"""
+    names = [n.strip() for n in student_names.replace("،", "\n").split("\n") if n.strip()]
+    if not names:
+        raise HTTPException(status_code=400, detail="أدخل أسماء الطلاب")
+    if len(names) > 50:
+        raise HTTPException(status_code=400, detail="الحد الأقصى 50 شهادة دفعة واحدة")
+    
+    # نبني نفس HTML الـ single لكن مع تكرار صفحات
+    # نحاول استخدام نفس الدالة لكن مع تجميع
+    from datetime import datetime
+    if not date:
+        date = datetime.now().strftime("%Y/%m/%d")
+    
+    templates_data = {
+        "gold":    {"bg": "#fefae0", "border": "12px double #d4af37", "title_c": "#8b6914", "name_c": "#5d4e1f", "icon": "👑", "deco": "⚜️"},
+        "royal":   {"bg": "#f0e8ff", "border": "10px double #5b3e8a", "title_c": "#3d2666", "name_c": "#2a1a47", "icon": "🎖️", "deco": "♛"},
+        "modern":  {"bg": "#f0f9ff", "border": "8px solid #0ea5e9",   "title_c": "#0369a1", "name_c": "#082f49", "icon": "🏆", "deco": "★"},
+        "classic": {"bg": "#fff5e6", "border": "10px ridge #c9742d",   "title_c": "#7a4317", "name_c": "#4a2607", "icon": "📜", "deco": "❦"},
+        "floral":  {"bg": "#fff0f5", "border": "8px double #d63384",  "title_c": "#831843", "name_c": "#500724", "icon": "🌸", "deco": "✿"},
+    }
+    t = templates_data.get(template, templates_data["gold"])
+    
+    pages_html = ""
+    for name in names:
+        grade_text = ('في ' + grade) if grade else ''
+        page = (
+            '<div class="cert-page">'
+            '<div class="cert-corner tl">' + t["deco"] + '</div>'
+            '<div class="cert-corner tr">' + t["deco"] + '</div>'
+            '<div class="cert-corner bl">' + t["deco"] + '</div>'
+            '<div class="cert-corner br">' + t["deco"] + '</div>'
+            '<div class="cert-content">'
+            '<div class="cert-icon">' + t["icon"] + '</div>'
+            '<div class="cert-title">شهادة تقدير</div>'
+            '<div class="cert-subtitle">Certificate of Excellence</div>'
+            '<div class="cert-text">تُمنح هذه الشهادة إلى الطالب/ـة المتميّز/ـة</div>'
+            '<div class="cert-name">' + name + '</div>'
+            '<div class="cert-text">' + grade_text + '</div>'
+            '<div class="cert-text">تقديراً لـ</div>'
+            '<div class="cert-achievement">' + achievement + '</div>'
+            '<div class="cert-footer">'
+            '<div class="cert-sign-block"><div class="cert-sign-line">' + (teacher_name or "الأستاذ") + '</div></div>'
+            '<div class="cert-sign-block"><div class="cert-sign-line">📅 ' + date + '</div></div>'
+            '<div class="cert-sign-block"><div class="cert-sign-line">' + (school_name or "المدرسة") + '</div></div>'
+            '</div>'
+            '</div>'
+            '</div>'
+        )
+        pages_html += page
+    
+    css = """
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Cairo', sans-serif; padding: 0; margin: 0; background: #fff; }
+        .cert-page { width: 297mm; height: 210mm; padding: 30px; background: """ + t["bg"] + """; border: """ + t["border"] + """; margin: 20px auto; box-sizing: border-box; position: relative; page-break-after: always; }
+        .cert-corner { position: absolute; font-size: 60px; opacity: 0.15; color: """ + t["title_c"] + """; }
+        .cert-corner.tl { top: 30px; left: 30px; }
+        .cert-corner.tr { top: 30px; right: 30px; }
+        .cert-corner.bl { bottom: 30px; left: 30px; }
+        .cert-corner.br { bottom: 30px; right: 30px; }
+        .cert-content { text-align: center; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center; position: relative; z-index: 2; }
+        .cert-icon { font-size: 80px; margin-bottom: 14px; }
+        .cert-title { font-family: 'Amiri', serif; font-size: 56px; font-weight: 700; color: """ + t["title_c"] + """; margin-bottom: 8px; }
+        .cert-subtitle { font-size: 22px; color: """ + t["title_c"] + """; margin-bottom: 30px; font-weight: 600; }
+        .cert-text { font-size: 22px; line-height: 2; margin: 12px 0; color: #333; }
+        .cert-name { font-family: 'Amiri', serif; font-size: 60px; font-weight: 700; color: """ + t["name_c"] + """; margin: 20px 0; padding: 14px 40px; border-bottom: 3px solid """ + t["title_c"] + """; display: inline-block; }
+        .cert-achievement { font-size: 24px; color: """ + t["title_c"] + """; font-weight: 600; margin: 14px 0; padding: 10px 24px; background: rgba(255,255,255,0.5); border-radius: 8px; display: inline-block; }
+        .cert-footer { display: flex; justify-content: space-around; width: 100%; margin-top: 40px; font-size: 16px; }
+        .cert-sign-block { text-align: center; min-width: 200px; }
+        .cert-sign-line { border-top: 2px solid """ + t["title_c"] + """; margin-top: 60px; padding-top: 6px; color: """ + t["name_c"] + """; font-weight: 600; }
+        .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; z-index: 9999; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+        .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo', sans-serif; font-weight: 600; }
+        .controls .info { display: inline-block; padding: 6px 14px; color: #1565c0; font-size: 13px; margin-right: 10px; }
+        @media print {
+            .controls { display: none !important; }
+            @page { size: A4 landscape; margin: 0; }
+            body { margin: 0; }
+            .cert-page { margin: 0; }
+        }
+    """
+    
+    full_html = (
+        '<!DOCTYPE html>\n'
+        '<html lang="ar" dir="rtl">\n'
+        '<head>\n'
+        '<meta charset="UTF-8">\n'
+        '<title>شهادات دفعة (' + str(len(names)) + ')</title>\n'
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+        '<style>' + css + '</style>\n'
+        '</head>\n<body>\n'
+        '<div class="controls">'
+        '<span class="info">📊 ' + str(len(names)) + ' شهادة جاهزة</span>'
+        '<button onclick="window.print()">🖨️ طباعة الكل / حفظ PDF</button>'
+        '<button onclick="window.close()" style="background:#43a047;">✕ إغلاق</button>'
+        '</div>\n'
+        + pages_html +
+        '\n</body>\n</html>'
+    )
+    
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=full_html)
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),
