@@ -1007,7 +1007,24 @@
         .task-card.status-done      { opacity: 0.55; }
         .task-card.status-done .task-title { text-decoration: line-through; }
 
-    </style>
+    
+        /* 🎨 إصلاح القوائم المنسدلة في الأدمن */
+        select option {
+            background-color: #0d1b3e !important;
+            color: #fff !important;
+            padding: 8px !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 500 !important;
+        }
+        select option:checked,
+        select option:hover {
+            background-color: #1565c0 !important;
+            color: #fff !important;
+        }
+        select option:disabled {
+            color: rgba(255,255,255,0.4) !important;
+        }
+</style>
 
     <!-- ══════════════════════════════════════════════════════════
          🌟 تحسينات بصرية ملكية — Imperial Visual Enhancements
@@ -2276,7 +2293,37 @@
                     </div>
 
                     <label>📝 نص السؤال</label>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+                        <button type="button" onclick="qTextBold()" title="عريض" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">𝐁 عريض</button>
+                        <button type="button" onclick="qTextItalic()" title="مائل" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-style:italic;font-size:0.85rem;">𝐈 مائل</button>
+                        <button type="button" onclick="qInsertSymbol('×')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">×</button>
+                        <button type="button" onclick="qInsertSymbol('÷')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">÷</button>
+                        <button type="button" onclick="qInsertSymbol('±')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">±</button>
+                        <button type="button" onclick="qInsertSymbol('≤')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">≤</button>
+                        <button type="button" onclick="qInsertSymbol('≥')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">≥</button>
+                        <button type="button" onclick="qInsertSymbol('≠')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">≠</button>
+                        <button type="button" onclick="qInsertSymbol('√')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">√</button>
+                        <button type="button" onclick="qInsertSymbol('π')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">π</button>
+                        <button type="button" onclick="qInsertSymbol('∞')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">∞</button>
+                        <button type="button" onclick="qInsertSymbol('°')" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">°</button>
+                        <button type="button" onclick="qInsertFraction()" title="كسر" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">½ كسر</button>
+                        <button type="button" onclick="qInsertSuper()" title="أس" style="background:rgba(212,175,55,0.1);color:var(--gold);border:1px solid rgba(212,175,55,0.4);padding:6px 12px;border-radius:6px;cursor:pointer;font-size:0.85rem;">x² أس</button>
+                    </div>
                     <textarea id="q-text" rows="4" placeholder="اكتب منطوق السؤال هنا..."></textarea>
+                    
+                    <!-- 🎨 صانع المسائل البصرية -->
+                    <div style="background:linear-gradient(135deg,rgba(243,156,18,0.06),rgba(243,156,18,0.02));border:2px dashed #f39c12;border-radius:12px;padding:14px;margin-top:14px;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px;">
+                            <div>
+                                <h4 style="color:#f9c74f;margin:0 0 4px;font-size:1rem;">🎨 إضافة شكل بصري للسؤال</h4>
+                                <p style="font-size:0.78rem;color:rgba(255,255,255,0.6);margin:0;">أضف شكلاً هندسياً أو رسماً بيانياً للسؤال (سيُحفظ كصورة)</p>
+                            </div>
+                            <button type="button" onclick="openVisualMaker()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#1a0d2e;border:none;padding:10px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;box-shadow:0 4px 12px rgba(243,156,18,0.4);">
+                                🎨 افتح صانع الأشكال
+                            </button>
+                        </div>
+                        <div id="visual-preview-mini" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:10px;text-align:center;"></div>
+                    </div>
 
                     <div id="options-container">
                         <label>🔘 الخيارات المتاحة للطلاب (افصل بفاصلة ,)</label>
@@ -12518,6 +12565,880 @@
         }
     })();
 
+
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     🎨 صانع المسائل البصرية - Modal للأدمن
+════════════════════════════════════════════════════════════ -->
+<div id="visual-maker-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);overflow-y:auto;">
+    <div style="max-width:1200px;margin:30px auto;background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #f39c12;border-radius:20px;padding:24px;color:#fff;">
+        
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;flex-wrap:wrap;gap:10px;">
+            <h2 style="color:#f9c74f;font-family:'Amiri',serif;margin:0;font-size:1.6rem;">🎨 صانع المسائل البصرية</h2>
+            <button onclick="closeVisualMaker()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إغلاق</button>
+        </div>
+        
+        <!-- اختيار النوع -->
+        <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:18px;margin-bottom:18px;">
+            <h3 style="color:#f9c74f;margin:0 0 14px;font-size:1.05rem;">🎯 اختر نوع الشكل</h3>
+            <div id="amvm-tools" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;">
+                <!-- 2D -->
+                <div class="amvm-tool" data-tool="triangle" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📐</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">مثلث</div>
+                </div>
+                <div class="amvm-tool" data-tool="rectangle" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">▭</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">مستطيل</div>
+                </div>
+                <div class="amvm-tool" data-tool="circle" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⭕</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">دائرة</div>
+                </div>
+                <div class="amvm-tool" data-tool="circle-sector" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🥧</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">قطاع</div>
+                </div>
+                <div class="amvm-tool" data-tool="number-line" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📏</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">محور أعداد</div>
+                </div>
+                <div class="amvm-tool" data-tool="bar-chart" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📊</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">رسم بياني</div>
+                </div>
+                <div class="amvm-tool" data-tool="pie-chart" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🥧</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">دائري</div>
+                </div>
+                <div class="amvm-tool" data-tool="grid" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">▦</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">شبكة</div>
+                </div>
+                <div class="amvm-tool" data-tool="fraction-bar" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🟧</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9c74f;margin-top:3px;">شريط كسور</div>
+                </div>
+                <!-- 3D -->
+                <div class="amvm-tool" data-tool="cube" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🧊</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">مكعب</div>
+                </div>
+                <div class="amvm-tool" data-tool="cuboid" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📦</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">متوازي</div>
+                </div>
+                <div class="amvm-tool" data-tool="pyramid-3" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🔺</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">هرم ثلاثي</div>
+                </div>
+                <div class="amvm-tool" data-tool="pyramid-4" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🔺</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">هرم رباعي</div>
+                </div>
+                <div class="amvm-tool" data-tool="pyramid-5" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⛰️</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">هرم خماسي</div>
+                </div>
+                <div class="amvm-tool" data-tool="pyramid-6" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⛰️</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">هرم سداسي</div>
+                </div>
+                <div class="amvm-tool" data-tool="pyramid-8" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⛰️</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">هرم ثماني</div>
+                </div>
+                <div class="amvm-tool" data-tool="cylinder" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🥫</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">أسطوانة</div>
+                </div>
+                <div class="amvm-tool" data-tool="cone" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🎉</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">مخروط</div>
+                </div>
+                <div class="amvm-tool" data-tool="prism-tri" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📐</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور</div>
+                </div>
+                <div class="amvm-tool" data-tool="polygon" style="background:rgba(0,191,255,0.06);border:2px solid rgba(0,191,255,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⬡</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#5dd5ff;margin-top:3px;">مضلع</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Controls + Preview -->
+        <div style="display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start;">
+            <!-- Controls -->
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:16px;">
+                <h3 style="color:#f9c74f;margin:0 0 12px;font-size:1rem;">⚙️ الإعدادات</h3>
+                <div id="amvm-controls">
+                    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-align:center;padding:20px;">🎯 اختر شكلاً أولاً</p>
+                </div>
+            </div>
+            
+            <!-- Preview -->
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:16px;">
+                <h3 style="color:#f9c74f;margin:0 0 12px;font-size:1rem;">👁️ المعاينة</h3>
+                <div id="amvm-preview" style="background:#fff;border-radius:10px;padding:20px;min-height:350px;display:flex;align-items:center;justify-content:center;overflow:visible;">
+                    <div style="text-align:center;color:#999;">
+                        <div style="font-size:3rem;">🎨</div>
+                        <p style="margin-top:8px;">اختر شكلاً للبدء</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="display:flex;gap:12px;justify-content:center;margin-top:18px;flex-wrap:wrap;">
+            <button onclick="amvmInsertToQuestion()" id="amvm-insert-btn" disabled style="background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(46,204,113,0.4);opacity:0.5;">
+                ✅ إدراج في السؤال
+            </button>
+            <button onclick="amvmDownloadPng()" id="amvm-png-btn" disabled style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;opacity:0.5;">
+                📥 تنزيل PNG
+            </button>
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+
+// ════════════════════════════════════════════════════════════
+// 📝 شريط أدوات تنسيق نص السؤال
+// ════════════════════════════════════════════════════════════
+function _qTextEl() {
+    return document.getElementById('q-text');
+}
+
+function _qWrapSelection(prefix, suffix) {
+    var ta = _qTextEl();
+    if (!ta) return;
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+    var selected = ta.value.substring(start, end);
+    var before = ta.value.substring(0, start);
+    var after = ta.value.substring(end);
+    if (!selected) selected = 'النص';
+    ta.value = before + prefix + selected + suffix + after;
+    ta.focus();
+    ta.setSelectionRange(start + prefix.length, start + prefix.length + selected.length);
+}
+
+function qTextBold() { _qWrapSelection('**', '**'); }
+function qTextItalic() { _qWrapSelection('_', '_'); }
+
+function qInsertSymbol(sym) {
+    var ta = _qTextEl();
+    if (!ta) return;
+    var start = ta.selectionStart;
+    var before = ta.value.substring(0, start);
+    var after = ta.value.substring(ta.selectionEnd);
+    ta.value = before + sym + after;
+    ta.focus();
+    ta.setSelectionRange(start + sym.length, start + sym.length);
+}
+
+function qInsertFraction() {
+    var num = prompt('البسط:');
+    if (num === null) return;
+    var den = prompt('المقام:');
+    if (den === null) return;
+    var fraction = '(' + num + '/' + den + ')';
+    qInsertSymbol(fraction);
+}
+
+function qInsertSuper() {
+    var base = prompt('الأساس (مثل: 5):');
+    if (base === null) return;
+    var exp = prompt('الأس (مثل: 2):');
+    if (exp === null) return;
+    // نستخدم Unicode superscripts
+    var superMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','+':'⁺'};
+    var supText = String(exp).split('').map(function(c){ return superMap[c] || c; }).join('');
+    qInsertSymbol(base + supText);
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎨 صانع المسائل البصرية في الأدمن
+// ════════════════════════════════════════════════════════════
+var _amvmTool = null;
+var _amvmSVG = null;
+
+function openVisualMaker() {
+    var modal = document.getElementById('visual-maker-modal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+        // ضع listeners أول مرة
+        if (!modal.dataset.initialized) {
+            initAmvmListeners();
+            modal.dataset.initialized = 'true';
+        }
+    }
+}
+
+function closeVisualMaker() {
+    var modal = document.getElementById('visual-maker-modal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+}
+
+function initAmvmListeners() {
+    document.querySelectorAll('.amvm-tool').forEach(function(el) {
+        el.addEventListener('click', function() {
+            amvmSelectTool(el.getAttribute('data-tool'));
+        });
+    });
+}
+
+function amvmSelectTool(tool) {
+    _amvmTool = tool;
+    document.querySelectorAll('.amvm-tool').forEach(function(el) {
+        var t = el.getAttribute('data-tool');
+        var c3d = ['cube','cuboid','pyramid-3','pyramid-4','pyramid-5','pyramid-6','pyramid-8','cylinder','cone','prism-tri'].indexOf(t) !== -1;
+        var poly = t === 'polygon';
+        var col = poly ? '0,191,255' : (c3d ? '46,204,113' : '243,156,18');
+        el.style.background = 'rgba(' + col + ',0.06)';
+        el.style.borderColor = 'rgba(' + col + ',0.4)';
+        el.style.transform = '';
+    });
+    var active = document.querySelector('.amvm-tool[data-tool="' + tool + '"]');
+    if (active) {
+        active.style.background = 'linear-gradient(135deg,rgba(243,156,18,0.3),rgba(243,156,18,0.1))';
+        active.style.borderColor = '#f39c12';
+        active.style.transform = 'scale(1.05)';
+    }
+    amvmRenderControls(tool);
+    setTimeout(amvmDraw, 100);
+}
+
+function amvmRenderControls(tool) {
+    var ctrl = document.getElementById('amvm-controls');
+    if (!ctrl) return;
+    var fs = 'width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;font-weight:600;margin-bottom:8px;';
+    var ls = 'display:block;font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:3px;font-weight:600;';
+    var html = '';
+    
+    if (tool === 'triangle') {
+        html += '<label style="' + ls + '">📐 النوع</label>';
+        html += '<select id="amvm-tri-type" onchange="amvmDraw()" style="' + fs + '">';
+        html += '<option value="right">قائم الزاوية</option><option value="equilateral">متساوي الأضلاع</option><option value="isosceles">متساوي الساقين</option><option value="scalene">مختلف الأضلاع</option>';
+        html += '</select>';
+        html += '<label style="' + ls + '">📏 الضلع 1</label><input type="number" id="amvm-tri-a" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الضلع 2</label><input type="number" id="amvm-tri-b" value="8" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الضلع 3</label><input type="number" id="amvm-tri-c" value="10" oninput="amvmDraw()" style="' + fs + '">';
+    }
+    else if (tool === 'rectangle') {
+        html += '<label style="' + ls + '">📏 العرض</label><input type="number" id="amvm-rect-w" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-rect-h" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-rect-color" value="#1976d2" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'circle') {
+        html += '<label style="' + ls + '">⭕ نصف القطر</label><input type="number" id="amvm-circle-r" value="5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-circle-color" value="#e74c3c" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'circle-sector') {
+        html += '<label style="' + ls + '">📐 الزاوية</label><input type="number" id="amvm-sec-angle" value="90" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">⭕ نصف القطر</label><input type="number" id="amvm-sec-r" value="5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-sec-color" value="#3498db" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'number-line') {
+        html += '<label style="' + ls + '">⬅️ الأصغر</label><input type="number" id="amvm-nl-min" value="-10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">➡️ الأكبر</label><input type="number" id="amvm-nl-max" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📌 نقاط</label><input type="text" id="amvm-nl-points" placeholder="-3,0,5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-nl-color" value="#e74c3c" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'bar-chart') {
+        html += '<label style="' + ls + '">📊 البيانات</label><textarea id="amvm-bar-data" rows="5" oninput="amvmDraw()" style="' + fs + 'resize:vertical;">رياضيات:85\nعلوم:78\nلغة:92</textarea>';
+        html += '<label style="' + ls + '">📝 العنوان</label><input type="text" id="amvm-bar-title" value="درجات" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-bar-color" value="#3498db" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'pie-chart') {
+        html += '<label style="' + ls + '">🥧 البيانات</label><textarea id="amvm-pie-data" rows="5" oninput="amvmDraw()" style="' + fs + 'resize:vertical;">القسم 1:35\nالقسم 2:25\nالقسم 3:40</textarea>';
+        html += '<label style="' + ls + '">📝 العنوان</label><input type="text" id="amvm-pie-title" value="توزيع" oninput="amvmDraw()" style="' + fs + '">';
+    }
+    else if (tool === 'grid') {
+        html += '<label style="' + ls + '">🔢 أعمدة</label><input type="number" id="amvm-grid-cols" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🔢 صفوف</label><input type="number" id="amvm-grid-rows" value="10" oninput="amvmDraw()" style="' + fs + '">';
+    }
+    else if (tool === 'fraction-bar') {
+        html += '<label style="' + ls + '">🔢 المقام</label><input type="number" id="amvm-frac-denom" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🔢 البسط</label><input type="number" id="amvm-frac-num" value="3" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-frac-color" value="#e74c3c" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'cube') {
+        html += '<label style="' + ls + '">📏 طول الضلع</label><input type="number" id="amvm-cube-side" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-cube-color" value="#3498db" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'cuboid') {
+        html += '<label style="' + ls + '">📏 الطول</label><input type="number" id="amvm-cb-l" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 العرض</label><input type="number" id="amvm-cb-w" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-cb-h" value="4" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-cb-color" value="#e74c3c" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'pyramid-3' || tool === 'pyramid-4' || tool === 'pyramid-5' || tool === 'pyramid-6' || tool === 'pyramid-8') {
+        html += '<label style="' + ls + '">📏 ضلع القاعدة</label><input type="number" id="amvm-py-base" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-py-height" value="8" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-py-color" value="#16a085" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'cylinder') {
+        html += '<label style="' + ls + '">⭕ نصف القطر</label><input type="number" id="amvm-cyl-r" value="4" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-cyl-h" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-cyl-color" value="#16a085" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'cone') {
+        html += '<label style="' + ls + '">⭕ نصف القطر</label><input type="number" id="amvm-cone-r" value="5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-cone-h" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-cone-color" value="#f39c12" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'prism-tri') {
+        html += '<label style="' + ls + '">📏 ضلع المثلث</label><input type="number" id="amvm-pr-base" value="6" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 الطول</label><input type="number" id="amvm-pr-len" value="10" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-pr-color" value="#e67e22" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'polygon') {
+        html += '<label style="' + ls + '">📐 الأضلاع</label><input type="number" id="amvm-poly-sides" value="6" min="3" max="12" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">📏 طول الضلع</label><input type="number" id="amvm-poly-side" value="5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-poly-color" value="#00bfff" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    
+    ctrl.innerHTML = html;
+}
+
+// نستخدم نفس دوال الرسم من teachers.html — لكن نعيد كتابتها هنا للأدمن
+function amvmDraw() {
+    var preview = document.getElementById('amvm-preview');
+    if (!preview || !_amvmTool) return;
+    
+    // نُغذّي قيم amvm-* إلى أسماء vm-* مؤقتاً
+    _bridgeIds('amvm-', 'vm-', true);
+    
+    var svg = '';
+    var t = _amvmTool;
+    if (t === 'triangle')           svg = vmDrawTriangle();
+    else if (t === 'rectangle')     svg = vmDrawRectangle();
+    else if (t === 'circle')        svg = vmDrawCircle();
+    else if (t === 'circle-sector') svg = vmDrawSector();
+    else if (t === 'number-line')   svg = vmDrawNumberLine();
+    else if (t === 'bar-chart')     svg = vmDrawBarChart();
+    else if (t === 'pie-chart')     svg = vmDrawPieChart();
+    else if (t === 'grid')          svg = vmDrawGrid();
+    else if (t === 'fraction-bar')  svg = vmDrawFractionBar();
+    else if (t === 'cube')          svg = vmDrawCube();
+    else if (t === 'cuboid')        svg = vmDrawCuboid();
+    else if (t === 'pyramid-3')     svg = vmDrawPyramid(3);
+    else if (t === 'pyramid-4')     svg = vmDrawPyramid(4);
+    else if (t === 'pyramid-5')     svg = vmDrawPyramid(5);
+    else if (t === 'pyramid-6')     svg = vmDrawPyramid(6);
+    else if (t === 'pyramid-8')     svg = vmDrawPyramid(8);
+    else if (t === 'cylinder')      svg = vmDrawCylinder();
+    else if (t === 'cone')          svg = vmDrawCone();
+    else if (t === 'prism-tri')     svg = vmDrawTriPrism();
+    else if (t === 'polygon')       svg = vmDrawPolygon();
+    
+    _bridgeCleanup();
+    
+    _amvmSVG = svg;
+    preview.innerHTML = svg;
+    
+    ['amvm-insert-btn', 'amvm-png-btn'].forEach(function(id) {
+        var b = document.getElementById(id);
+        if (b) { b.disabled = false; b.style.opacity = '1'; }
+    });
+}
+
+// Helpers لجسر القيم بين amvm- و vm- (لإعادة استخدام دوال الرسم)
+var _bridgedIds = [];
+function _bridgeIds(fromPrefix, toPrefix, fromAdmin) {
+    _bridgedIds = [];
+    var fields = [
+        'tri-type','tri-a','tri-b','tri-c',
+        'rect-w','rect-h','rect-color',
+        'circle-r','circle-color',
+        'sec-angle','sec-r','sec-color',
+        'nl-min','nl-max','nl-points','nl-color',
+        'bar-data','bar-color','bar-title',
+        'pie-data','pie-title',
+        'grid-cols','grid-rows',
+        'frac-denom','frac-num','frac-color',
+        'cube-side','cube-color',
+        'cb-l','cb-w','cb-h','cb-color',
+        'py-base','py-height','py-color',
+        'cyl-r','cyl-h','cyl-color',
+        'cone-r','cone-h','cone-color',
+        'pr-base','pr-len','pr-color',
+        'poly-sides','poly-side','poly-color'
+    ];
+    fields.forEach(function(f) {
+        var fromEl = document.getElementById(fromPrefix + f);
+        var toEl = document.getElementById(toPrefix + f);
+        if (fromEl && !toEl) {
+            // ننسخ العنصر بـ id الجديد
+            var clone = document.createElement(fromEl.tagName);
+            clone.id = toPrefix + f;
+            clone.value = fromEl.value;
+            if (fromEl.tagName === 'INPUT') {
+                clone.type = fromEl.type;
+                clone.checked = fromEl.checked;
+            }
+            clone.style.display = 'none';
+            document.body.appendChild(clone);
+            _bridgedIds.push(toPrefix + f);
+        }
+    });
+    // نضيف checkboxes ثابتة (labels checks)
+    ['tri-labels','rect-labels','rect-fill','circle-radius','circle-diameter','grid-axes','grid-numbers','cube-labels','cb-labels','py-labels','cyl-labels','cone-labels','pr-labels','poly-labels'].forEach(function(f) {
+        var toEl = document.getElementById(toPrefix + f);
+        if (!toEl) {
+            var clone = document.createElement('input');
+            clone.id = toPrefix + f;
+            clone.type = 'checkbox';
+            clone.checked = true; // افتراضي
+            clone.style.display = 'none';
+            document.body.appendChild(clone);
+            _bridgedIds.push(toPrefix + f);
+        }
+    });
+    
+    // نظّف فحص نص السؤال (سنتجاوزه في الأدمن)
+    var qText = document.getElementById('vm-question-text');
+    if (!qText) {
+        var t = document.createElement('textarea');
+        t.id = 'vm-question-text';
+        t.value = ''; // الأدمن لا يضيف سؤالاً هنا
+        t.style.display = 'none';
+        document.body.appendChild(t);
+        _bridgedIds.push('vm-question-text');
+    }
+}
+
+function _bridgeCleanup() {
+    _bridgedIds.forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.remove();
+    });
+    _bridgedIds = [];
+}
+
+// ════════════════════════════════════════════════════════════
+// 📤 إدراج الشكل في السؤال (كصورة)
+// ════════════════════════════════════════════════════════════
+function amvmInsertToQuestion() {
+    if (!_amvmSVG) return;
+    
+    // SVG → PNG → ضع في input file (q-image)
+    var img = new Image();
+    var blob = new Blob([_amvmSVG], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    
+    img.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = (img.naturalWidth || 800) * 2;
+        canvas.height = (img.naturalHeight || 600) * 2;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        
+        canvas.toBlob(function(b) {
+            // نُحوّل blob إلى File ونضعه في input
+            var file = new File([b], 'shape_' + _amvmTool + '_' + Date.now() + '.png', { type: 'image/png' });
+            var dt = new DataTransfer();
+            dt.items.add(file);
+            
+            var input = document.getElementById('q-image');
+            if (input) {
+                input.files = dt.files;
+                
+                // نعرض المعاينة الصغيرة
+                var mini = document.getElementById('visual-preview-mini');
+                if (mini) {
+                    mini.style.display = 'block';
+                    mini.innerHTML = '<img src="' + canvas.toDataURL('image/png') + '" style="max-width:100%;max-height:200px;display:inline-block;">' +
+                        '<div style="margin-top:8px;color:#2ecc71;font-weight:bold;font-size:0.9rem;">✅ تم إدراج الشكل في السؤال</div>';
+                }
+                
+                if (typeof showToast === 'function') showToast('✅ الشكل أُدرج كصورة للسؤال', 'success');
+                closeVisualMaker();
+            }
+            URL.revokeObjectURL(url);
+        }, 'image/png');
+    };
+    img.src = url;
+}
+
+function amvmDownloadPng() {
+    if (!_amvmSVG) return;
+    var img = new Image();
+    var blob = new Blob([_amvmSVG], { type: 'image/svg+xml;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    img.onload = function() {
+        var canvas = document.createElement('canvas');
+        canvas.width = (img.naturalWidth || 800) * 2;
+        canvas.height = (img.naturalHeight || 600) * 2;
+        var ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.scale(2, 2);
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(function(b) {
+            var u = URL.createObjectURL(b);
+            var a = document.createElement('a');
+            a.href = u;
+            a.download = 'shape_' + _amvmTool + '_' + Date.now() + '.png';
+            a.click();
+            URL.revokeObjectURL(u);
+        }, 'image/png');
+        URL.revokeObjectURL(url);
+    };
+    img.src = url;
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎨 دوال الرسم (نسخة من teachers.html — كاملة)
+// ════════════════════════════════════════════════════════════
+function vmDrawTriangle() {
+    var type = (document.getElementById('vm-tri-type') || {}).value || 'right';
+    var a = parseFloat((document.getElementById('vm-tri-a') || {}).value) || 6;
+    var b = parseFloat((document.getElementById('vm-tri-b') || {}).value) || 8;
+    var c = parseFloat((document.getElementById('vm-tri-c') || {}).value) || 10;
+    var W=600,H=500,cx=W/2,cy=H/2+60,scale=25,p1,p2,p3;
+    if (type==='right') { p1={x:cx-a*scale/2,y:cy}; p2={x:cx+a*scale/2,y:cy}; p3={x:cx-a*scale/2,y:cy-b*scale}; }
+    else if (type==='equilateral') { p1={x:cx-a*scale/2,y:cy}; p2={x:cx+a*scale/2,y:cy}; p3={x:cx,y:cy-a*scale*0.866}; }
+    else if (type==='isosceles') { p1={x:cx-a*scale/2,y:cy}; p2={x:cx+a*scale/2,y:cy}; p3={x:cx,y:cy-b*scale}; }
+    else { p1={x:cx-a*scale/2,y:cy}; p2={x:cx+a*scale/2,y:cy}; p3={x:cx+a*scale/4,y:cy-b*scale*0.8}; }
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<polygon points="'+p1.x+','+p1.y+' '+p2.x+','+p2.y+' '+p3.x+','+p3.y+'" fill="rgba(52,152,219,0.1)" stroke="#1976d2" stroke-width="3"/>';
+    if (type==='right') s += '<rect x="'+p1.x+'" y="'+(p1.y-14)+'" width="14" height="14" fill="none" stroke="#1976d2" stroke-width="2"/>';
+    s += '<text x="'+(p1.x-22)+'" y="'+(p1.y+24)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">أ</text>';
+    s += '<text x="'+(p2.x+12)+'" y="'+(p2.y+24)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">ب</text>';
+    s += '<text x="'+(p3.x-14)+'" y="'+(p3.y-16)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">ج</text>';
+    s += '<text x="'+((p1.x+p2.x)/2)+'" y="'+(p1.y+50)+'" font-family="Cairo" font-size="17" fill="#1976d2" text-anchor="middle" font-weight="600">'+a+' سم</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawRectangle() {
+    var w = parseFloat((document.getElementById('vm-rect-w')||{}).value) || 10;
+    var h = parseFloat((document.getElementById('vm-rect-h')||{}).value) || 6;
+    var color = (document.getElementById('vm-rect-color')||{}).value || '#1976d2';
+    var W=600,H=500,scale=25,rw=w*scale,rh=h*scale;
+    var x=(W-rw)/2,y=(H-rh)/2+20;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<rect x="'+x+'" y="'+y+'" width="'+rw+'" height="'+rh+'" fill="none" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+(x-22)+'" y="'+(y+rh+26)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">أ</text>';
+    s += '<text x="'+(x+rw+8)+'" y="'+(y+rh+26)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">ب</text>';
+    s += '<text x="'+(x+rw+8)+'" y="'+(y-8)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">ج</text>';
+    s += '<text x="'+(x-22)+'" y="'+(y-8)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="#000">د</text>';
+    s += '<text x="'+(x+rw/2)+'" y="'+(y+rh+50)+'" font-family="Cairo" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600">'+w+' سم</text>';
+    s += '<text x="'+(x-50)+'" y="'+(y+rh/2)+'" font-family="Cairo" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600" transform="rotate(-90 '+(x-50)+' '+(y+rh/2)+')">'+h+' سم</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawCircle() {
+    var r = parseFloat((document.getElementById('vm-circle-r')||{}).value) || 5;
+    var color = (document.getElementById('vm-circle-color')||{}).value || '#e74c3c';
+    var W=600,H=500,cx=W/2,cy=H/2,rad=r*30;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="'+color+'15" stroke="'+color+'" stroke-width="3"/>';
+    s += '<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="'+color+'"/>';
+    s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+(cx+rad)+'" y2="'+cy+'" stroke="'+color+'" stroke-width="2" stroke-dasharray="5,3"/>';
+    s += '<text x="'+(cx+rad/2)+'" y="'+(cy-14)+'" font-family="Cairo" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600">نق = '+r+' سم</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawSector() {
+    var angle = parseFloat((document.getElementById('vm-sec-angle')||{}).value) || 90;
+    var r = parseFloat((document.getElementById('vm-sec-r')||{}).value) || 5;
+    var color = (document.getElementById('vm-sec-color')||{}).value || '#3498db';
+    var W=600,H=500,cx=W/2,cy=H/2,rad=r*30;
+    angle = Math.min(Math.max(angle,1),360);
+    var startA=-90*Math.PI/180, rad_ang=(angle-90)*Math.PI/180;
+    var x1=cx+rad*Math.cos(startA), y1=cy+rad*Math.sin(startA);
+    var x2=cx+rad*Math.cos(rad_ang), y2=cy+rad*Math.sin(rad_ang);
+    var largeArc = angle > 180 ? 1 : 0;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<circle cx="'+cx+'" cy="'+cy+'" r="'+rad+'" fill="none" stroke="#ccc" stroke-width="1" stroke-dasharray="3,3"/>';
+    s += '<path d="M '+cx+' '+cy+' L '+x1+' '+y1+' A '+rad+' '+rad+' 0 '+largeArc+' 1 '+x2+' '+y2+' Z" fill="'+color+'40" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+cx+'" y="'+(cy+8)+'" font-family="Cairo" font-size="22" font-weight="bold" fill="'+color+'" text-anchor="middle">'+angle+'°</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawNumberLine() {
+    var min = parseFloat((document.getElementById('vm-nl-min')||{}).value);
+    var max = parseFloat((document.getElementById('vm-nl-max')||{}).value);
+    var pointsStr = (document.getElementById('vm-nl-points')||{}).value || '';
+    var color = (document.getElementById('vm-nl-color')||{}).value || '#e74c3c';
+    if (isNaN(min)) min=-10; if (isNaN(max)) max=10;
+    if (max <= min) max = min + 10;
+    var W=800,H=220,pad=50,lineY=H/2,lineW=W-pad*2,step=lineW/(max-min);
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:800px;background:#fff;">';
+    s += '<line x1="'+pad+'" y1="'+lineY+'" x2="'+(W-pad)+'" y2="'+lineY+'" stroke="#000" stroke-width="2.5"/>';
+    s += '<polygon points="'+(pad-5)+','+lineY+' '+(pad+8)+','+(lineY-6)+' '+(pad+8)+','+(lineY+6)+'" fill="#000"/>';
+    s += '<polygon points="'+(W-pad+5)+','+lineY+' '+(W-pad-8)+','+(lineY-6)+' '+(W-pad-8)+','+(lineY+6)+'" fill="#000"/>';
+    for (var i=min;i<=max;i++) {
+        var x=pad+(i-min)*step;
+        s += '<line x1="'+x+'" y1="'+(lineY-8)+'" x2="'+x+'" y2="'+(lineY+8)+'" stroke="#000" stroke-width="2"/>';
+        s += '<text x="'+x+'" y="'+(lineY+32)+'" font-family="Cairo" font-size="15" fill="#000" text-anchor="middle">'+i+'</text>';
+    }
+    if (pointsStr) {
+        var pts = pointsStr.split(',').map(function(z){return parseFloat(z.trim());}).filter(function(n){return !isNaN(n);});
+        pts.forEach(function(p) {
+            if (p>=min && p<=max) {
+                var px = pad+(p-min)*step;
+                s += '<circle cx="'+px+'" cy="'+lineY+'" r="9" fill="'+color+'" stroke="#fff" stroke-width="2.5"/>';
+                s += '<text x="'+px+'" y="'+(lineY-22)+'" font-family="Cairo" font-size="15" fill="'+color+'" font-weight="bold" text-anchor="middle">'+p+'</text>';
+            }
+        });
+    }
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawBarChart() {
+    var data = (document.getElementById('vm-bar-data')||{}).value || '';
+    var color = (document.getElementById('vm-bar-color')||{}).value || '#3498db';
+    var title = (document.getElementById('vm-bar-title')||{}).value || '';
+    var rows = data.split('\n').map(function(z){var p=z.split(':');return p.length===2?{label:p[0].trim(),value:parseFloat(p[1].trim())||0}:null;}).filter(function(r){return r;});
+    if (!rows.length) return '<svg viewBox="0 0 600 450"></svg>';
+    var W=600,H=480,pad=50,padTop=70,padBot=100;
+    var maxV = Math.max.apply(null, rows.map(function(r){return r.value;}));
+    var barW = (W-pad*2)/rows.length*0.7, gap = (W-pad*2)/rows.length*0.3;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<text x="'+(W/2)+'" y="40" font-family="Cairo" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">'+title+'</text>';
+    s += '<line x1="'+pad+'" y1="'+padTop+'" x2="'+pad+'" y2="'+(H-padBot)+'" stroke="#000" stroke-width="2"/>';
+    s += '<line x1="'+pad+'" y1="'+(H-padBot)+'" x2="'+(W-pad)+'" y2="'+(H-padBot)+'" stroke="#000" stroke-width="2"/>';
+    var chartH = H-padTop-padBot;
+    rows.forEach(function(r,i) {
+        var bh = (r.value/maxV)*chartH;
+        var x = pad+i*(barW+gap)+gap/2, y = H-padBot-bh;
+        s += '<rect x="'+x+'" y="'+y+'" width="'+barW+'" height="'+bh+'" fill="'+color+'" opacity="0.85" stroke="'+color+'" stroke-width="2"/>';
+        s += '<text x="'+(x+barW/2)+'" y="'+(y-12)+'" font-family="Cairo" font-size="15" font-weight="bold" fill="#000" text-anchor="middle">'+r.value+'</text>';
+        s += '<text x="'+(x+barW/2)+'" y="'+(H-padBot+28)+'" font-family="Cairo" font-size="14" fill="#000" text-anchor="middle">'+r.label+'</text>';
+    });
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawPieChart() {
+    var data = (document.getElementById('vm-pie-data')||{}).value || '';
+    var title = (document.getElementById('vm-pie-title')||{}).value || '';
+    var rows = data.split('\n').map(function(z){var p=z.split(':');return p.length===2?{label:p[0].trim(),value:parseFloat(p[1].trim())||0}:null;}).filter(function(r){return r&&r.value>0;});
+    if (!rows.length) return '<svg viewBox="0 0 600 500"></svg>';
+    var total = rows.reduce(function(a,b){return a+b.value;},0);
+    var W=600,H=540,cx=W/2,cy=230,r=140;
+    var colors = ['#3498db','#e74c3c','#2ecc71','#f39c12','#1abc9c','#e67e22','#34495e'];
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<text x="'+(W/2)+'" y="40" font-family="Cairo" font-size="22" font-weight="bold" fill="#000" text-anchor="middle">'+title+'</text>';
+    var startAng = -Math.PI/2;
+    rows.forEach(function(row,i) {
+        var angSize = (row.value/total)*2*Math.PI;
+        var endAng = startAng+angSize;
+        var x1=cx+r*Math.cos(startAng), y1=cy+r*Math.sin(startAng);
+        var x2=cx+r*Math.cos(endAng), y2=cy+r*Math.sin(endAng);
+        var largeArc = angSize>Math.PI?1:0;
+        var color = colors[i%colors.length];
+        s += '<path d="M '+cx+' '+cy+' L '+x1+' '+y1+' A '+r+' '+r+' 0 '+largeArc+' 1 '+x2+' '+y2+' Z" fill="'+color+'" stroke="#fff" stroke-width="2"/>';
+        var midAng = startAng+angSize/2;
+        var lx = cx+(r*0.65)*Math.cos(midAng), ly = cy+(r*0.65)*Math.sin(midAng);
+        var pct = Math.round(row.value/total*100);
+        if (pct > 5) s += '<text x="'+lx+'" y="'+ly+'" font-family="Cairo" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">'+pct+'%</text>';
+        startAng = endAng;
+    });
+    var legendY = 420;
+    rows.forEach(function(row,i) {
+        var lx = 50+(i%4)*130, ly = legendY+Math.floor(i/4)*30;
+        var color = colors[i%colors.length];
+        s += '<rect x="'+lx+'" y="'+ly+'" width="18" height="18" fill="'+color+'"/>';
+        s += '<text x="'+(lx+25)+'" y="'+(ly+14)+'" font-family="Cairo" font-size="13" fill="#000">'+row.label+'</text>';
+    });
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawGrid() {
+    var cols = parseInt((document.getElementById('vm-grid-cols')||{}).value) || 10;
+    var rows = parseInt((document.getElementById('vm-grid-rows')||{}).value) || 10;
+    var cellSize=30, pad=15;
+    var W = cols*cellSize+pad*2, H = rows*cellSize+pad*2;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    for (var i=0;i<=rows;i++) {
+        var y = pad+i*cellSize;
+        s += '<line x1="'+pad+'" y1="'+y+'" x2="'+(W-pad)+'" y2="'+y+'" stroke="#ccc" stroke-width="1"/>';
+    }
+    for (var j=0;j<=cols;j++) {
+        var x = pad+j*cellSize;
+        s += '<line x1="'+x+'" y1="'+pad+'" x2="'+x+'" y2="'+(H-pad)+'" stroke="#ccc" stroke-width="1"/>';
+    }
+    s += '<line x1="'+pad+'" y1="'+pad+'" x2="'+pad+'" y2="'+(H-pad)+'" stroke="#000" stroke-width="2"/>';
+    s += '<line x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'" stroke="#000" stroke-width="2"/>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawFractionBar() {
+    var denom = parseInt((document.getElementById('vm-frac-denom')||{}).value) || 6;
+    var num = parseInt((document.getElementById('vm-frac-num')||{}).value) || 3;
+    var color = (document.getElementById('vm-frac-color')||{}).value || '#e74c3c';
+    if (num > denom) num = denom; if (num < 0) num = 0;
+    var W=800,H=280,barW=700,barH=100;
+    var x=(W-barW)/2,y=(H-barH)/2+30,cellW=barW/denom;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:800px;background:#fff;">';
+    s += '<text x="'+(W/2)+'" y="50" font-family="Cairo" font-size="36" font-weight="bold" fill="#000" text-anchor="middle">'+num+' / '+denom+'</text>';
+    for (var i=0;i<denom;i++) {
+        var cx = x+i*cellW;
+        var fc = i<num ? color : '#fff';
+        s += '<rect x="'+cx+'" y="'+y+'" width="'+cellW+'" height="'+barH+'" fill="'+fc+'" stroke="#000" stroke-width="2"/>';
+    }
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawCube() {
+    var sd = parseFloat((document.getElementById('vm-cube-side')||{}).value) || 6;
+    var color = (document.getElementById('vm-cube-color')||{}).value || '#3498db';
+    var W=600,H=500,size=Math.min(25*sd,280),depth=size*0.4,cx=W/2,cy=H/2+30;
+    var x=cx-size/2,y=cy+size/2;
+    var ftl={x:x,y:y-size}, ftr={x:x+size,y:y-size}, fbl={x:x,y:y}, fbr={x:x+size,y:y};
+    var btl={x:ftl.x+depth,y:ftl.y-depth}, btr={x:ftr.x+depth,y:ftr.y-depth}, bbr={x:fbr.x+depth,y:fbr.y-depth};
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+btr.x+','+btr.y+' '+btl.x+','+btl.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+bbr.x+','+bbr.y+' '+btr.x+','+btr.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+fbl.x+','+fbl.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+cx+'" y="'+(fbr.y+60)+'" font-family="Cairo" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600">'+sd+' سم</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawCuboid() {
+    var l = parseFloat((document.getElementById('vm-cb-l')||{}).value) || 10;
+    var w = parseFloat((document.getElementById('vm-cb-w')||{}).value) || 6;
+    var h = parseFloat((document.getElementById('vm-cb-h')||{}).value) || 4;
+    var color = (document.getElementById('vm-cb-color')||{}).value || '#e74c3c';
+    var W=700,H=500,scale=18,sl=l*scale,sw=w*scale,sh=h*scale;
+    if (sl > 320) { var rt=320/sl; sl*=rt; sw*=rt; sh*=rt; }
+    var depth=sw*0.6,cx=W/2,cy=H/2+50,x=cx-sl/2,y=cy+sh/2;
+    var ftl={x:x,y:y-sh}, ftr={x:x+sl,y:y-sh}, fbl={x:x,y:y}, fbr={x:x+sl,y:y};
+    var btl={x:ftl.x+depth*0.7,y:ftl.y-depth*0.5}, btr={x:ftr.x+depth*0.7,y:ftr.y-depth*0.5}, bbr={x:fbr.x+depth*0.7,y:fbr.y-depth*0.5};
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
+    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+btr.x+','+btr.y+' '+btl.x+','+btl.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+bbr.x+','+bbr.y+' '+btr.x+','+btr.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+fbl.x+','+fbl.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+cx+'" y="'+(fbr.y+60)+'" font-family="Cairo" font-size="16" fill="'+color+'" text-anchor="middle" font-weight="600">الطول = '+l+' سم</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawPyramid(sides) {
+    var base = parseFloat((document.getElementById('vm-py-base')||{}).value) || 6;
+    var height = parseFloat((document.getElementById('vm-py-height')||{}).value) || 8;
+    var color = (document.getElementById('vm-py-color')||{}).value || '#16a085';
+    var W=600,H=550,scale=25,bs=base*scale,hs=height*scale;
+    if (hs > 280) { var rh=280/hs; hs*=rh; bs*=rh; }
+    var cx=W/2,cy=H/2+50,apex={x:cx,y:cy-hs};
+    var baseR=bs/2,baseY=cy+20,points=[];
+    for (var i=0;i<sides;i++) {
+        var angle = (i/sides)*2*Math.PI - Math.PI/2;
+        points.push({x:cx+baseR*Math.cos(angle), y:baseY+(baseR*0.35)*Math.sin(angle)});
+    }
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    var basePoly = points.map(function(p){return p.x+','+p.y;}).join(' ');
+    s += '<polygon points="'+basePoly+'" fill="'+color+'15" stroke="'+color+'" stroke-width="2"/>';
+    for (var i=0;i<sides;i++) {
+        var p1=points[i], p2=points[(i+1)%sides];
+        var midY = (p1.y+p2.y)/2;
+        if (midY >= baseY-5) {
+            s += '<polygon points="'+apex.x+','+apex.y+' '+p1.x+','+p1.y+' '+p2.x+','+p2.y+'" fill="'+color+(i%2===0?'50':'30')+'" stroke="'+color+'" stroke-width="2"/>';
+        }
+    }
+    s += '<text x="'+cx+'" y="'+(baseY+70)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">قاعدة = '+base+' · ارتفاع = '+height+'</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawCylinder() {
+    var r = parseFloat((document.getElementById('vm-cyl-r')||{}).value) || 4;
+    var h = parseFloat((document.getElementById('vm-cyl-h')||{}).value) || 10;
+    var color = (document.getElementById('vm-cyl-color')||{}).value || '#16a085';
+    var W=600,H=550,scale=22,sr=r*scale,sh=h*scale;
+    if (sh > 320) { var rt=320/sh; sr*=rt; sh*=rt; }
+    var cx=W/2,cy=H/2+30,topY=cy-sh/2,botY=cy+sh/2,erY=sr*0.3;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<rect x="'+(cx-sr)+'" y="'+topY+'" width="'+(sr*2)+'" height="'+sh+'" fill="'+color+'20"/>';
+    s += '<line x1="'+(cx-sr)+'" y1="'+topY+'" x2="'+(cx-sr)+'" y2="'+botY+'" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<line x1="'+(cx+sr)+'" y1="'+topY+'" x2="'+(cx+sr)+'" y2="'+botY+'" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<ellipse cx="'+cx+'" cy="'+topY+'" rx="'+sr+'" ry="'+erY+'" fill="'+color+'40" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<path d="M '+(cx-sr)+' '+botY+' A '+sr+' '+erY+' 0 0 0 '+(cx+sr)+' '+botY+'" fill="none" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<text x="'+cx+'" y="'+(botY+50)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق='+r+'، ارتفاع='+h+'</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawCone() {
+    var r = parseFloat((document.getElementById('vm-cone-r')||{}).value) || 5;
+    var h = parseFloat((document.getElementById('vm-cone-h')||{}).value) || 10;
+    var color = (document.getElementById('vm-cone-color')||{}).value || '#f39c12';
+    var W=600,H=550,scale=22,sr=r*scale,sh=h*scale;
+    if (sh > 320) { var rt=320/sh; sr*=rt; sh*=rt; }
+    var cx=W/2,cy=H/2+30,apex={x:cx,y:cy-sh/2},baseY=cy+sh/2,erY=sr*0.3;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    s += '<polygon points="'+apex.x+','+apex.y+' '+(cx-sr)+','+baseY+' '+(cx+sr)+','+baseY+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<path d="M '+(cx-sr)+' '+baseY+' A '+sr+' '+erY+' 0 0 0 '+(cx+sr)+' '+baseY+'" fill="'+color+'40" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<text x="'+cx+'" y="'+(baseY+50)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق='+r+'، ارتفاع='+h+'</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawTriPrism() {
+    var base = parseFloat((document.getElementById('vm-pr-base')||{}).value) || 6;
+    var len = parseFloat((document.getElementById('vm-pr-len')||{}).value) || 10;
+    var color = (document.getElementById('vm-pr-color')||{}).value || '#e67e22';
+    var W=700,H=500,scale=25,sb=base*scale,sl=len*scale;
+    if (sl > 350) { var rt=350/sl; sl*=rt; sb*=rt; }
+    var cx=W/2,cy=H/2+30,height=sb*0.866;
+    var fA={x:cx-sl/2-sb/2,y:cy+height/2}, fB={x:cx-sl/2+sb/2,y:cy+height/2}, fC={x:cx-sl/2,y:cy-height/2};
+    var bA={x:fA.x+sl,y:fA.y}, bB={x:fB.x+sl,y:fB.y}, bC={x:fC.x+sl,y:fC.y};
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
+    s += '<polygon points="'+fA.x+','+fA.y+' '+fB.x+','+fB.y+' '+bB.x+','+bB.y+' '+bA.x+','+bA.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+fB.x+','+fB.y+' '+fC.x+','+fC.y+' '+bC.x+','+bC.y+' '+bB.x+','+bB.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
+    s += '<polygon points="'+fA.x+','+fA.y+' '+fB.x+','+fB.y+' '+fC.x+','+fC.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+cx+'" y="'+(fA.y+70)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">طول='+len+'، قاعدة='+base+'</text>';
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawPolygon() {
+    var sides = parseInt((document.getElementById('vm-poly-sides')||{}).value) || 6;
+    var sideLen = parseFloat((document.getElementById('vm-poly-side')||{}).value) || 5;
+    var color = (document.getElementById('vm-poly-color')||{}).value || '#00bfff';
+    sides = Math.max(3,Math.min(12,sides));
+    var W=600,H=550,cx=W/2,cy=H/2+30;
+    var radius = Math.min(sideLen*25/(2*Math.sin(Math.PI/sides)), 220);
+    var points = [];
+    for (var i=0;i<sides;i++) {
+        var angle = (i/sides)*2*Math.PI - Math.PI/2;
+        points.push({x:cx+radius*Math.cos(angle), y:cy+radius*Math.sin(angle)});
+    }
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    var poly = points.map(function(p){return p.x+','+p.y;}).join(' ');
+    s += '<polygon points="'+poly+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    s += '<text x="'+cx+'" y="'+(cy+radius+50)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">'+sides+' أضلاع · ضلع='+sideLen+'</text>';
+    s += '</svg>';
+    return s;
+}
 
 </script>
 </body>

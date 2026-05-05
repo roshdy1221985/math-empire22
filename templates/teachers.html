@@ -1471,7 +1471,40 @@
         .btn-profile:hover, .btn-profile.active { background:linear-gradient(135deg,#16a085,#48d1cc) !important; color:#fff !important; box-shadow:0 8px 24px rgba(72,209,204,0.5) !important; }
 
 
-        </style>
+        
+        #vm-preview svg {
+            max-width: 100% !important;
+            height: auto !important;
+            display: block !important;
+        }
+    
+        /* 🎨 إصلاح القوائم المنسدلة — option كان يظهر أبيض/بيض */
+        select {
+            color: #fff !important;
+            background-color: rgba(13, 27, 62, 0.95) !important;
+        }
+        select option {
+            background-color: #0d1b3e !important;
+            color: #fff !important;
+            padding: 8px !important;
+            font-family: 'Cairo', sans-serif !important;
+            font-weight: 500 !important;
+        }
+        select option:hover,
+        select option:focus,
+        select option:checked {
+            background-color: #1565c0 !important;
+            color: #fff !important;
+        }
+        select option:disabled {
+            color: rgba(255,255,255,0.4) !important;
+        }
+        /* Firefox-specific */
+        select:-moz-focusring {
+            color: transparent;
+            text-shadow: 0 0 0 #fff;
+        }
+</style>
 </head>
 <body>
 
@@ -2514,7 +2547,7 @@
                         </button>
                     </div>
                 </div>
-                <div id="vm-preview" style="background:#fff;border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:30px;min-height:400px;display:flex;align-items:center;justify-content:center;">
+                <div id="vm-preview" style="background:#fff;border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:30px;min-height:400px;display:flex;align-items:center;justify-content:center;overflow:visible;">
                     <div style="text-align:center;color:#999;">
                         <div style="font-size:4rem;margin-bottom:10px;">🎨</div>
                         <div style="font-weight:600;">اختر شكلاً وابدأ التصميم</div>
@@ -4679,26 +4712,32 @@ function _vmWrapWithQuestion(innerSVG, viewBoxW, viewBoxH) {
     var qInput = document.getElementById('vm-question-text');
     var question = qInput ? qInput.value.trim() : '';
     
-    if (!question) {
-        // لا يوجد سؤال — إرجاع SVG فقط
+    if (!question) return innerSVG;
+    
+    // نستخرج الـ viewBox من الـ SVG الفعلي
+    var vbMatch = innerSVG.match(/viewBox\s*=\s*["']0\s+0\s+([\d.]+)\s+([\d.]+)["']/);
+    if (!vbMatch) {
+        console.warn('[vm] viewBox not found, returning original');
         return innerSVG;
     }
     
-    // نُحدّد الـ viewBox الحالي
-    var origVBmatch = innerSVG.match(/viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/);
-    if (!origVBmatch) return innerSVG;
+    var origW = parseFloat(vbMatch[1]);
+    var origH = parseFloat(vbMatch[2]);
     
-    var origW = parseFloat(origVBmatch[1]);
-    var origH = parseFloat(origVBmatch[2]);
+    // 📝 حساب التفاف النص بناءً على عرض الـ viewBox
+    // كل حرف عربي تقريباً = 11px في حجم الخط 18
+    var availableWidth = origW - 80; // هامش 40 من كل جانب
+    var avgCharWidth = 12;
+    var maxCharsPerLine = Math.max(20, Math.floor(availableWidth / avgCharWidth));
     
-    // نقسّم النص لو طويل
-    var maxCharsPerLine = Math.floor(origW / 11);
+    // كسر النص إلى أسطر
     var words = question.split(/\s+/);
     var lines = [];
     var current = '';
     words.forEach(function(w) {
-        if ((current + ' ' + w).trim().length <= maxCharsPerLine) {
-            current = (current + ' ' + w).trim();
+        var test = current ? (current + ' ' + w) : w;
+        if (test.length <= maxCharsPerLine) {
+            current = test;
         } else {
             if (current) lines.push(current);
             current = w;
@@ -4706,27 +4745,50 @@ function _vmWrapWithQuestion(innerSVG, viewBoxW, viewBoxH) {
     });
     if (current) lines.push(current);
     
-    var lineHeight = 26;
-    var qBoxH = 30 + lines.length * lineHeight;
-    var newH = origH + qBoxH;
+    if (!lines.length) lines = [question];
     
-    // نُحدّث viewBox
+    // ✨ أبعاد صندوق السؤال
+    var lineHeight = 28;
+    var paddingTop = 16;        // مسافة من أعلى الصندوق إلى عنوان "السؤال"
+    var labelHeight = 28;       // ارتفاع كلمة "📝 السؤال:"
+    var paddingBottom = 18;     // مسافة سفلية
+    var qBoxH = paddingTop + labelHeight + (lines.length * lineHeight) + paddingBottom;
+    
+    // مسافة فصل بين الشكل والصندوق
+    var gap = 16;
+    var newH = origH + gap + qBoxH;
+    
+    // نُحدّث viewBox بالحجم الجديد
     var updated = innerSVG.replace(
-        /viewBox="0 0 \d+(?:\.\d+)?\s+\d+(?:\.\d+)?"/,
+        /viewBox\s*=\s*["']0\s+0\s+[\d.]+\s+[\d.]+["']/,
         'viewBox="0 0 ' + origW + ' ' + newH + '"'
     );
     
-    // نُضيف صندوق السؤال
-    var qY = origH + 10;
-    var questionBox = '<rect x="20" y="' + qY + '" width="' + (origW - 40) + '" height="' + (qBoxH - 20) + '" fill="#fff8e1" stroke="#f9a825" stroke-width="2" rx="6"/>';
-    questionBox += '<text x="35" y="' + (qY + 22) + '" font-family="Cairo,Arial" font-size="14" fill="#8b6914" font-weight="bold">📝 السؤال:</text>';
+    // 🎨 بناء صندوق السؤال
+    var qY = origH + gap;
+    var boxX = 30;
+    var boxW = origW - 60;
     
+    var questionBox = '';
+    
+    // الصندوق الخلفي (بظل خفيف)
+    questionBox += '<rect x="' + boxX + '" y="' + qY + '" width="' + boxW + '" height="' + qBoxH + '" fill="#fff8e1" stroke="#f9a825" stroke-width="2.5" rx="10" ry="10"/>';
+    
+    // شريط جانبي للزينة
+    questionBox += '<rect x="' + boxX + '" y="' + qY + '" width="6" height="' + qBoxH + '" fill="#f9a825" rx="3" ry="3"/>';
+    
+    // عنوان "📝 السؤال:"
+    var labelY = qY + paddingTop + 14;
+    questionBox += '<text x="' + (origW - 50) + '" y="' + labelY + '" font-family="Cairo,Arial,sans-serif" font-size="16" fill="#8b6914" font-weight="bold" text-anchor="end">📝 السؤال:</text>';
+    
+    // أسطر النص — جنب لجنب من اليمين
     lines.forEach(function(line, i) {
-        var ty = qY + 50 + (i * lineHeight);
-        questionBox += '<text x="' + (origW - 30) + '" y="' + ty + '" font-family="Cairo,Arial" font-size="18" fill="#000" text-anchor="end" font-weight="600">' + line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</text>';
+        var ty = qY + paddingTop + labelHeight + 8 + (i * lineHeight);
+        var safe = String(line).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        questionBox += '<text x="' + (origW - 50) + '" y="' + ty + '" font-family="Cairo,Arial,sans-serif" font-size="18" fill="#000" font-weight="600" text-anchor="end" direction="rtl">' + safe + '</text>';
     });
     
-    // ندخل صندوق السؤال قبل </svg>
+    // ندخل قبل </svg>
     return updated.replace('</svg>', questionBox + '</svg>');
 }
 
