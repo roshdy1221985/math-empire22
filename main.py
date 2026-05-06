@@ -6068,6 +6068,708 @@ async def teacher_track_video_view(video_id: int):
     return {"status": "ok"}
 
 
+
+# ═══════════════════════════════════════════════════════════════
+# 🏆 PROFESSIONAL CERTIFICATES — قوالب احترافية حديثة
+# ═══════════════════════════════════════════════════════════════
+
+# 🎨 8 قوالب احترافية متنوعة (4 جديدة + 4 كلاسيكية محسّنة)
+CERT_TEMPLATES = {
+    # ───── الكلاسيكية المحسّنة ─────
+    "gold": {
+        "name": "الذهبي الملكي",
+        "primary": "#d4af37",
+        "secondary": "#8b6914",
+        "bg": "linear-gradient(135deg, #fefae0 0%, #fff3c4 50%, #fefae0 100%)",
+        "title_color": "#5d4e1f",
+        "name_color": "#3d2e0f",
+        "accent": "#b8860b",
+        "border": "double 14px",
+        "icon": "👑",
+        "decoration": "⚜️",
+        "pattern": "royal",
+    },
+    "modern_blue": {
+        "name": "الأزرق العصري",
+        "primary": "#0ea5e9",
+        "secondary": "#0c4a6e",
+        "bg": "linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%)",
+        "title_color": "#0369a1",
+        "name_color": "#082f49",
+        "accent": "#0284c7",
+        "border": "solid 8px",
+        "icon": "🏆",
+        "decoration": "★",
+        "pattern": "modern",
+    },
+    "elegant_dark": {
+        "name": "الأنيق الداكن",
+        "primary": "#1e293b",
+        "secondary": "#334155",
+        "bg": "linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%)",
+        "title_color": "#0f172a",
+        "name_color": "#020617",
+        "accent": "#475569",
+        "border": "solid 3px",
+        "icon": "🎖️",
+        "decoration": "◆",
+        "pattern": "minimal",
+    },
+    "vibrant_purple": {
+        "name": "البنفسجي الحيوي",
+        "primary": "#9333ea",
+        "secondary": "#581c87",
+        "bg": "linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)",
+        "title_color": "#6b21a8",
+        "name_color": "#3b0764",
+        "accent": "#a855f7",
+        "border": "double 10px",
+        "icon": "🌟",
+        "decoration": "✦",
+        "pattern": "modern",
+    },
+    # ───── الجديدة الإبداعية ─────
+    "geometric_emerald": {
+        "name": "الزمردي الهندسي",
+        "primary": "#059669",
+        "secondary": "#064e3b",
+        "bg": "linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)",
+        "title_color": "#065f46",
+        "name_color": "#022c22",
+        "accent": "#10b981",
+        "border": "solid 5px",
+        "icon": "🌿",
+        "decoration": "◊",
+        "pattern": "geometric",
+    },
+    "sunset_orange": {
+        "name": "غروب البرتقالي",
+        "primary": "#ea580c",
+        "secondary": "#7c2d12",
+        "bg": "linear-gradient(135deg, #fff7ed 0%, #ffedd5 50%, #fed7aa 100%)",
+        "title_color": "#9a3412",
+        "name_color": "#431407",
+        "accent": "#f97316",
+        "border": "ridge 12px",
+        "icon": "🔆",
+        "decoration": "❋",
+        "pattern": "sunset",
+    },
+    "minimal_white": {
+        "name": "الأبيض البسيط",
+        "primary": "#000000",
+        "secondary": "#404040",
+        "bg": "#ffffff",
+        "title_color": "#000000",
+        "name_color": "#000000",
+        "accent": "#737373",
+        "border": "solid 2px",
+        "icon": "📜",
+        "decoration": "—",
+        "pattern": "minimal",
+    },
+    "rose_gold": {
+        "name": "الذهبي الوردي",
+        "primary": "#e11d48",
+        "secondary": "#881337",
+        "bg": "linear-gradient(135deg, #fff1f2 0%, #ffe4e6 50%, #fecdd3 100%)",
+        "title_color": "#9f1239",
+        "name_color": "#4c0519",
+        "accent": "#f43f5e",
+        "border": "double 8px",
+        "icon": "🌹",
+        "decoration": "❀",
+        "pattern": "floral",
+    },
+}
+
+
+def _build_cert_pattern_svg(pattern_type: str, primary: str, secondary: str) -> str:
+    """🎨 يبني SVG decoration للنمط"""
+    if pattern_type == "royal":
+        return f'''
+        <div class="cert-corner cert-corner-tl"><svg viewBox="0 0 80 80" width="80" height="80">
+            <path d="M0,0 L80,0 L80,15 Q70,15 60,5 Q50,0 40,5 Q30,15 20,5 Q10,0 0,15 Z" fill="{primary}" opacity="0.3"/>
+            <circle cx="15" cy="15" r="6" fill="{primary}" opacity="0.5"/>
+        </svg></div>
+        <div class="cert-corner cert-corner-tr"><svg viewBox="0 0 80 80" width="80" height="80" style="transform:scaleX(-1);">
+            <path d="M0,0 L80,0 L80,15 Q70,15 60,5 Q50,0 40,5 Q30,15 20,5 Q10,0 0,15 Z" fill="{primary}" opacity="0.3"/>
+            <circle cx="15" cy="15" r="6" fill="{primary}" opacity="0.5"/>
+        </svg></div>
+        <div class="cert-corner cert-corner-bl"><svg viewBox="0 0 80 80" width="80" height="80" style="transform:scaleY(-1);">
+            <path d="M0,0 L80,0 L80,15 Q70,15 60,5 Q50,0 40,5 Q30,15 20,5 Q10,0 0,15 Z" fill="{primary}" opacity="0.3"/>
+        </svg></div>
+        <div class="cert-corner cert-corner-br"><svg viewBox="0 0 80 80" width="80" height="80" style="transform:scale(-1,-1);">
+            <path d="M0,0 L80,0 L80,15 Q70,15 60,5 Q50,0 40,5 Q30,15 20,5 Q10,0 0,15 Z" fill="{primary}" opacity="0.3"/>
+        </svg></div>
+        '''
+    elif pattern_type == "modern":
+        return f'''
+        <div class="cert-shape cert-shape-1" style="background:{primary};opacity:0.08;"></div>
+        <div class="cert-shape cert-shape-2" style="background:{secondary};opacity:0.06;"></div>
+        <div class="cert-stripe" style="background:linear-gradient(90deg,transparent,{primary},transparent);opacity:0.5;"></div>
+        '''
+    elif pattern_type == "geometric":
+        return f'''
+        <div class="cert-geo-pattern"></div>
+        <svg style="position:absolute;top:30px;left:30px;" width="60" height="60" viewBox="0 0 60 60">
+            <polygon points="30,5 55,20 55,40 30,55 5,40 5,20" fill="none" stroke="{primary}" stroke-width="2" opacity="0.4"/>
+            <polygon points="30,15 45,25 45,35 30,45 15,35 15,25" fill="{primary}" opacity="0.2"/>
+        </svg>
+        <svg style="position:absolute;top:30px;right:30px;" width="60" height="60" viewBox="0 0 60 60">
+            <polygon points="30,5 55,20 55,40 30,55 5,40 5,20" fill="none" stroke="{primary}" stroke-width="2" opacity="0.4"/>
+            <polygon points="30,15 45,25 45,35 30,45 15,35 15,25" fill="{primary}" opacity="0.2"/>
+        </svg>
+        '''
+    elif pattern_type == "sunset":
+        return f'''
+        <div class="cert-sun" style="background:radial-gradient(circle,{primary} 0%,transparent 70%);"></div>
+        <div class="cert-rays"></div>
+        '''
+    elif pattern_type == "floral":
+        return f'''
+        <div class="cert-floral cert-floral-tl">❀</div>
+        <div class="cert-floral cert-floral-tr">❀</div>
+        <div class="cert-floral cert-floral-bl">❀</div>
+        <div class="cert-floral cert-floral-br">❀</div>
+        <div class="cert-floral-line"></div>
+        '''
+    else:  # minimal
+        return f'''
+        <div class="cert-minimal-line cert-line-top" style="background:{primary};"></div>
+        <div class="cert-minimal-line cert-line-bottom" style="background:{primary};"></div>
+        '''
+
+
+def _build_cert_html(template_id: str, student_name: str, achievement: str,
+                     grade: str = "", school_name: str = "", teacher_name: str = "",
+                     date: str = "", extra_text: str = "",
+                     custom_template_html: str = "") -> str:
+    """🏗️ يبني HTML شهادة احترافية"""
+    
+    # 🎨 لو المعلم رفع قالباً مخصصاً، نستخدمه
+    if custom_template_html:
+        return _apply_custom_template(custom_template_html, {
+            "{{name}}": student_name,
+            "{{achievement}}": achievement,
+            "{{grade}}": grade,
+            "{{school}}": school_name,
+            "{{teacher}}": teacher_name,
+            "{{date}}": date,
+            "{{extra}}": extra_text,
+        })
+    
+    t = CERT_TEMPLATES.get(template_id, CERT_TEMPLATES["gold"])
+    pattern_html = _build_cert_pattern_svg(t["pattern"], t["primary"], t["secondary"])
+    
+    grade_text = f'في {grade}' if grade else ''
+    extra_block = f'<div class="cert-extra">{extra_text}</div>' if extra_text else ''
+    
+    css = f"""
+        * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+        @page {{ size: A4 landscape; margin: 0; }}
+        body {{ font-family: 'Cairo', sans-serif; padding: 0; margin: 0; background: #f0f0f0; }}
+        
+        .cert-page {{
+            width: 297mm;
+            height: 210mm;
+            background: {t['bg']};
+            margin: 20px auto;
+            padding: 50px 60px;
+            box-sizing: border-box;
+            position: relative;
+            border: {t['border']} {t['primary']};
+            overflow: hidden;
+            page-break-after: always;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }}
+        
+        /* الزخارف الزاوية */
+        .cert-corner {{
+            position: absolute;
+            width: 80px;
+            height: 80px;
+        }}
+        .cert-corner-tl {{ top: 20px; right: 20px; }}
+        .cert-corner-tr {{ top: 20px; left: 20px; }}
+        .cert-corner-bl {{ bottom: 20px; right: 20px; }}
+        .cert-corner-br {{ bottom: 20px; left: 20px; }}
+        
+        /* الأشكال (modern pattern) */
+        .cert-shape {{
+            position: absolute;
+            border-radius: 50%;
+        }}
+        .cert-shape-1 {{
+            width: 350px; height: 350px;
+            top: -120px; left: -120px;
+        }}
+        .cert-shape-2 {{
+            width: 250px; height: 250px;
+            bottom: -100px; right: -100px;
+        }}
+        .cert-stripe {{
+            position: absolute;
+            top: 50%; left: 0; right: 0;
+            height: 2px;
+            transform: translateY(-50%);
+        }}
+        
+        /* النمط الهندسي */
+        .cert-geo-pattern {{
+            position: absolute;
+            inset: 0;
+            background-image: 
+                linear-gradient(45deg, {t['primary']}10 25%, transparent 25%),
+                linear-gradient(-45deg, {t['primary']}10 25%, transparent 25%);
+            background-size: 30px 30px;
+            opacity: 0.15;
+        }}
+        
+        /* غروب */
+        .cert-sun {{
+            position: absolute;
+            top: -120px; left: 50%;
+            transform: translateX(-50%);
+            width: 400px; height: 400px;
+            border-radius: 50%;
+            opacity: 0.4;
+        }}
+        .cert-rays {{
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(
+                from 90deg at 50% 0%,
+                transparent 0deg, transparent 20deg,
+                {t['primary']}15 20deg, {t['primary']}15 25deg
+            );
+        }}
+        
+        /* الزهور */
+        .cert-floral {{
+            position: absolute;
+            font-size: 60px;
+            color: {t['primary']};
+            opacity: 0.3;
+        }}
+        .cert-floral-tl {{ top: 20px; right: 30px; }}
+        .cert-floral-tr {{ top: 20px; left: 30px; }}
+        .cert-floral-bl {{ bottom: 20px; right: 30px; }}
+        .cert-floral-br {{ bottom: 20px; left: 30px; }}
+        .cert-floral-line {{
+            position: absolute;
+            top: 50%;
+            left: 100px; right: 100px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, {t['primary']}, transparent);
+            opacity: 0.4;
+        }}
+        
+        /* الخطوط البسيطة */
+        .cert-minimal-line {{
+            position: absolute;
+            left: 80px;
+            right: 80px;
+            height: 3px;
+        }}
+        .cert-line-top {{ top: 60px; }}
+        .cert-line-bottom {{ bottom: 60px; }}
+        
+        /* المحتوى */
+        .cert-content {{
+            position: relative;
+            z-index: 5;
+            text-align: center;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }}
+        
+        .cert-icon {{
+            font-size: 70px;
+            margin-bottom: 12px;
+            line-height: 1;
+            filter: drop-shadow(0 4px 8px {t['primary']}40);
+        }}
+        
+        .cert-title {{
+            font-family: 'Amiri', serif;
+            font-size: 52px;
+            font-weight: 700;
+            color: {t['title_color']};
+            margin-bottom: 4px;
+            letter-spacing: 2px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+        }}
+        
+        .cert-subtitle {{
+            font-size: 18px;
+            color: {t['accent']};
+            margin-bottom: 22px;
+            font-weight: 600;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }}
+        
+        .cert-divider {{
+            width: 200px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, {t['primary']}, transparent);
+            margin: 12px auto 18px;
+        }}
+        
+        .cert-text {{
+            font-size: 19px;
+            line-height: 2;
+            margin: 8px 0;
+            color: {t['secondary']};
+            font-weight: 500;
+        }}
+        
+        .cert-name {{
+            font-family: 'Amiri', serif;
+            font-size: 64px;
+            font-weight: 700;
+            color: {t['name_color']};
+            margin: 14px 0;
+            padding: 10px 50px;
+            display: inline-block;
+            position: relative;
+        }}
+        .cert-name::before, .cert-name::after {{
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 30px;
+            height: 2px;
+            background: {t['primary']};
+        }}
+        .cert-name::before {{ right: 10px; }}
+        .cert-name::after {{ left: 10px; }}
+        
+        .cert-name-line {{
+            width: 60%;
+            height: 2px;
+            background: {t['primary']};
+            margin: 0 auto 14px;
+            opacity: 0.6;
+        }}
+        
+        .cert-grade {{
+            font-size: 20px;
+            color: {t['accent']};
+            font-weight: 600;
+            margin: 6px 0;
+        }}
+        
+        .cert-achievement {{
+            font-size: 22px;
+            color: {t['title_color']};
+            font-weight: 700;
+            margin: 14px 0;
+            padding: 12px 32px;
+            background: rgba(255,255,255,0.6);
+            border-radius: 12px;
+            display: inline-block;
+            border: 2px solid {t['primary']}40;
+            backdrop-filter: blur(4px);
+        }}
+        
+        .cert-extra {{
+            font-size: 16px;
+            color: {t['secondary']};
+            margin: 12px 40px;
+            font-style: italic;
+            opacity: 0.85;
+        }}
+        
+        /* التذييل */
+        .cert-footer {{
+            display: flex;
+            justify-content: space-around;
+            width: 100%;
+            margin-top: 30px;
+            font-size: 15px;
+        }}
+        .cert-sign-block {{
+            text-align: center;
+            min-width: 200px;
+        }}
+        .cert-sign-line {{
+            border-top: 2px solid {t['primary']};
+            margin-top: 50px;
+            padding-top: 6px;
+            color: {t['name_color']};
+            font-weight: 600;
+        }}
+        
+        /* الختم */
+        .cert-seal {{
+            position: absolute;
+            bottom: 60px;
+            right: 80px;
+            width: 100px;
+            height: 100px;
+            border: 4px double {t['primary']};
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            color: {t['primary']};
+            background: rgba(255,255,255,0.7);
+            transform: rotate(-15deg);
+            opacity: 0.85;
+        }}
+        
+        /* أزرار التحكم */
+        .controls {{
+            position: fixed;
+            top: 12px;
+            left: 12px;
+            background: #fff;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            padding: 12px;
+            z-index: 9999;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+        }}
+        .controls button {{
+            background: linear-gradient(135deg, #1976d2, #1565c0);
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            margin: 0 4px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }}
+        .controls button.green {{
+            background: linear-gradient(135deg, #43a047, #2e7d32);
+        }}
+        .controls button:hover {{ transform: translateY(-2px); }}
+        
+        @media print {{
+            .controls {{ display: none !important; }}
+            body {{ background: #fff; margin: 0; padding: 0; }}
+            .cert-page {{ margin: 0 !important; box-shadow: none !important; }}
+        }}
+    """
+    
+    full_html = (
+        f'<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n'
+        f'<meta charset="UTF-8">\n<title>شهادة - {student_name}</title>\n'
+        f'<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+        f'<style>{css}</style>\n</head>\n<body>\n'
+        f'<div class="controls">'
+        f'<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
+        f'<button class="green" onclick="window.close()">✕ إغلاق</button>'
+        f'</div>\n'
+        f'<div class="cert-page">'
+        f'{pattern_html}'
+        f'<div class="cert-content">'
+        f'<div class="cert-icon">{t["icon"]}</div>'
+        f'<div class="cert-title">شهادة تقدير</div>'
+        f'<div class="cert-subtitle">Certificate of Excellence</div>'
+        f'<div class="cert-divider"></div>'
+        f'<div class="cert-text">تُمنح هذه الشهادة بكل فخر إلى الطالب/ـة المتميّز/ـة</div>'
+        f'<div class="cert-name">{student_name}</div>'
+        f'<div class="cert-name-line"></div>'
+        f'{f"<div class=\"cert-grade\">{grade_text}</div>" if grade else ""}'
+        f'<div class="cert-text">تقديراً لـ</div>'
+        f'<div class="cert-achievement">{achievement}</div>'
+        f'{extra_block}'
+        f'<div class="cert-footer">'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">{teacher_name or "المعلم"}</div></div>'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">📅 {date}</div></div>'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">{school_name or "المدرسة"}</div></div>'
+        f'</div>'
+        f'</div>'
+        f'<div class="cert-seal">{t["icon"]}</div>'
+        f'</div>\n'
+        f'</body>\n</html>'
+    )
+    return full_html
+
+
+def _apply_custom_template(template_html: str, replacements: dict) -> str:
+    """🎨 يطبّق متغيرات على قالب HTML مخصص"""
+    result = template_html
+    for placeholder, value in replacements.items():
+        result = result.replace(placeholder, str(value or ""))
+    
+    # نُضيف أزرار التحكم لو لم تكن موجودة
+    if 'window.print()' not in result:
+        controls = '''
+<div style="position:fixed;top:12px;left:12px;background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.2);">
+    <button onclick="window.print()" style="background:linear-gradient(135deg,#1976d2,#1565c0);color:#fff;border:none;padding:10px 20px;margin:0 4px;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:700;">🖨️ طباعة / حفظ PDF</button>
+    <button onclick="window.close()" style="background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;border:none;padding:10px 20px;margin:0 4px;border-radius:8px;cursor:pointer;font-family:Cairo,sans-serif;font-weight:700;">✕ إغلاق</button>
+</div>
+<style>@media print { div[style*="position:fixed"] { display:none !important; } }</style>
+'''
+        if '</body>' in result:
+            result = result.replace('</body>', controls + '</body>')
+        else:
+            result += controls
+    
+    return result
+
+
+# ═══════════════════════════════════════════════════════════════
+# 🏆 الـ Endpoints الجديدة (تستبدل القديمة)
+# ═══════════════════════════════════════════════════════════════
+
+@app.get("/api/teacher/certificate/templates")
+async def teacher_cert_templates():
+    """📋 قائمة القوالب المتاحة"""
+    return {
+        "templates": [
+            {"id": k, "name": v["name"], "icon": v["icon"], 
+             "primary": v["primary"], "bg": v["bg"]}
+            for k, v in CERT_TEMPLATES.items()
+        ]
+    }
+
+
+@app.post("/api/teacher/certificate/build_v2")
+async def teacher_certificate_build_v2(
+    template: str       = Form(default="gold"),
+    student_name: str   = Form(...),
+    achievement: str    = Form(default="التميّز في الرياضيات"),
+    grade: str          = Form(default=""),
+    school_name: str    = Form(default=""),
+    teacher_name: str   = Form(default=""),
+    date: str           = Form(default=""),
+    extra_text: str     = Form(default=""),
+    custom_template: str = Form(default=""),  # HTML مخصص اختياري
+):
+    """🏆 بناء شهادة بالقالب المختار أو قالب مخصص"""
+    try:
+        from datetime import datetime
+        if not date:
+            date = datetime.now().strftime("%Y/%m/%d")
+        
+        if not student_name.strip():
+            raise HTTPException(status_code=400, detail="اسم الطالب مطلوب")
+        
+        full_html = _build_cert_html(
+            template_id=template,
+            student_name=student_name.strip(),
+            achievement=achievement.strip(),
+            grade=grade.strip(),
+            school_name=school_name.strip(),
+            teacher_name=teacher_name.strip(),
+            date=date.strip(),
+            extra_text=extra_text.strip(),
+            custom_template_html=custom_template.strip() if custom_template else "",
+        )
+        
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=full_html)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/certificate/batch_v2")
+async def teacher_certificate_batch_v2(
+    template: str       = Form(default="gold"),
+    student_names: str  = Form(...),
+    achievement: str    = Form(default="التميّز في الرياضيات"),
+    grade: str          = Form(default=""),
+    school_name: str    = Form(default=""),
+    teacher_name: str   = Form(default=""),
+    date: str           = Form(default=""),
+    custom_template: str = Form(default=""),
+):
+    """🏆 بناء شهادات متعددة"""
+    names = [n.strip() for n in student_names.replace("،", "\n").split("\n") if n.strip()]
+    if not names:
+        raise HTTPException(status_code=400, detail="أدخل أسماء الطلاب")
+    if len(names) > 100:
+        raise HTTPException(status_code=400, detail="الحد الأقصى 100 شهادة")
+    
+    from datetime import datetime
+    if not date:
+        date = datetime.now().strftime("%Y/%m/%d")
+    
+    # نبني كل صفحة
+    pages = []
+    for name in names:
+        if custom_template:
+            page_html = _apply_custom_template(custom_template, {
+                "{{name}}": name, "{{achievement}}": achievement,
+                "{{grade}}": grade, "{{school}}": school_name,
+                "{{teacher}}": teacher_name, "{{date}}": date,
+            })
+            # نستخرج body فقط
+            if '<body' in page_html:
+                start = page_html.find('<body')
+                start = page_html.find('>', start) + 1
+                end = page_html.find('</body>')
+                pages.append(page_html[start:end])
+            else:
+                pages.append(page_html)
+        else:
+            single = _build_cert_html(
+                template_id=template, student_name=name, achievement=achievement,
+                grade=grade, school_name=school_name, teacher_name=teacher_name, date=date,
+            )
+            # استخرج body
+            start = single.find('<body')
+            start = single.find('>', start) + 1
+            end = single.find('</body>')
+            body_content = single[start:end]
+            # احذف controls
+            controls_start = body_content.find('<div class="controls">')
+            if controls_start >= 0:
+                controls_end = body_content.find('</div>', controls_start) + 6
+                body_content = body_content[:controls_start] + body_content[controls_end:]
+            pages.append(body_content)
+    
+    # نستخرج <head> من أول صفحة (للـ CSS)
+    if not custom_template:
+        first_full = _build_cert_html(
+            template_id=template, student_name="x", achievement=achievement,
+            grade=grade, school_name=school_name, teacher_name=teacher_name, date=date,
+        )
+        head_start = first_full.find('<head>')
+        head_end = first_full.find('</head>') + 7
+        head_content = first_full[head_start:head_end]
+    else:
+        head_content = '''<head>
+<meta charset="UTF-8">
+<title>شهادات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+</head>'''
+    
+    final_html = (
+        '<!DOCTYPE html><html lang="ar" dir="rtl">'
+        + head_content +
+        '<body style="margin:0;padding:0;background:#f0f0f0;">'
+        '<div style="position:fixed;top:12px;left:12px;background:#fff;border:1px solid #ccc;border-radius:10px;padding:12px;z-index:9999;box-shadow:0 4px 16px rgba(0,0,0,0.2);">'
+        f'<span style="display:inline-block;padding:6px 14px;color:#1565c0;font-size:13px;font-weight:600;">📊 {len(names)} شهادة</span>'
+        '<button onclick="window.print()" style="background:linear-gradient(135deg,#1976d2,#1565c0);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:700;">🖨️ طباعة الكل / حفظ PDF</button>'
+        '<button onclick="window.close()" style="background:linear-gradient(135deg,#43a047,#2e7d32);color:#fff;border:none;padding:10px 20px;margin-right:6px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:700;">✕ إغلاق</button>'
+        '</div>'
+        '<style>@media print { div[style*="position:fixed"] { display:none !important; } }</style>'
+        + ''.join(pages) +
+        '</body></html>'
+    )
+    
+    from fastapi.responses import HTMLResponse
+    return HTMLResponse(content=final_html)
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),

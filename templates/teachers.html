@@ -1504,6 +1504,24 @@
             color: transparent;
             text-shadow: 0 0 0 #fff;
         }
+
+        .btn-home:hover, .btn-home.active { background:linear-gradient(135deg,#e67e22,#f39c12) !important; color:#1a0d2e !important; box-shadow:0 8px 24px rgba(243,156,18,0.6) !important; }
+        .btn-themes:hover, .btn-themes.active { background:linear-gradient(135deg,#6c3483,#9b59b6) !important; color:#fff !important; box-shadow:0 8px 24px rgba(155,89,182,0.6) !important; }
+        
+        .theme-card { transition: all 0.3s; position: relative; }
+        .theme-card:hover { transform: translateY(-4px) scale(1.03); }
+        .theme-card.active::before {
+            content: '✓';
+            position: absolute;
+            top: 8px; right: 8px;
+            background: #fff;
+            color: #000;
+            width: 26px; height: 26px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
 </style>
 </head>
 <body>
@@ -1675,6 +1693,11 @@
     </div>
 
     <nav>
+        <!-- 🏠 القسم الرئيسي: لوحة البيت -->
+        <button class="nav-btn btn-home shiny-btn active" onclick="showSection('home',this)" style="border-color:#f39c12 !important; color:#f9c74f !important; background:linear-gradient(135deg, rgba(243,156,18,0.18), rgba(243,156,18,0.06)) !important;">
+            <span class="btn-icon">🏠</span> <span>لوحة البيت</span>
+        </button>
+        
         <!-- 📚 القسم 1: المحتوى التعليمي -->
         <div class="sidebar-section-title">📚 المحتوى التعليمي</div>
         <button class="nav-btn btn-prep shiny-btn" onclick="showSection('preparations',this)">
@@ -1716,6 +1739,9 @@
         
         <!-- ⚙️ القسم 3: الحساب والدعم -->
         <div class="sidebar-section-title">⚙️ الحساب والدعم</div>
+        <button class="nav-btn btn-themes shiny-btn" onclick="showSection('themes',this)" style="border-color:#9b59b6 !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(155,89,182,0.12), rgba(155,89,182,0.04)) !important;">
+            <span class="btn-icon">🎨</span> <span>التخصيص</span>
+        </button>
         <button class="nav-btn btn-profile shiny-btn" onclick="showSection('profile',this)">
             <span class="btn-icon">👤</span> <span>الملف الشخصي</span>
         </button>
@@ -1830,7 +1856,198 @@
     </div>
 
     <!-- ══ قسم التحضيرات ══ -->
-    <div id="section-preparations" class="section active">
+
+    <!-- ══════════════════════════════════════════════════════
+         🏠 قسم لوحة البيت الذكية (الافتراضي)
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-home" class="section active">
+        <!-- Welcome Hero -->
+        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:2px solid #f39c12;border-radius:24px;padding:36px 28px;margin-bottom:22px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-30px;left:-30px;font-size:8rem;opacity:0.05;color:#f39c12;">⚜️</div>
+            <div style="position:absolute;bottom:-30px;right:-30px;font-size:8rem;opacity:0.05;color:#f39c12;">⚜️</div>
+            <div id="home-greeting-emoji" style="font-size:4rem;margin-bottom:10px;">🌅</div>
+            <h1 style="font-family:'Amiri';margin:0 0 6px;font-size:2.4rem;background:linear-gradient(135deg,#f9c74f,#f39c12,#fdd835,#f39c12);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">
+                <span id="home-greeting">صباح الخير</span>!
+            </h1>
+            <p id="home-subtitle" style="color:rgba(255,255,255,0.8);margin:0;font-size:1.05rem;line-height:1.8;">مرحباً بك في إمبراطوريتك التعليمية ⚜️</p>
+            <p id="home-date" style="color:rgba(255,255,255,0.5);margin:8px 0 0;font-size:0.88rem;"></p>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="glass-card" style="padding:20px;margin-bottom:18px;">
+            <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 14px;font-size:1.15rem;">⚡ إجراءات سريعة</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+                <button onclick="showSection('exam-gen', null); var b = document.querySelector('.btn-exam'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(231,76,60,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                    📝<br>إنشاء اختبار جديد
+                </button>
+                <button onclick="showSection('plan-gen', null); var b = document.querySelector('.btn-plan'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(52,152,219,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                    📓<br>تحضير AI سريع
+                </button>
+                <button onclick="showSection('certificates', null); var b = document.querySelector('.btn-cert'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(22,160,133,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                    🏆<br>طباعة شهادات
+                </button>
+                <button onclick="showSection('ai-assistant', null); var b = document.querySelector('.btn-ai'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#00ff88,#00cc66);color:#001a0d;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(0,255,136,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
+                    🤖<br>اسأل المساعد
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Grid -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px;">
+            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #e74c3c;">
+                <div style="font-size:2.5rem;color:#ff7676;">📝</div>
+                <div id="stat-exams-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">اختبار أنشأته</div>
+            </div>
+            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #3498db;">
+                <div style="font-size:2.5rem;color:#5dade2;">📓</div>
+                <div id="stat-plans-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">تحضير منشئ</div>
+            </div>
+            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #16a085;">
+                <div style="font-size:2.5rem;color:#48d1cc;">🏆</div>
+                <div id="stat-certs-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">شهادة طُبعت</div>
+            </div>
+            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #f39c12;">
+                <div style="font-size:2.5rem;color:#f9c74f;">🎨</div>
+                <div id="stat-shapes-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
+                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">شكل بصري</div>
+            </div>
+        </div>
+
+        <!-- Last Activity + Favorites -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;" id="home-twocol">
+            <!-- آخر نشاط -->
+            <div class="glass-card" style="padding:18px;">
+                <h3 style="color:#5dade2;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">🕐 آخر نشاطاتك</h3>
+                <div id="recent-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
+                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا يوجد نشاط بعد</p>
+                </div>
+            </div>
+            
+            <!-- المفضّلة -->
+            <div class="glass-card" style="padding:18px;">
+                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">⭐ المفضّلة</h3>
+                <div id="favorites-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
+                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا توجد مفضّلة بعد<br><span style="font-size:0.8rem;">اضغط ⭐ على أي قسم</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- نصيحة اليوم + الإنجاز -->
+        <div style="display:grid;grid-template-columns:1fr;gap:16px;">
+            <!-- نصيحة -->
+            <div class="glass-card" style="padding:20px;border-right:6px solid #00ff88;background:linear-gradient(135deg,rgba(0,255,136,0.06),rgba(0,8,20,0.8));">
+                <div style="display:flex;align-items:flex-start;gap:14px;">
+                    <div style="font-size:2.5rem;flex-shrink:0;">💡</div>
+                    <div style="flex:1;">
+                        <h4 style="color:#7fffd4;font-family:'Amiri';margin:0 0 8px;font-size:1.1rem;">نصيحة اليوم</h4>
+                        <p id="home-daily-tip" style="color:rgba(255,255,255,0.85);margin:0;line-height:1.9;font-weight:500;font-size:0.95rem;">
+                            ابدأ كل حصة بسؤال مثير للفضول قبل الشرح — يُعزّز التفاعل الذهني.
+                        </p>
+                    </div>
+                    <button onclick="rotateTip()" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:bold;flex-shrink:0;">
+                        🔄 نصيحة أخرى
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         🎨 قسم التخصيص والثيمات
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-themes" class="section">
+        <div style="background:linear-gradient(160deg,rgba(155,89,182,0.08),rgba(0,8,20,0.9));border:2px solid #9b59b6;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;">
+            <div style="font-size:3.4rem;margin-bottom:12px;">🎨</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">التخصيص والثيمات</h2>
+            <p style="color:rgba(255,255,255,0.75);margin:0;font-size:1rem;">🎨 اختر ثيماً يناسب ذوقك · ضع شعار مدرستك على كل المخرجات</p>
+        </div>
+
+        <!-- اختيار الثيم -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#bb86fc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎨 اختر ثيمك المفضّل</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">
+                <div onclick="applyTheme('royal-gold')" data-theme="royal-gold" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#001f3f,#000a1a);border:2px solid #d4af37;">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">👑</div>
+                    <div style="font-weight:700;color:#d4af37;font-family:'Amiri';">الذهبي الملكي</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#d4af37;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#001f3f;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#f9c74f;border-radius:50%;"></span>
+                    </div>
+                </div>
+                <div onclick="applyTheme('ocean-blue')" data-theme="ocean-blue" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#0c4a6e,#082f49);border:2px solid rgba(14,165,233,0.5);">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🌊</div>
+                    <div style="font-weight:700;color:#5dd5ff;font-family:'Amiri';">المحيطي الأزرق</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#0ea5e9;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#082f49;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#5dd5ff;border-radius:50%;"></span>
+                    </div>
+                </div>
+                <div onclick="applyTheme('emerald-forest')" data-theme="emerald-forest" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#064e3b,#022c22);border:2px solid rgba(16,185,129,0.5);">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🌿</div>
+                    <div style="font-weight:700;color:#7fffd4;font-family:'Amiri';">الزمردي الغابي</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#10b981;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#022c22;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#7fffd4;border-radius:50%;"></span>
+                    </div>
+                </div>
+                <div onclick="applyTheme('sunset-warm')" data-theme="sunset-warm" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#7c2d12,#431407);border:2px solid rgba(249,115,22,0.5);">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🌅</div>
+                    <div style="font-weight:700;color:#fb923c;font-family:'Amiri';">الغروب الدافئ</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#f97316;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#431407;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#fb923c;border-radius:50%;"></span>
+                    </div>
+                </div>
+                <div onclick="applyTheme('purple-night')" data-theme="purple-night" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#3b0764,#1e1b4b);border:2px solid rgba(168,85,247,0.5);">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🌃</div>
+                    <div style="font-weight:700;color:#c084fc;font-family:'Amiri';">الليل البنفسجي</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#a855f7;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#1e1b4b;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#c084fc;border-radius:50%;"></span>
+                    </div>
+                </div>
+                <div onclick="applyTheme('rose-pink')" data-theme="rose-pink" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#831843,#500724);border:2px solid rgba(244,63,94,0.5);">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🌹</div>
+                    <div style="font-weight:700;color:#fb7185;font-family:'Amiri';">الوردي الأنيق</div>
+                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
+                        <span style="width:14px;height:14px;background:#f43f5e;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#500724;border-radius:50%;"></span>
+                        <span style="width:14px;height:14px;background:#fb7185;border-radius:50%;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- بيانات افتراضية -->
+        <div class="glass-card" style="padding:22px;">
+            <h3 style="color:#bb86fc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📋 بياناتي الافتراضية (تظهر تلقائياً في كل المخرجات)</h3>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">👨‍🏫 اسمك</label>
+                    <input type="text" id="default-teacher-name" placeholder="الأستاذ..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;">🏫 اسم المدرسة</label>
+                    <input type="text" id="default-school-name" placeholder="مدرسة..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                </div>
+            </div>
+            <button onclick="saveDefaults()" style="background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:12px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">💾 حفظ بياناتي</button>
+            <p style="margin-top:10px;font-size:0.82rem;color:rgba(255,255,255,0.5);">💡 ستُستخدم تلقائياً في الاختبارات والشهادات والتحضيرات</p>
+        </div>
+    </div>
+
+
+    <!-- ══ قسم التحضيرات ══ -->
+
+    <div id="section-preparations" class="section">
         <div class="glass-card">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;position:relative;z-index:1;">
                 <h2 style="margin:0;font-size:1.7rem;">📋 التحضيرات الجاهزة</h2>
@@ -2313,48 +2530,90 @@
     </div>
 
 
-    <!-- ══════════════════════════════════════════════════════
-         🏆 قسم الشهادات والقوالب
+        <!-- ══════════════════════════════════════════════════════
+         🏆 قسم الشهادات الاحترافية v2
     ══════════════════════════════════════════════════════ -->
     <div id="section-certificates" class="section">
-        <!-- Header ملحمي -->
+        <!-- Header -->
         <div style="background:linear-gradient(160deg,rgba(22,160,133,0.08),rgba(0,8,20,0.9));border:2px solid #16a085;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#48d1cc;">⚜️</div>
             <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(72,209,204,0.6));">🏆</div>
-            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#48d1cc,#16a085,#7fffd4,#16a085,#0e7d6c);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">شهادات التقدير الملحمية</h2>
-            <p style="color:rgba(72,209,204,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">🌟 5 تصاميم احترافية · طباعة فردية أو دفعة كاملة 🌟</p>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#48d1cc,#16a085,#7fffd4,#16a085,#0e7d6c);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">شهادات احترافية</h2>
+            <p style="color:rgba(72,209,204,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">🌟 8 قوالب مهنية · رفع قوالب مخصصة · طباعة فردية أو دفعة 🌟</p>
         </div>
 
-        <!-- اختيار التصميم -->
-        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+        <!-- وضعيات: قالب جاهز / قالب مخصص -->
+        <div class="glass-card" style="padding:18px;margin-bottom:18px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;">
+                <button onclick="setCertSource('builtin')" id="cert-src-builtin-btn" style="flex:1;min-width:200px;background:linear-gradient(135deg,#48d1cc,#16a085);color:#fff;border:none;padding:13px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 12px rgba(72,209,204,0.4);">
+                    🎨 استخدام قوالب جاهزة (8 تصاميم)
+                </button>
+                <button onclick="setCertSource('custom')" id="cert-src-custom-btn" style="flex:1;min-width:200px;background:rgba(243,156,18,0.1);color:#f9c74f;border:1px solid #f39c12;padding:13px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;">
+                    📤 رفع قالبي الخاص (HTML)
+                </button>
+            </div>
+        </div>
+
+        <!-- اختيار القوالب الجاهزة -->
+        <div id="cert-builtin-section" class="glass-card" style="padding:22px;margin-bottom:18px;">
             <h3 style="color:#48d1cc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎨 اختر التصميم</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;">
-                <div class="cert-template active" data-template="gold" onclick="selectCertTemplate('gold')" style="background:#fefae0;border:3px solid #d4af37;border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#5d4e1f;">
-                    <div style="font-size:2.5rem;">👑</div>
-                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الذهبي الملكي</div>
+            <div id="cert-templates-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;">
+                <!-- يُملأ بالـ JS -->
+            </div>
+            <p style="margin-top:14px;font-size:0.85rem;color:rgba(255,255,255,0.55);text-align:center;">💡 اضغط أي قالب لاختياره — التصميم النشط مُحاط بإطار مضيء</p>
+        </div>
+
+        <!-- رفع قالب مخصص -->
+        <div id="cert-custom-section" style="display:none;" class="glass-card-x">
+            <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 14px;font-size:1.2rem;">📤 ارفع قالبك الخاص</h3>
+                <div style="background:rgba(243,156,18,0.06);border:1px dashed rgba(243,156,18,0.4);border-radius:12px;padding:18px;margin-bottom:14px;">
+                    <p style="font-size:0.9rem;color:rgba(255,255,255,0.85);line-height:1.9;margin-bottom:10px;">
+                        <b style="color:#f9c74f;">📋 كيف تُنشئ قالباً مخصصاً:</b><br>
+                        1. أنشئ ملف HTML احترافي (يمكن تصدير من Canva, Word, PPT)<br>
+                        2. ضع المتغيرات التالية في المكان المناسب:
+                    </p>
+                    <div style="background:rgba(0,0,0,0.4);border-radius:8px;padding:12px;font-family:monospace;font-size:0.85rem;color:#7fffd4;line-height:2;">
+                        <code>{{name}}</code> — اسم الطالب<br>
+                        <code>{{achievement}}</code> — سبب التقدير<br>
+                        <code>{{grade}}</code> — الصف<br>
+                        <code>{{school}}</code> — اسم المدرسة<br>
+                        <code>{{teacher}}</code> — اسم المعلم<br>
+                        <code>{{date}}</code> — التاريخ<br>
+                        <code>{{extra}}</code> — نص إضافي
+                    </div>
+                    <p style="font-size:0.85rem;color:rgba(255,255,255,0.7);margin-top:10px;line-height:1.8;">
+                        💡 مثال: <code style="background:rgba(0,0,0,0.3);padding:2px 6px;border-radius:4px;">&lt;h1&gt;مبروك {{name}}&lt;/h1&gt;</code>
+                    </p>
                 </div>
-                <div class="cert-template" data-template="royal" onclick="selectCertTemplate('royal')" style="background:#f0e8ff;border:3px solid rgba(91,62,138,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#3d2666;">
-                    <div style="font-size:2.5rem;">🎖️</div>
-                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الملكي البنفسجي</div>
+                
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.9rem;color:rgba(255,255,255,0.85);margin-bottom:8px;font-weight:600;">📁 ملف HTML</label>
+                        <input type="file" id="cert-custom-file" accept=".html,.htm" onchange="loadCustomCertFile(event)" style="width:100%;background:rgba(255,255,255,0.05);border:1px dashed rgba(243,156,18,0.5);color:#fff;padding:14px;border-radius:10px;font-family:Cairo;cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.9rem;color:rgba(255,255,255,0.85);margin-bottom:8px;font-weight:600;">📝 أو الصق HTML مباشرة</label>
+                        <button onclick="pasteCustomCertHTML()" style="width:100%;background:rgba(243,156,18,0.1);color:#f9c74f;border:1px solid #f39c12;padding:13px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">📋 لصق HTML</button>
+                    </div>
                 </div>
-                <div class="cert-template" data-template="modern" onclick="selectCertTemplate('modern')" style="background:#f0f9ff;border:3px solid rgba(14,165,233,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#0369a1;">
-                    <div style="font-size:2.5rem;">🏆</div>
-                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">العصري الأزرق</div>
-                </div>
-                <div class="cert-template" data-template="classic" onclick="selectCertTemplate('classic')" style="background:#fff5e6;border:3px solid rgba(201,116,45,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#7a4317;">
-                    <div style="font-size:2.5rem;">📜</div>
-                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الكلاسيكي</div>
-                </div>
-                <div class="cert-template" data-template="floral" onclick="selectCertTemplate('floral')" style="background:#fff0f5;border:3px solid rgba(214,51,132,0.3);border-radius:14px;padding:14px;cursor:pointer;text-align:center;transition:all 0.3s;color:#831843;">
-                    <div style="font-size:2.5rem;">🌸</div>
-                    <div style="font-weight:700;margin-top:6px;font-family:'Amiri';">الزهري الأنيق</div>
+                
+                <div id="cert-custom-status" style="margin-top:14px;padding:12px;background:rgba(46,204,113,0.1);border:1px solid rgba(46,204,113,0.4);border-radius:8px;color:#2ecc71;font-weight:600;display:none;"></div>
+                
+                <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+                    <button onclick="downloadSampleTemplate()" style="background:rgba(52,152,219,0.1);color:#5dade2;border:1px solid #3498db;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
+                        📥 تنزيل قالب نموذجي
+                    </button>
+                    <button onclick="previewCustomTemplate()" id="cert-preview-custom-btn" disabled style="background:rgba(46,204,113,0.1);color:#2ecc71;border:1px solid #2ecc71;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;opacity:0.5;">
+                        👁️ معاينة القالب
+                    </button>
                 </div>
             </div>
         </div>
 
         <!-- وضعية الإنشاء -->
         <div class="glass-card" style="padding:22px;margin-bottom:18px;">
-            <h3 style="color:#48d1cc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📝 طريقة الإنشاء</h3>
+            <h3 style="color:#48d1cc;font-family:'Amiri';margin:0 0 14px;font-size:1.2rem;">📝 طريقة الإنشاء</h3>
             <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
                 <button onclick="setCertMode('single')" id="cert-mode-single-btn" style="flex:1;min-width:150px;background:linear-gradient(135deg,#48d1cc,#16a085);color:#fff;border:none;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
                     👤 شهادة واحدة
@@ -2364,21 +2623,17 @@
                 </button>
             </div>
 
-            <!-- نمط شهادة واحدة -->
             <div id="cert-single-form">
-                <div style="display:grid;grid-template-columns:1fr;gap:14px;">
-                    <div>
-                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👤 اسم الطالب *</label>
-                        <input type="text" id="cert-name" placeholder="محمد أحمد" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
-                    </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👤 اسم الطالب *</label>
+                    <input type="text" id="cert-name" placeholder="محمد أحمد" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
                 </div>
             </div>
 
-            <!-- نمط دفعة -->
             <div id="cert-batch-form" style="display:none;">
                 <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👥 أسماء الطلاب (اسم في كل سطر)</label>
                 <textarea id="cert-names-list" rows="8" placeholder="محمد أحمد&#10;سارة علي&#10;أحمد محمد&#10;..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;resize:vertical;"></textarea>
-                <p style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:6px;">💡 يمكنك لصق قائمة طلاب فصل كامل (حد أقصى 50 شهادة)</p>
+                <p style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:6px;">💡 يمكنك لصق قائمة طلاب فصل كامل (حد أقصى 100 شهادة)</p>
             </div>
 
             <!-- بيانات مشتركة -->
@@ -2400,9 +2655,8 @@
                     <input type="text" id="cert-teacher" placeholder="الأستاذ..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
                 </div>
             </div>
-            
             <div style="margin-top:14px;">
-                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📝 نص إضافي (اختياري — للنمط الفردي فقط)</label>
+                <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📝 نص إضافي (اختياري)</label>
                 <input type="text" id="cert-extra" placeholder="ملاحظة تشجيعية..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
             </div>
         </div>
@@ -2418,7 +2672,6 @@
 
 
 
-    
     <!-- ══════════════════════════════════════════════════════
          🎨 قسم صانع المسائل البصرية
     ══════════════════════════════════════════════════════ -->
@@ -4390,122 +4643,7 @@ async function exgGenerate() {
 // ════════════════════════════════════════════════════════════
 // 🏆 CERTIFICATES — الشهادات والقوالب
 // ════════════════════════════════════════════════════════════
-function selectCertTemplate(template) {
-    _exgSelectedTemplate = template;
-    document.querySelectorAll('.cert-template').forEach(function(el) {
-        el.classList.remove('active');
-        el.style.boxShadow = '';
-        el.style.transform = '';
-    });
-    var active = document.querySelector('.cert-template[data-template="' + template + '"]');
-    if (active) {
-        active.classList.add('active');
-        active.style.boxShadow = '0 8px 24px rgba(72,209,204,0.4)';
-        active.style.transform = 'translateY(-3px) scale(1.02)';
-    }
-}
 
-function setCertMode(mode) {
-    _certMode = mode;
-    var single = document.getElementById('cert-single-form');
-    var batch = document.getElementById('cert-batch-form');
-    var btnS = document.getElementById('cert-mode-single-btn');
-    var btnB = document.getElementById('cert-mode-batch-btn');
-    
-    if (mode === 'single') {
-        single.style.display = 'block';
-        batch.style.display = 'none';
-        btnS.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
-        btnS.style.color = '#fff';
-        btnS.style.border = 'none';
-        btnB.style.background = 'rgba(72,209,204,0.1)';
-        btnB.style.color = '#48d1cc';
-        btnB.style.border = '1px solid #48d1cc';
-    } else {
-        single.style.display = 'none';
-        batch.style.display = 'block';
-        btnB.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
-        btnB.style.color = '#fff';
-        btnB.style.border = 'none';
-        btnS.style.background = 'rgba(72,209,204,0.1)';
-        btnS.style.color = '#48d1cc';
-        btnS.style.border = '1px solid #48d1cc';
-    }
-}
-
-async function generateCertificate() {
-    var fd = new FormData();
-    fd.append('template', _exgSelectedTemplate);
-    fd.append('achievement', document.getElementById('cert-achievement').value || 'التميّز في الرياضيات');
-    fd.append('grade', document.getElementById('cert-grade').value);
-    fd.append('school_name', document.getElementById('cert-school').value);
-    fd.append('teacher_name', document.getElementById('cert-teacher').value);
-    
-    var endpoint, btn = document.getElementById('cert-generate-btn');
-    var origText = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '⏳ جارٍ الإنشاء...';
-    
-    try {
-        if (_certMode === 'single') {
-            var name = document.getElementById('cert-name').value.trim();
-            if (!name) {
-                if (typeof showToast === 'function') showToast('⚠️ أدخل اسم الطالب', 'warning');
-                btn.disabled = false; btn.innerHTML = origText;
-                return;
-            }
-            fd.append('student_name', name);
-            fd.append('extra_text', document.getElementById('cert-extra').value);
-            endpoint = '/api/teacher/certificate/build';
-        } else {
-            var names = document.getElementById('cert-names-list').value.trim();
-            if (!names) {
-                if (typeof showToast === 'function') showToast('⚠️ أدخل قائمة الأسماء', 'warning');
-                btn.disabled = false; btn.innerHTML = origText;
-                return;
-            }
-            fd.append('student_names', names);
-            endpoint = '/api/teacher/certificate/batch';
-        }
-        
-        var res = await fetch(API_URL + endpoint, { method: 'POST', body: fd });
-        if (!res.ok) {
-            var err = await res.json().catch(function(){return{};});
-            throw new Error(err.detail || 'فشل');
-        }
-        var html = await res.text();
-        
-        var w = window.open('', '_blank');
-        w.document.open();
-        w.document.write(html);
-        w.document.close();
-        
-        if (typeof showToast === 'function') showToast('✅ الشهادة جاهزة للطباعة', 'success');
-    } catch(e) {
-        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-    }
-}
-
-// تحميل تلقائي عند فتح القسمين
-(function() {
-    var origShow = window.showSection;
-    if (typeof origShow === 'function') {
-        window.showSection = function(name, el) {
-            origShow.call(this, name, el);
-            if (name === 'exam-gen') {
-                setTimeout(loadExamGenerator, 200);
-            } else if (name === 'certificates') {
-                setTimeout(function() {
-                    selectCertTemplate('gold');
-                    setCertMode('single');
-                }, 200);
-            }
-        };
-    }
-})();
 
 
 
@@ -6316,6 +6454,762 @@ function vidShareWA(url, title) {
         document.head.appendChild(s);
     }
 })();
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🏆 CERTIFICATES v2 — قوالب احترافية + رفع قوالب مخصصة
+// ════════════════════════════════════════════════════════════
+var _certSelectedTemplate = 'gold';
+var _certMode = 'single';
+var _certSource = 'builtin';        // builtin | custom
+var _certCustomHTML = '';            // محتوى القالب المخصص
+var _certBuiltinTemplates = [];
+
+async function loadCertTemplates() {
+    if (_certBuiltinTemplates.length) return;
+    try {
+        var res = await fetch(API_URL + '/api/teacher/certificate/templates');
+        var data = await res.json();
+        _certBuiltinTemplates = data.templates || [];
+        renderCertTemplates();
+    } catch(e) {
+        console.warn('[cert] templates fetch:', e);
+    }
+}
+
+function renderCertTemplates() {
+    var grid = document.getElementById('cert-templates-grid');
+    if (!grid) return;
+    
+    var html = '';
+    _certBuiltinTemplates.forEach(function(t) {
+        var isActive = t.id === _certSelectedTemplate;
+        html += '<div onclick="selectCertTemplate(\'' + t.id + '\')" data-tpl="' + t.id + '" style="background:' + t.bg + ';';
+        html += 'border:' + (isActive ? '4px solid ' + t.primary : '2px solid rgba(255,255,255,0.1)') + ';';
+        html += 'border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;position:relative;';
+        if (isActive) html += 'box-shadow:0 8px 24px ' + t.primary + '40;transform:translateY(-3px) scale(1.02);';
+        html += '">';
+        html += '<div style="font-size:2.6rem;margin-bottom:8px;color:' + t.primary + ';">' + t.icon + '</div>';
+        html += '<div style="font-weight:700;font-family:\'Amiri\',serif;font-size:1.05rem;color:' + t.primary + ';">' + t.name + '</div>';
+        if (isActive) {
+            html += '<div style="position:absolute;top:8px;right:8px;background:' + t.primary + ';color:#fff;width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.85rem;font-weight:bold;">✓</div>';
+        }
+        html += '</div>';
+    });
+    grid.innerHTML = html;
+}
+
+function selectCertTemplate(template) {
+    _certSelectedTemplate = template;
+    renderCertTemplates();
+    if (typeof showToast === 'function') {
+        var t = _certBuiltinTemplates.find(function(x){return x.id===template;});
+        if (t) showToast('🎨 اخترت: ' + t.name, 'success');
+    }
+}
+
+function setCertSource(source) {
+    _certSource = source;
+    var builtin = document.getElementById('cert-builtin-section');
+    var custom = document.getElementById('cert-custom-section');
+    var btnB = document.getElementById('cert-src-builtin-btn');
+    var btnC = document.getElementById('cert-src-custom-btn');
+    
+    if (source === 'builtin') {
+        if (builtin) builtin.style.display = 'block';
+        if (custom) custom.style.display = 'none';
+        if (btnB) {
+            btnB.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
+            btnB.style.color = '#fff';
+            btnB.style.border = 'none';
+        }
+        if (btnC) {
+            btnC.style.background = 'rgba(243,156,18,0.1)';
+            btnC.style.color = '#f9c74f';
+            btnC.style.border = '1px solid #f39c12';
+        }
+    } else {
+        if (builtin) builtin.style.display = 'none';
+        if (custom) custom.style.display = 'block';
+        if (btnC) {
+            btnC.style.background = 'linear-gradient(135deg,#f39c12,#e67e22)';
+            btnC.style.color = '#fff';
+            btnC.style.border = 'none';
+        }
+        if (btnB) {
+            btnB.style.background = 'rgba(72,209,204,0.1)';
+            btnB.style.color = '#48d1cc';
+            btnB.style.border = '1px solid #48d1cc';
+        }
+    }
+}
+
+function setCertMode(mode) {
+    _certMode = mode;
+    var single = document.getElementById('cert-single-form');
+    var batch = document.getElementById('cert-batch-form');
+    var btnS = document.getElementById('cert-mode-single-btn');
+    var btnB = document.getElementById('cert-mode-batch-btn');
+    
+    if (mode === 'single') {
+        if (single) single.style.display = 'block';
+        if (batch) batch.style.display = 'none';
+        if (btnS) {
+            btnS.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
+            btnS.style.color = '#fff';
+            btnS.style.border = 'none';
+        }
+        if (btnB) {
+            btnB.style.background = 'rgba(72,209,204,0.1)';
+            btnB.style.color = '#48d1cc';
+            btnB.style.border = '1px solid #48d1cc';
+        }
+    } else {
+        if (single) single.style.display = 'none';
+        if (batch) batch.style.display = 'block';
+        if (btnB) {
+            btnB.style.background = 'linear-gradient(135deg,#48d1cc,#16a085)';
+            btnB.style.color = '#fff';
+            btnB.style.border = 'none';
+        }
+        if (btnS) {
+            btnS.style.background = 'rgba(72,209,204,0.1)';
+            btnS.style.color = '#48d1cc';
+            btnS.style.border = '1px solid #48d1cc';
+        }
+    }
+}
+
+// ─── رفع قالب مخصص ───
+function loadCustomCertFile(event) {
+    var file = event.target.files[0];
+    if (!file) return;
+    
+    if (file.size > 5 * 1024 * 1024) {
+        if (typeof showToast === 'function') showToast('⚠️ الملف كبير جداً (الحد 5MB)', 'warning');
+        return;
+    }
+    
+    var reader = new FileReader();
+    reader.onload = function(e) {
+        _certCustomHTML = e.target.result;
+        showCustomCertStatus(file.name, file.size);
+    };
+    reader.onerror = function() {
+        if (typeof showToast === 'function') showToast('❌ فشل قراءة الملف', 'error');
+    };
+    reader.readAsText(file, 'UTF-8');
+}
+
+function pasteCustomCertHTML() {
+    var html = prompt('الصق محتوى HTML الكامل للقالب:\n(يجب أن يحتوي {{name}} على الأقل)');
+    if (!html) return;
+    
+    if (html.length < 50) {
+        if (typeof showToast === 'function') showToast('⚠️ المحتوى قصير جداً', 'warning');
+        return;
+    }
+    if (html.indexOf('{{name}}') === -1) {
+        if (!confirm('⚠️ لم أجد {{name}} في القالب — هل تريد المتابعة؟')) return;
+    }
+    
+    _certCustomHTML = html;
+    showCustomCertStatus('قالب ملصق', html.length);
+}
+
+function showCustomCertStatus(filename, size) {
+    var status = document.getElementById('cert-custom-status');
+    if (!status) return;
+    
+    var sizeKB = Math.round(size / 1024);
+    var hasPlaceholders = ['{{name}}', '{{achievement}}', '{{date}}'].filter(function(p) {
+        return _certCustomHTML.indexOf(p) !== -1;
+    });
+    
+    status.style.display = 'block';
+    status.innerHTML = '✅ <b>تم تحميل القالب:</b> ' + esc(filename) + 
+        ' (' + sizeKB + ' KB)<br>' +
+        '🔍 المتغيرات الموجودة: <b>' + hasPlaceholders.length + '</b> من 7 ' +
+        '(' + hasPlaceholders.join(', ') + ')';
+    
+    var btn = document.getElementById('cert-preview-custom-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.style.opacity = '1';
+    }
+    
+    if (typeof showToast === 'function') showToast('✅ القالب محمّل', 'success');
+}
+
+function previewCustomTemplate() {
+    if (!_certCustomHTML) return;
+    
+    // معاينة سريعة بقيم تجريبية
+    var preview = _certCustomHTML
+        .replace(/\{\{name\}\}/g, 'الطالب التجريبي')
+        .replace(/\{\{achievement\}\}/g, 'التميّز في الرياضيات')
+        .replace(/\{\{grade\}\}/g, 'الصف السادس')
+        .replace(/\{\{school\}\}/g, 'مدرسة...')
+        .replace(/\{\{teacher\}\}/g, 'الأستاذ...')
+        .replace(/\{\{date\}\}/g, new Date().toLocaleDateString('ar'))
+        .replace(/\{\{extra\}\}/g, '');
+    
+    var w = window.open('', '_blank');
+    w.document.open();
+    w.document.write(preview);
+    w.document.close();
+}
+
+function downloadSampleTemplate() {
+    var sample = '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n<meta charset="UTF-8">\n<title>شهادة تقدير</title>\n' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n' +
+        '<style>\n' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; }\n' +
+        '@page { size: A4 landscape; margin: 0; }\n' +
+        'body { font-family: "Cairo", sans-serif; margin: 0; }\n' +
+        '.cert {\n' +
+        '    width: 297mm; height: 210mm;\n' +
+        '    background: linear-gradient(135deg, #fefae0 0%, #fff3c4 100%);\n' +
+        '    padding: 50px;\n' +
+        '    border: 12px double #d4af37;\n' +
+        '    text-align: center;\n' +
+        '    display: flex;\n' +
+        '    flex-direction: column;\n' +
+        '    justify-content: center;\n' +
+        '    align-items: center;\n' +
+        '}\n' +
+        '.icon { font-size: 80px; margin-bottom: 20px; }\n' +
+        '.title { font-family: "Amiri", serif; font-size: 56px; color: #8b6914; font-weight: bold; }\n' +
+        '.text { font-size: 22px; margin: 12px 0; color: #555; }\n' +
+        '.name { font-family: "Amiri", serif; font-size: 60px; color: #5d4e1f; font-weight: bold; padding: 10px 40px; border-bottom: 3px solid #d4af37; margin: 20px 0; }\n' +
+        '.achievement { font-size: 24px; color: #b8860b; font-weight: bold; padding: 10px 24px; background: rgba(255,255,255,0.5); border-radius: 8px; margin: 14px 0; }\n' +
+        '.footer { display: flex; justify-content: space-around; width: 100%; margin-top: 40px; }\n' +
+        '.sign { text-align: center; min-width: 200px; border-top: 2px solid #d4af37; padding-top: 6px; margin-top: 50px; }\n' +
+        '</style>\n</head>\n<body>\n' +
+        '<div class="cert">\n' +
+        '    <div class="icon">👑</div>\n' +
+        '    <div class="title">شهادة تقدير</div>\n' +
+        '    <div class="text" style="margin-top:24px;">تُمنح إلى الطالب/ة المتميّز/ة</div>\n' +
+        '    <div class="name">{{name}}</div>\n' +
+        '    <div class="text">في {{grade}}</div>\n' +
+        '    <div class="text">تقديراً لـ</div>\n' +
+        '    <div class="achievement">{{achievement}}</div>\n' +
+        '    <div class="footer">\n' +
+        '        <div><div class="sign">{{teacher}}</div></div>\n' +
+        '        <div><div class="sign">📅 {{date}}</div></div>\n' +
+        '        <div><div class="sign">{{school}}</div></div>\n' +
+        '    </div>\n' +
+        '</div>\n</body>\n</html>';
+    
+    var blob = new Blob([sample], { type: 'text/html;charset=utf-8' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_certificate_template.html';
+    a.click();
+    URL.revokeObjectURL(url);
+    
+    if (typeof showToast === 'function') showToast('📥 تم التنزيل — افتح الملف وعدّله', 'success');
+}
+
+// ─── إنشاء الشهادة ───
+async function generateCertificate() {
+    var fd = new FormData();
+    
+    if (_certSource === 'custom') {
+        if (!_certCustomHTML) {
+            if (typeof showToast === 'function') showToast('⚠️ ارفع قالباً مخصصاً أولاً', 'warning');
+            return;
+        }
+        fd.append('custom_template', _certCustomHTML);
+    } else {
+        fd.append('template', _certSelectedTemplate);
+    }
+    
+    fd.append('achievement', document.getElementById('cert-achievement').value || 'التميّز في الرياضيات');
+    fd.append('grade', document.getElementById('cert-grade').value || '');
+    fd.append('school_name', document.getElementById('cert-school').value || '');
+    fd.append('teacher_name', document.getElementById('cert-teacher').value || '');
+    
+    var endpoint, btn = document.getElementById('cert-generate-btn');
+    var origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ جارٍ الإنشاء...';
+    
+    try {
+        if (_certMode === 'single') {
+            var name = document.getElementById('cert-name').value.trim();
+            if (!name) {
+                if (typeof showToast === 'function') showToast('⚠️ أدخل اسم الطالب', 'warning');
+                btn.disabled = false; btn.innerHTML = origText;
+                return;
+            }
+            fd.append('student_name', name);
+            fd.append('extra_text', document.getElementById('cert-extra').value || '');
+            endpoint = '/api/teacher/certificate/build_v2';
+        } else {
+            var names = document.getElementById('cert-names-list').value.trim();
+            if (!names) {
+                if (typeof showToast === 'function') showToast('⚠️ أدخل قائمة الأسماء', 'warning');
+                btn.disabled = false; btn.innerHTML = origText;
+                return;
+            }
+            fd.append('student_names', names);
+            endpoint = '/api/teacher/certificate/batch_v2';
+        }
+        
+        var res = await fetch(API_URL + endpoint, { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){ return {}; });
+            throw new Error(err.detail || 'فشل');
+        }
+        var html = await res.text();
+        
+        var w = window.open('', '_blank');
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+        
+        if (typeof showToast === 'function') showToast('✅ الشهادة جاهزة', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = origText;
+    }
+}
+
+// تحميل عند فتح القسم
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'certificates') {
+                setTimeout(function() {
+                    loadCertTemplates();
+                    setCertSource('builtin');
+                    setCertMode('single');
+                }, 200);
+            }
+        };
+    }
+})();
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🏠 HOME DASHBOARD + FAVORITES + THEMES
+// ════════════════════════════════════════════════════════════
+var DAILY_TIPS = [
+    "ابدأ كل حصة بسؤال مثير للفضول قبل الشرح — يُعزّز التفاعل الذهني.",
+    "استخدم الألوان المختلفة عند تصحيح الواجبات لتسهيل القراءة.",
+    "اطلب من الطلاب شرح المفهوم لزميل — أقوى طريقة لترسيخ التعلّم.",
+    "اربط كل درس بمثال من حياة الطلاب اليومية لزيادة الاهتمام.",
+    "خذ دقيقتين للتنفس بين الدروس — ينعكس على طاقتك في الفصل.",
+    "استخدم 'لماذا' في أسئلتك لتطوير التفكير النقدي.",
+    "قسّم المسألة الصعبة إلى خطوات صغيرة — كل خطوة نجاح صغير.",
+    "كرّم طالباً بكلمة طيبة كل يوم — أثرها يدوم سنين.",
+    "استخدم الرسومات والصور — 65% من الطلاب يتعلمون بصرياً.",
+    "أعطِ تعليقاً محدداً بدل 'أحسنت' — مثل 'أعجبتني طريقة حلّك'.",
+    "بعد كل حصة، سجّل ما نجح وما يحتاج تحسيناً — خبرتك ستنمو سريعاً.",
+    "اسمح للطلاب بأن يُخطئوا — الخطأ أفضل معلم.",
+    "غيّر طريقة عرض المعلومة عندما لا يفهم الطالب — لا تُكرّر بنفس الأسلوب.",
+    "في بداية الأسبوع، اعرض 'خريطة' لما ستدرسونه — يُقلّل القلق.",
+    "اربط الرياضيات بالقصص — كل عدد له حكاية.",
+];
+
+function loadHomeDashboard() {
+    // التحية بناءً على الوقت
+    var hour = new Date().getHours();
+    var greeting, emoji, subtitle;
+    
+    if (hour < 12) {
+        greeting = 'صباح الخير';
+        emoji = '🌅';
+        subtitle = 'أتمنى لك يوماً مليئاً بالإلهام التعليمي';
+    } else if (hour < 17) {
+        greeting = 'مساء النور';
+        emoji = '☀️';
+        subtitle = 'هل أنجزت إنجاز اليوم؟';
+    } else if (hour < 21) {
+        greeting = 'مساء الخير';
+        emoji = '🌆';
+        subtitle = 'وقت رائع للتحضير لدروس الغد';
+    } else {
+        greeting = 'مساء النور';
+        emoji = '🌃';
+        subtitle = 'أنت تستحق راحة جيدة';
+    }
+    
+    // لو لدينا اسم مخزّن
+    try {
+        var teacherName = localStorage.getItem('default_teacher_name') || '';
+        if (teacherName) {
+            greeting += '، ' + teacherName.replace(/^الأستاذ\s*/, '');
+        }
+    } catch(e) {}
+    
+    var gEl = document.getElementById('home-greeting');
+    var eEl = document.getElementById('home-greeting-emoji');
+    var sEl = document.getElementById('home-subtitle');
+    var dEl = document.getElementById('home-date');
+    
+    if (gEl) gEl.textContent = greeting;
+    if (eEl) eEl.textContent = emoji;
+    if (sEl) sEl.textContent = subtitle;
+    
+    if (dEl) {
+        var days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+        var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+        var d = new Date();
+        dEl.textContent = days[d.getDay()] + ' · ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+    }
+    
+    // الإحصاءات
+    loadHomeStats();
+    
+    // النشاط الأخير
+    loadRecentActivity();
+    
+    // المفضّلة
+    loadFavorites();
+    
+    // نصيحة
+    rotateTip();
+}
+
+function loadHomeStats() {
+    try {
+        var stats = JSON.parse(localStorage.getItem('teacher_stats') || '{}');
+        var ids = ['exams', 'plans', 'certs', 'shapes'];
+        ids.forEach(function(id) {
+            var el = document.getElementById('stat-' + id + '-count');
+            if (el) el.textContent = stats[id] || 0;
+        });
+    } catch(e) {}
+}
+
+function bumpStat(key) {
+    try {
+        var stats = JSON.parse(localStorage.getItem('teacher_stats') || '{}');
+        stats[key] = (stats[key] || 0) + 1;
+        localStorage.setItem('teacher_stats', JSON.stringify(stats));
+    } catch(e) {}
+}
+
+function logActivity(type, title, sectionId) {
+    try {
+        var list = JSON.parse(localStorage.getItem('recent_activity') || '[]');
+        list.unshift({
+            type: type,
+            title: title,
+            sectionId: sectionId,
+            time: Date.now(),
+        });
+        list = list.slice(0, 10);
+        localStorage.setItem('recent_activity', JSON.stringify(list));
+    } catch(e) {}
+}
+
+function loadRecentActivity() {
+    var container = document.getElementById('recent-activity-list');
+    if (!container) return;
+    
+    try {
+        var list = JSON.parse(localStorage.getItem('recent_activity') || '[]');
+        if (!list.length) {
+            container.innerHTML = '<p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا يوجد نشاط بعد</p>';
+            return;
+        }
+        
+        var icons = {
+            'exam': '📝', 'plan': '📓', 'cert': '🏆', 
+            'shape': '🎨', 'lesson': '📚', 'video': '🎬', 'ai': '🤖'
+        };
+        
+        var html = list.map(function(a) {
+            var icon = icons[a.type] || '📌';
+            var ago = timeAgo(a.time);
+            return '<div onclick="' + (a.sectionId ? "showSection('" + a.sectionId + "', null)" : '') + 
+                '" style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background=\'rgba(255,255,255,0.08)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">' +
+                '<div style="font-size:1.4rem;">' + icon + '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                '<div style="font-weight:600;color:#fff;font-size:0.88rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">' + esc(a.title) + '</div>' +
+                '<div style="font-size:0.75rem;color:rgba(255,255,255,0.5);">' + ago + '</div>' +
+                '</div></div>';
+        }).join('');
+        
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;">خطأ</p>';
+    }
+}
+
+function timeAgo(timestamp) {
+    var diff = (Date.now() - timestamp) / 1000;
+    if (diff < 60) return 'الآن';
+    if (diff < 3600) return Math.floor(diff/60) + ' دقيقة';
+    if (diff < 86400) return Math.floor(diff/3600) + ' ساعة';
+    if (diff < 604800) return Math.floor(diff/86400) + ' يوم';
+    var d = new Date(timestamp);
+    return d.getDate() + '/' + (d.getMonth()+1);
+}
+
+// ─── المفضّلة ───
+function toggleFavorite(sectionId, title) {
+    try {
+        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        var idx = favs.findIndex(function(f){ return f.sectionId === sectionId; });
+        if (idx >= 0) {
+            favs.splice(idx, 1);
+            if (typeof showToast === 'function') showToast('💔 أُزيل من المفضّلة', 'info');
+        } else {
+            favs.push({ sectionId: sectionId, title: title, addedAt: Date.now() });
+            if (typeof showToast === 'function') showToast('⭐ أُضيف للمفضّلة', 'success');
+        }
+        localStorage.setItem('favorites', JSON.stringify(favs));
+        loadFavorites();
+    } catch(e) {}
+}
+
+function isFavorite(sectionId) {
+    try {
+        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        return favs.some(function(f){ return f.sectionId === sectionId; });
+    } catch(e) { return false; }
+}
+
+function loadFavorites() {
+    var container = document.getElementById('favorites-list');
+    if (!container) return;
+    
+    try {
+        var favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        if (!favs.length) {
+            container.innerHTML = '<p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا توجد مفضّلة بعد<br><span style="font-size:0.8rem;">اضغط ⭐ على أي قسم</span></p>';
+            return;
+        }
+        
+        var html = favs.map(function(f) {
+            return '<div onclick="showSection(\'' + f.sectionId + '\', null)" style="background:rgba(243,156,18,0.06);border:1px solid rgba(243,156,18,0.3);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.2s;display:flex;align-items:center;gap:10px;" onmouseover="this.style.background=\'rgba(243,156,18,0.12)\'" onmouseout="this.style.background=\'rgba(243,156,18,0.06)\'">' +
+                '<div style="font-size:1.4rem;">⭐</div>' +
+                '<div style="flex:1;font-weight:600;color:#f9c74f;font-size:0.9rem;">' + esc(f.title) + '</div>' +
+                '<button onclick="event.stopPropagation();toggleFavorite(\'' + f.sectionId + '\', \'' + esc(f.title).replace(/\'/g, '&#39;') + '\')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:none;width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.8rem;">✕</button>' +
+                '</div>';
+        }).join('');
+        
+        container.innerHTML = html;
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;">خطأ</p>';
+    }
+}
+
+// ─── النصائح ───
+function rotateTip() {
+    var el = document.getElementById('home-daily-tip');
+    if (!el) return;
+    var tip = DAILY_TIPS[Math.floor(Math.random() * DAILY_TIPS.length)];
+    el.style.opacity = '0';
+    setTimeout(function() {
+        el.textContent = tip;
+        el.style.opacity = '1';
+    }, 200);
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎨 THEMES — نظام الثيمات
+// ════════════════════════════════════════════════════════════
+var THEMES = {
+    'royal-gold': {
+        '--theme-primary': '#d4af37',
+        '--theme-primary-light': '#f9c74f',
+        '--theme-primary-dark': '#8b6914',
+        '--theme-bg-deep': '#001f3f',
+        '--theme-bg-mid': '#000a1a',
+    },
+    'ocean-blue': {
+        '--theme-primary': '#0ea5e9',
+        '--theme-primary-light': '#5dd5ff',
+        '--theme-primary-dark': '#0c4a6e',
+        '--theme-bg-deep': '#082f49',
+        '--theme-bg-mid': '#0c1e35',
+    },
+    'emerald-forest': {
+        '--theme-primary': '#10b981',
+        '--theme-primary-light': '#7fffd4',
+        '--theme-primary-dark': '#064e3b',
+        '--theme-bg-deep': '#022c22',
+        '--theme-bg-mid': '#011a14',
+    },
+    'sunset-warm': {
+        '--theme-primary': '#f97316',
+        '--theme-primary-light': '#fb923c',
+        '--theme-primary-dark': '#7c2d12',
+        '--theme-bg-deep': '#431407',
+        '--theme-bg-mid': '#1f0a04',
+    },
+    'purple-night': {
+        '--theme-primary': '#a855f7',
+        '--theme-primary-light': '#c084fc',
+        '--theme-primary-dark': '#3b0764',
+        '--theme-bg-deep': '#1e1b4b',
+        '--theme-bg-mid': '#0d0d2b',
+    },
+    'rose-pink': {
+        '--theme-primary': '#f43f5e',
+        '--theme-primary-light': '#fb7185',
+        '--theme-primary-dark': '#831843',
+        '--theme-bg-deep': '#500724',
+        '--theme-bg-mid': '#2a0414',
+    },
+};
+
+function applyTheme(themeId) {
+    var theme = THEMES[themeId];
+    if (!theme) return;
+    
+    Object.keys(theme).forEach(function(key) {
+        document.documentElement.style.setProperty(key, theme[key]);
+    });
+    
+    try {
+        localStorage.setItem('teacher_theme', themeId);
+    } catch(e) {}
+    
+    // تمييز الثيم النشط
+    document.querySelectorAll('.theme-card').forEach(function(card) {
+        card.classList.remove('active');
+    });
+    var active = document.querySelector('.theme-card[data-theme="' + themeId + '"]');
+    if (active) active.classList.add('active');
+    
+    if (typeof showToast === 'function') showToast('🎨 تم تطبيق الثيم', 'success');
+}
+
+function loadSavedTheme() {
+    try {
+        var saved = localStorage.getItem('teacher_theme');
+        if (saved && THEMES[saved]) {
+            applyTheme(saved);
+        }
+    } catch(e) {}
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 📋 البيانات الافتراضية
+// ════════════════════════════════════════════════════════════
+function saveDefaults() {
+    try {
+        var teacher = document.getElementById('default-teacher-name').value.trim();
+        var school = document.getElementById('default-school-name').value.trim();
+        
+        if (teacher) localStorage.setItem('default_teacher_name', teacher);
+        if (school) localStorage.setItem('default_school_name', school);
+        
+        // املأ الحقول في كل النماذج تلقائياً
+        applyDefaults();
+        
+        if (typeof showToast === 'function') showToast('💾 تم حفظ بياناتك', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل الحفظ', 'error');
+    }
+}
+
+function loadDefaults() {
+    try {
+        var teacher = localStorage.getItem('default_teacher_name') || '';
+        var school = localStorage.getItem('default_school_name') || '';
+        
+        var t = document.getElementById('default-teacher-name');
+        var s = document.getElementById('default-school-name');
+        if (t) t.value = teacher;
+        if (s) s.value = school;
+        
+        applyDefaults();
+    } catch(e) {}
+}
+
+function applyDefaults() {
+    try {
+        var teacher = localStorage.getItem('default_teacher_name') || '';
+        var school = localStorage.getItem('default_school_name') || '';
+        
+        // املأ كل الحقول الفارغة في كل النماذج
+        var teacherFields = ['exam-teacher', 'cert-teacher', 'pg-teacher'];
+        var schoolFields = ['exam-school', 'cert-school', 'pg-school'];
+        
+        teacherFields.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && !el.value && teacher) el.value = teacher;
+        });
+        schoolFields.forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && !el.value && school) el.value = school;
+        });
+    } catch(e) {}
+}
+
+
+// ════════════════════════════════════════════════════════════
+// تكامل مع showSection
+// ════════════════════════════════════════════════════════════
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'home') {
+                setTimeout(loadHomeDashboard, 100);
+            } else if (name === 'themes') {
+                setTimeout(function() {
+                    loadDefaults();
+                    var saved = localStorage.getItem('teacher_theme') || 'royal-gold';
+                    var card = document.querySelector('.theme-card[data-theme="' + saved + '"]');
+                    if (card) card.classList.add('active');
+                }, 100);
+            } else {
+                // تطبيق الافتراضيات في كل مرة
+                setTimeout(applyDefaults, 200);
+            }
+            
+            // تتبّع النشاط
+            var titles = {
+                'exam-gen': 'مولّد الاختبارات',
+                'plan-gen': 'منشئ التحضيرات',
+                'certificates': 'الشهادات',
+                'visual-maker': 'صانع الأشكال',
+                'ai-assistant': 'المساعد الذكي',
+                'videos': 'الفيديوهات',
+                'lessons': 'الدروس التفاعلية',
+                'preparations': 'التحضيرات الجاهزة',
+                'resources': 'موارد المنهج',
+                'bank': 'بنك الأسئلة',
+                'schedule-tpl': 'قوالب الجداول',
+            };
+            var types = {
+                'exam-gen': 'exam', 'plan-gen': 'plan', 'certificates': 'cert',
+                'visual-maker': 'shape', 'ai-assistant': 'ai', 'videos': 'video',
+                'lessons': 'lesson',
+            };
+            if (titles[name]) {
+                logActivity(types[name] || 'lesson', 'فتحتَ ' + titles[name], name);
+            }
+        };
+    }
+})();
+
+// تطبيق الثيم المحفوظ عند التحميل
+document.addEventListener('DOMContentLoaded', function() {
+    loadSavedTheme();
+    setTimeout(loadHomeDashboard, 300);
+    setTimeout(applyDefaults, 500);
+});
 
 </script>
 
