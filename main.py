@@ -4956,6 +4956,7 @@ async def teacher_exam_preview(
     semester: str = "",
     unit: str = "",
     lesson: str = "",
+    lessons: str = "",      # 📖 جديد: دروس متعددة مفصولة بـ |
     count: int = 10,
     difficulty: str = "mixed",
     types: str = "all"
@@ -4973,15 +4974,30 @@ async def teacher_exam_preview(
         all_questions = []
         seen_ids = set()
         
+        # 📖 الدروس: دعم لقائمة دروس متعددة
+        lessons_list = []
+        if lessons.strip():
+            lessons_list = [l.strip() for l in lessons.split("|") if l.strip()]
+        elif lesson.strip():
+            lessons_list = [lesson.strip()]
+        
         for v in variants:
-            query = supabase.table("questions").select("*").eq("grade", v.strip())
-            if lesson.strip():
-                query = query.ilike("lesson", lesson.strip())
-            res = query.execute()
-            for q in (res.data or []):
-                if q.get("id") not in seen_ids:
-                    seen_ids.add(q.get("id"))
-                    all_questions.append(q)
+            if lessons_list:
+                # نجلب لكل درس على حدة
+                for L in lessons_list:
+                    q = supabase.table("questions").select("*").eq("grade", v.strip()).ilike("lesson", L)
+                    res = q.execute()
+                    for row in (res.data or []):
+                        if row.get("id") not in seen_ids:
+                            seen_ids.add(row.get("id"))
+                            all_questions.append(row)
+            else:
+                query = supabase.table("questions").select("*").eq("grade", v.strip())
+                res = query.execute()
+                for row in (res.data or []):
+                    if row.get("id") not in seen_ids:
+                        seen_ids.add(row.get("id"))
+                        all_questions.append(row)
         
         def _norm(s):
             return str(s or "").strip().lower()
@@ -5044,6 +5060,7 @@ async def teacher_exam_build_pdf(
     semester: str        = Form(default=""),
     unit: str            = Form(default=""),
     lesson: str          = Form(default=""),
+    lessons: str         = Form(default=""),    # 📖 جديد: دروس متعددة بـ |
     count: int           = Form(default=10),
     types: str           = Form(default="all"),
     include_answers: bool = Form(default=True),
@@ -5058,15 +5075,30 @@ async def teacher_exam_build_pdf(
         all_questions = []
         seen_ids = set()
         
+        # 📖 الدروس: دعم لقائمة دروس متعددة
+        lessons_list = []
+        if lessons.strip():
+            lessons_list = [l.strip() for l in lessons.split("|") if l.strip()]
+        elif lesson.strip():
+            lessons_list = [lesson.strip()]
+        
         for v in variants:
-            query = supabase.table("questions").select("*").eq("grade", v.strip())
-            if lesson.strip():
-                query = query.ilike("lesson", lesson.strip())
-            res = query.execute()
-            for q in (res.data or []):
-                if q.get("id") not in seen_ids:
-                    seen_ids.add(q.get("id"))
-                    all_questions.append(q)
+            if lessons_list:
+                # نجلب لكل درس على حدة
+                for L in lessons_list:
+                    q = supabase.table("questions").select("*").eq("grade", v.strip()).ilike("lesson", L)
+                    res = q.execute()
+                    for row in (res.data or []):
+                        if row.get("id") not in seen_ids:
+                            seen_ids.add(row.get("id"))
+                            all_questions.append(row)
+            else:
+                query = supabase.table("questions").select("*").eq("grade", v.strip())
+                res = query.execute()
+                for row in (res.data or []):
+                    if row.get("id") not in seen_ids:
+                        seen_ids.add(row.get("id"))
+                        all_questions.append(row)
         
         def _norm(s):
             return str(s or "").strip().lower()
@@ -6275,13 +6307,16 @@ def _build_cert_html(template_id: str, student_name: str, achievement: str,
             height: 210mm;
             background: {t['bg']};
             margin: 20px auto;
-            padding: 50px 60px;
+            padding: 30px 50px 25px;
             box-sizing: border-box;
             position: relative;
             border: {t['border']} {t['primary']};
             overflow: hidden;
             page-break-after: always;
             box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
         }}
         
         /* الزخارف الزاوية */
@@ -6380,11 +6415,13 @@ def _build_cert_html(template_id: str, student_name: str, achievement: str,
             position: relative;
             z-index: 5;
             text-align: center;
-            height: 100%;
+            flex: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
+            min-height: 0;
+            padding-bottom: 10px;
         }}
         
         .cert-icon {{
@@ -6485,43 +6522,67 @@ def _build_cert_html(template_id: str, student_name: str, achievement: str,
             opacity: 0.85;
         }}
         
-        /* التذييل */
+        /* التذييل — داخل الإطار، مضمون أن لا يخرج */
         .cert-footer {{
             display: flex;
             justify-content: space-around;
+            align-items: flex-end;
             width: 100%;
-            margin-top: 30px;
-            font-size: 15px;
+            max-width: 100%;
+            margin: 0 auto;
+            padding: 14px 20px 6px;
+            font-size: 13px;
+            gap: 16px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 6;
+            flex-shrink: 0;
         }}
         .cert-sign-block {{
             text-align: center;
-            min-width: 200px;
+            flex: 1 1 0;
+            min-width: 0;
+            max-width: 32%;
+            overflow: hidden;
         }}
         .cert-sign-line {{
             border-top: 2px solid {t['primary']};
-            margin-top: 50px;
-            padding-top: 6px;
+            margin-top: 20px;
+            padding-top: 5px;
             color: {t['name_color']};
             font-weight: 600;
+            font-size: 13px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            line-height: 1.4;
+        }}
+        .cert-sign-label {{
+            font-size: 10px;
+            color: {t['secondary']};
+            opacity: 0.7;
+            margin-top: 2px;
+            display: block;
         }}
         
         /* الختم */
         .cert-seal {{
             position: absolute;
-            bottom: 60px;
-            right: 80px;
-            width: 100px;
-            height: 100px;
+            bottom: 30px;
+            right: 50px;
+            width: 80px;
+            height: 80px;
             border: 4px double {t['primary']};
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 32px;
             color: {t['primary']};
             background: rgba(255,255,255,0.7);
             transform: rotate(-15deg);
-            opacity: 0.85;
+            opacity: 0.7;
+            z-index: 4;
         }}
         
         /* أزرار التحكم */
@@ -6585,9 +6646,9 @@ def _build_cert_html(template_id: str, student_name: str, achievement: str,
         f'<div class="cert-achievement">{achievement}</div>'
         f'{extra_block}'
         f'<div class="cert-footer">'
-        f'<div class="cert-sign-block"><div class="cert-sign-line">{teacher_name or "المعلم"}</div></div>'
-        f'<div class="cert-sign-block"><div class="cert-sign-line">📅 {date}</div></div>'
-        f'<div class="cert-sign-block"><div class="cert-sign-line">{school_name or "المدرسة"}</div></div>'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">{teacher_name or "المعلم"}<span class="cert-sign-label">توقيع المعلم</span></div></div>'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">📅 {date}<span class="cert-sign-label">التاريخ</span></div></div>'
+        f'<div class="cert-sign-block"><div class="cert-sign-line">{school_name or "المدرسة"}<span class="cert-sign-label">المدرسة</span></div></div>'
         f'</div>'
         f'</div>'
         f'<div class="cert-seal">{t["icon"]}</div>'
@@ -6787,6 +6848,153 @@ def _generate_classroom_code():
 
 # ═══════════ Endpoints للمعلم ═══════════
 
+
+# ═══════════════════════════════════════════════════════════════
+# 🖼️ شهادة من صورة فارغة (يرفعها المعلم)
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/teacher/certificate/build_from_image")
+async def teacher_certificate_from_image(
+    image_data: str       = Form(...),       # base64 image
+    student_name: str     = Form(...),
+    achievement: str      = Form(default="التميّز في الرياضيات"),
+    grade: str            = Form(default=""),
+    school_name: str      = Form(default=""),
+    teacher_name: str     = Form(default=""),
+    date: str             = Form(default=""),
+    
+    # مواقع النصوص (نسبة مئوية من الصورة)
+    name_x: float         = Form(default=50),     # %
+    name_y: float         = Form(default=45),
+    name_size: int        = Form(default=64),
+    name_color: str       = Form(default="#000000"),
+    name_font: str        = Form(default="Amiri"),
+    
+    achievement_x: float  = Form(default=50),
+    achievement_y: float  = Form(default=58),
+    achievement_size: int = Form(default=24),
+    achievement_color: str = Form(default="#444"),
+    
+    teacher_x: float      = Form(default=20),
+    teacher_y: float      = Form(default=85),
+    teacher_size: int     = Form(default=18),
+    
+    school_x: float       = Form(default=80),
+    school_y: float       = Form(default=85),
+    school_size: int      = Form(default=18),
+    
+    date_x: float         = Form(default=50),
+    date_y: float         = Form(default=92),
+    date_size: int        = Form(default=16),
+):
+    """🖼️ ينشئ شهادة من صورة فارغة + كتابة عليها"""
+    try:
+        if not student_name.strip():
+            raise HTTPException(status_code=400, detail="اسم الطالب مطلوب")
+        
+        from datetime import datetime
+        if not date:
+            date = datetime.now().strftime("%Y/%m/%d")
+        
+        # نستخدم نفس الصورة الـ base64 كخلفية + overlay فيه النصوص
+        full_html = (
+            '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n'
+            '<meta charset="UTF-8">\n<title>شهادة - ' + student_name + '</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">\n'
+            '<style>\n'
+            '* { box-sizing: border-box; margin: 0; padding: 0; }\n'
+            '@page { size: A4 landscape; margin: 0; }\n'
+            'body { font-family: "Cairo", sans-serif; padding: 0; margin: 0; background: #f0f0f0; }\n'
+            
+            '.cert-page {\n'
+            '    width: 297mm; height: 210mm;\n'
+            '    margin: 20px auto;\n'
+            '    position: relative;\n'
+            '    background-image: url("' + image_data + '");\n'
+            '    background-size: 100% 100%;\n'
+            '    background-repeat: no-repeat;\n'
+            '    background-position: center;\n'
+            '    box-shadow: 0 12px 40px rgba(0,0,0,0.2);\n'
+            '    page-break-after: always;\n'
+            '}\n'
+            '.text-overlay {\n'
+            '    position: absolute;\n'
+            '    transform: translate(50%, -50%);\n'
+            '    text-align: center;\n'
+            '    white-space: nowrap;\n'
+            '    text-shadow: 0 1px 3px rgba(255,255,255,0.6);\n'
+            '}\n'
+            '.controls {\n'
+            '    position: fixed; top: 12px; left: 12px;\n'
+            '    background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 12px;\n'
+            '    z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);\n'
+            '}\n'
+            '.controls button {\n'
+            '    background: linear-gradient(135deg,#1976d2,#1565c0); color: #fff;\n'
+            '    border: none; padding: 10px 20px; margin: 0 4px; border-radius: 8px;\n'
+            '    cursor: pointer; font-family: "Cairo"; font-weight: 700; font-size: 14px;\n'
+            '}\n'
+            '.controls button.green { background: linear-gradient(135deg,#43a047,#2e7d32); }\n'
+            '@media print {\n'
+            '    .controls { display: none !important; }\n'
+            '    body { background: #fff; margin: 0; padding: 0; }\n'
+            '    .cert-page { margin: 0 !important; box-shadow: none !important; }\n'
+            '}\n'
+            '</style>\n</head>\n<body>\n'
+            
+            '<div class="controls">'
+            '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
+            '<button class="green" onclick="window.close()">✕ إغلاق</button>'
+            '</div>\n'
+            
+            '<div class="cert-page">\n'
+            
+            # اسم الطالب
+            f'<div class="text-overlay" style="right:{100-name_x}%; top:{name_y}%; '
+            f'font-family:\'{name_font}\',serif; font-size:{name_size}px; '
+            f'color:{name_color}; font-weight:bold;">'
+            f'{student_name}</div>\n'
+            
+            # سبب التقدير
+            (f'<div class="text-overlay" style="right:{100-achievement_x}%; top:{achievement_y}%; '
+             f'font-size:{achievement_size}px; color:{achievement_color}; font-weight:600;">'
+             f'{achievement}</div>\n' if achievement else '')
+            +
+            # الصف
+            (f'<div class="text-overlay" style="right:{100-name_x}%; top:{name_y + 7}%; '
+             f'font-size:{achievement_size - 4}px; color:#666;">'
+             f'{grade}</div>\n' if grade else '')
+            +
+            # المعلم
+            (f'<div class="text-overlay" style="right:{100-teacher_x}%; top:{teacher_y}%; '
+             f'font-size:{teacher_size}px; color:#444; font-weight:600;">'
+             f'{teacher_name}</div>\n' if teacher_name else '')
+            +
+            # المدرسة
+            (f'<div class="text-overlay" style="right:{100-school_x}%; top:{school_y}%; '
+             f'font-size:{school_size}px; color:#444; font-weight:600;">'
+             f'{school_name}</div>\n' if school_name else '')
+            +
+            # التاريخ
+            f'<div class="text-overlay" style="right:{100-date_x}%; top:{date_y}%; '
+            f'font-size:{date_size}px; color:#666;">'
+            f'📅 {date}</div>\n'
+            +
+            '</div>\n'
+            '</body>\n</html>'
+        )
+        
+        from fastapi.responses import HTMLResponse
+        return HTMLResponse(content=full_html)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.post("/api/teacher/classrooms/create")
 async def teacher_create_classroom(
     teacher_id: int     = Form(...),
@@ -6845,7 +7053,7 @@ async def teacher_create_classroom(
         }).execute()
         
         if not res.data:
-            raise HTTPException(status_code=500, detail="فشل إنشاء الفصل")
+            raise HTTPException(status_code=500, detail="فشل إنشاء الفصل (لا بيانات راجعة)")
         
         return {
             "status": "ok",
@@ -6855,8 +7063,14 @@ async def teacher_create_classroom(
     except HTTPException:
         raise
     except Exception as e:
+        err_str = str(e).lower()
+        # رسائل واضحة عن المشاكل الشائعة
+        if "relation" in err_str or "does not exist" in err_str or "table" in err_str:
+            raise HTTPException(status_code=500, detail="❌ جدول الفصول غير موجود! يجب تشغيل classrooms_migration.sql في Supabase أولاً")
+        if "violates" in err_str or "constraint" in err_str:
+            raise HTTPException(status_code=400, detail=f"❌ خطأ في البيانات: {str(e)[:150]}")
         print(f"[create_classroom] error: {e}")
-        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+        raise HTTPException(status_code=500, detail=f"❌ خطأ: {str(e)[:200]}")
 
 
 @app.get("/api/teacher/classrooms/my")
