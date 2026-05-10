@@ -1225,6 +1225,29 @@
     </style>
 </head>
 <body>
+    <!-- 📰 الشريط الإخباري المتحرك -->
+    <div id="news-ticker-bar" style="display:none;position:sticky;top:0;z-index:9999;width:100%;overflow:hidden;background:#1565c0;color:#fff;padding:9px 0;border-bottom:1px solid rgba(255,255,255,0.15);box-shadow:0 2px 12px rgba(0,0,0,0.4);font-family:'Tajawal',sans-serif;">
+        <div id="news-ticker-track" style="display:inline-flex;white-space:nowrap;animation:tickerScroll 50s linear infinite;will-change:transform;"></div>
+        <button onclick="hideNewsTicker()" style="position:absolute;top:50%;left:8px;transform:translateY(-50%);background:rgba(0,0,0,0.3);color:#fff;border:1px solid rgba(255,255,255,0.3);width:24px;height:24px;border-radius:50%;cursor:pointer;font-size:0.85rem;font-weight:bold;line-height:1;z-index:2;" title="إخفاء">×</button>
+    </div>
+    <style>
+        @keyframes tickerScroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        #news-ticker-track:hover { animation-play-state: paused; }
+        .news-ticker-item {
+            display: inline-block;
+            padding: 0 50px;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+        .news-ticker-item .icon {
+            font-size: 1.1rem;
+            margin-left: 8px;
+        }
+    </style>
+
     <!-- PARTICLES CANVAS -->
     <canvas id="particles-js"></canvas>
 
@@ -10608,6 +10631,78 @@ async function submitExam() {
         if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل التسليم'), 'error');
     }
 }
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📰 NEWS TICKER — الشريط الإخباري المتحرك
+// ════════════════════════════════════════════════════════════
+async function loadNewsTicker(audience) {
+    audience = audience || 'student';
+    
+    // لو مخفي يدوياً، لا نُحمّله
+    if (sessionStorage.getItem('ticker_hidden') === '1') return;
+    
+    try {
+        var res = await fetch('/api/tickers/active?audience=' + audience);
+        if (!res.ok) return;
+        var data = await res.json();
+        var tickers = data.tickers || [];
+        
+        if (!tickers.length) {
+            var bar = document.getElementById('news-ticker-bar');
+            if (bar) bar.style.display = 'none';
+            return;
+        }
+        
+        // نأخذ أعلى أولوية
+        var t = tickers[0];
+        var bar = document.getElementById('news-ticker-bar');
+        var track = document.getElementById('news-ticker-track');
+        if (!bar || !track) return;
+        
+        bar.style.background = t.bg_color || '#1565c0';
+        bar.style.color = t.text_color || '#fff';
+        bar.style.display = 'block';
+        
+        // تجهيز المحتوى
+        var content = '';
+        // نُكرّر النص 3 مرات لضمان ملء الشاشة
+        for (var i = 0; i < 3; i++) {
+            content += '<span class="news-ticker-item">';
+            content += '<span class="icon">' + (t.icon || '📢') + '</span>';
+            content += escapeHtmlTk(t.text);
+            content += '</span>';
+        }
+        track.innerHTML = content;
+        
+        // ضبط السرعة
+        var speed = t.speed || 50;
+        track.style.animationDuration = speed + 's';
+    } catch(e) {
+        console.warn('[ticker] error:', e);
+    }
+}
+
+function escapeHtmlTk(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s || '');
+    return d.innerHTML;
+}
+
+function hideNewsTicker() {
+    var bar = document.getElementById('news-ticker-bar');
+    if (bar) bar.style.display = 'none';
+    sessionStorage.setItem('ticker_hidden', '1');
+}
+
+// تحميل تلقائي عند فتح الصفحة
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { loadNewsTicker('student'); }, 1000);
+    // إعادة التحديث كل 5 دقائق
+    setInterval(function() { loadNewsTicker('student'); }, 300000);
+});
 </script>
 
 </body>

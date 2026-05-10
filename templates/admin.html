@@ -1763,7 +1763,9 @@
                 <div class="nav-link" onclick="showSection('workbook');setTimeout(loadAdminTasks,100);" style="color:#f39c12;"><i class="fas fa-book"></i> 📓 دفتر الأعمال</div>
                 <div class="nav-link" onclick="showSection('motivation');" style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب</div>
                 <div class="nav-link" onclick="showSection('parent-emails');setTimeout(loadParentEmails,100);" style="color:#16a085;"><i class="fas fa-envelope"></i> 📧 إيميلات أولياء الأمور</div>
+                <div class="nav-link" onclick="showSection('teacher-emails');setTimeout(loadTeacherEmails,100);" style="color:#48d1cc;"><i class="fas fa-graduation-cap"></i> 📧 إيميلات المعلمين</div>
                 <div class="nav-link" onclick="showSection('issue-reports');setTimeout(loadIssueReports,100);" style="color:#e74c3c;"><i class="fas fa-flag"></i> 🚨 البلاغات</div>
+                <div class="nav-link" onclick="showSection('news-mgr');setTimeout(loadNewsAdmin,100);" style="color:#f9c74f;"><i class="fas fa-bullhorn"></i> 📰 الأشرطة والإشعارات</div>
                 <div class="nav-link" onclick="showSection('tutoring');setTimeout(loadTutoringBookings,100);" style="color:#9b59b6;"><i class="fas fa-graduation-cap"></i> 🎓 حجوزات الدروس</div>
                 <div class="nav-link" onclick="showSection('videos-mgr');setTimeout(loadVideosList,100);" style="color:#e91e63;"><i class="fas fa-video"></i> 🎬 الفيديوهات القصيرة</div>
                 <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> 💾 النسخ الاحتياطي</div>
@@ -3155,6 +3157,55 @@
             </section>
 
             
+            <!-- ==================== 📧 TEACHER EMAILS ==================== -->
+            <section id="teacher-emails" class="section">
+                <div class="card" style="background:linear-gradient(135deg,rgba(72,209,204,0.1),rgba(0,0,0,0.4));border:2px solid #48d1cc;">
+                    <h2 style="color:#48d1cc;margin:0 0 8px;"><i class="fas fa-graduation-cap"></i> 📧 إيميلات وبيانات المعلمين</h2>
+                    <p style="color:rgba(255,255,255,0.7);margin:0;font-size:0.95rem;">🌟 جميع المعلمين المسجلين + بيانات التواصل + تصدير CSV</p>
+                </div>
+                
+                <!-- إحصاءات -->
+                <div id="te-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin-bottom:18px;">
+                    <div class="card" style="text-align:center;padding:16px;">
+                        <div style="font-size:2.2rem;color:#48d1cc;" id="te-stat-total">—</div>
+                        <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">إجمالي المعلمين</div>
+                    </div>
+                    <div class="card" style="text-align:center;padding:16px;">
+                        <div style="font-size:2.2rem;color:#2ecc71;" id="te-stat-email">—</div>
+                        <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">📧 لديهم إيميل</div>
+                    </div>
+                    <div class="card" style="text-align:center;padding:16px;">
+                        <div style="font-size:2.2rem;color:#f39c12;" id="te-stat-phone">—</div>
+                        <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">📱 لديهم جوال</div>
+                    </div>
+                    <div class="card" style="text-align:center;padding:16px;">
+                        <div style="font-size:2.2rem;color:#bb86fc;" id="te-stat-completion">—</div>
+                        <div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">% الإكمال</div>
+                    </div>
+                </div>
+                
+                <!-- الأزرار -->
+                <div class="card" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+                    <button onclick="loadTeacherEmails()" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                        🔄 تحديث القائمة
+                    </button>
+                    <button onclick="exportTeacherEmailsCSV()" style="background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                        📥 تنزيل CSV
+                    </button>
+                    <button onclick="copyAllEmails()" style="background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                        📋 نسخ كل الإيميلات
+                    </button>
+                    <input type="text" id="te-search" placeholder="🔍 بحث (اسم، إيميل، مدرسة)..." style="flex:1;min-width:200px;background:rgba(255,255,255,0.05);border:1px solid rgba(72,209,204,0.3);color:#fff;padding:11px;border-radius:8px;font-family:Cairo;" oninput="filterTeacherEmails()">
+                </div>
+                
+                <!-- القائمة -->
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div id="te-list" style="max-height:600px;overflow-y:auto;">
+                        ⏳ جارٍ التحميل...
+                    </div>
+                </div>
+            </section>
+
             <!-- ==================== 🚨 ISSUE REPORTS ==================== -->
             <section id="issue-reports" class="section">
                 <div class="card">
@@ -3199,6 +3250,167 @@
                     </div>
                 </div>
             </section>
+
+            
+            <!-- ==================== 📰 NEWS TICKERS & TEACHER NOTIFICATIONS ==================== -->
+            <section id="news-mgr" class="section">
+                <!-- Header -->
+                <div class="card" style="background:linear-gradient(135deg,rgba(243,156,18,0.1),rgba(0,0,0,0.4));border:2px solid #f39c12;">
+                    <h2 style="color:#f9c74f;margin:0 0 8px;"><i class="fas fa-bullhorn"></i> 📰 إدارة الأشرطة الإخبارية والإشعارات</h2>
+                    <p style="color:rgba(255,255,255,0.7);margin:0;font-size:0.95rem;">🌟 تحكم كامل في الرسائل الإخبارية للطلاب والمعلمين + إرسال إشعارات مباشرة</p>
+                </div>
+
+                <!-- التبويبات -->
+                <div class="card" style="padding:0;overflow:hidden;">
+                    <div style="display:flex;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(243,156,18,0.3);overflow-x:auto;">
+                        <button onclick="switchNewsTab('student-tickers')" id="news-tab-student-tickers" class="news-tab on" style="background:rgba(52,152,219,0.15);color:#5dade2;border:none;border-bottom:3px solid #3498db;padding:14px 22px;cursor:pointer;font-family:Cairo;font-weight:bold;white-space:nowrap;">
+                            🎓 شرائط الطلاب
+                        </button>
+                        <button onclick="switchNewsTab('teacher-tickers')" id="news-tab-teacher-tickers" class="news-tab" style="background:transparent;color:rgba(255,255,255,0.7);border:none;border-bottom:3px solid transparent;padding:14px 22px;cursor:pointer;font-family:Cairo;font-weight:bold;white-space:nowrap;">
+                            👨‍🏫 شرائط المعلمين
+                        </button>
+                        <button onclick="switchNewsTab('teacher-notifs')" id="news-tab-teacher-notifs" class="news-tab" style="background:transparent;color:rgba(255,255,255,0.7);border:none;border-bottom:3px solid transparent;padding:14px 22px;cursor:pointer;font-family:Cairo;font-weight:bold;white-space:nowrap;">
+                            📨 إشعارات المعلمين
+                        </button>
+                    </div>
+                    
+                    <div style="padding:20px;">
+                        <!-- التبويب 1: شرائط الطلاب -->
+                        <div id="news-content-student-tickers">
+                            <button onclick="showNewTickerForm('student')" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:14px;">
+                                ➕ شريط جديد للطلاب
+                            </button>
+                            <div id="ticker-student-list">⏳ جارٍ التحميل...</div>
+                        </div>
+                        
+                        <!-- التبويب 2: شرائط المعلمين -->
+                        <div id="news-content-teacher-tickers" style="display:none;">
+                            <button onclick="showNewTickerForm('teacher')" style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:14px;">
+                                ➕ شريط جديد للمعلمين
+                            </button>
+                            <div id="ticker-teacher-list">⏳ جارٍ التحميل...</div>
+                        </div>
+                        
+                        <!-- التبويب 3: إشعارات المعلمين -->
+                        <div id="news-content-teacher-notifs" style="display:none;">
+                            <button onclick="showNewNotifForm()" style="background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:14px;">
+                                ➕ إشعار جديد
+                            </button>
+                            <div id="notif-admin-list">⏳ جارٍ التحميل...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Modal: إنشاء شريط -->
+            <div id="ticker-form-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;overflow-y:auto;padding:20px;">
+                <div style="max-width:600px;margin:30px auto;background:linear-gradient(135deg,#1a1a2e,#0a1228);border:2px solid #f39c12;border-radius:18px;padding:24px;color:#fff;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(243,156,18,0.3);padding-bottom:12px;">
+                        <h3 style="color:#f9c74f;font-family:'Amiri';margin:0;" id="ticker-form-title">📰 شريط جديد</h3>
+                        <button onclick="hideTickerForm()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:6px 14px;border-radius:6px;cursor:pointer;">✕</button>
+                    </div>
+                    
+                    <input type="hidden" id="tk-audience" value="student">
+                    <input type="hidden" id="tk-edit-id" value="">
+                    
+                    <label style="display:block;margin-bottom:6px;color:rgba(255,255,255,0.8);">📝 نص الشريط *</label>
+                    <textarea id="tk-text" rows="3" placeholder="مثال: 🌟 مرحباً بكم — موارد جديدة كل يوم!" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px;border-radius:8px;font-family:Cairo;margin-bottom:12px;resize:vertical;"></textarea>
+                    
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:12px;">
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">🎨 لون الخلفية</label>
+                            <input type="color" id="tk-bg" value="#1565c0" style="width:100%;height:38px;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);border-radius:8px;cursor:pointer;">
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">✏️ لون النص</label>
+                            <input type="color" id="tk-color" value="#ffffff" style="width:100%;height:38px;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);border-radius:8px;cursor:pointer;">
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">😀 الأيقونة</label>
+                            <input type="text" id="tk-icon" value="📢" maxlength="3" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;text-align:center;font-size:1.3rem;">
+                        </div>
+                    </div>
+                    
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">⚡ السرعة (ث) — أصغر = أسرع</label>
+                            <input type="number" id="tk-speed" value="50" min="20" max="200" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;">
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">🥇 الأولوية (الأعلى يظهر أولاً)</label>
+                            <input type="number" id="tk-priority" value="0" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;">
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom:14px;">
+                        <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">⏰ ينتهي في (اختياري)</label>
+                        <input type="datetime-local" id="tk-expires" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;">
+                    </div>
+                    
+                    <!-- المعاينة -->
+                    <div style="background:rgba(0,0,0,0.4);border-radius:10px;padding:14px;margin-bottom:14px;">
+                        <div style="font-size:0.82rem;color:rgba(255,255,255,0.5);margin-bottom:6px;">👁️ معاينة:</div>
+                        <div id="tk-preview" style="background:#1565c0;color:#fff;padding:10px 16px;border-radius:6px;font-weight:600;text-align:center;">
+                            <span id="tk-preview-icon">📢</span> <span id="tk-preview-text">نص الشريط</span>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="saveTicker()" style="flex:1;background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ حفظ</button>
+                        <button onclick="hideTickerForm()" style="flex:1;background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:11px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal: إنشاء إشعار -->
+            <div id="notif-form-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;overflow-y:auto;padding:20px;">
+                <div style="max-width:600px;margin:30px auto;background:linear-gradient(135deg,#1a1a2e,#0a1228);border:2px solid #9b59b6;border-radius:18px;padding:24px;color:#fff;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;border-bottom:1px solid rgba(155,89,182,0.3);padding-bottom:12px;">
+                        <h3 style="color:#bb86fc;font-family:'Amiri';margin:0;">📨 إشعار جديد للمعلمين</h3>
+                        <button onclick="hideNotifForm()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:6px 14px;border-radius:6px;cursor:pointer;">✕</button>
+                    </div>
+                    
+                    <label style="display:block;margin-bottom:6px;color:rgba(255,255,255,0.8);">🎯 المستهدف</label>
+                    <select id="nt-target" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:12px;">
+                        <option value="0">📢 جميع المعلمين</option>
+                        <option value="-1">👤 معلم محدد...</option>
+                    </select>
+                    
+                    <input type="number" id="nt-teacher-id" placeholder="معرّف المعلم" style="display:none;width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:12px;">
+                    
+                    <label style="display:block;margin-bottom:6px;color:rgba(255,255,255,0.8);">📌 العنوان *</label>
+                    <input type="text" id="nt-title" placeholder="مثال: تحديث جديد متاح" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:12px;">
+                    
+                    <label style="display:block;margin-bottom:6px;color:rgba(255,255,255,0.8);">📝 المحتوى</label>
+                    <textarea id="nt-body" rows="4" placeholder="نص الإشعار..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:12px;resize:vertical;"></textarea>
+                    
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;">
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">🏷️ النوع</label>
+                            <select id="nt-type" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;">
+                                <option value="info">ℹ️ معلومة</option>
+                                <option value="success">✅ نجاح</option>
+                                <option value="warning">⚠️ تنبيه</option>
+                                <option value="urgent">🚨 عاجل</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display:block;margin-bottom:4px;font-size:0.82rem;color:rgba(255,255,255,0.7);">😀 الأيقونة</label>
+                            <input type="text" id="nt-icon" value="📨" maxlength="3" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;text-align:center;">
+                        </div>
+                    </div>
+                    
+                    <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,0.85);margin-bottom:14px;">
+                        <input type="checkbox" id="nt-pinned"> 📌 تثبيت الإشعار في الأعلى
+                    </label>
+                    
+                    <div style="display:flex;gap:8px;">
+                        <button onclick="sendNotification()" style="flex:1;background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:11px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">📨 إرسال</button>
+                        <button onclick="hideNotifForm()" style="flex:1;background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:11px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">إلغاء</button>
+                    </div>
+                </div>
+            </div>
+
 
             <!-- ==================== 🎓 TUTORING BOOKINGS ==================== -->
             <section id="tutoring" class="section">
@@ -13441,5 +13653,499 @@ function vmDrawPolygon() {
 }
 
 </script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📰 ADMIN NEWS TICKERS + 📨 TEACHER NOTIFICATIONS
+// ════════════════════════════════════════════════════════════
+var _newsCurrentTab = 'student-tickers';
+var _adminTickers = { student: [], teacher: [] };
+var _adminNotifs = [];
+
+function loadNewsAdmin() {
+    switchNewsTab(_newsCurrentTab);
+}
+
+function switchNewsTab(tab) {
+    _newsCurrentTab = tab;
+    
+    // تحديث الأزرار
+    document.querySelectorAll('.news-tab').forEach(function(b) {
+        b.classList.remove('on');
+        b.style.background = 'transparent';
+        b.style.color = 'rgba(255,255,255,0.7)';
+        b.style.borderBottomColor = 'transparent';
+    });
+    var activeBtn = document.getElementById('news-tab-' + tab);
+    if (activeBtn) {
+        activeBtn.classList.add('on');
+        if (tab === 'student-tickers') {
+            activeBtn.style.background = 'rgba(52,152,219,0.15)';
+            activeBtn.style.color = '#5dade2';
+            activeBtn.style.borderBottomColor = '#3498db';
+        } else if (tab === 'teacher-tickers') {
+            activeBtn.style.background = 'rgba(22,160,133,0.15)';
+            activeBtn.style.color = '#48d1cc';
+            activeBtn.style.borderBottomColor = '#16a085';
+        } else {
+            activeBtn.style.background = 'rgba(155,89,182,0.15)';
+            activeBtn.style.color = '#bb86fc';
+            activeBtn.style.borderBottomColor = '#9b59b6';
+        }
+    }
+    
+    // إخفاء/إظهار المحتوى
+    ['student-tickers', 'teacher-tickers', 'teacher-notifs'].forEach(function(t) {
+        var el = document.getElementById('news-content-' + t);
+        if (el) el.style.display = (t === tab) ? 'block' : 'none';
+    });
+    
+    // تحميل البيانات
+    if (tab === 'student-tickers') loadAdminTickers('student');
+    else if (tab === 'teacher-tickers') loadAdminTickers('teacher');
+    else loadAdminNotifs();
+}
+
+// ─── الأشرطة ───
+async function loadAdminTickers(audience) {
+    var listEl = document.getElementById('ticker-' + audience + '-list');
+    if (!listEl) return;
+    
+    try {
+        var res = await fetch('/api/admin/tickers/list?audience=' + audience);
+        var data = await res.json();
+        _adminTickers[audience] = data.tickers || [];
+        
+        if (!_adminTickers[audience].length) {
+            listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.5);">' +
+                '<div style="font-size:3rem;margin-bottom:8px;">📭</div>' +
+                '<p>لا أشرطة بعد — اضغط "شريط جديد" لإضافة أول شريط</p></div>';
+            return;
+        }
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        _adminTickers[audience].forEach(function(t) {
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px;border-right:4px solid ' + (t.bg_color || '#3498db') + ';">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<div style="background:' + (t.bg_color || '#1565c0') + ';color:' + (t.text_color || '#fff') + ';padding:8px 14px;border-radius:6px;font-weight:600;margin-bottom:8px;font-size:0.92rem;">';
+            html += (t.icon || '📢') + ' ' + escapeAdminHtml(t.text);
+            html += '</div>';
+            html += '<div style="display:flex;gap:12px;font-size:0.78rem;color:rgba(255,255,255,0.6);flex-wrap:wrap;">';
+            html += '<span>⚡ ' + t.speed + 'ث</span>';
+            html += '<span>🥇 الأولوية ' + t.priority + '</span>';
+            html += '<span>' + (t.is_active ? '🟢 نشط' : '⚫ متوقف') + '</span>';
+            if (t.expires_at) html += '<span>⏰ ينتهي: ' + new Date(t.expires_at).toLocaleString('ar') + '</span>';
+            html += '</div></div>';
+            html += '<div style="display:flex;gap:6px;flex-wrap:wrap;">';
+            html += '<button onclick="toggleTickerActive(' + t.id + ',' + (!t.is_active) + ')" style="background:' + (t.is_active ? 'rgba(243,156,18,0.15)' : 'rgba(46,204,113,0.15)') + ';color:' + (t.is_active ? '#f9c74f' : '#2ecc71') + ';border:1px solid ' + (t.is_active ? '#f39c12' : '#27ae60') + ';padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">' + (t.is_active ? '⏸️ إيقاف' : '▶️ تفعيل') + '</button>';
+            html += '<button onclick="editTicker(' + t.id + ')" style="background:rgba(52,152,219,0.15);color:#5dade2;border:1px solid #3498db;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">✏️ تعديل</button>';
+            html += '<button onclick="deleteTicker(' + t.id + ')" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">🗑️</button>';
+            html += '</div></div></div>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+    } catch(e) {
+        listEl.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:30px;">❌ فشل التحميل: ' + e.message + '</p>';
+    }
+}
+
+function escapeAdminHtml(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s || '');
+    return d.innerHTML;
+}
+
+function showNewTickerForm(audience) {
+    document.getElementById('tk-audience').value = audience;
+    document.getElementById('tk-edit-id').value = '';
+    document.getElementById('ticker-form-title').textContent = '📰 شريط جديد لـ ' + (audience === 'student' ? 'الطلاب' : 'المعلمين');
+    
+    // قيم افتراضية
+    document.getElementById('tk-text').value = '';
+    document.getElementById('tk-bg').value = audience === 'student' ? '#1565c0' : '#16a085';
+    document.getElementById('tk-color').value = '#ffffff';
+    document.getElementById('tk-icon').value = '📢';
+    document.getElementById('tk-speed').value = '50';
+    document.getElementById('tk-priority').value = '0';
+    document.getElementById('tk-expires').value = '';
+    
+    document.getElementById('ticker-form-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    updateTickerPreview();
+}
+
+function hideTickerForm() {
+    document.getElementById('ticker-form-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+function updateTickerPreview() {
+    var preview = document.getElementById('tk-preview');
+    var bg = document.getElementById('tk-bg').value;
+    var color = document.getElementById('tk-color').value;
+    var text = document.getElementById('tk-text').value || 'نص الشريط';
+    var icon = document.getElementById('tk-icon').value || '📢';
+    
+    preview.style.background = bg;
+    preview.style.color = color;
+    document.getElementById('tk-preview-icon').textContent = icon;
+    document.getElementById('tk-preview-text').textContent = text;
+}
+
+// ربط المعاينة المباشرة
+['tk-text', 'tk-bg', 'tk-color', 'tk-icon'].forEach(function(id) {
+    document.addEventListener('DOMContentLoaded', function() {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener('input', updateTickerPreview);
+    });
+});
+// fallback لو القسم غير محمّل
+setTimeout(function() {
+    ['tk-text', 'tk-bg', 'tk-color', 'tk-icon'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el && !el._previewBound) {
+            el.addEventListener('input', updateTickerPreview);
+            el._previewBound = true;
+        }
+    });
+}, 1500);
+
+async function saveTicker() {
+    var text = document.getElementById('tk-text').value.trim();
+    if (!text) {
+        alert('⚠️ نص الشريط مطلوب');
+        return;
+    }
+    
+    var editId = document.getElementById('tk-edit-id').value;
+    var audience = document.getElementById('tk-audience').value;
+    
+    var fd = new FormData();
+    fd.append('audience', audience);
+    fd.append('text', text);
+    fd.append('icon', document.getElementById('tk-icon').value || '📢');
+    fd.append('bg_color', document.getElementById('tk-bg').value);
+    fd.append('text_color', document.getElementById('tk-color').value);
+    fd.append('speed', document.getElementById('tk-speed').value || 50);
+    fd.append('priority', document.getElementById('tk-priority').value || 0);
+    
+    var expires = document.getElementById('tk-expires').value;
+    if (expires) fd.append('expires_at', expires);
+    
+    try {
+        var url, method;
+        if (editId) {
+            url = '/api/admin/tickers/' + editId;
+            method = 'PUT';
+            fd.append('is_active', 'true');
+        } else {
+            url = '/api/admin/tickers/create';
+            method = 'POST';
+        }
+        
+        var res = await fetch(url, { method: method, body: fd });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            alert('❌ ' + (data.detail || 'فشل'));
+            return;
+        }
+        
+        alert('✅ تم الحفظ');
+        hideTickerForm();
+        loadAdminTickers(audience);
+    } catch(e) {
+        alert('❌ فشل: ' + e.message);
+    }
+}
+
+function editTicker(id) {
+    var t = null;
+    ['student', 'teacher'].forEach(function(a) {
+        if (!t) t = (_adminTickers[a] || []).find(function(x){ return x.id === id; });
+    });
+    if (!t) return;
+    
+    document.getElementById('tk-audience').value = t.audience;
+    document.getElementById('tk-edit-id').value = t.id;
+    document.getElementById('ticker-form-title').textContent = '✏️ تعديل شريط';
+    document.getElementById('tk-text').value = t.text;
+    document.getElementById('tk-bg').value = t.bg_color || '#1565c0';
+    document.getElementById('tk-color').value = t.text_color || '#ffffff';
+    document.getElementById('tk-icon').value = t.icon || '📢';
+    document.getElementById('tk-speed').value = t.speed || 50;
+    document.getElementById('tk-priority').value = t.priority || 0;
+    document.getElementById('tk-expires').value = t.expires_at ? t.expires_at.substring(0, 16) : '';
+    
+    document.getElementById('ticker-form-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    updateTickerPreview();
+}
+
+async function toggleTickerActive(id, newState) {
+    var fd = new FormData();
+    fd.append('is_active', newState ? 'true' : 'false');
+    try {
+        await fetch('/api/admin/tickers/' + id, { method: 'PUT', body: fd });
+        loadAdminTickers(_newsCurrentTab.replace('-tickers', ''));
+    } catch(e) {
+        alert('❌ فشل');
+    }
+}
+
+async function deleteTicker(id) {
+    if (!confirm('🗑️ هل أنت متأكد من الحذف؟')) return;
+    try {
+        await fetch('/api/admin/tickers/' + id, { method: 'DELETE' });
+        loadAdminTickers(_newsCurrentTab.replace('-tickers', ''));
+    } catch(e) {
+        alert('❌ فشل');
+    }
+}
+
+// ─── الإشعارات ───
+async function loadAdminNotifs() {
+    var listEl = document.getElementById('notif-admin-list');
+    if (!listEl) return;
+    
+    try {
+        var res = await fetch('/api/admin/notifications/list?limit=50');
+        var data = await res.json();
+        _adminNotifs = data.notifications || [];
+        
+        if (!_adminNotifs.length) {
+            listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:rgba(255,255,255,0.5);">' +
+                '<div style="font-size:3rem;margin-bottom:8px;">📭</div>' +
+                '<p>لا إشعارات بعد — اضغط "إشعار جديد"</p></div>';
+            return;
+        }
+        
+        var typeColors = { info:'#3498db', warning:'#f39c12', urgent:'#e74c3c', success:'#2ecc71' };
+        var typeIcons = { info:'ℹ️', warning:'⚠️', urgent:'🚨', success:'✅' };
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        _adminNotifs.forEach(function(n) {
+            var col = typeColors[n.type] || '#3498db';
+            var ic = n.icon || typeIcons[n.type] || '📨';
+            var target = n.teacher_id ? ('👤 #' + n.teacher_id) : '📢 الجميع';
+            
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-right:4px solid ' + col + ';border-radius:10px;padding:14px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<h4 style="color:#fff;margin:0 0 6px;font-size:0.95rem;">' + ic + ' ' + (n.pinned ? '📌 ' : '') + escapeAdminHtml(n.title) + '</h4>';
+            if (n.body) html += '<p style="color:rgba(255,255,255,0.7);margin:0 0 6px;font-size:0.85rem;line-height:1.7;">' + escapeAdminHtml(n.body) + '</p>';
+            html += '<div style="display:flex;gap:12px;font-size:0.75rem;color:rgba(255,255,255,0.5);flex-wrap:wrap;">';
+            html += '<span>' + target + '</span>';
+            html += '<span>' + (n.is_read ? '✓ مقروء' : '○ غير مقروء') + '</span>';
+            html += '<span>📅 ' + new Date(n.created_at).toLocaleString('ar') + '</span>';
+            html += '</div></div>';
+            html += '<button onclick="deleteNotification(' + n.id + ')" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:5px 12px;border-radius:6px;cursor:pointer;font-size:0.78rem;font-weight:bold;">🗑️</button>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+    } catch(e) {
+        listEl.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:30px;">❌ فشل التحميل</p>';
+    }
+}
+
+function showNewNotifForm() {
+    document.getElementById('nt-target').value = '0';
+    document.getElementById('nt-teacher-id').style.display = 'none';
+    document.getElementById('nt-teacher-id').value = '';
+    document.getElementById('nt-title').value = '';
+    document.getElementById('nt-body').value = '';
+    document.getElementById('nt-type').value = 'info';
+    document.getElementById('nt-icon').value = '📨';
+    document.getElementById('nt-pinned').checked = false;
+    
+    document.getElementById('notif-form-modal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+function hideNotifForm() {
+    document.getElementById('notif-form-modal').style.display = 'none';
+    document.body.style.overflow = '';
+}
+
+// إظهار حقل ID المعلم عند الاختيار
+document.addEventListener('DOMContentLoaded', function() {
+    var sel = document.getElementById('nt-target');
+    if (sel) {
+        sel.addEventListener('change', function() {
+            var input = document.getElementById('nt-teacher-id');
+            input.style.display = this.value === '-1' ? 'block' : 'none';
+        });
+    }
+});
+
+async function sendNotification() {
+    var title = document.getElementById('nt-title').value.trim();
+    if (!title) {
+        alert('⚠️ العنوان مطلوب');
+        return;
+    }
+    
+    var target = document.getElementById('nt-target').value;
+    var teacherId = 0;
+    if (target === '-1') {
+        teacherId = parseInt(document.getElementById('nt-teacher-id').value || 0);
+        if (!teacherId) {
+            alert('⚠️ أدخل معرّف المعلم');
+            return;
+        }
+    }
+    
+    var fd = new FormData();
+    fd.append('teacher_id', teacherId);
+    fd.append('title', title);
+    fd.append('body', document.getElementById('nt-body').value || '');
+    fd.append('type', document.getElementById('nt-type').value);
+    fd.append('icon', document.getElementById('nt-icon').value || '📨');
+    fd.append('pinned', document.getElementById('nt-pinned').checked);
+    
+    try {
+        var res = await fetch('/api/admin/notifications/send', { method: 'POST', body: fd });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            alert('❌ ' + (data.detail || 'فشل'));
+            return;
+        }
+        
+        alert('✅ ' + (data.message || 'أُرسل'));
+        hideNotifForm();
+        loadAdminNotifs();
+    } catch(e) {
+        alert('❌ فشل: ' + e.message);
+    }
+}
+
+async function deleteNotification(id) {
+    if (!confirm('🗑️ حذف الإشعار؟')) return;
+    try {
+        await fetch('/api/admin/notifications/' + id, { method: 'DELETE' });
+        loadAdminNotifs();
+    } catch(e) {
+        alert('❌ فشل');
+    }
+}
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📧 TEACHER EMAILS — لوحة إيميلات المعلمين
+// ════════════════════════════════════════════════════════════
+var _allTeacherEmails = [];
+
+async function loadTeacherEmails() {
+    var listEl = document.getElementById('te-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<div style="padding:30px;text-align:center;color:rgba(255,255,255,0.5);">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch('/api/admin/teachers/emails');
+        var data = await res.json();
+        _allTeacherEmails = data.teachers || [];
+        var stats = data.stats || {};
+        
+        // إحصاءات
+        document.getElementById('te-stat-total').textContent = stats.total || 0;
+        document.getElementById('te-stat-email').textContent = stats.with_email || 0;
+        document.getElementById('te-stat-phone').textContent = stats.with_phone || 0;
+        document.getElementById('te-stat-completion').textContent = (stats.completion || 0) + '%';
+        
+        if (data.warning) {
+            listEl.innerHTML = '<div style="padding:30px;text-align:center;color:#f39c12;">⚠️ ' + data.warning + '</div>';
+            return;
+        }
+        
+        renderTeacherEmails(_allTeacherEmails);
+    } catch(e) {
+        listEl.innerHTML = '<div style="padding:30px;text-align:center;color:#e74c3c;">❌ فشل التحميل: ' + e.message + '</div>';
+    }
+}
+
+function renderTeacherEmails(list) {
+    var listEl = document.getElementById('te-list');
+    if (!list.length) {
+        listEl.innerHTML = '<div style="padding:40px;text-align:center;color:rgba(255,255,255,0.5);">📭 لا معلمين</div>';
+        return;
+    }
+    
+    var html = '<table style="width:100%;border-collapse:collapse;color:#fff;font-family:Cairo;">';
+    html += '<thead style="background:rgba(72,209,204,0.1);position:sticky;top:0;">';
+    html += '<tr>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">👤 الاسم</th>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">📧 الإيميل</th>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">📱 الجوال</th>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">🏫 المدرسة</th>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">📚 المادة</th>';
+    html += '<th style="padding:12px;text-align:right;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">🌍 المدينة</th>';
+    html += '<th style="padding:12px;text-align:center;border-bottom:1px solid rgba(72,209,204,0.3);font-size:0.85rem;">⚡ إجراء</th>';
+    html += '</tr></thead><tbody>';
+    
+    list.forEach(function(t, idx) {
+        var rowBg = idx % 2 === 0 ? 'rgba(255,255,255,0.02)' : 'rgba(255,255,255,0.04)';
+        html += '<tr style="background:' + rowBg + ';">';
+        html += '<td style="padding:10px 12px;font-size:0.88rem;">' + escapeAdminHtml(t.full_name || '—') + '<div style="font-size:0.72rem;color:rgba(255,255,255,0.5);">@' + escapeAdminHtml(t.username || '—') + '</div></td>';
+        html += '<td style="padding:10px 12px;direction:ltr;text-align:right;font-size:0.82rem;color:' + (t.email ? '#5dade2' : 'rgba(255,255,255,0.3)') + ';">' + escapeAdminHtml(t.email || '—') + '</td>';
+        html += '<td style="padding:10px 12px;direction:ltr;text-align:right;font-size:0.82rem;color:' + (t.phone ? '#7fffd4' : 'rgba(255,255,255,0.3)') + ';">' + escapeAdminHtml(t.phone || '—') + '</td>';
+        html += '<td style="padding:10px 12px;font-size:0.82rem;color:' + (t.school ? '#fff' : 'rgba(255,255,255,0.3)') + ';">' + escapeAdminHtml(t.school || '—') + '</td>';
+        html += '<td style="padding:10px 12px;font-size:0.82rem;">' + escapeAdminHtml(t.subject || '—') + '</td>';
+        html += '<td style="padding:10px 12px;font-size:0.82rem;">' + escapeAdminHtml(t.city || '—') + '</td>';
+        html += '<td style="padding:10px 12px;text-align:center;">';
+        if (t.email) {
+            html += '<a href="mailto:' + escapeAdminHtml(t.email) + '" style="display:inline-block;padding:5px 10px;background:rgba(52,152,219,0.15);color:#5dade2;border:1px solid #3498db;border-radius:6px;text-decoration:none;font-size:0.75rem;margin:2px;">✉️</a>';
+        }
+        if (t.phone) {
+            html += '<a href="https://wa.me/' + escapeAdminHtml((t.phone || '').replace(/\D/g, '')) + '" target="_blank" style="display:inline-block;padding:5px 10px;background:rgba(46,204,113,0.15);color:#2ecc71;border:1px solid #27ae60;border-radius:6px;text-decoration:none;font-size:0.75rem;margin:2px;">💬</a>';
+        }
+        html += '</td>';
+        html += '</tr>';
+    });
+    
+    html += '</tbody></table>';
+    listEl.innerHTML = html;
+}
+
+function filterTeacherEmails() {
+    var q = (document.getElementById('te-search').value || '').toLowerCase().trim();
+    if (!q) { renderTeacherEmails(_allTeacherEmails); return; }
+    
+    var filtered = _allTeacherEmails.filter(function(t) {
+        return (t.full_name && t.full_name.toLowerCase().indexOf(q) !== -1) ||
+               (t.username && t.username.toLowerCase().indexOf(q) !== -1) ||
+               (t.email && t.email.toLowerCase().indexOf(q) !== -1) ||
+               (t.school && t.school.toLowerCase().indexOf(q) !== -1) ||
+               (t.city && t.city.toLowerCase().indexOf(q) !== -1);
+    });
+    renderTeacherEmails(filtered);
+}
+
+function exportTeacherEmailsCSV() {
+    window.open('/api/admin/teachers/emails/export', '_blank');
+}
+
+function copyAllEmails() {
+    var emails = _allTeacherEmails.filter(function(t){return t.email;}).map(function(t){return t.email;});
+    if (!emails.length) {
+        alert('⚠️ لا إيميلات متاحة');
+        return;
+    }
+    var text = emails.join(', ');
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(text).then(function() {
+            alert('✅ تم نسخ ' + emails.length + ' إيميل');
+        });
+    } else {
+        prompt('انسخ هذه الإيميلات:', text);
+    }
+}
+</script>
+
 </body>
 </html>

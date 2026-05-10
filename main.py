@@ -5066,8 +5066,9 @@ async def teacher_exam_build_pdf(
     include_answers: bool = Form(default=True),
     show_marks: bool     = Form(default=True),
     total_marks: int     = Form(default=20),
+    mode: str            = Form(default="exam"),  # 🆕 exam | activity
 ):
-    """📄 بناء ورقة اختبار جاهزة كـ HTML قابل للطباعة"""
+    """📄 بناء ورقة اختبار/نشاط جاهزة كـ HTML قابل للطباعة"""
     try:
         # 🔄 _grade_variants لدعم كل الصياغات
         variants = _grade_variants(grade) or [grade.strip()]
@@ -5191,6 +5192,13 @@ async def teacher_exam_build_pdf(
             .q-letter { color: #1976d2; font-weight: 700; margin-left: 6px; }
             .q-answer-lines { margin-top: 8px; padding-right: 16px; }
             .line { border-bottom: 1px solid #999; height: 28px; margin: 6px 0; }
+            body.is-activity .line { height: 38px; }
+            body.is-activity .q-answer-lines { padding-right: 8px; }
+            body.is-activity .question { background: #f0fdf4; border-color: #86efac; }
+            body.is-activity .qmark { background: #dcfce7; color: #15803d; }
+            body.is-activity .title-main { color: #15803d; }
+            body.is-activity .answers-title { background: #15803d !important; }
+            body.is-activity .instructions { background: #ecfdf5; border-right-color: #10b981; }
             .footer { margin-top: 40px; padding-top: 16px; border-top: 2px solid #000; text-align: center; font-size: 13px; color: #555; }
             .signature { display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px; }
             .sign-block { text-align: center; min-width: 180px; }
@@ -5221,10 +5229,16 @@ async def teacher_exam_build_pdf(
         school_block = ('<div class="school">' + school_name + '</div>') if school_name else ''
         class_text = class_name if class_name else "........................"
         
-        instructions_text = "اقرأ الأسئلة بعناية قبل الإجابة. "
-        if show_marks:
-            instructions_text += "كل سؤال بـ " + str(marks_per_q) + " درجة. "
-        instructions_text += "اكتب الإجابة في المكان المخصص."
+        is_activity = (mode == "activity")
+        
+        if is_activity:
+            instructions_text = "🎯 نشاط صفي: ناقش مع زملائك وحلّ الأسئلة في الوقت المحدد. "
+            instructions_text += "خصّص مساحة كافية للتفكير قبل الإجابة."
+        else:
+            instructions_text = "اقرأ الأسئلة بعناية قبل الإجابة. "
+            if show_marks:
+                instructions_text += "كل سؤال بـ " + str(marks_per_q) + " درجة. "
+            instructions_text += "اكتب الإجابة في المكان المخصص."
         
         teacher_sign = "المعلم " + (teacher_name if teacher_name else "")
         
@@ -7819,6 +7833,413 @@ async def student_leave_classroom(classroom_id: int, student_id: int):
             "classroom_id", classroom_id
         ).eq("student_id", student_id).execute()
         return {"status": "ok", "message": "🚪 غادرت الفصل"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+# ════════════════════════════════════════════════════════════════
+# 📰 NEWS TICKER + TEACHER NOTIFICATIONS — نظام كامل
+# ════════════════════════════════════════════════════════════════
+
+# ─── الأشرطة الإخبارية ───
+
+@app.get("/api/tickers/active")
+async def get_active_tickers(audience: str = "student"):
+    """📰 الأشرطة النشطة لجمهور محدد (student أو teacher)"""
+    try:
+        if audience not in ("student", "teacher"):
+            audience = "student"
+        
+        from datetime import datetime
+        now = datetime.utcnow().isoformat()
+        
+        res = supabase.table("news_tickers").select("*").eq(
+            "audience", audience
+        ).eq("is_active", True).order("priority", desc=True).order("created_at", desc=True).execute()
+        
+        tickers = res.data or []
+        
+        # نفلتر منتهية الصلاحية
+        active = []
+        for t in tickers:
+            exp = t.get("expires_at")
+            if exp and exp < now:
+                continue
+            active.append(t)
+        
+        return {"status": "ok", "tickers": active, "count": len(active)}
+    except Exception as e:
+        # لو الجدول غير موجود، نُرجع قائمة فارغة
+        if "relation" in str(e).lower() or "does not exist" in str(e).lower():
+            return {"status": "ok", "tickers": [], "count": 0, "warning": "جدول الأشرطة غير موجود"}
+        return {"status": "error", "tickers": [], "count": 0, "error": str(e)[:200]}
+
+
+@app.post("/api/admin/tickers/create")
+async def admin_create_ticker(
+    request: Request,
+    audience: str        = Form(...),       # student | teacher
+    text: str            = Form(...),
+    icon: str            = Form(default="📢"),
+    bg_color: str        = Form(default="#1565c0"),
+    text_color: str      = Form(default="#ffffff"),
+    speed: int           = Form(default=50),
+    priority: int        = Form(default=0),
+    expires_at: str      = Form(default=""),
+):
+    """📰 إنشاء شريط إخباري جديد (Admin only)"""
+    if audience not in ("student", "teacher"):
+        raise HTTPException(status_code=400, detail="audience يجب أن يكون student أو teacher")
+    if not text.strip():
+        raise HTTPException(status_code=400, detail="نص الشريط مطلوب")
+    
+    try:
+        data = {
+            "audience": audience,
+            "text": text.strip()[:500],
+            "icon": icon[:20],
+            "bg_color": bg_color[:20],
+            "text_color": text_color[:20],
+            "speed": max(20, min(int(speed), 200)),
+            "priority": int(priority),
+            "is_active": True,
+        }
+        if expires_at.strip():
+            data["expires_at"] = expires_at.strip()
+        
+        res = supabase.table("news_tickers").insert(data).execute()
+        return {
+            "status": "ok",
+            "ticker": res.data[0] if res.data else None,
+            "message": "✅ تم إنشاء الشريط"
+        }
+    except Exception as e:
+        err = str(e).lower()
+        if "relation" in err or "does not exist" in err:
+            raise HTTPException(status_code=500, detail="❌ جدول news_tickers غير موجود — شغّل news_system_migration.sql")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/admin/tickers/list")
+async def admin_list_tickers(audience: str = ""):
+    """📋 قائمة الأشرطة (للأدمن)"""
+    try:
+        q = supabase.table("news_tickers").select("*")
+        if audience in ("student", "teacher"):
+            q = q.eq("audience", audience)
+        res = q.order("priority", desc=True).order("created_at", desc=True).execute()
+        return {"status": "ok", "tickers": res.data or []}
+    except Exception as e:
+        return {"status": "error", "tickers": [], "error": str(e)[:200]}
+
+
+@app.put("/api/admin/tickers/{ticker_id}")
+async def admin_update_ticker(
+    ticker_id: int,
+    text: str            = Form(default=""),
+    icon: str            = Form(default=""),
+    bg_color: str        = Form(default=""),
+    text_color: str      = Form(default=""),
+    speed: int           = Form(default=0),
+    priority: int        = Form(default=-999),
+    is_active: bool      = Form(default=True),
+):
+    """✏️ تعديل شريط"""
+    try:
+        update_data = {"is_active": is_active}
+        if text.strip(): update_data["text"] = text.strip()[:500]
+        if icon: update_data["icon"] = icon[:20]
+        if bg_color: update_data["bg_color"] = bg_color[:20]
+        if text_color: update_data["text_color"] = text_color[:20]
+        if speed > 0: update_data["speed"] = max(20, min(int(speed), 200))
+        if priority != -999: update_data["priority"] = int(priority)
+        
+        supabase.table("news_tickers").update(update_data).eq("id", ticker_id).execute()
+        return {"status": "ok", "message": "✅ تم التحديث"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/admin/tickers/{ticker_id}")
+async def admin_delete_ticker(ticker_id: int):
+    """🗑️ حذف شريط"""
+    try:
+        supabase.table("news_tickers").delete().eq("id", ticker_id).execute()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ─── إشعارات المعلمين ───
+
+@app.get("/api/teacher/notifications")
+async def get_teacher_notifications(teacher_id: int):
+    """📨 إشعارات المعلم (الخاصة + العامة)"""
+    try:
+        from datetime import datetime
+        now = datetime.utcnow().isoformat()
+        
+        # الخاصة بالمعلم
+        own = supabase.table("teacher_notifications").select("*").eq(
+            "teacher_id", teacher_id
+        ).order("pinned", desc=True).order("created_at", desc=True).limit(50).execute()
+        
+        # العامة (teacher_id = NULL)
+        public = supabase.table("teacher_notifications").select("*").is_(
+            "teacher_id", "null"
+        ).order("pinned", desc=True).order("created_at", desc=True).limit(20).execute()
+        
+        all_notifs = list(own.data or []) + list(public.data or [])
+        
+        # نفلتر منتهية الصلاحية
+        active = []
+        for n in all_notifs:
+            exp = n.get("expires_at")
+            if exp and exp < now:
+                continue
+            active.append(n)
+        
+        # نرتب بالأولوية
+        active.sort(key=lambda x: (not x.get("pinned"), -(int(x.get("id") or 0))))
+        
+        unread_count = sum(1 for n in active if not n.get("is_read"))
+        
+        return {
+            "status": "ok",
+            "notifications": active[:50],
+            "unread_count": unread_count,
+        }
+    except Exception as e:
+        if "relation" in str(e).lower():
+            return {"status": "ok", "notifications": [], "unread_count": 0, "warning": "جدول الإشعارات غير موجود"}
+        return {"status": "error", "notifications": [], "unread_count": 0, "error": str(e)[:200]}
+
+
+@app.post("/api/teacher/notifications/{notif_id}/read")
+async def mark_notification_read(notif_id: int):
+    """✅ تعليم إشعار كمقروء"""
+    try:
+        supabase.table("teacher_notifications").update({"is_read": True}).eq("id", notif_id).execute()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/admin/notifications/send")
+async def admin_send_notification(
+    request: Request,
+    teacher_id: int      = Form(default=0),       # 0 = للجميع
+    title: str           = Form(...),
+    body: str            = Form(default=""),
+    type: str            = Form(default="info"),
+    icon: str            = Form(default="📨"),
+    pinned: bool         = Form(default=False),
+    expires_at: str      = Form(default=""),
+):
+    """📨 إرسال إشعار للمعلمين (Admin)"""
+    if not title.strip():
+        raise HTTPException(status_code=400, detail="العنوان مطلوب")
+    if type not in ("info", "warning", "success", "urgent"):
+        type = "info"
+    
+    try:
+        data = {
+            "title": title.strip()[:200],
+            "body": body.strip()[:5000],
+            "type": type,
+            "icon": icon[:20],
+            "pinned": bool(pinned),
+            "is_read": False,
+        }
+        # 0 = للجميع → NULL في DB
+        if teacher_id and teacher_id > 0:
+            data["teacher_id"] = teacher_id
+        if expires_at.strip():
+            data["expires_at"] = expires_at.strip()
+        
+        res = supabase.table("teacher_notifications").insert(data).execute()
+        target = "للجميع" if not (teacher_id and teacher_id > 0) else f"للمعلم #{teacher_id}"
+        return {
+            "status": "ok",
+            "notification": res.data[0] if res.data else None,
+            "message": f"✅ أُرسل الإشعار {target}"
+        }
+    except Exception as e:
+        err = str(e).lower()
+        if "relation" in err:
+            raise HTTPException(status_code=500, detail="❌ جدول الإشعارات غير موجود — شغّل news_system_migration.sql")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/admin/notifications/list")
+async def admin_list_notifications(limit: int = 100):
+    """📋 كل الإشعارات (للأدمن)"""
+    try:
+        res = supabase.table("teacher_notifications").select("*").order(
+            "created_at", desc=True
+        ).limit(min(limit, 500)).execute()
+        return {"status": "ok", "notifications": res.data or []}
+    except Exception as e:
+        return {"status": "error", "notifications": [], "error": str(e)[:200]}
+
+
+@app.delete("/api/admin/notifications/{notif_id}")
+async def admin_delete_notification(notif_id: int):
+    """🗑️ حذف إشعار"""
+    try:
+        supabase.table("teacher_notifications").delete().eq("id", notif_id).execute()
+        return {"status": "ok"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
+
+# ═══════════════════════════════════════════════════════════════
+# 📧 TEACHER PROFILE — تحديث الملف الشخصي + جمع الإيميلات
+# ═══════════════════════════════════════════════════════════════
+
+@app.post("/api/teacher/profile/update")
+async def teacher_profile_update(
+    teacher_id: int     = Form(...),
+    full_name: str      = Form(default=""),
+    email: str          = Form(default=""),
+    phone: str          = Form(default=""),
+    school: str         = Form(default=""),
+    subject: str        = Form(default=""),
+    city: str           = Form(default=""),
+):
+    """📝 تحديث ملف المعلم"""
+    try:
+        update_data = {}
+        if full_name.strip(): update_data["full_name"] = full_name.strip()[:120]
+        if email.strip(): update_data["email"] = email.strip().lower()[:200]
+        if phone.strip(): update_data["phone"] = phone.strip()[:30]
+        if school.strip(): update_data["school"] = school.strip()[:200]
+        if subject.strip(): update_data["subject"] = subject.strip()[:100]
+        if city.strip(): update_data["city"] = city.strip()[:100]
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="لا بيانات للتحديث")
+        
+        supabase.table("teachers").update(update_data).eq("id", teacher_id).execute()
+        return {"status": "ok", "message": "✅ تم التحديث", "updated_fields": list(update_data.keys())}
+    except HTTPException:
+        raise
+    except Exception as e:
+        err = str(e).lower()
+        if "column" in err and ("email" in err or "phone" in err or "school" in err or "subject" in err or "city" in err):
+            raise HTTPException(status_code=500, detail="❌ الأعمدة الجديدة غير موجودة في قاعدة البيانات — شغّل teachers_email_migration.sql")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/profile")
+async def teacher_profile_get(teacher_id: int):
+    """📋 جلب بيانات المعلم"""
+    try:
+        res = supabase.table("teachers").select(
+            "id, full_name, username, email, phone, school, subject, city"
+        ).eq("id", teacher_id).maybe_single().execute()
+        
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="المعلم غير موجود")
+        
+        return {"status": "ok", "profile": res.data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        # لو الحقول غير موجودة، نُرجع ما نقدر
+        try:
+            res = supabase.table("teachers").select("id, full_name, username").eq("id", teacher_id).maybe_single().execute()
+            if res and res.data:
+                return {"status": "ok", "profile": res.data, "warning": "بعض الحقول غير متاحة"}
+        except Exception:
+            pass
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/admin/teachers/emails")
+async def admin_get_teacher_emails():
+    """📧 قائمة إيميلات المعلمين للأدمن"""
+    try:
+        res = supabase.table("teachers").select(
+            "id, full_name, username, email, phone, school, subject, city, created_at"
+        ).order("created_at", desc=True).execute()
+        
+        teachers = res.data or []
+        
+        # نُحسب الإحصاءات
+        with_email = sum(1 for t in teachers if t.get("email"))
+        with_phone = sum(1 for t in teachers if t.get("phone"))
+        with_school = sum(1 for t in teachers if t.get("school"))
+        
+        return {
+            "status": "ok",
+            "teachers": teachers,
+            "stats": {
+                "total": len(teachers),
+                "with_email": with_email,
+                "with_phone": with_phone,
+                "with_school": with_school,
+                "completion": round((with_email / max(len(teachers), 1)) * 100, 1),
+            }
+        }
+    except Exception as e:
+        # لو الحقول غير موجودة، نُرجع الأساسيات
+        try:
+            res = supabase.table("teachers").select("id, full_name, username, created_at").execute()
+            return {
+                "status": "ok",
+                "teachers": res.data or [],
+                "stats": {"total": len(res.data or []), "with_email": 0, "with_phone": 0, "with_school": 0, "completion": 0},
+                "warning": "❌ حقول email/phone غير موجودة — شغّل teachers_email_migration.sql"
+            }
+        except Exception:
+            return {"status": "error", "teachers": [], "stats": {}, "error": str(e)[:200]}
+
+
+@app.get("/api/admin/teachers/emails/export")
+async def admin_export_teacher_emails():
+    """📤 تصدير الإيميلات كـ CSV"""
+    try:
+        res = supabase.table("teachers").select(
+            "id, full_name, username, email, phone, school, subject, city"
+        ).execute()
+        
+        teachers = res.data or []
+        
+        # نبني CSV
+        import csv
+        from io import StringIO
+        
+        buf = StringIO()
+        writer = csv.writer(buf)
+        writer.writerow(["ID", "الاسم", "اسم المستخدم", "الإيميل", "الجوال", "المدرسة", "المادة", "المدينة"])
+        for t in teachers:
+            writer.writerow([
+                t.get("id", ""),
+                t.get("full_name", ""),
+                t.get("username", ""),
+                t.get("email", ""),
+                t.get("phone", ""),
+                t.get("school", ""),
+                t.get("subject", ""),
+                t.get("city", ""),
+            ])
+        
+        csv_content = buf.getvalue()
+        # BOM للعربية
+        csv_content = '\ufeff' + csv_content
+        
+        from fastapi.responses import Response
+        return Response(
+            content=csv_content.encode('utf-8'),
+            media_type="text/csv; charset=utf-8",
+            headers={
+                "Content-Disposition": "attachment; filename=teachers_emails.csv"
+            }
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
 

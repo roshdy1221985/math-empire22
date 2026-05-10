@@ -35,6 +35,7 @@
             margin: 0;
             font-family: 'Tajawal', sans-serif;
             background: radial-gradient(circle at center, #1a1a2e 0%, #040d21 100%);
+            background-color: #040d21;
             color: #fff;
             min-height: 100vh;
             display: flex;
@@ -1897,85 +1898,559 @@
         }
 
         /* ════════════════════════════════════════════════════
-           👑 NAV ROYAL — أزرار السايدبار الموحّدة الذهبية
+           👑 NAV ROYAL — مطابق للوحة الطالب (ذهبي بسيط)
         ════════════════════════════════════════════════════ */
         .nav-btn.nav-royal {
-            background: rgba(212, 175, 55, 0.04) !important;
-            border: 1px solid rgba(212, 175, 55, 0.18) !important;
-            color: #d4af37 !important;
-            transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1) !important;
-            position: relative !important;
-            overflow: hidden !important;
-            box-shadow: none !important;
+            background: var(--glass) !important;
+            border: 1px solid var(--border) !important;
+            color: #fff !important;
+            padding: 17px 14px !important;
+            margin-top: 10px !important;
+            border-radius: 14px !important;
+            cursor: pointer;
+            font-weight: bold !important;
+            transition: 0.3s !important;
+            display: flex !important;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            font-family: 'Tajawal', sans-serif !important;
+            box-sizing: border-box;
+            font-size: 1rem !important;
+            min-height: 54px;
+            position: relative;
+            overflow: hidden;
         }
-        
-        /* تأثير اللمعان — يتحرّك من اليمين لليسار عند الـ hover */
+        .nav-btn.nav-royal:hover,
+        .nav-btn.nav-royal.active {
+            background: var(--gold-grad) !important;
+            color: #000 !important;
+            border-color: var(--gold) !important;
+            box-shadow: 0 4px 20px rgba(212,175,55,0.45) !important;
+        }
+        .nav-btn.nav-royal .btn-icon {
+            font-size: 1.2rem;
+            min-width: 22px;
+            text-align: center;
+            transition: 0.3s;
+        }
+        .nav-btn.nav-royal:hover .btn-icon,
+        .nav-btn.nav-royal.active .btn-icon {
+            transform: scale(1.15);
+        }
+        /* لمعان متحرك على hover */
         .nav-btn.nav-royal::before {
             content: '';
             position: absolute;
-            top: 0;
-            right: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(
-                90deg,
-                transparent 0%,
-                rgba(255, 215, 0, 0.15) 40%,
-                rgba(255, 215, 0, 0.25) 50%,
-                rgba(255, 215, 0, 0.15) 60%,
-                transparent 100%
-            );
-            transition: right 0.6s ease;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+            transition: left 0.6s ease;
             pointer-events: none;
         }
         .nav-btn.nav-royal:hover::before {
-            right: 100%;
+            left: 100%;
+        }
+
+
+        /* ════════════════════════════════════════════════════════
+           🎨 PROFESSIONAL TOUCHES — لمسات احترافية إبداعية
+        ════════════════════════════════════════════════════════ */
+        
+        /* تأثير زجاجي محسّن لكل البطاقات */
+        .glass-card, .tilt-card, .profile-dashboard {
+            position: relative;
+            overflow: hidden;
         }
         
-        /* Hover */
+        /* خط ذهبي علوي ناعم على بطاقات الـ glass */
+        .glass-card::before, .tilt-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent 0%, 
+                rgba(212, 175, 55, 0.5) 50%, 
+                transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        /* تحسين الأزرار */
+        button[onclick], .nav-btn, .shiny-btn {
+            position: relative;
+            isolation: isolate;
+        }
+        
+        /* تحسين القوائم المنسدلة لتظهر الخيارات بوضوح */
+        select option {
+            background: #0a1228 !important;
+            color: #fff !important;
+            padding: 8px !important;
+        }
+        select:focus, input:focus, textarea:focus {
+            outline: none;
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.15) !important;
+        }
+        
+        /* ✨ Toast notifications محسّنة */
+        #toast {
+            position: fixed;
+            top: 80px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-20px);
+            background: linear-gradient(135deg, #0a1228, #050a1a);
+            color: #fff;
+            padding: 14px 28px;
+            border-radius: 12px;
+            border: 2px solid var(--gold);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6),
+                        0 0 20px rgba(212, 175, 55, 0.3);
+            z-index: 999999;
+            font-family: 'Tajawal', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            backdrop-filter: blur(20px);
+        }
+        #toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+            pointer-events: auto;
+        }
+        #toast.success { border-color: #2ecc71; box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(46,204,113,0.3); }
+        #toast.error   { border-color: #e74c3c; box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(231,76,60,0.3); }
+        #toast.warning { border-color: #f39c12; box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(243,156,18,0.3); }
+        #toast.info    { border-color: #3498db; box-shadow: 0 10px 30px rgba(0,0,0,0.6), 0 0 20px rgba(52,152,219,0.3); }
+        
+        /* ✨ Scrollbar مخصص ذهبي */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #d4af37, #8b6914);
+            border-radius: 5px;
+            border: 2px solid rgba(0, 0, 0, 0.3);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, #f9c74f, #d4af37);
+        }
+        
+        /* ✨ تأثير hover على البطاقات */
+        .glass-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .glass-card:hover {
+            border-color: rgba(212, 175, 55, 0.4);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4),
+                        0 0 0 1px rgba(212, 175, 55, 0.2);
+        }
+        
+        /* ✨ Section transitions أنيقة */
+        .section.active {
+            animation: sectionFadeIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes sectionFadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* ✨ تحسين الأيقونات */
+        .btn-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.3s ease;
+        }
+        
+        /* ✨ خط ذهبي متحرك أنيق للعناوين */
+        h1, h2, h3 {
+            position: relative;
+        }
+        
+        /* ✨ Focus accessibility */
+        button:focus-visible, a:focus-visible {
+            outline: 2px solid var(--gold);
+            outline-offset: 3px;
+            border-radius: 8px;
+        }
+        
+        /* ✨ تحسين placeholder */
+        input::placeholder, textarea::placeholder, select option[value=""] {
+            color: rgba(255, 255, 255, 0.35) !important;
+        }
+        
+        /* ✨ Card lift effect على hover */
+        .hub-card, .glass-card[onclick], .glass-card.clickable {
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        
+        /* ✨ Print mode professional */
+        @media print {
+            body {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            .sidebar, #news-ticker-bar, #notif-bell-btn, #notif-panel, 
+            .menu-toggle, button[onclick*="print"], .no-print {
+                display: none !important;
+            }
+            .main-content {
+                margin: 0 !important;
+                padding: 20px !important;
+                box-shadow: none !important;
+            }
+            .glass-card, .tilt-card {
+                box-shadow: none !important;
+                border: 1px solid #ccc !important;
+                page-break-inside: avoid;
+            }
+        }
+        
+        /* ✨ Smooth animations */
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* ✨ تحسين البطاقات في الموبايل */
+        @media (max-width: 768px) {
+            .hub-card { padding: 22px 18px !important; }
+            .glass-card { padding: 18px !important; }
+            h1 { font-size: 1.8rem !important; }
+            h2 { font-size: 1.4rem !important; }
+            h3 { font-size: 1.1rem !important; }
+        }
+        
+        /* ✨ تأثير glow على المؤشر للأزرار الذهبية */
+        .btn-gold-main:hover,
         .nav-btn.nav-royal:hover {
-            background: linear-gradient(135deg, 
-                rgba(212, 175, 55, 0.25) 0%, 
-                rgba(184, 134, 11, 0.15) 100%) !important;
-            border-color: rgba(212, 175, 55, 0.5) !important;
-            color: #f9c74f !important;
-            transform: translateX(-3px) !important;
-            box-shadow: 
-                0 4px 16px rgba(212, 175, 55, 0.25),
-                inset 0 1px 0 rgba(255, 215, 0, 0.2) !important;
+            animation: goldPulse 1.5s ease-in-out infinite;
+        }
+        @keyframes goldPulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(212, 175, 55, 0.45); }
+            50% { box-shadow: 0 4px 30px rgba(212, 175, 55, 0.7), 0 0 0 1px rgba(249, 199, 79, 0.3); }
         }
         
-        /* Active — مُعبأ ذهبي كامل */
-        .nav-btn.nav-royal.active {
-            background: linear-gradient(135deg, 
-                #d4af37 0%, 
-                #f9c74f 35%, 
-                #d4af37 70%, 
-                #b8860b 100%) !important;
-            border-color: #fff8dc !important;
-            color: #1a0d2e !important;
-            font-weight: 700 !important;
-            box-shadow: 
-                0 6px 20px rgba(212, 175, 55, 0.5),
-                inset 0 1px 0 rgba(255, 255, 255, 0.4),
-                inset 0 -1px 0 rgba(0, 0, 0, 0.15) !important;
-            transform: translateX(-3px) !important;
-        }
-        
-        .nav-btn.nav-royal.active .btn-icon {
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        /* الأيقونة */
-        .nav-btn.nav-royal .btn-icon {
-            transition: transform 0.35s ease;
-        }
-        .nav-btn.nav-royal:hover .btn-icon {
-            transform: scale(1.15);
+        /* ✨ Modal/Overlay improvements */
+        [id$="-overlay"], [id$="-modal"] {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 </style>
 </head>
 <body>
+
+<!-- 📰 الشريط الإخباري الذهبي العلوي -->
+<div id="news-ticker-bar" style="display:none;">
+    <div class="ticker-glow-top"></div>
+    <div class="ticker-inner">
+        <div class="ticker-icon-box">
+            <span id="ticker-static-icon">📢</span>
+        </div>
+        <div class="ticker-marquee">
+            <div id="news-ticker-track"></div>
+        </div>
+        <button onclick="hideNewsTicker()" class="ticker-close-btn" title="إخفاء">×</button>
+    </div>
+    <div class="ticker-glow-bottom"></div>
+</div>
+<style>
+    /* ════════════════════════════════════════════════════════
+       📰 NEWS TICKER — شريط علوي ذهبي أنيق
+    ════════════════════════════════════════════════════════ */
+    #news-ticker-bar {
+        position: fixed !important;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        z-index: 99990;
+        font-family: 'Tajawal', sans-serif;
+        background: linear-gradient(180deg, 
+            rgba(20, 30, 60, 0.97) 0%, 
+            rgba(10, 18, 40, 0.97) 100%);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        overflow: hidden;
+    }
+    
+    /* خط ذهبي علوي متحرك */
+    .ticker-glow-top {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            #d4af37 30%, 
+            #fcf6ba 50%, 
+            #d4af37 70%, 
+            transparent 100%);
+        background-size: 200% 100%;
+        animation: tickerGoldShimmer 3s linear infinite;
+    }
+    
+    /* خط ذهبي سفلي */
+    .ticker-glow-bottom {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, 
+            transparent 0%, 
+            #b8860b 30%, 
+            #d4af37 50%, 
+            #b8860b 70%, 
+            transparent 100%);
+        background-size: 200% 100%;
+        animation: tickerGoldShimmer 3s linear infinite reverse;
+    }
+    
+    @keyframes tickerGoldShimmer {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    
+    .ticker-inner {
+        display: flex;
+        align-items: center;
+        height: 44px;
+        position: relative;
+    }
+    
+    /* صندوق الأيقونة الثابت */
+    .ticker-icon-box {
+        flex-shrink: 0;
+        width: 50px;
+        height: 100%;
+        background: linear-gradient(135deg, #d4af37, #b8860b);
+        color: #1a0d2e;
+        font-size: 1.3rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        border-left: 1px solid rgba(212, 175, 55, 0.5);
+        box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.2);
+        animation: tickerIconPulse 2s ease-in-out infinite;
+    }
+    @keyframes tickerIconPulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+    }
+    
+    /* منطقة النص المتحركة */
+    .ticker-marquee {
+        flex: 1;
+        overflow: hidden;
+        position: relative;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        mask-image: linear-gradient(90deg, 
+            transparent 0%, 
+            #000 5%, 
+            #000 95%, 
+            transparent 100%);
+        -webkit-mask-image: linear-gradient(90deg, 
+            transparent 0%, 
+            #000 5%, 
+            #000 95%, 
+            transparent 100%);
+    }
+    
+    #news-ticker-track {
+        display: inline-flex;
+        white-space: nowrap;
+        animation: tickerScroll 60s linear infinite;
+        will-change: transform;
+        color: #fff;
+    }
+    #news-ticker-track:hover {
+        animation-play-state: paused;
+    }
+    
+    @keyframes tickerScroll {
+        0% { transform: translateX(100%); }
+        100% { transform: translateX(-100%); }
+    }
+    
+    .news-ticker-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 40px;
+        font-weight: 600;
+        font-size: 0.94rem;
+        color: #fff;
+    }
+    
+    .news-ticker-item .item-icon {
+        font-size: 1.05rem;
+        filter: drop-shadow(0 0 4px rgba(212, 175, 55, 0.5));
+    }
+    
+    .news-ticker-item .item-bullet {
+        color: #d4af37;
+        font-size: 1.2rem;
+        font-weight: bold;
+    }
+    
+    /* زر الإغلاق */
+    .ticker-close-btn {
+        flex-shrink: 0;
+        background: rgba(231, 76, 60, 0.15);
+        color: #ff7676;
+        border: 1px solid rgba(231, 76, 60, 0.4);
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 0.95rem;
+        font-weight: bold;
+        line-height: 1;
+        margin: 0 12px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+    }
+    .ticker-close-btn:hover {
+        background: #e74c3c;
+        color: #fff;
+        transform: scale(1.1);
+    }
+    
+    /* عند ظهور الشريط، نُزيح المحتوى لأسفل */
+    body.has-ticker {
+        padding-top: 48px;
+    }
+    body.has-ticker .sidebar {
+        top: 48px !important;
+        height: calc(100vh - 48px) !important;
+    }
+    body.has-ticker #notif-bell-btn {
+        top: 64px !important;
+    }
+    
+    /* في الموبايل */
+    @media (max-width: 600px) {
+        .ticker-inner { height: 38px; }
+        .ticker-icon-box { width: 42px; font-size: 1.1rem; }
+        .news-ticker-item { font-size: 0.85rem; padding: 0 30px; }
+        body.has-ticker { padding-top: 42px; }
+        body.has-ticker .sidebar { top: 42px !important; height: calc(100vh - 42px) !important; }
+    }
+    
+    /* 📨 جرس الإشعارات */
+    #notif-bell-btn {
+        position: fixed;
+        top: 18px;
+        left: 18px;
+        background: linear-gradient(135deg, #d4af37, #b8860b);
+        color: #1a0d2e;
+        border: 2px solid rgba(255,255,255,0.3);
+        width: 52px; height: 52px;
+        border-radius: 50%;
+        cursor: pointer;
+        font-size: 1.4rem;
+        z-index: 9998;
+        box-shadow: 0 6px 20px rgba(212, 175, 55, 0.4);
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    #notif-bell-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 8px 28px rgba(212, 175, 55, 0.6);
+    }
+    #notif-bell-btn.has-unread {
+        animation: bellShake 1.5s ease-in-out infinite;
+    }
+    @keyframes bellShake {
+        0%, 100% { transform: rotate(0); }
+        10%, 30% { transform: rotate(-12deg); }
+        20%, 40% { transform: rotate(12deg); }
+        50% { transform: rotate(0); }
+    }
+    #notif-bell-count {
+        position: absolute;
+        top: -4px;
+        left: -4px;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 0.72rem;
+        font-weight: bold;
+        width: 22px; height: 22px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid #fff;
+    }
+    #notif-bell-count.show { display: flex; }
+    
+    /* 📨 لوحة الإشعارات */
+    #notif-panel {
+        position: fixed;
+        top: 80px;
+        left: 18px;
+        width: 380px;
+        max-width: calc(100vw - 36px);
+        max-height: 70vh;
+        background: linear-gradient(135deg, #0a1228, #050a1a);
+        border: 2px solid var(--gold);
+        border-radius: 16px;
+        z-index: 9997;
+        display: none;
+        overflow-y: auto;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+    #notif-panel.show { display: block; animation: slideIn 0.3s ease-out; }
+    .notif-item {
+        padding: 14px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .notif-item:hover { background: rgba(212, 175, 55, 0.06); }
+    .notif-item.unread {
+        background: rgba(212, 175, 55, 0.08);
+        border-right: 3px solid var(--gold);
+    }
+    .notif-item.urgent { border-right: 3px solid #e74c3c; }
+    .notif-item.warning { border-right: 3px solid #f39c12; }
+    .notif-item.success { border-right: 3px solid #2ecc71; }
+</style>
+
+<!-- 🔔 جرس الإشعارات -->
+<button id="notif-bell-btn" onclick="toggleNotifPanel()" title="الإشعارات">
+    🔔
+    <span id="notif-bell-count">0</span>
+</button>
+
+<!-- 📨 لوحة الإشعارات -->
+<div id="notif-panel">
+    <div style="padding:16px;border-bottom:2px solid var(--gold);background:rgba(212,175,55,0.05);display:flex;justify-content:space-between;align-items:center;">
+        <h3 style="color:var(--gold);font-family:'Amiri';margin:0;font-size:1.2rem;">📨 إشعاراتك</h3>
+        <button onclick="toggleNotifPanel()" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:5px 12px;border-radius:8px;cursor:pointer;font-size:0.8rem;">✕</button>
+    </div>
+    <div id="notif-list" style="padding:8px;">
+        <div style="text-align:center;padding:30px;color:rgba(255,255,255,0.5);">⏳ جارٍ التحميل...</div>
+    </div>
+</div>
 
 <canvas id="teachers-particles"></canvas>
 <div class="teachers-shooting-stars"></div>
@@ -2978,6 +3453,54 @@
             </div>
         </div>
 
+        <!-- 📧 بياناتي للتواصل -->
+        <div class="tilt-card" style="margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:8px;">
+                <h3 style="color:var(--gold);margin:0;font-size:1.15rem;"><i class="fas fa-address-card" style="margin-left:8px;"></i> بياناتي الشخصية (للتواصل ومتابعة التحديثات)</h3>
+                <span style="color:#7fffd4;font-size:0.82rem;background:rgba(46,204,113,0.1);padding:4px 12px;border-radius:20px;border:1px solid rgba(46,204,113,0.3);">✨ مكافأة: إكمالها = إشعار بالتحديثات</span>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;">
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">👤 الاسم الكامل</label>
+                    <input type="text" id="prof-full-name" placeholder="مثال: الأستاذ أحمد محمد" style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">📧 الإيميل *</label>
+                    <input type="email" id="prof-email" placeholder="example@gmail.com" style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;direction:ltr;text-align:right;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">📱 رقم الجوال (واتساب)</label>
+                    <input type="tel" id="prof-phone" placeholder="96878537653" style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;direction:ltr;text-align:right;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">🏫 المدرسة</label>
+                    <input type="text" id="prof-school" placeholder="اسم المدرسة" style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">📚 المادة</label>
+                    <select id="prof-subject" style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;">
+                        <option value="">-- اختر --</option>
+                        <option value="رياضيات">🔢 رياضيات</option>
+                        <option value="فيزياء">⚛️ فيزياء</option>
+                        <option value="كيمياء">🧪 كيمياء</option>
+                        <option value="أحياء">🧬 أحياء</option>
+                        <option value="علوم">🔬 علوم</option>
+                        <option value="حاسوب">💻 حاسوب</option>
+                        <option value="أخرى">📖 أخرى</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.83rem;color:rgba(255,255,255,0.65);margin-bottom:6px;font-weight:600;">🌍 المدينة</label>
+                    <input type="text" id="prof-city" placeholder="مسقط، صلالة، ..." style="width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(212,175,55,0.25);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;">
+                </div>
+            </div>
+            
+            <button class="btn-gold-main shiny-btn" onclick="saveTeacherProfile()" style="margin-top:16px;width:auto;padding:11px 28px;">
+                <i class="fas fa-save"></i> حفظ بياناتي
+            </button>
+        </div>
+
         <!-- بطاقة الاشتراك + تغيير كلمة المرور -->
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px;">
 
@@ -3038,6 +3561,22 @@
             <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#ff7676,#e74c3c,#ffadad,#e74c3c,#c0392b);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">مولّد الاختبارات الفوري</h2>
             <p style="color:rgba(255,118,118,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">⚡ اختر صف ودرس → احصل على ورقة اختبار PDF احترافية ⚡</p>
             <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">يوفّر ساعات من العمل · جاهز للطباعة · يحتوي ورقة الإجابات</p>
+        </div>
+
+        <!-- وضع الإنشاء: اختبار / نشاط صفي -->
+        <div class="glass-card" style="padding:18px;margin-bottom:18px;">
+            <h3 style="color:#ff7676;font-family:'Amiri';margin:0 0 14px;font-size:1.15rem;">⚡ ما الذي تريد إنشاءه؟</h3>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                <button onclick="setExgMode('exam')" id="exg-mode-exam-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:18px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 6px 18px rgba(231,76,60,0.4);transition:0.3s;">
+                    📝 ورقة اختبار رسمية
+                    <div style="font-size:0.78rem;font-weight:500;opacity:0.85;margin-top:6px;">رأس · بيانات الطالب · ورقة إجابات</div>
+                </button>
+                <button onclick="setExgMode('activity')" id="exg-mode-activity-btn" style="background:rgba(46,204,113,0.1);color:#7fffd4;border:1px solid #2ecc71;padding:18px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;transition:0.3s;">
+                    🎯 ورقة نشاط صفي
+                    <div style="font-size:0.78rem;font-weight:500;opacity:0.85;margin-top:6px;">للتطبيق داخل الحصة · مساحة كبيرة للحل</div>
+                </button>
+            </div>
+            <input type="hidden" id="exg-mode" value="exam">
         </div>
 
         <!-- النموذج -->
@@ -3141,7 +3680,7 @@
                     <button onclick="exgPreview()" style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:14px 32px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(52,152,219,0.4);">
                         👁️ معاينة الأسئلة
                     </button>
-                    <button onclick="exgGenerate()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:14px 32px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(231,76,60,0.5);">
+                    <button id="exg-generate-btn" onclick="exgGenerate()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:14px 32px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1rem;box-shadow:0 4px 14px rgba(231,76,60,0.5);">
                         🚀 إنشاء الاختبار
                     </button>
                 </div>
@@ -5206,6 +5745,42 @@ var _exgCurriculum = [];
 var _exgSelectedTemplate = 'gold';
 var _certMode = 'single';
 
+function setExgMode(mode) {
+    document.getElementById('exg-mode').value = mode;
+    var examBtn = document.getElementById('exg-mode-exam-btn');
+    var actBtn = document.getElementById('exg-mode-activity-btn');
+    
+    if (mode === 'exam') {
+        examBtn.style.background = 'linear-gradient(135deg,#e74c3c,#c0392b)';
+        examBtn.style.color = '#fff';
+        examBtn.style.border = 'none';
+        examBtn.style.boxShadow = '0 6px 18px rgba(231,76,60,0.4)';
+        
+        actBtn.style.background = 'rgba(46,204,113,0.1)';
+        actBtn.style.color = '#7fffd4';
+        actBtn.style.border = '1px solid #2ecc71';
+        actBtn.style.boxShadow = 'none';
+    } else {
+        actBtn.style.background = 'linear-gradient(135deg,#27ae60,#16a085)';
+        actBtn.style.color = '#fff';
+        actBtn.style.border = 'none';
+        actBtn.style.boxShadow = '0 6px 18px rgba(46,204,113,0.4)';
+        
+        examBtn.style.background = 'rgba(231,76,60,0.1)';
+        examBtn.style.color = '#ff7676';
+        examBtn.style.border = '1px solid #e74c3c';
+        examBtn.style.boxShadow = 'none';
+    }
+    
+    // تحديث عنوان الزر الكبير
+    var genBtn = document.getElementById('exg-generate-btn');
+    if (genBtn) {
+        genBtn.innerHTML = mode === 'exam' 
+            ? '🎯 إنشاء ورقة اختبار PDF' 
+            : '🎯 إنشاء ورقة نشاط صفي PDF';
+    }
+}
+
 async function loadExamGenerator() {
     if (!_exgCurriculum.length) {
         try {
@@ -5419,6 +5994,7 @@ async function exgGenerate() {
     }
     
     fd.append('count', document.getElementById('exg-count').value);
+    fd.append('mode', document.getElementById('exg-mode').value || 'exam');
     fd.append('types', document.getElementById('exg-types').value);
     fd.append('total_marks', document.getElementById('exg-marks').value);
     fd.append('show_marks', document.getElementById('exg-show-marks').checked);
@@ -9103,5 +9679,274 @@ function printCertImage() {
 
 </script>
 
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📰 NEWS TICKER + 📨 NOTIFICATIONS — المعلم
+// ════════════════════════════════════════════════════════════
+
+// ─── الشريط الإخباري ───
+async function loadNewsTicker(audience) {
+    audience = audience || 'teacher';
+    if (sessionStorage.getItem('ticker_hidden') === '1') return;
+    
+    try {
+        var res = await fetch('/api/tickers/active?audience=' + audience);
+        if (!res.ok) return;
+        var data = await res.json();
+        var tickers = data.tickers || [];
+        
+        var bar = document.getElementById('news-ticker-bar');
+        if (!tickers.length) {
+            if (bar) bar.style.display = 'none';
+            document.body.classList.remove('has-ticker');
+            return;
+        }
+        
+        var track = document.getElementById('news-ticker-track');
+        var iconBox = document.getElementById('ticker-static-icon');
+        if (!bar || !track) return;
+        
+        // أيقونة الصندوق = أول شريط
+        if (iconBox) iconBox.textContent = tickers[0].icon || '📢';
+        
+        // بناء المحتوى — كل الأشرطة (متعددة) في تتابع
+        var content = '';
+        var allItems = [];
+        tickers.forEach(function(t) {
+            allItems.push({ text: t.text, icon: t.icon || '📢' });
+        });
+        
+        // نُكرّر القائمة 3 مرات لضمان السلاسة
+        for (var rep = 0; rep < 3; rep++) {
+            allItems.forEach(function(item, idx) {
+                content += '<span class="news-ticker-item">';
+                content += '<span class="item-icon">' + escapeHtmlTk(item.icon) + '</span>';
+                content += escapeHtmlTk(item.text);
+                if (idx < allItems.length - 1 || rep < 2) {
+                    content += '<span class="item-bullet">◆</span>';
+                }
+                content += '</span>';
+            });
+        }
+        track.innerHTML = content;
+        
+        // السرعة من أول شريط
+        var speed = tickers[0].speed || 60;
+        track.style.animationDuration = speed + 's';
+        
+        bar.style.display = 'block';
+        document.body.classList.add('has-ticker');
+    } catch(e) {
+        console.warn('[ticker] error:', e);
+    }
+}
+
+function escapeHtmlTk(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s || '');
+    return d.innerHTML;
+}
+
+function hideNewsTicker() {
+    var bar = document.getElementById('news-ticker-bar');
+    if (bar) bar.style.display = 'none';
+    document.body.classList.remove('has-ticker');
+    sessionStorage.setItem('ticker_hidden', '1');
+}
+
+// ─── إشعارات المعلم ───
+var _teacherNotifs = [];
+
+function _tnTeacherId() {
+    if (typeof teacherData !== 'undefined' && teacherData && teacherData.id) return teacherData.id;
+    return localStorage.getItem('teacher_id') || 0;
+}
+
+async function loadTeacherNotifications() {
+    var tid = _tnTeacherId();
+    if (!tid) return;
+    
+    try {
+        var res = await fetch('/api/teacher/notifications?teacher_id=' + tid);
+        if (!res.ok) return;
+        var data = await res.json();
+        _teacherNotifs = data.notifications || [];
+        
+        var bell = document.getElementById('notif-bell-btn');
+        var count = document.getElementById('notif-bell-count');
+        var unread = data.unread_count || 0;
+        
+        if (count && bell) {
+            if (unread > 0) {
+                count.textContent = unread > 99 ? '99+' : unread;
+                count.classList.add('show');
+                bell.classList.add('has-unread');
+            } else {
+                count.classList.remove('show');
+                bell.classList.remove('has-unread');
+            }
+        }
+        
+        renderNotifPanel();
+    } catch(e) {
+        console.warn('[notifs] error:', e);
+    }
+}
+
+function renderNotifPanel() {
+    var list = document.getElementById('notif-list');
+    if (!list) return;
+    
+    if (!_teacherNotifs.length) {
+        list.innerHTML = '<div style="text-align:center;padding:50px 20px;color:rgba(255,255,255,0.5);">' +
+            '<div style="font-size:3rem;margin-bottom:10px;">📭</div>' +
+            '<p>لا توجد إشعارات</p></div>';
+        return;
+    }
+    
+    var typeColors = { info:'info', warning:'warning', urgent:'urgent', success:'success' };
+    var typeIcons = { info:'ℹ️', warning:'⚠️', urgent:'🚨', success:'✅' };
+    
+    var html = '';
+    _teacherNotifs.forEach(function(n) {
+        var typeClass = typeColors[n.type] || 'info';
+        var icon = n.icon || typeIcons[n.type] || '📨';
+        var unreadCls = n.is_read ? '' : 'unread';
+        var pinned = n.pinned ? '📌 ' : '';
+        var when = n.created_at ? new Date(n.created_at).toLocaleString('ar') : '';
+        
+        html += '<div class="notif-item ' + typeClass + ' ' + unreadCls + '" onclick="markNotifRead(' + n.id + ')">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px;">';
+        html += '<div style="flex:1;min-width:0;">';
+        html += '<h4 style="color:#fff;margin:0 0 6px;font-size:0.95rem;">' + icon + ' ' + pinned + escapeHtmlTk(n.title) + '</h4>';
+        if (n.body) html += '<p style="color:rgba(255,255,255,0.7);margin:0 0 6px;font-size:0.84rem;line-height:1.7;">' + escapeHtmlTk(n.body) + '</p>';
+        html += '<div style="color:rgba(255,255,255,0.4);font-size:0.72rem;">' + when + '</div>';
+        html += '</div>';
+        if (!n.is_read) html += '<div style="width:8px;height:8px;background:#d4af37;border-radius:50%;flex-shrink:0;margin-top:4px;"></div>';
+        html += '</div></div>';
+    });
+    list.innerHTML = html;
+}
+
+function toggleNotifPanel() {
+    var panel = document.getElementById('notif-panel');
+    if (panel) panel.classList.toggle('show');
+    if (panel && panel.classList.contains('show')) {
+        loadTeacherNotifications();
+    }
+}
+
+async function markNotifRead(id) {
+    try {
+        await fetch('/api/teacher/notifications/' + id + '/read', { method: 'POST' });
+        var n = _teacherNotifs.find(function(x){ return x.id === id; });
+        if (n) n.is_read = true;
+        loadTeacherNotifications();
+    } catch(e) {}
+}
+
+// إغلاق Panel عند الضغط خارجه
+document.addEventListener('click', function(e) {
+    var panel = document.getElementById('notif-panel');
+    var bell = document.getElementById('notif-bell-btn');
+    if (!panel || !panel.classList.contains('show')) return;
+    if (panel.contains(e.target) || bell.contains(e.target)) return;
+    panel.classList.remove('show');
+});
+
+// تحميل تلقائي
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() { loadNewsTicker('teacher'); }, 1000);
+    setTimeout(function() { loadTeacherNotifications(); }, 1500);
+    // تحديث كل 5 دقائق
+    setInterval(function() { loadNewsTicker('teacher'); }, 300000);
+    setInterval(function() { loadTeacherNotifications(); }, 180000);  // 3 دقائق
+});
+</script>
+
+<script>
+
+// ════════════════════════════════════════════════════════════
+// 📧 TEACHER PROFILE — تحميل/حفظ البيانات الشخصية
+// ════════════════════════════════════════════════════════════
+async function loadTeacherProfile() {
+    var tid = (typeof teacherData !== 'undefined' && teacherData && teacherData.id) ? teacherData.id : 0;
+    if (!tid) return;
+    
+    try {
+        var res = await fetch('/api/teacher/profile?teacher_id=' + tid);
+        if (!res.ok) return;
+        var data = await res.json();
+        var p = data.profile || {};
+        
+        var fields = {
+            'prof-full-name': p.full_name,
+            'prof-email': p.email,
+            'prof-phone': p.phone,
+            'prof-school': p.school,
+            'prof-subject': p.subject,
+            'prof-city': p.city,
+        };
+        Object.keys(fields).forEach(function(id) {
+            var el = document.getElementById(id);
+            if (el && fields[id]) el.value = fields[id];
+        });
+    } catch(e) {
+        console.warn('[profile] load:', e);
+    }
+}
+
+async function saveTeacherProfile() {
+    var tid = (typeof teacherData !== 'undefined' && teacherData && teacherData.id) ? teacherData.id : 0;
+    if (!tid) {
+        if (typeof showToast === 'function') showToast('⚠️ يجب تسجيل الدخول أولاً', 'warning');
+        return;
+    }
+    
+    var email = (document.getElementById('prof-email').value || '').trim();
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        if (typeof showToast === 'function') showToast('⚠️ صيغة الإيميل غير صحيحة', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('teacher_id', tid);
+    fd.append('full_name', document.getElementById('prof-full-name').value || '');
+    fd.append('email', email);
+    fd.append('phone', document.getElementById('prof-phone').value || '');
+    fd.append('school', document.getElementById('prof-school').value || '');
+    fd.append('subject', document.getElementById('prof-subject').value || '');
+    fd.append('city', document.getElementById('prof-city').value || '');
+    
+    try {
+        var res = await fetch('/api/teacher/profile/update', { method: 'POST', body: fd });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            if (typeof showToast === 'function') showToast('❌ ' + (data.detail || 'فشل'), 'error');
+            return;
+        }
+        
+        if (typeof showToast === 'function') showToast('✅ تم حفظ بياناتك', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + e.message, 'error');
+    }
+}
+
+// تحميل تلقائي عند فتح قسم البروفايل
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'profile') {
+                setTimeout(loadTeacherProfile, 200);
+            }
+        };
+    }
+})();
+</script>
 </body>
 </html>
