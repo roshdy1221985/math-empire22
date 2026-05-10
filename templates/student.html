@@ -1518,6 +1518,9 @@
         <button class="nav-btn shiny-btn btn-vclass" id="btn-vclass" onclick="openVirtualClasses()" style="background:linear-gradient(135deg,#3498db,#2980b9);border-color:#5dade2;">
             <span class="btn-icon">🏛️</span><span class="sidebar-label">الفصل الافتراضي <span class="nav-vip-badge" id="vc-count-pill" style="display:none;background:#fff;color:#2980b9;">0</span></span>
         </button>
+        <button class="nav-btn shiny-btn btn-myteacher" id="btn-myteacher" onclick="openMyTeacherClassrooms()" style="background:linear-gradient(135deg,#00bfff,#0099cc);border-color:#5dd5ff;">
+            <span class="btn-icon">⚔️</span><span class="sidebar-label">قائدي ومعسكراتي <span class="nav-vip-badge" id="myteacher-count-pill" style="display:none;background:#fff;color:#0099cc;">0</span></span>
+        </button>
 
         <!-- ════════ ⚔️ القسم 2: التحدي والمنافسة ════════ -->
         <div class="sidebar-section-title">⚔️ التحدي والمنافسة</div>
@@ -10133,5 +10136,479 @@ function _hllOpenLesson(lessonId) {
 }
 
 </script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     ⚔️ Modal "قائدي ومعسكراتي" — للطالب
+════════════════════════════════════════════════════════════ -->
+<div id="myteacher-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);z-index:99990;overflow-y:auto;padding:20px;">
+    <div style="max-width:1100px;margin:20px auto;background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #00bfff;border-radius:20px;padding:24px;color:#fff;">
+        
+        <!-- Header -->
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:18px;border-bottom:1px solid rgba(0,191,255,0.2);padding-bottom:14px;">
+            <h2 style="font-family:'Amiri',serif;color:#5dd5ff;margin:0;font-size:1.7rem;">⚔️ قائدي ومعسكراتي</h2>
+            <button onclick="closeMyTeacherClassrooms()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إغلاق</button>
+        </div>
+        
+        <!-- View 1: قائمة المعسكرات -->
+        <div id="mt-list-view">
+            <!-- صندوق الانضمام -->
+            <div style="background:linear-gradient(135deg,rgba(243,156,18,0.08),rgba(243,156,18,0.03));border:2px dashed #f39c12;border-radius:14px;padding:18px;margin-bottom:18px;text-align:center;">
+                <div style="font-size:2.5rem;margin-bottom:8px;">🎫</div>
+                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 6px;font-size:1.1rem;">انضم لمعسكر قائدك</h3>
+                <p style="color:rgba(255,255,255,0.7);margin:0 0 12px;font-size:0.88rem;">احصل على كود المعسكر من معلّمك</p>
+                <div style="display:flex;gap:10px;max-width:400px;margin:0 auto;flex-wrap:wrap;">
+                    <input type="text" id="mt-join-code" placeholder="مثل: ABC-1234" maxlength="12" style="flex:1;min-width:200px;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.4);color:#fff;padding:11px 14px;border-radius:10px;font-family:monospace;font-size:1.1rem;text-align:center;font-weight:bold;letter-spacing:2px;text-transform:uppercase;">
+                    <button onclick="joinClassroom()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:11px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">🚪 انضم</button>
+                </div>
+            </div>
+            
+            <!-- شبكة المعسكرات -->
+            <h3 style="color:#5dd5ff;font-family:'Amiri';margin:0 0 14px;font-size:1.15rem;">🏛️ معسكراتي</h3>
+            <div id="mt-classrooms-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;">
+                <div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.5);">⏳ جارٍ التحميل...</div>
+            </div>
+        </div>
+        
+        <!-- View 2: تفاصيل معسكر -->
+        <div id="mt-detail-view" style="display:none;">
+            <button onclick="backToMyClassroomsList()" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:9px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:14px;">← العودة للمعسكرات</button>
+            <div id="mt-detail-content"></div>
+        </div>
+        
+        <!-- View 3: أداء اختبار -->
+        <div id="mt-exam-view" style="display:none;">
+            <div id="mt-exam-content"></div>
+        </div>
+    </div>
+</div>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// ⚔️ STUDENT CLASSROOMS — قائدي ومعسكراتي
+// ════════════════════════════════════════════════════════════
+var _mtClassrooms = [];
+var _mtCurrentClassroom = null;
+var _mtCurrentExam = null;
+var _mtExamStartTime = 0;
+
+function _stuId() {
+    return (window.currentStudent && window.currentStudent.id) ||
+           localStorage.getItem('student_id') ||
+           localStorage.getItem('studentId') ||
+           1;
+}
+
+function openMyTeacherClassrooms() {
+    document.getElementById('myteacher-overlay').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+    loadMyClassroomsForStudent();
+}
+
+function closeMyTeacherClassrooms() {
+    document.getElementById('myteacher-overlay').style.display = 'none';
+    document.body.style.overflow = '';
+    document.getElementById('mt-list-view').style.display = 'block';
+    document.getElementById('mt-detail-view').style.display = 'none';
+    document.getElementById('mt-exam-view').style.display = 'none';
+}
+
+async function loadMyClassroomsForStudent() {
+    var grid = document.getElementById('mt-classrooms-grid');
+    if (!grid) return;
+    
+    try {
+        var res = await fetch('/api/student/classrooms/my?student_id=' + _stuId());
+        var data = await res.json();
+        _mtClassrooms = data.classrooms || [];
+        
+        // تحديث pill
+        var pill = document.getElementById('myteacher-count-pill');
+        if (pill) {
+            if (_mtClassrooms.length) {
+                pill.textContent = _mtClassrooms.length;
+                pill.style.display = 'inline-block';
+            } else {
+                pill.style.display = 'none';
+            }
+        }
+        
+        if (!_mtClassrooms.length) {
+            grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px 20px;color:rgba(255,255,255,0.5);">' +
+                '<div style="font-size:5rem;margin-bottom:14px;">⚔️</div>' +
+                '<h3 style="color:#5dd5ff;font-family:\'Amiri\';margin-bottom:8px;">لا تنتمي لأي معسكر بعد</h3>' +
+                '<p>اطلب كود المعسكر من قائدك (معلمك)</p></div>';
+            return;
+        }
+        
+        var html = '';
+        _mtClassrooms.forEach(function(c) {
+            html += '<div onclick="openStudentClassroom(' + c.id + ')" style="background:linear-gradient(160deg,' + c.cover_color + '40,rgba(0,8,20,0.85));border:2px solid ' + c.cover_color + ';border-radius:14px;padding:18px;cursor:pointer;transition:all 0.3s;" onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 12px 30px ' + c.cover_color + '50\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">';
+            html += '<div style="font-size:3rem;margin-bottom:10px;">' + (c.cover_emoji || '📚') + '</div>';
+            html += '<h3 style="font-family:\'Amiri\';color:#fff;margin:0 0 4px;font-size:1.15rem;">' + esc(c.name) + '</h3>';
+            if (c.teacher_name) html += '<p style="color:#7fffd4;margin:0 0 6px;font-size:0.85rem;font-weight:600;">👨‍🏫 ' + esc(c.teacher_name) + '</p>';
+            if (c.grade) html += '<p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.82rem;">🎓 ' + esc(c.grade) + '</p>';
+            if (c.description) html += '<p style="color:rgba(255,255,255,0.55);margin:8px 0 0;font-size:0.8rem;line-height:1.6;">' + esc(c.description.substring(0, 80)) + '</p>';
+            html += '</div>';
+        });
+        grid.innerHTML = html;
+    } catch(e) {
+        grid.innerHTML = '<div style="grid-column:1/-1;color:#e74c3c;text-align:center;padding:30px;">❌ فشل التحميل</div>';
+    }
+}
+
+async function joinClassroom() {
+    var code = (document.getElementById('mt-join-code').value || '').trim().toUpperCase();
+    if (!code) {
+        if (typeof showToast === 'function') showToast('⚠️ أدخل كود المعسكر', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('student_id', _stuId());
+    fd.append('teacher_code', code);
+    
+    try {
+        var res = await fetch('/api/student/classrooms/join', { method: 'POST', body: fd });
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.detail || 'فشل');
+        }
+        
+        if (typeof showToast === 'function') showToast(data.message || '✅ تم الانضمام', 'success');
+        document.getElementById('mt-join-code').value = '';
+        loadMyClassroomsForStudent();
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
+}
+
+async function openStudentClassroom(classroomId) {
+    document.getElementById('mt-list-view').style.display = 'none';
+    document.getElementById('mt-detail-view').style.display = 'block';
+    
+    var content = document.getElementById('mt-detail-content');
+    content.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch('/api/student/classrooms/' + classroomId + '/feed?student_id=' + _stuId());
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var data = await res.json();
+        _mtCurrentClassroom = data;
+        renderStudentClassroomDetail();
+    } catch(e) {
+        content.innerHTML = '<div style="text-align:center;padding:30px;color:#e74c3c;">❌ ' + (e.message || 'فشل') + '</div>';
+    }
+}
+
+function backToMyClassroomsList() {
+    document.getElementById('mt-list-view').style.display = 'block';
+    document.getElementById('mt-detail-view').style.display = 'none';
+    document.getElementById('mt-exam-view').style.display = 'none';
+    _mtCurrentClassroom = null;
+}
+
+function renderStudentClassroomDetail() {
+    var content = document.getElementById('mt-detail-content');
+    if (!content || !_mtCurrentClassroom) return;
+    
+    var c = _mtCurrentClassroom.classroom;
+    var anns = _mtCurrentClassroom.announcements || [];
+    var exams = _mtCurrentClassroom.exams || [];
+    var sessions = _mtCurrentClassroom.sessions || [];
+    
+    var html = '';
+    
+    // Header
+    html += '<div style="background:linear-gradient(160deg,' + c.cover_color + '30,rgba(0,8,20,0.9));border:2px solid ' + c.cover_color + ';border-radius:16px;padding:20px;margin-bottom:18px;">';
+    html += '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">';
+    html += '<div style="font-size:3.5rem;">' + (c.cover_emoji || '📚') + '</div>';
+    html += '<div style="flex:1;min-width:200px;">';
+    html += '<h2 style="font-family:\'Amiri\';color:#fff;margin:0 0 4px;font-size:1.5rem;">' + esc(c.name) + '</h2>';
+    if (c.teacher_name) html += '<p style="color:#7fffd4;margin:0;font-weight:600;">👨‍🏫 ' + esc(c.teacher_name) + '</p>';
+    if (c.grade) html += '<p style="color:rgba(255,255,255,0.7);margin:4px 0 0;">🎓 ' + esc(c.grade) + '</p>';
+    if (c.description) html += '<p style="color:rgba(255,255,255,0.6);margin:8px 0 0;font-size:0.88rem;">' + esc(c.description) + '</p>';
+    html += '</div>';
+    html += '<button onclick="leaveClassroom(' + c.id + ')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.82rem;font-weight:bold;">🚪 غادر</button>';
+    html += '</div>';
+    html += '</div>';
+    
+    // إعلانات
+    if (anns.length) {
+        html += '<div style="margin-bottom:18px;">';
+        html += '<h3 style="color:#5dd5ff;font-family:\'Amiri\';margin:0 0 10px;font-size:1.1rem;">📢 إعلانات</h3>';
+        var typeColors = { info:'#3498db', warning:'#f39c12', exam:'#e74c3c', celebration:'#2ecc71' };
+        var typeIcons = { info:'📌', warning:'⚠️', exam:'📝', celebration:'🎉' };
+        anns.slice(0, 5).forEach(function(a) {
+            var col = typeColors[a.type] || '#3498db';
+            var ic = typeIcons[a.type] || '📌';
+            html += '<div style="background:rgba(255,255,255,0.04);border-right:4px solid ' + col + ';border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px 14px;margin-bottom:8px;">';
+            html += '<h4 style="color:#fff;margin:0 0 4px;font-size:0.95rem;">' + ic + ' ' + esc(a.title) + (a.pinned ? ' 📌' : '') + '</h4>';
+            if (a.body) html += '<p style="color:rgba(255,255,255,0.75);margin:6px 0 0;font-size:0.86rem;line-height:1.7;">' + esc(a.body) + '</p>';
+            html += '<div style="margin-top:6px;color:rgba(255,255,255,0.4);font-size:0.74rem;">' + new Date(a.created_at).toLocaleString('ar') + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+    
+    // الاختبارات
+    if (exams.length) {
+        html += '<div style="margin-bottom:18px;">';
+        html += '<h3 style="color:#ff7676;font-family:\'Amiri\';margin:0 0 10px;font-size:1.1rem;">📝 الاختبارات</h3>';
+        exams.forEach(function(e) {
+            var done = !!e.my_result;
+            html += '<div style="background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:14px;margin-bottom:8px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<h4 style="color:#fff;margin:0 0 6px;">' + esc(e.title) + '</h4>';
+            if (e.description) html += '<p style="color:rgba(255,255,255,0.6);margin:0 0 6px;font-size:0.85rem;">' + esc(e.description) + '</p>';
+            html += '<div style="display:flex;gap:12px;color:rgba(255,255,255,0.7);font-size:0.82rem;flex-wrap:wrap;">';
+            html += '<span>⏱️ ' + e.duration_min + ' د</span>';
+            html += '<span>⭐ ' + e.total_marks + ' درجة</span>';
+            html += '<span>❓ ' + ((e.questions_json || []).length || 0) + ' سؤال</span>';
+            html += '</div></div>';
+            html += '<div>';
+            if (done) {
+                var pct = Math.round((e.my_result.score / e.my_result.max_score) * 100);
+                var color = pct >= 70 ? '#2ecc71' : pct >= 50 ? '#f39c12' : '#e74c3c';
+                html += '<div style="background:' + color + '20;color:' + color + ';border:1px solid ' + color + ';padding:10px 16px;border-radius:8px;font-weight:bold;text-align:center;">';
+                html += '✅ ' + e.my_result.score + '/' + e.my_result.max_score + '<br><small>(' + pct + '%)</small></div>';
+            } else {
+                html += '<button onclick="startExam(' + e.id + ')" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🚀 ابدأ</button>';
+            }
+            html += '</div></div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+    
+    // الحصص الافتراضية
+    if (sessions.length) {
+        html += '<div style="margin-bottom:18px;">';
+        html += '<h3 style="color:#bb86fc;font-family:\'Amiri\';margin:0 0 10px;font-size:1.1rem;">🎥 الحصص الافتراضية</h3>';
+        sessions.forEach(function(s) {
+            var when = new Date(s.scheduled_at);
+            var now = new Date();
+            var diffMs = when - now;
+            var isLive = diffMs < 0 && diffMs > -(s.duration_min * 60000);
+            var isFuture = diffMs > 0;
+            var isPast = !isLive && !isFuture;
+            
+            html += '<div style="background:' + (isLive ? 'rgba(46,204,113,0.1)' : 'rgba(155,89,182,0.06)') + ';border:1px solid ' + (isLive ? '#2ecc71' : 'rgba(155,89,182,0.3)') + ';border-radius:10px;padding:14px;margin-bottom:8px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<h4 style="color:#fff;margin:0 0 6px;">' + (isLive ? '🟢 حية الآن!' : isPast ? '⚪' : '🟡') + ' ' + esc(s.title) + '</h4>';
+            html += '<p style="color:rgba(255,255,255,0.7);margin:0;font-size:0.84rem;">📅 ' + when.toLocaleString('ar') + ' · ⏱️ ' + s.duration_min + ' د</p>';
+            if (s.description) html += '<p style="color:rgba(255,255,255,0.6);margin:6px 0 0;font-size:0.82rem;">' + esc(s.description) + '</p>';
+            html += '</div>';
+            if (!isPast) {
+                html += '<a href="' + esc(s.link) + '" target="_blank" style="background:' + (isLive ? '#27ae60' : '#9b59b6') + ';color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;text-decoration:none;display:inline-block;">' + (isLive ? '🚀 انضم الآن!' : '🔗 الرابط') + '</a>';
+            }
+            html += '</div></div>';
+        });
+        html += '</div>';
+    }
+    
+    // لو فاضي
+    if (!anns.length && !exams.length && !sessions.length) {
+        html += '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">' +
+            '<div style="font-size:3rem;margin-bottom:10px;">📭</div>' +
+            '<p>لا أنشطة جديدة في المعسكر بعد</p></div>';
+    }
+    
+    content.innerHTML = html;
+}
+
+async function leaveClassroom(classroomId) {
+    if (!confirm('🚪 هل أنت متأكد من المغادرة؟')) return;
+    try {
+        var res = await fetch('/api/student/classrooms/' + classroomId + '/leave?student_id=' + _stuId(), { method: 'DELETE' });
+        if (!res.ok) throw new Error('فشل');
+        if (typeof showToast === 'function') showToast('🚪 غادرت المعسكر', 'success');
+        backToMyClassroomsList();
+        loadMyClassroomsForStudent();
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل', 'error');
+    }
+}
+
+// ─── أداء الاختبار ───
+async function startExam(examId) {
+    var classroom = _mtCurrentClassroom.classroom;
+    var exam = (_mtCurrentClassroom.exams || []).find(function(e){ return e.id === examId; });
+    if (!exam) return;
+    
+    if (!confirm('📝 ابدأ اختبار "' + exam.title + '"؟\n⏱️ المدة: ' + exam.duration_min + ' دقيقة\n⭐ الدرجة: ' + exam.total_marks + '\n\n⚠️ لا يمكن التراجع بعد البدء!')) {
+        return;
+    }
+    
+    _mtCurrentExam = exam;
+    _mtExamStartTime = Date.now();
+    
+    document.getElementById('mt-detail-view').style.display = 'none';
+    document.getElementById('mt-exam-view').style.display = 'block';
+    
+    renderExamForm();
+}
+
+function renderExamForm() {
+    var content = document.getElementById('mt-exam-content');
+    var exam = _mtCurrentExam;
+    if (!exam) return;
+    
+    var questions = exam.questions_json || [];
+    if (typeof questions === 'string') {
+        try { questions = JSON.parse(questions); } catch(e) { questions = []; }
+    }
+    
+    var html = '';
+    
+    // Header
+    html += '<div style="background:linear-gradient(160deg,rgba(231,76,60,0.1),rgba(0,8,20,0.9));border:2px solid #e74c3c;border-radius:14px;padding:18px;margin-bottom:18px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+    html += '<div>';
+    html += '<h2 style="color:#fff;margin:0 0 4px;font-family:Amiri;">📝 ' + esc(exam.title) + '</h2>';
+    html += '<p style="color:rgba(255,255,255,0.7);margin:0;font-size:0.9rem;">⏱️ ' + exam.duration_min + ' د · ⭐ ' + exam.total_marks + ' درجة · ❓ ' + questions.length + ' سؤال</p>';
+    html += '</div>';
+    html += '<div id="exam-timer" style="background:#e74c3c;color:#fff;padding:8px 16px;border-radius:8px;font-family:monospace;font-size:1.2rem;font-weight:bold;">' + exam.duration_min + ':00</div>';
+    html += '</div></div>';
+    
+    // Questions
+    html += '<div style="display:flex;flex-direction:column;gap:14px;">';
+    questions.forEach(function(q, i) {
+        html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;">';
+        html += '<div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">';
+        html += '<div style="background:#e74c3c;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;">' + (i+1) + '</div>';
+        html += '<div style="flex:1;color:#fff;font-weight:600;line-height:1.7;">' + esc(q.question || '') + '</div>';
+        html += '</div>';
+        
+        var options = q.options || [];
+        if (typeof options === 'string') {
+            options = options.split(/[،,]/);
+        }
+        
+        if (options && options.length) {
+            html += '<div style="display:flex;flex-direction:column;gap:6px;margin-top:10px;">';
+            options.forEach(function(opt, oi) {
+                var letter = ['أ','ب','ج','د','هـ','و'][oi] || (oi+1);
+                html += '<label style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.1);border-radius:8px;padding:10px 12px;cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background=\'rgba(231,76,60,0.08)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.03)\'">';
+                html += '<input type="radio" name="q_' + i + '" value="' + esc(String(opt).trim()) + '" style="cursor:pointer;">';
+                html += '<span style="color:#ff7676;font-weight:bold;">' + letter + ')</span>';
+                html += '<span style="color:#fff;flex:1;">' + esc(String(opt).trim()) + '</span>';
+                html += '</label>';
+            });
+            html += '</div>';
+        } else {
+            // إجابة قصيرة
+            html += '<input type="text" name="q_' + i + '" placeholder="اكتب إجابتك..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px;border-radius:8px;font-family:Cairo;font-weight:600;margin-top:10px;">';
+        }
+        html += '</div>';
+    });
+    html += '</div>';
+    
+    // Submit
+    html += '<div style="text-align:center;margin-top:20px;">';
+    html += '<button onclick="submitExam()" style="background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:14px 36px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.05rem;box-shadow:0 6px 18px rgba(39,174,96,0.5);">✅ تسليم الاختبار</button>';
+    html += '<button onclick="if(confirm(\'تأكيد الإلغاء؟\')) backToMyClassroomsList()" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:14px 24px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-right:10px;">✕ إلغاء</button>';
+    html += '</div>';
+    
+    content.innerHTML = html;
+    
+    // Timer
+    startExamTimer(exam.duration_min);
+}
+
+var _examTimerInterval = null;
+function startExamTimer(durationMin) {
+    if (_examTimerInterval) clearInterval(_examTimerInterval);
+    var totalSec = durationMin * 60;
+    var elapsed = 0;
+    
+    _examTimerInterval = setInterval(function() {
+        elapsed++;
+        var remaining = totalSec - elapsed;
+        if (remaining <= 0) {
+            clearInterval(_examTimerInterval);
+            _examTimerInterval = null;
+            alert('⏰ انتهى الوقت! سيتم التسليم تلقائياً.');
+            submitExam();
+            return;
+        }
+        var min = Math.floor(remaining / 60);
+        var sec = remaining % 60;
+        var t = document.getElementById('exam-timer');
+        if (t) {
+            t.textContent = (min < 10 ? '0' : '') + min + ':' + (sec < 10 ? '0' : '') + sec;
+            if (remaining < 60) t.style.background = '#c0392b';
+        }
+    }, 1000);
+}
+
+async function submitExam() {
+    if (!_mtCurrentExam) return;
+    
+    if (_examTimerInterval) {
+        clearInterval(_examTimerInterval);
+        _examTimerInterval = null;
+    }
+    
+    // اجمع الإجابات
+    var questions = _mtCurrentExam.questions_json || [];
+    if (typeof questions === 'string') questions = JSON.parse(questions);
+    
+    var answers = {};
+    questions.forEach(function(q, i) {
+        var selected = document.querySelector('input[name="q_' + i + '"]:checked');
+        if (selected) {
+            answers[i] = selected.value;
+        } else {
+            var text = document.querySelector('input[name="q_' + i + '"][type="text"]');
+            if (text) answers[i] = text.value;
+        }
+    });
+    
+    var timeTaken = Math.round((Date.now() - _mtExamStartTime) / 1000);
+    
+    var fd = new FormData();
+    fd.append('student_id', _stuId());
+    fd.append('answers_json', JSON.stringify(answers));
+    fd.append('time_taken_sec', timeTaken);
+    
+    try {
+        var res = await fetch('/api/student/classrooms/exams/' + _mtCurrentExam.id + '/submit', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var data = await res.json();
+        
+        // Result
+        var content = document.getElementById('mt-exam-content');
+        var pct = data.percentage || 0;
+        var color = pct >= 70 ? '#2ecc71' : pct >= 50 ? '#f39c12' : '#e74c3c';
+        var emoji = pct >= 90 ? '🏆' : pct >= 70 ? '🌟' : pct >= 50 ? '👍' : '💪';
+        
+        content.innerHTML = '<div style="text-align:center;padding:40px 20px;background:linear-gradient(135deg,rgba(46,204,113,0.1),rgba(0,8,20,0.9));border:2px solid ' + color + ';border-radius:18px;">' +
+            '<div style="font-size:5rem;margin-bottom:14px;">' + emoji + '</div>' +
+            '<h2 style="color:' + color + ';font-family:Amiri;margin:0 0 18px;">تم التسليم!</h2>' +
+            '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:14px;max-width:600px;margin:0 auto;">' +
+            '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;"><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">الدرجة</div><div style="font-family:Amiri;font-size:2rem;font-weight:bold;color:#fff;">' + data.score + ' / ' + data.max_score + '</div></div>' +
+            '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;"><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">النسبة</div><div style="font-family:Amiri;font-size:2rem;font-weight:bold;color:' + color + ';">' + pct + '%</div></div>' +
+            '<div style="background:rgba(255,255,255,0.05);padding:16px;border-radius:10px;"><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">صحيحة</div><div style="font-family:Amiri;font-size:2rem;font-weight:bold;color:#2ecc71;">' + data.correct + ' / ' + data.total_questions + '</div></div>' +
+            '</div>' +
+            '<button onclick="backToMyClassroomsList(); openStudentClassroom(' + _mtCurrentClassroom.classroom.id + ')" style="margin-top:24px;background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">← العودة للمعسكر</button>' +
+            '</div>';
+        
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل التسليم'), 'error');
+    }
+}
+</script>
+
 </body>
 </html>

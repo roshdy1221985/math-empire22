@@ -6770,6 +6770,845 @@ async def teacher_certificate_batch_v2(
     return HTMLResponse(content=final_html)
 
 
+
+# ════════════════════════════════════════════════════════════════
+# 🏛️ TEACHER CLASSROOMS — نظام الفصول الخاصة بالمعلم
+# ════════════════════════════════════════════════════════════════
+
+import secrets as _crypto_secrets
+import string as _string
+
+def _generate_classroom_code():
+    """🎫 يُولّد كود فصل فريد: XXX-1234"""
+    letters = ''.join(_crypto_secrets.choice(_string.ascii_uppercase) for _ in range(3))
+    digits = ''.join(_crypto_secrets.choice(_string.digits) for _ in range(4))
+    return f"{letters}-{digits}"
+
+
+# ═══════════ Endpoints للمعلم ═══════════
+
+@app.post("/api/teacher/classrooms/create")
+async def teacher_create_classroom(
+    teacher_id: int     = Form(...),
+    name: str           = Form(...),
+    description: str    = Form(default=""),
+    grade: str          = Form(default=""),
+    cover_color: str    = Form(default="#1976d2"),
+    cover_emoji: str    = Form(default="📚"),
+    max_students: int   = Form(default=50),
+    requires_approval: bool = Form(default=False),
+):
+    """🏛️ إنشاء فصل دراسي جديد"""
+    if not name.strip():
+        raise HTTPException(status_code=400, detail="اسم الفصل مطلوب")
+    if len(name) > 120:
+        raise HTTPException(status_code=400, detail="اسم الفصل طويل جداً")
+    
+    # نتأكد من وجود المعلم
+    try:
+        t = supabase.table("teachers").select("id").eq("id", teacher_id).maybe_single().execute()
+        if not t or not t.data:
+            raise HTTPException(status_code=404, detail="المعلم غير موجود")
+    except HTTPException:
+        raise
+    except Exception:
+        pass  # نسمح بالاستمرار حتى لو لم نتمكن من التحقق
+    
+    # نولّد كوداً فريداً
+    code = None
+    for _ in range(10):
+        candidate = _generate_classroom_code()
+        try:
+            existing = supabase.table("teacher_classrooms").select("id").eq("code", candidate).maybe_single().execute()
+            if not existing or not existing.data:
+                code = candidate
+                break
+        except Exception:
+            code = candidate
+            break
+    
+    if not code:
+        raise HTTPException(status_code=500, detail="فشل توليد كود فريد")
+    
+    try:
+        res = supabase.table("teacher_classrooms").insert({
+            "owner_teacher_id": teacher_id,
+            "name": name.strip(),
+            "code": code,
+            "description": description.strip()[:1000],
+            "grade": grade.strip()[:80],
+            "cover_color": cover_color[:20],
+            "cover_emoji": cover_emoji[:10],
+            "max_students": max(5, min(int(max_students), 200)),
+            "requires_approval": bool(requires_approval),
+            "is_active": True,
+        }).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=500, detail="فشل إنشاء الفصل")
+        
+        return {
+            "status": "ok",
+            "classroom": res.data[0],
+            "message": f"✅ تم إنشاء الفصل! الكود: {code}"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_classroom] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/classrooms/my")
+async def teacher_my_classrooms(teacher_id: int):
+    """📋 قائمة فصول المعلم"""
+    try:
+        res = supabase.table("teacher_classrooms").select("*").eq(
+            "owner_teacher_id", teacher_id
+        ).order("created_at", desc=True).execute()
+        
+        classrooms = res.data or []
+        
+        # نُضيف عدد الطلاب لكل فصل
+        for c in classrooms:
+            try:
+                count_res = supabase.table("classroom_members").select(
+                    "id", count="exact"
+                ).eq("classroom_id", c["id"]).eq("status", "active").execute()
+                c["members_count"] = count_res.count or 0
+            except Exception:
+                c["members_count"] = 0
+        
+        return {"status": "ok", "classrooms": classrooms, "count": len(classrooms)}
+    except Exception as e:
+        print(f"[my_classrooms] error: {e}")
+        return {"status": "error", "classrooms": [], "count": 0}
+
+
+@app.get("/api/teacher/classrooms/{classroom_id}")
+async def teacher_classroom_details(classroom_id: int, teacher_id: int):
+    """📊 تفاصيل فصل (للمعلم المالك فقط)"""
+    try:
+        # نتأكد من الملكية
+        res = supabase.table("teacher_classrooms").select("*").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود أو ليس لك")
+        
+        classroom = res.data
+        
+        # الأعضاء
+        members_res = supabase.table("classroom_members").select(
+            "*"
+        ).eq("classroom_id", classroom_id).order("joined_at", desc=False).execute()
+        members = members_res.data or []
+        
+        # نضيف بيانات الطلاب
+        if members:
+            student_ids = [m["student_id"] for m in members]
+            try:
+                students_res = supabase.table("students").select(
+                    "id, full_name, username, grade, total_points"
+                ).in_("id", student_ids).execute()
+                students_map = {s["id"]: s for s in (students_res.data or [])}
+                for m in members:
+                    s = students_map.get(m["student_id"], {})
+                    m["full_name"] = s.get("full_name", f"طالب #{m['student_id']}")
+                    m["username"] = s.get("username", "")
+                    m["grade"] = s.get("grade", "")
+                    m["total_points"] = s.get("total_points", 0)
+            except Exception:
+                pass
+        
+        return {
+            "status": "ok",
+            "classroom": classroom,
+            "members": members,
+            "members_count": len(members),
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[classroom_details] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.put("/api/teacher/classrooms/{classroom_id}")
+async def teacher_update_classroom(
+    classroom_id: int,
+    teacher_id: int     = Form(...),
+    name: str           = Form(default=""),
+    description: str    = Form(default=""),
+    grade: str          = Form(default=""),
+    cover_color: str    = Form(default=""),
+    cover_emoji: str    = Form(default=""),
+    is_active: bool     = Form(default=True),
+):
+    """✏️ تعديل بيانات الفصل"""
+    try:
+        # تحقق من الملكية
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود أو ليس لك")
+        
+        update_data = {"is_active": is_active}
+        if name.strip(): update_data["name"] = name.strip()[:120]
+        if description: update_data["description"] = description.strip()[:1000]
+        if grade: update_data["grade"] = grade.strip()[:80]
+        if cover_color: update_data["cover_color"] = cover_color[:20]
+        if cover_emoji: update_data["cover_emoji"] = cover_emoji[:10]
+        
+        supabase.table("teacher_classrooms").update(update_data).eq("id", classroom_id).execute()
+        return {"status": "ok", "message": "✅ تم التحديث"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/teacher/classrooms/{classroom_id}")
+async def teacher_delete_classroom(classroom_id: int, teacher_id: int):
+    """🗑️ حذف الفصل (مع كل بياناته)"""
+    try:
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        
+        supabase.table("teacher_classrooms").delete().eq("id", classroom_id).execute()
+        return {"status": "ok", "message": "🗑️ تم الحذف"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════ إدارة الأعضاء ═══════════
+
+@app.delete("/api/teacher/classrooms/{classroom_id}/members/{student_id}")
+async def teacher_remove_member(classroom_id: int, student_id: int, teacher_id: int):
+    """🚫 حذف عضو من الفصل"""
+    try:
+        # تحقق من الملكية
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        
+        supabase.table("classroom_members").delete().eq(
+            "classroom_id", classroom_id
+        ).eq("student_id", student_id).execute()
+        return {"status": "ok", "message": "🚫 تم الإزالة"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════ الإعلانات ═══════════
+
+@app.post("/api/teacher/classrooms/{classroom_id}/announcements")
+async def teacher_post_announcement(
+    classroom_id: int,
+    teacher_id: int     = Form(...),
+    title: str          = Form(...),
+    body: str           = Form(default=""),
+    type: str           = Form(default="info"),
+    pinned: bool        = Form(default=False),
+):
+    """📢 نشر إعلان للفصل"""
+    try:
+        # تحقق من الملكية
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        
+        if type not in ("info", "warning", "exam", "celebration"):
+            type = "info"
+        
+        ins = supabase.table("classroom_announcements").insert({
+            "classroom_id": classroom_id,
+            "title": title.strip()[:200],
+            "body": body.strip()[:5000],
+            "type": type,
+            "pinned": bool(pinned),
+        }).execute()
+        
+        return {"status": "ok", "announcement": ins.data[0] if ins.data else None}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/classrooms/{classroom_id}/announcements")
+async def teacher_list_announcements(classroom_id: int):
+    """📋 قائمة إعلانات الفصل"""
+    try:
+        res = supabase.table("classroom_announcements").select("*").eq(
+            "classroom_id", classroom_id
+        ).order("pinned", desc=True).order("created_at", desc=True).limit(50).execute()
+        return {"status": "ok", "announcements": res.data or []}
+    except Exception as e:
+        return {"status": "error", "announcements": [], "error": str(e)[:200]}
+
+
+@app.delete("/api/teacher/classrooms/announcements/{announcement_id}")
+async def teacher_delete_announcement(announcement_id: int, teacher_id: int):
+    """🗑️ حذف إعلان"""
+    try:
+        # نتحقق أن الإعلان من فصل يملكه المعلم
+        ann = supabase.table("classroom_announcements").select("classroom_id").eq(
+            "id", announcement_id
+        ).maybe_single().execute()
+        if not ann or not ann.data:
+            raise HTTPException(status_code=404, detail="الإعلان غير موجود")
+        
+        cls = supabase.table("teacher_classrooms").select("id").eq(
+            "id", ann.data["classroom_id"]
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not cls or not cls.data:
+            raise HTTPException(status_code=403, detail="ليست لك صلاحية")
+        
+        supabase.table("classroom_announcements").delete().eq("id", announcement_id).execute()
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════ اختبارات الفصل ═══════════
+
+@app.post("/api/teacher/classrooms/{classroom_id}/exams")
+async def teacher_create_exam(
+    classroom_id: int,
+    teacher_id: int     = Form(...),
+    title: str          = Form(...),
+    description: str    = Form(default=""),
+    questions_json: str = Form(...),       # JSON array
+    total_marks: int    = Form(default=20),
+    duration_min: int   = Form(default=30),
+    scheduled_at: str   = Form(default=""),
+    expires_at: str     = Form(default=""),
+    is_published: bool  = Form(default=False),
+):
+    """📝 إنشاء اختبار للفصل"""
+    try:
+        # تحقق من الملكية
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        
+        # نتحقق من JSON
+        import json as _json
+        try:
+            questions = _json.loads(questions_json)
+            if not isinstance(questions, list) or not questions:
+                raise ValueError("لا أسئلة")
+        except Exception:
+            raise HTTPException(status_code=400, detail="JSON الأسئلة غير صالح")
+        
+        data = {
+            "classroom_id": classroom_id,
+            "title": title.strip()[:200],
+            "description": description.strip()[:1000],
+            "questions_json": questions,
+            "total_marks": max(1, min(int(total_marks), 200)),
+            "duration_min": max(5, min(int(duration_min), 240)),
+            "is_published": bool(is_published),
+        }
+        if scheduled_at.strip(): data["scheduled_at"] = scheduled_at.strip()
+        if expires_at.strip(): data["expires_at"] = expires_at.strip()
+        
+        ins = supabase.table("classroom_exams").insert(data).execute()
+        return {"status": "ok", "exam": ins.data[0] if ins.data else None}
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[create_exam] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/classrooms/{classroom_id}/exams")
+async def teacher_list_exams(classroom_id: int):
+    """📋 قائمة اختبارات الفصل"""
+    try:
+        res = supabase.table("classroom_exams").select("*").eq(
+            "classroom_id", classroom_id
+        ).order("created_at", desc=True).execute()
+        
+        exams = res.data or []
+        # نضيف عدد المُجيبين
+        for e in exams:
+            try:
+                count_res = supabase.table("classroom_exam_results").select(
+                    "id", count="exact"
+                ).eq("exam_id", e["id"]).execute()
+                e["submissions_count"] = count_res.count or 0
+            except Exception:
+                e["submissions_count"] = 0
+        
+        return {"status": "ok", "exams": exams}
+    except Exception as e:
+        return {"status": "error", "exams": [], "error": str(e)[:200]}
+
+
+@app.get("/api/teacher/classrooms/exams/{exam_id}/results")
+async def teacher_exam_results(exam_id: int, teacher_id: int):
+    """📊 نتائج اختبار"""
+    try:
+        # تحقق
+        e = supabase.table("classroom_exams").select("classroom_id, title, total_marks").eq(
+            "id", exam_id
+        ).maybe_single().execute()
+        if not e or not e.data:
+            raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+        
+        cls = supabase.table("teacher_classrooms").select("id").eq(
+            "id", e.data["classroom_id"]
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not cls or not cls.data:
+            raise HTTPException(status_code=403, detail="ليست لك صلاحية")
+        
+        # نتائج
+        results_res = supabase.table("classroom_exam_results").select("*").eq(
+            "exam_id", exam_id
+        ).order("score", desc=True).execute()
+        results = results_res.data or []
+        
+        # بيانات الطلاب
+        if results:
+            student_ids = [r["student_id"] for r in results]
+            try:
+                students_res = supabase.table("students").select(
+                    "id, full_name, grade"
+                ).in_("id", student_ids).execute()
+                students_map = {s["id"]: s for s in (students_res.data or [])}
+                for r in results:
+                    s = students_map.get(r["student_id"], {})
+                    r["full_name"] = s.get("full_name", f"طالب #{r['student_id']}")
+                    r["grade"] = s.get("grade", "")
+            except Exception:
+                pass
+        
+        # إحصاءات
+        scores = [float(r["score"] or 0) for r in results]
+        stats = {
+            "submissions": len(results),
+            "average": round(sum(scores) / len(scores), 2) if scores else 0,
+            "highest": max(scores) if scores else 0,
+            "lowest": min(scores) if scores else 0,
+        }
+        
+        return {
+            "status": "ok",
+            "exam": e.data,
+            "results": results,
+            "stats": stats,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/teacher/classrooms/exams/{exam_id}")
+async def teacher_delete_exam(exam_id: int, teacher_id: int):
+    """🗑️ حذف اختبار"""
+    try:
+        e = supabase.table("classroom_exams").select("classroom_id").eq("id", exam_id).maybe_single().execute()
+        if not e or not e.data:
+            raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+        cls = supabase.table("teacher_classrooms").select("id").eq(
+            "id", e.data["classroom_id"]
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not cls or not cls.data:
+            raise HTTPException(status_code=403, detail="ليست لك صلاحية")
+        
+        supabase.table("classroom_exams").delete().eq("id", exam_id).execute()
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ═══════════ الحصص الافتراضية ═══════════
+
+@app.post("/api/teacher/classrooms/{classroom_id}/sessions")
+async def teacher_create_session(
+    classroom_id: int,
+    teacher_id: int     = Form(...),
+    title: str          = Form(...),
+    description: str    = Form(default=""),
+    link: str           = Form(...),
+    scheduled_at: str   = Form(...),
+    duration_min: int   = Form(default=60),
+):
+    """🎥 إنشاء حصة افتراضية"""
+    try:
+        res = supabase.table("teacher_classrooms").select("id").eq(
+            "id", classroom_id
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not res or not res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        
+        if not link.strip().startswith(("http://", "https://")):
+            raise HTTPException(status_code=400, detail="رابط الحصة غير صالح")
+        
+        ins = supabase.table("classroom_live_sessions").insert({
+            "classroom_id": classroom_id,
+            "title": title.strip()[:200],
+            "description": description.strip()[:1000],
+            "link": link.strip(),
+            "scheduled_at": scheduled_at,
+            "duration_min": max(15, min(int(duration_min), 240)),
+            "status": "scheduled",
+        }).execute()
+        return {"status": "ok", "session": ins.data[0] if ins.data else None}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/classrooms/{classroom_id}/sessions")
+async def teacher_list_sessions(classroom_id: int):
+    """📋 قائمة الحصص الافتراضية"""
+    try:
+        res = supabase.table("classroom_live_sessions").select("*").eq(
+            "classroom_id", classroom_id
+        ).order("scheduled_at", desc=False).execute()
+        return {"status": "ok", "sessions": res.data or []}
+    except Exception as e:
+        return {"status": "error", "sessions": [], "error": str(e)[:200]}
+
+
+@app.delete("/api/teacher/classrooms/sessions/{session_id}")
+async def teacher_delete_session(session_id: int, teacher_id: int):
+    """🗑️ حذف حصة"""
+    try:
+        s = supabase.table("classroom_live_sessions").select("classroom_id").eq("id", session_id).maybe_single().execute()
+        if not s or not s.data:
+            raise HTTPException(status_code=404, detail="الحصة غير موجودة")
+        cls = supabase.table("teacher_classrooms").select("id").eq(
+            "id", s.data["classroom_id"]
+        ).eq("owner_teacher_id", teacher_id).maybe_single().execute()
+        if not cls or not cls.data:
+            raise HTTPException(status_code=403, detail="ليست لك صلاحية")
+        
+        supabase.table("classroom_live_sessions").delete().eq("id", session_id).execute()
+        return {"status": "ok"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ════════════════════════════════════════════════════════════════
+# 🎓 Endpoints للطالب
+# ════════════════════════════════════════════════════════════════
+
+@app.post("/api/student/classrooms/join")
+async def student_join_classroom(
+    student_id: int     = Form(...),
+    teacher_code: str   = Form(...),       # كود الفصل
+):
+    """
+    🎓 انضمام الطالب لفصل
+    شروط صارمة:
+    1. الطالب موجود في المنصة
+    2. كود الفصل صالح
+    3. الفصل نشط
+    4. لم يتجاوز الحد الأقصى
+    5. لم ينضم سابقاً
+    """
+    if not teacher_code.strip():
+        raise HTTPException(status_code=400, detail="كود الفصل مطلوب")
+    
+    code = teacher_code.strip().upper()
+    
+    try:
+        # 1. الطالب موجود
+        student_res = supabase.table("students").select(
+            "id, full_name, grade"
+        ).eq("id", student_id).maybe_single().execute()
+        if not student_res or not student_res.data:
+            raise HTTPException(status_code=403, detail="❌ يجب أن تكون مسجلاً في المنصة")
+        student = student_res.data
+        
+        # 2. الفصل موجود ونشط
+        cls_res = supabase.table("teacher_classrooms").select("*").eq(
+            "code", code
+        ).eq("is_active", True).maybe_single().execute()
+        if not cls_res or not cls_res.data:
+            raise HTTPException(status_code=404, detail="❌ كود الفصل غير صحيح أو الفصل غير نشط")
+        classroom = cls_res.data
+        
+        # 3. لم ينضم سابقاً
+        existing = supabase.table("classroom_members").select("id, status").eq(
+            "classroom_id", classroom["id"]
+        ).eq("student_id", student_id).maybe_single().execute()
+        if existing and existing.data:
+            if existing.data.get("status") == "banned":
+                raise HTTPException(status_code=403, detail="❌ تم حظرك من هذا الفصل")
+            raise HTTPException(status_code=400, detail="❌ أنت منضم بالفعل لهذا الفصل")
+        
+        # 4. الحد الأقصى
+        count_res = supabase.table("classroom_members").select(
+            "id", count="exact"
+        ).eq("classroom_id", classroom["id"]).eq("status", "active").execute()
+        if (count_res.count or 0) >= classroom.get("max_students", 50):
+            raise HTTPException(status_code=400, detail="❌ الفصل ممتلئ")
+        
+        # 5. انضم
+        status = "pending" if classroom.get("requires_approval") else "active"
+        ins = supabase.table("classroom_members").insert({
+            "classroom_id": classroom["id"],
+            "student_id": student_id,
+            "status": status,
+        }).execute()
+        
+        msg = "✅ انضممت بنجاح!" if status == "active" else "⏳ طلبك قيد الموافقة"
+        return {
+            "status": "ok",
+            "membership": ins.data[0] if ins.data else None,
+            "classroom": classroom,
+            "message": msg,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[join_classroom] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/student/classrooms/my")
+async def student_my_classrooms(student_id: int):
+    """📋 قائمة فصول الطالب"""
+    try:
+        # الفصول التي ينتمي لها
+        members_res = supabase.table("classroom_members").select(
+            "classroom_id, status, joined_at"
+        ).eq("student_id", student_id).eq("status", "active").execute()
+        members = members_res.data or []
+        
+        if not members:
+            return {"status": "ok", "classrooms": [], "count": 0}
+        
+        classroom_ids = [m["classroom_id"] for m in members]
+        cls_res = supabase.table("teacher_classrooms").select("*").in_(
+            "id", classroom_ids
+        ).eq("is_active", True).execute()
+        classrooms = cls_res.data or []
+        
+        # نضيف اسم المعلم لكل فصل
+        teacher_ids = list(set([c["owner_teacher_id"] for c in classrooms]))
+        if teacher_ids:
+            try:
+                teachers_res = supabase.table("teachers").select("id, full_name").in_(
+                    "id", teacher_ids
+                ).execute()
+                teachers_map = {t["id"]: t.get("full_name", "") for t in (teachers_res.data or [])}
+                for c in classrooms:
+                    c["teacher_name"] = teachers_map.get(c["owner_teacher_id"], "")
+            except Exception:
+                pass
+        
+        return {"status": "ok", "classrooms": classrooms, "count": len(classrooms)}
+    except Exception as e:
+        return {"status": "error", "classrooms": [], "count": 0, "error": str(e)[:200]}
+
+
+@app.get("/api/student/classrooms/{classroom_id}/feed")
+async def student_classroom_feed(classroom_id: int, student_id: int):
+    """
+    📰 ملخّص الفصل للطالب:
+    - معلومات الفصل
+    - الإعلانات
+    - الاختبارات النشطة
+    - الحصص القادمة
+    """
+    try:
+        # تحقق من العضوية
+        member = supabase.table("classroom_members").select("id, status").eq(
+            "classroom_id", classroom_id
+        ).eq("student_id", student_id).eq("status", "active").maybe_single().execute()
+        if not member or not member.data:
+            raise HTTPException(status_code=403, detail="❌ لست عضواً في هذا الفصل")
+        
+        # الفصل
+        cls_res = supabase.table("teacher_classrooms").select("*").eq(
+            "id", classroom_id
+        ).maybe_single().execute()
+        if not cls_res or not cls_res.data:
+            raise HTTPException(status_code=404, detail="الفصل غير موجود")
+        classroom = cls_res.data
+        
+        # اسم المعلم
+        try:
+            t_res = supabase.table("teachers").select("full_name").eq(
+                "id", classroom["owner_teacher_id"]
+            ).maybe_single().execute()
+            classroom["teacher_name"] = (t_res.data or {}).get("full_name", "") if t_res else ""
+        except Exception:
+            classroom["teacher_name"] = ""
+        
+        # الإعلانات
+        try:
+            ann_res = supabase.table("classroom_announcements").select("*").eq(
+                "classroom_id", classroom_id
+            ).order("pinned", desc=True).order("created_at", desc=True).limit(20).execute()
+            announcements = ann_res.data or []
+        except Exception:
+            announcements = []
+        
+        # الاختبارات (المنشورة فقط)
+        try:
+            exams_res = supabase.table("classroom_exams").select(
+                "id, title, description, total_marks, duration_min, scheduled_at, expires_at, is_published"
+            ).eq("classroom_id", classroom_id).eq("is_published", True).order("created_at", desc=True).execute()
+            exams = exams_res.data or []
+            
+            # هل الطالب أجاب على كل منها؟
+            if exams:
+                exam_ids = [e["id"] for e in exams]
+                results_res = supabase.table("classroom_exam_results").select(
+                    "exam_id, score, max_score, submitted_at"
+                ).in_("exam_id", exam_ids).eq("student_id", student_id).execute()
+                results_map = {r["exam_id"]: r for r in (results_res.data or [])}
+                for e in exams:
+                    if e["id"] in results_map:
+                        e["my_result"] = results_map[e["id"]]
+        except Exception:
+            exams = []
+        
+        # الحصص الافتراضية القادمة
+        try:
+            from datetime import datetime, timedelta
+            now = datetime.utcnow().isoformat()
+            sessions_res = supabase.table("classroom_live_sessions").select("*").eq(
+                "classroom_id", classroom_id
+            ).neq("status", "cancelled").order("scheduled_at", desc=False).limit(20).execute()
+            sessions = sessions_res.data or []
+        except Exception:
+            sessions = []
+        
+        return {
+            "status": "ok",
+            "classroom": classroom,
+            "announcements": announcements,
+            "exams": exams,
+            "sessions": sessions,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[student_feed] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/student/classrooms/exams/{exam_id}/submit")
+async def student_submit_exam(
+    exam_id: int,
+    student_id: int     = Form(...),
+    answers_json: str   = Form(...),
+    time_taken_sec: int = Form(default=0),
+):
+    """📝 تسليم اختبار من الطالب — تصحيح تلقائي"""
+    try:
+        # 1. الاختبار موجود ومنشور
+        exam_res = supabase.table("classroom_exams").select("*").eq(
+            "id", exam_id
+        ).eq("is_published", True).maybe_single().execute()
+        if not exam_res or not exam_res.data:
+            raise HTTPException(status_code=404, detail="❌ الاختبار غير متاح")
+        exam = exam_res.data
+        
+        # 2. الطالب عضو في الفصل
+        member = supabase.table("classroom_members").select("id").eq(
+            "classroom_id", exam["classroom_id"]
+        ).eq("student_id", student_id).eq("status", "active").maybe_single().execute()
+        if not member or not member.data:
+            raise HTTPException(status_code=403, detail="❌ لست عضواً في هذا الفصل")
+        
+        # 3. لم يحاول قبل
+        existing = supabase.table("classroom_exam_results").select("id").eq(
+            "exam_id", exam_id
+        ).eq("student_id", student_id).maybe_single().execute()
+        if existing and existing.data:
+            raise HTTPException(status_code=400, detail="❌ سبق أن أجبت على هذا الاختبار")
+        
+        # 4. حساب الدرجة
+        import json as _json
+        try:
+            answers = _json.loads(answers_json)
+        except Exception:
+            raise HTTPException(status_code=400, detail="JSON الإجابات غير صالح")
+        
+        questions = exam.get("questions_json", [])
+        if isinstance(questions, str):
+            questions = _json.loads(questions)
+        
+        total_q = len(questions)
+        correct = 0
+        for i, q in enumerate(questions):
+            student_ans = str(answers.get(str(i), "")).strip().lower()
+            correct_ans = str(q.get("answer", "")).strip().lower()
+            if student_ans and student_ans == correct_ans:
+                correct += 1
+        
+        max_score = exam.get("total_marks", 20)
+        score = round((correct / total_q) * max_score, 2) if total_q else 0
+        
+        # 5. حفظ
+        ins = supabase.table("classroom_exam_results").insert({
+            "exam_id": exam_id,
+            "student_id": student_id,
+            "score": score,
+            "max_score": max_score,
+            "answers_json": answers,
+            "time_taken_sec": int(time_taken_sec),
+        }).execute()
+        
+        return {
+            "status": "ok",
+            "score": score,
+            "max_score": max_score,
+            "correct": correct,
+            "total_questions": total_q,
+            "percentage": round((correct / total_q) * 100, 1) if total_q else 0,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[submit_exam] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/student/classrooms/{classroom_id}/leave")
+async def student_leave_classroom(classroom_id: int, student_id: int):
+    """🚪 مغادرة الفصل"""
+    try:
+        supabase.table("classroom_members").delete().eq(
+            "classroom_id", classroom_id
+        ).eq("student_id", student_id).execute()
+        return {"status": "ok", "message": "🚪 غادرت الفصل"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),

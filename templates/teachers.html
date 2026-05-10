@@ -1522,6 +1522,325 @@
             font-weight: bold;
             box-shadow: 0 2px 8px rgba(0,0,0,0.3);
         }
+
+        .btn-classrooms:hover, .btn-classrooms.active { background:linear-gradient(135deg,#0080a8,#00bfff) !important; color:#001a26 !important; box-shadow:0 8px 24px rgba(0,191,255,0.6) !important; }
+
+        /* ════════════════════════════════════════════════════
+           🌟 HUB CARDS — البطاقات الزجاجية اللامعة
+        ════════════════════════════════════════════════════ */
+        .hub-header {
+            border-radius: 24px;
+            padding: 36px 28px;
+            margin-bottom: 28px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .hub-header::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.04) 0%, transparent 60%);
+            animation: hubHeaderPulse 6s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes hubHeaderPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.5; }
+            50% { transform: scale(1.1) rotate(180deg); opacity: 0.8; }
+        }
+        .hub-icon {
+            font-size: 4rem;
+            margin-bottom: 14px;
+            filter: drop-shadow(0 0 20px rgba(255,255,255,0.3));
+            position: relative;
+            z-index: 2;
+        }
+        .hub-title {
+            font-family: 'Amiri', serif;
+            margin: 0 0 10px;
+            font-size: 2.4rem;
+            font-weight: 700;
+            animation: ilTitleShimmer 4s ease-in-out infinite;
+            position: relative;
+            z-index: 2;
+        }
+        .hub-header p {
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.8;
+            font-weight: 600;
+            position: relative;
+            z-index: 2;
+        }
+
+        /* ─── شبكة البطاقات ─── */
+        .hub-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+            padding-bottom: 30px;
+        }
+
+        /* ─── البطاقة الزجاجية ─── */
+        .hub-card {
+            position: relative;
+            border-radius: 20px;
+            padding: 28px 24px;
+            cursor: pointer;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.01) 100%);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        /* ✨ تأثير اللمعان (يتحرّك من اليسار لليمين) */
+        .hub-card-shine {
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                115deg,
+                transparent 30%,
+                rgba(255,255,255,0.1) 45%,
+                rgba(255,255,255,0.25) 50%,
+                rgba(255,255,255,0.1) 55%,
+                transparent 70%
+            );
+            transition: left 0.7s ease;
+            pointer-events: none;
+            z-index: 1;
+        }
+        .hub-card:hover .hub-card-shine {
+            left: 100%;
+        }
+
+        /* ─── ألوان البطاقات ─── */
+        .hub-card-blue {
+            border-color: rgba(52,152,219,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(52,152,219,0.15),
+                inset 0 1px 0 rgba(93,173,226,0.15);
+        }
+        .hub-card-blue::before {
+            background: radial-gradient(circle at top right, rgba(52,152,219,0.2) 0%, transparent 70%);
+        }
+        .hub-card-blue .hub-card-icon { color: #5dade2; text-shadow: 0 0 30px rgba(52,152,219,0.6); }
+        .hub-card-blue .hub-card-title { color: #5dade2; }
+
+        .hub-card-red {
+            border-color: rgba(231,76,60,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(231,76,60,0.15),
+                inset 0 1px 0 rgba(255,118,118,0.15);
+        }
+        .hub-card-red::before {
+            background: radial-gradient(circle at top right, rgba(231,76,60,0.2) 0%, transparent 70%);
+        }
+        .hub-card-red .hub-card-icon { color: #ff7676; text-shadow: 0 0 30px rgba(231,76,60,0.6); }
+        .hub-card-red .hub-card-title { color: #ff7676; }
+
+        .hub-card-emerald {
+            border-color: rgba(22,160,133,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(22,160,133,0.15),
+                inset 0 1px 0 rgba(72,209,204,0.15);
+        }
+        .hub-card-emerald::before {
+            background: radial-gradient(circle at top right, rgba(22,160,133,0.2) 0%, transparent 70%);
+        }
+        .hub-card-emerald .hub-card-icon { color: #48d1cc; text-shadow: 0 0 30px rgba(22,160,133,0.6); }
+        .hub-card-emerald .hub-card-title { color: #48d1cc; }
+
+        .hub-card-gold {
+            border-color: rgba(243,156,18,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(243,156,18,0.15),
+                inset 0 1px 0 rgba(249,199,79,0.15);
+        }
+        .hub-card-gold::before {
+            background: radial-gradient(circle at top right, rgba(243,156,18,0.2) 0%, transparent 70%);
+        }
+        .hub-card-gold .hub-card-icon { color: #f9c74f; text-shadow: 0 0 30px rgba(243,156,18,0.6); }
+        .hub-card-gold .hub-card-title { color: #f9c74f; }
+
+        .hub-card-cyan {
+            border-color: rgba(0,191,255,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(0,191,255,0.15),
+                inset 0 1px 0 rgba(93,213,255,0.15);
+        }
+        .hub-card-cyan::before {
+            background: radial-gradient(circle at top right, rgba(0,191,255,0.2) 0%, transparent 70%);
+        }
+        .hub-card-cyan .hub-card-icon { color: #5dd5ff; text-shadow: 0 0 30px rgba(0,191,255,0.6); }
+        .hub-card-cyan .hub-card-title { color: #5dd5ff; }
+
+        .hub-card-turquoise {
+            border-color: rgba(0,212,255,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(0,212,255,0.15),
+                inset 0 1px 0 rgba(127,234,255,0.15);
+        }
+        .hub-card-turquoise::before {
+            background: radial-gradient(circle at top right, rgba(0,212,255,0.2) 0%, transparent 70%);
+        }
+        .hub-card-turquoise .hub-card-icon { color: #7feaff; text-shadow: 0 0 30px rgba(0,212,255,0.6); }
+        .hub-card-turquoise .hub-card-title { color: #7feaff; }
+
+        .hub-card-green {
+            border-color: rgba(0,255,136,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(0,255,136,0.15),
+                inset 0 1px 0 rgba(127,255,212,0.15);
+        }
+        .hub-card-green::before {
+            background: radial-gradient(circle at top right, rgba(0,255,136,0.2) 0%, transparent 70%);
+        }
+        .hub-card-green .hub-card-icon { color: #7fffd4; text-shadow: 0 0 30px rgba(0,255,136,0.6); }
+        .hub-card-green .hub-card-title { color: #7fffd4; }
+
+        .hub-card-purple {
+            border-color: rgba(155,89,182,0.3);
+            box-shadow: 
+                0 8px 32px rgba(0,0,0,0.3),
+                0 0 0 1px rgba(155,89,182,0.15),
+                inset 0 1px 0 rgba(187,134,252,0.15);
+        }
+        .hub-card-purple::before {
+            background: radial-gradient(circle at top right, rgba(155,89,182,0.2) 0%, transparent 70%);
+        }
+        .hub-card-purple .hub-card-icon { color: #bb86fc; text-shadow: 0 0 30px rgba(155,89,182,0.6); }
+        .hub-card-purple .hub-card-title { color: #bb86fc; }
+
+        /* ─── الإضاءة الناعمة على البطاقة ─── */
+        .hub-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.6;
+            transition: opacity 0.4s ease;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ─── محتوى البطاقة ─── */
+        .hub-card-icon {
+            font-size: 3.2rem;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+            position: relative;
+            z-index: 2;
+            transition: transform 0.4s ease;
+        }
+        .hub-card-title {
+            font-family: 'Amiri', serif;
+            font-size: 1.35rem;
+            margin: 0 0 10px;
+            font-weight: 700;
+            position: relative;
+            z-index: 2;
+            line-height: 1.4;
+        }
+        .hub-card-desc {
+            color: rgba(255,255,255,0.7);
+            font-size: 0.92rem;
+            line-height: 1.7;
+            margin: 0;
+            position: relative;
+            z-index: 2;
+            font-weight: 500;
+        }
+        .hub-card-arrow {
+            position: absolute;
+            bottom: 18px;
+            left: 22px;
+            font-size: 1.6rem;
+            color: rgba(255,255,255,0.3);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 2;
+        }
+
+        /* ─── Hover Effects ─── */
+        .hub-card:hover {
+            transform: translateY(-8px) scale(1.02);
+            border-color: rgba(255,255,255,0.25);
+            box-shadow: 
+                0 20px 50px rgba(0,0,0,0.4),
+                0 0 0 1px rgba(255,255,255,0.1),
+                inset 0 1px 0 rgba(255,255,255,0.15);
+        }
+        .hub-card:hover::before {
+            opacity: 1;
+        }
+        .hub-card:hover .hub-card-icon {
+            transform: scale(1.15) rotate(-5deg);
+        }
+        .hub-card:hover .hub-card-arrow {
+            color: rgba(255,255,255,0.9);
+            left: 16px;
+            transform: scale(1.2);
+        }
+
+        /* ─── Hub button hover effects ─── */
+        .btn-content-hub:hover, .btn-content-hub.active {
+            background: linear-gradient(135deg,#2471a3,#3498db) !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(52,152,219,0.6) !important;
+        }
+        .btn-tools-hub:hover, .btn-tools-hub.active {
+            background: linear-gradient(135deg,#c0392b,#e74c3c) !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(231,76,60,0.6) !important;
+        }
+        .btn-ai-hub:hover, .btn-ai-hub.active {
+            background: linear-gradient(135deg,#00cc66,#00ff88) !important;
+            color: #001a0d !important;
+            box-shadow: 0 8px 24px rgba(0,255,136,0.6) !important;
+        }
+        .btn-media-hub:hover, .btn-media-hub.active {
+            background: linear-gradient(135deg,#6c3483,#9b59b6) !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(155,89,182,0.6) !important;
+        }
+        .btn-account-hub:hover, .btn-account-hub.active {
+            background: linear-gradient(135deg,#16a085,#48d1cc) !important;
+            color: #fff !important;
+            box-shadow: 0 8px 24px rgba(72,209,204,0.6) !important;
+        }
+        
+        /* ─── Mobile responsive ─── */
+        @media (max-width: 600px) {
+            .hub-grid {
+                grid-template-columns: 1fr;
+                gap: 14px;
+            }
+            .hub-card {
+                padding: 22px 18px;
+                min-height: 170px;
+            }
+            .hub-icon { font-size: 3rem; }
+            .hub-title { font-size: 1.8rem; }
+        }
 </style>
 </head>
 <body>
@@ -1698,55 +2017,34 @@
             <span class="btn-icon">🏠</span> <span>لوحة البيت</span>
         </button>
         
-        <!-- 📚 القسم 1: المحتوى التعليمي -->
-        <div class="sidebar-section-title">📚 المحتوى التعليمي</div>
-        <button class="nav-btn btn-prep shiny-btn" onclick="showSection('preparations',this)">
-            <span class="btn-icon">📋</span> <span>التحضيرات الجاهزة</span>
-        </button>
-        <button class="nav-btn btn-res shiny-btn" onclick="showSection('resources',this)">
-            <span class="btn-icon">📁</span> <span>موارد المنهج</span>
-        </button>
-        <button class="nav-btn btn-lessons shiny-btn" onclick="showSection('lessons',this);loadInteractiveLessons();">
-            <span class="btn-icon">📘</span> <span>الدروس التفاعلية</span>
+        <!-- 📚 الهَب 1: المحتوى التعليمي -->
+        <button class="nav-btn btn-content-hub shiny-btn" onclick="showSection('content-hub',this)" style="border-color:#3498db !important; color:#5dade2 !important; background:linear-gradient(135deg, rgba(52,152,219,0.18), rgba(52,152,219,0.06)) !important;">
+            <span class="btn-icon">📚</span> <span>المحتوى التعليمي</span>
         </button>
         
-        <!-- 🛠️ القسم 2: الأدوات -->
-        <div class="sidebar-section-title">🛠️ أدوات المعلم</div>
-        <button class="nav-btn btn-bank shiny-btn" onclick="showSection('bank',this)">
-            <span class="btn-icon">❓</span> <span>بنك الأسئلة</span>
-        </button>
-        <button class="nav-btn btn-exam shiny-btn" onclick="showSection('exam-gen',this)" style="border-color:#e74c3c !important; color:#ff7676 !important; background:linear-gradient(135deg, rgba(231,76,60,0.12), rgba(231,76,60,0.04)) !important;">
-            <span class="btn-icon">📝</span> <span>مولّد الاختبارات</span>
-        </button>
-        <button class="nav-btn btn-cert shiny-btn" onclick="showSection('certificates',this)" style="border-color:#16a085 !important; color:#48d1cc !important; background:linear-gradient(135deg, rgba(22,160,133,0.12), rgba(22,160,133,0.04)) !important;">
-            <span class="btn-icon">🏆</span> <span>الشهادات والقوالب</span>
-        </button>
-        <button class="nav-btn btn-visual shiny-btn" onclick="showSection('visual-maker',this)" style="border-color:#f39c12 !important; color:#f9c74f !important; background:linear-gradient(135deg, rgba(243,156,18,0.12), rgba(243,156,18,0.04)) !important;">
-            <span class="btn-icon">🎨</span> <span>صانع المسائل البصرية</span>
-        </button>
-        <button class="nav-btn btn-schedule shiny-btn" onclick="showSection('schedule-tpl',this)" style="border-color:#00d4ff !important; color:#7feaff !important; background:linear-gradient(135deg, rgba(0,212,255,0.12), rgba(0,212,255,0.04)) !important;">
-            <span class="btn-icon">📅</span> <span>قوالب جداول الحصص</span>
-        </button>
-        <button class="nav-btn btn-ai shiny-btn" onclick="showSection('ai-assistant',this)" style="border-color:#00ff88 !important; color:#7fffd4 !important; background:linear-gradient(135deg, rgba(0,255,136,0.12), rgba(0,255,136,0.04)) !important;">
-            <span class="btn-icon">🤖</span> <span>المساعد التربوي AI</span>
-        </button>
-        <button class="nav-btn btn-plan shiny-btn" onclick="showSection('plan-gen',this)" style="border-color:#3498db !important; color:#5dade2 !important; background:linear-gradient(135deg, rgba(52,152,219,0.12), rgba(52,152,219,0.04)) !important;">
-            <span class="btn-icon">📓</span> <span>منشئ التحضيرات AI</span>
-        </button>
-        <button class="nav-btn btn-videos shiny-btn" onclick="showSection('videos',this)" style="border-color:#e74c3c !important; color:#ff7676 !important; background:linear-gradient(135deg, rgba(231,76,60,0.12), rgba(231,76,60,0.04)) !important;">
-            <span class="btn-icon">🎬</span> <span>الفيديوهات التعليمية</span>
+        <!-- 🛠️ الهَب 2: أدوات المعلم -->
+        <button class="nav-btn btn-tools-hub shiny-btn" onclick="showSection('tools-hub',this)" style="border-color:#e74c3c !important; color:#ff7676 !important; background:linear-gradient(135deg, rgba(231,76,60,0.18), rgba(231,76,60,0.06)) !important;">
+            <span class="btn-icon">🛠️</span> <span>أدوات المعلم</span>
         </button>
         
-        <!-- ⚙️ القسم 3: الحساب والدعم -->
-        <div class="sidebar-section-title">⚙️ الحساب والدعم</div>
-        <button class="nav-btn btn-themes shiny-btn" onclick="showSection('themes',this)" style="border-color:#9b59b6 !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(155,89,182,0.12), rgba(155,89,182,0.04)) !important;">
-            <span class="btn-icon">🎨</span> <span>التخصيص</span>
+        <!-- 🤖 الهَب 3: الذكاء الاصطناعي -->
+        <button class="nav-btn btn-ai-hub shiny-btn" onclick="showSection('ai-hub',this)" style="border-color:#00ff88 !important; color:#7fffd4 !important; background:linear-gradient(135deg, rgba(0,255,136,0.18), rgba(0,255,136,0.06)) !important;">
+            <span class="btn-icon">🤖</span> <span>الذكاء الاصطناعي</span>
         </button>
-        <button class="nav-btn btn-profile shiny-btn" onclick="showSection('profile',this)">
-            <span class="btn-icon">👤</span> <span>الملف الشخصي</span>
+        
+        <!-- 🏛️ الهَب 4: فصولي الخاصة -->
+        <button class="nav-btn btn-classrooms shiny-btn" onclick="showSection('my-classrooms',this)" style="border-color:#00bfff !important; color:#5dd5ff !important; background:linear-gradient(135deg, rgba(0,191,255,0.18), rgba(0,191,255,0.06)) !important;">
+            <span class="btn-icon">🏛️</span> <span>فصولي الخاصة</span>
         </button>
-        <button class="nav-btn btn-sub shiny-btn" onclick="showSection('support',this)">
-            <span class="btn-icon">🛡️</span> <span>الدعم والاشتراك</span>
+        
+        <!-- 🎬 الهَب 5: المكتبة الإعلامية -->
+        <button class="nav-btn btn-media-hub shiny-btn" onclick="showSection('media-hub',this)" style="border-color:#9b59b6 !important; color:#bb86fc !important; background:linear-gradient(135deg, rgba(155,89,182,0.18), rgba(155,89,182,0.06)) !important;">
+            <span class="btn-icon">🎬</span> <span>المكتبة الإعلامية</span>
+        </button>
+        
+        <!-- ⚙️ الهَب 6: الحساب والإعدادات -->
+        <button class="nav-btn btn-account-hub shiny-btn" onclick="showSection('account-hub',this)" style="border-color:#48d1cc !important; color:#48d1cc !important; background:linear-gradient(135deg, rgba(72,209,204,0.18), rgba(72,209,204,0.06)) !important;">
+            <span class="btn-icon">⚙️</span> <span>الحساب والإعدادات</span>
         </button>
     </nav>
 
@@ -1856,6 +2154,185 @@
     </div>
 
     <!-- ══ قسم التحضيرات ══ -->
+
+    
+    <!-- ══════════════════════════════════════════════════════
+         📚 الهَب 1: المحتوى التعليمي
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-content-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(52,152,219,0.08),rgba(0,8,20,0.9));border:2px solid #3498db;">
+            <div class="hub-icon">📚</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#5dade2,#3498db,#85c1e9,#3498db,#2471a3);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">المحتوى التعليمي</h2>
+            <p style="color:rgba(93,173,226,0.85);">📖 كل ما تحتاجه من تحضيرات ودروس وموارد جاهزة</p>
+        </div>
+        
+        <div class="hub-grid">
+            <div class="hub-card hub-card-blue" onclick="showSection('preparations', null); var b = document.querySelector('.btn-content-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📋</div>
+                <h3 class="hub-card-title">التحضيرات الجاهزة</h3>
+                <p class="hub-card-desc">تصفح آلاف التحضيرات المُعدّة بعناية لكل صف ومنهج</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-blue" onclick="showSection('resources', null); var b = document.querySelector('.btn-content-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📁</div>
+                <h3 class="hub-card-title">موارد المنهج</h3>
+                <p class="hub-card-desc">ملفات وأوراق عمل وعروض تقديمية لكل درس</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-blue" onclick="showSection('lessons', null); if(typeof loadInteractiveLessons === 'function') loadInteractiveLessons(); var b = document.querySelector('.btn-content-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📘</div>
+                <h3 class="hub-card-title">الدروس التفاعلية</h3>
+                <p class="hub-card-desc">دروس تفاعلية HTML تشرح المفاهيم بطريقة جذابة</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         🛠️ الهَب 2: أدوات المعلم
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-tools-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(231,76,60,0.08),rgba(0,8,20,0.9));border:2px solid #e74c3c;">
+            <div class="hub-icon">🛠️</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#ff7676,#e74c3c,#ffadad,#e74c3c,#c0392b);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">أدوات المعلم</h2>
+            <p style="color:rgba(255,118,118,0.85);">🎯 أدوات احترافية لإنتاج اختبارات وشهادات وأشكال بصرية</p>
+        </div>
+        
+        <div class="hub-grid">
+            <div class="hub-card hub-card-cyan" onclick="showSection('bank', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">❓</div>
+                <h3 class="hub-card-title">بنك الأسئلة</h3>
+                <p class="hub-card-desc">آلاف الأسئلة المصنّفة بالمنهج جاهزة للاستخدام</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-red" onclick="showSection('exam-gen', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📝</div>
+                <h3 class="hub-card-title">مولّد الاختبارات</h3>
+                <p class="hub-card-desc">أنشئ اختباراً احترافياً بضغطة زر مع PDF جاهز للطباعة</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-emerald" onclick="showSection('certificates', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🏆</div>
+                <h3 class="hub-card-title">الشهادات والقوالب</h3>
+                <p class="hub-card-desc">8 قوالب احترافية + ارفع قوالبك المخصصة</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-gold" onclick="showSection('visual-maker', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🎨</div>
+                <h3 class="hub-card-title">صانع المسائل البصرية</h3>
+                <p class="hub-card-desc">20 شكل هندسي 2D و 3D + رسوم بيانية جاهزة</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-turquoise" onclick="showSection('schedule-tpl', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📅</div>
+                <h3 class="hub-card-title">قوالب جداول الحصص</h3>
+                <p class="hub-card-desc">6 قوالب احترافية لجداول الحصص والمتابعة</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         🤖 الهَب 3: الذكاء الاصطناعي
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-ai-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(0,255,136,0.08),rgba(0,8,20,0.9));border:2px solid #00ff88;">
+            <div class="hub-icon">🤖</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#7fffd4,#00ff88,#aaffcc,#00ff88,#00cc66);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">الذكاء الاصطناعي</h2>
+            <p style="color:rgba(127,255,212,0.85);">🌟 مساعدك الذكي في التحضير والتدريس · مدعوم بـ Gemini AI</p>
+        </div>
+        
+        <div class="hub-grid">
+            <div class="hub-card hub-card-green" onclick="showSection('ai-assistant', null); var b = document.querySelector('.btn-ai-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🤖</div>
+                <h3 class="hub-card-title">المساعد التربوي AI</h3>
+                <p class="hub-card-desc">اسأل أي سؤال تربوي · أمثلة · أنشطة · حلول لصعوبات الطلاب</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-blue" onclick="showSection('plan-gen', null); var b = document.querySelector('.btn-ai-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📓</div>
+                <h3 class="hub-card-title">منشئ التحضيرات AI</h3>
+                <p class="hub-card-desc">أدخل اسم الدرس → احصل على تحضير كامل في 30 ثانية</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         🎬 الهَب 5: المكتبة الإعلامية
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-media-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(155,89,182,0.08),rgba(0,8,20,0.9));border:2px solid #9b59b6;">
+            <div class="hub-icon">🎬</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff,#9b59b6,#6c3483);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">المكتبة الإعلامية</h2>
+            <p style="color:rgba(187,134,252,0.85);">🌟 محتوى مرئي جاهز للاستخدام والمشاركة مع طلابك</p>
+        </div>
+        
+        <div class="hub-grid">
+            <div class="hub-card hub-card-purple" onclick="showSection('videos', null); var b = document.querySelector('.btn-media-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🎬</div>
+                <h3 class="hub-card-title">الفيديوهات التعليمية</h3>
+                <p class="hub-card-desc">شروحات مرئية قصيرة · شارك عبر WhatsApp بضغطة زر</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════
+         ⚙️ الهَب 6: الحساب والإعدادات
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-account-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(72,209,204,0.08),rgba(0,8,20,0.9));border:2px solid #48d1cc;">
+            <div class="hub-icon">⚙️</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#48d1cc,#16a085,#7fffd4,#16a085,#0e7d6c);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">الحساب والإعدادات</h2>
+            <p style="color:rgba(72,209,204,0.85);">🎨 خصّص تجربتك · اضبط بياناتك · إدارة اشتراكك</p>
+        </div>
+        
+        <div class="hub-grid">
+            <div class="hub-card hub-card-purple" onclick="showSection('themes', null); var b = document.querySelector('.btn-account-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🎨</div>
+                <h3 class="hub-card-title">التخصيص</h3>
+                <p class="hub-card-desc">6 ثيمات مميزة + بياناتك الافتراضية لكل المخرجات</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-turquoise" onclick="showSection('profile', null); var b = document.querySelector('.btn-account-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">👤</div>
+                <h3 class="hub-card-title">ملفي الشخصي</h3>
+                <p class="hub-card-desc">إدارة بياناتك الشخصية وكلمة المرور</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+            
+            <div class="hub-card hub-card-emerald" onclick="showSection('support', null); var b = document.querySelector('.btn-account-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🛡️</div>
+                <h3 class="hub-card-title">الدعم والاشتراك</h3>
+                <p class="hub-card-desc">حالة اشتراكك · التواصل مع الدعم · الترقية</p>
+                <span class="hub-card-arrow">←</span>
+            </div>
+        </div>
+    </div>
+
 
     <!-- ══════════════════════════════════════════════════════
          🏠 قسم لوحة البيت الذكية (الافتراضي)
@@ -3024,6 +3501,96 @@
                 <div style="font-size:4rem;margin-bottom:14px;">🎬</div>
                 <p>جارٍ تحميل الفيديوهات...</p>
             </div>
+        </div>
+    </div>
+
+
+    
+    <!-- ══════════════════════════════════════════════════════
+         🏛️ قسم فصولي الخاصة (Teacher Classrooms)
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-my-classrooms" class="section">
+        <!-- Header -->
+        <div style="background:linear-gradient(160deg,rgba(0,191,255,0.08),rgba(0,8,20,0.9));border:2px solid #00bfff;border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#5dd5ff;">🏛️</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(0,191,255,0.6));">🏛️</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#5dd5ff,#00bfff,#7feaff,#00bfff,#0099cc);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">فصولي الدراسية</h2>
+            <p style="color:rgba(93,213,255,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">⚜️ أنشئ فصولاً · ادعُ طلابك · اختبر · أعلن · ابدأ حصص افتراضية ⚜️</p>
+        </div>
+
+        <!-- View 1: قائمة الفصول -->
+        <div id="cls-list-view">
+            <!-- زر إنشاء فصل -->
+            <div class="glass-card" style="padding:22px;margin-bottom:18px;text-align:center;">
+                <button onclick="showCreateClassroomForm()" style="background:linear-gradient(135deg,#00bfff,#0099cc);color:#fff;border:none;padding:16px 36px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.05rem;box-shadow:0 6px 20px rgba(0,191,255,0.5);">
+                    ➕ أنشئ فصلاً جديداً
+                </button>
+                <p style="margin-top:10px;font-size:0.85rem;color:rgba(255,255,255,0.55);">🎯 ستحصل على كود فريد لمشاركته مع طلابك</p>
+            </div>
+
+            <!-- نموذج إنشاء (مخفي) -->
+            <div id="cls-create-form" class="glass-card" style="padding:22px;margin-bottom:18px;display:none;">
+                <h3 style="color:#5dd5ff;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🆕 فصل دراسي جديد</h3>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📛 اسم الفصل *</label>
+                        <input type="text" id="cls-name" placeholder="مثل: فصل الرياضيات 6/أ" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🎓 الصف</label>
+                        <input type="text" id="cls-grade" placeholder="الصف السادس" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">👥 الحد الأقصى للطلاب</label>
+                        <input type="number" id="cls-max" value="50" min="5" max="200" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🎨 الأيقونة</label>
+                        <select id="cls-emoji" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                            <option value="📚">📚 كتب</option>
+                            <option value="🎓">🎓 تخرّج</option>
+                            <option value="✏️">✏️ قلم</option>
+                            <option value="🧮">🧮 معداد</option>
+                            <option value="📐">📐 هندسة</option>
+                            <option value="🌟">🌟 نجمة</option>
+                            <option value="👑">👑 تاج</option>
+                            <option value="🎯">🎯 هدف</option>
+                            <option value="🏆">🏆 كأس</option>
+                            <option value="🚀">🚀 صاروخ</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🌈 لون الغلاف</label>
+                        <input type="color" id="cls-color" value="#1976d2" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:6px;border-radius:10px;height:46px;cursor:pointer;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">⚙️ الإعدادات</label>
+                        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88rem;padding:11px;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);border-radius:10px;">
+                            <input type="checkbox" id="cls-approval" style="cursor:pointer;"> يحتاج موافقة قبل الانضمام
+                        </label>
+                    </div>
+                </div>
+                <div style="margin-top:14px;">
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📝 وصف الفصل (اختياري)</label>
+                    <textarea id="cls-desc" rows="2" placeholder="ماذا يتعلّم الطلاب في هذا الفصل؟" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(0,191,255,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;resize:vertical;"></textarea>
+                </div>
+                <div style="display:flex;gap:10px;margin-top:14px;">
+                    <button onclick="createClassroom()" id="cls-create-btn" style="flex:1;background:linear-gradient(135deg,#00bfff,#0099cc);color:#fff;border:none;padding:12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ إنشاء الفصل</button>
+                    <button onclick="hideCreateClassroomForm()" style="flex:1;background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إلغاء</button>
+                </div>
+            </div>
+
+            <!-- شبكة الفصول -->
+            <div id="cls-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;">
+                <div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">⏳ جارٍ التحميل...</div>
+            </div>
+        </div>
+
+        <!-- View 2: تفاصيل فصل واحد -->
+        <div id="cls-detail-view" style="display:none;">
+            <button onclick="backToClassroomsList()" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.2);padding:10px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:14px;">← العودة للفصول</button>
+            
+            <div id="cls-detail-content"></div>
         </div>
     </div>
 
@@ -7210,6 +7777,672 @@ document.addEventListener('DOMContentLoaded', function() {
     setTimeout(loadHomeDashboard, 300);
     setTimeout(applyDefaults, 500);
 });
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🏛️ TEACHER CLASSROOMS — إدارة فصول المعلم
+// ════════════════════════════════════════════════════════════
+var _myClassrooms = [];
+var _currentClassroom = null;
+var _currentClassroomTab = 'overview';   // overview | members | exams | announcements | sessions
+
+function showCreateClassroomForm() {
+    var f = document.getElementById('cls-create-form');
+    if (f) f.style.display = 'block';
+}
+
+function hideCreateClassroomForm() {
+    var f = document.getElementById('cls-create-form');
+    if (f) f.style.display = 'none';
+    // إعادة الحقول للقيم الافتراضية
+    ['cls-name','cls-grade','cls-desc'].forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = '';
+    });
+}
+
+function _getTeacherId() {
+    // نحاول الحصول على teacher_id من localStorage أو غيره
+    return localStorage.getItem('teacher_id') || 
+           localStorage.getItem('teacherId') ||
+           (window.currentTeacher && window.currentTeacher.id) ||
+           1; // fallback للاختبار
+}
+
+async function createClassroom() {
+    var name = document.getElementById('cls-name').value.trim();
+    if (!name) {
+        if (typeof showToast === 'function') showToast('⚠️ اسم الفصل مطلوب', 'warning');
+        return;
+    }
+    
+    var btn = document.getElementById('cls-create-btn');
+    var orig = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ جارٍ الإنشاء...';
+    
+    var fd = new FormData();
+    fd.append('teacher_id', _getTeacherId());
+    fd.append('name', name);
+    fd.append('description', document.getElementById('cls-desc').value || '');
+    fd.append('grade', document.getElementById('cls-grade').value || '');
+    fd.append('cover_color', document.getElementById('cls-color').value || '#1976d2');
+    fd.append('cover_emoji', document.getElementById('cls-emoji').value || '📚');
+    fd.append('max_students', document.getElementById('cls-max').value || 50);
+    fd.append('requires_approval', document.getElementById('cls-approval').checked);
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/create', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var data = await res.json();
+        
+        if (typeof showToast === 'function') showToast('✅ تم الإنشاء! الكود: ' + data.classroom.code, 'success');
+        hideCreateClassroomForm();
+        loadMyClassrooms();
+        
+        // عرض الكود في dialog مميز
+        setTimeout(function() {
+            alert('🎉 الفصل أُنشئ بنجاح!\n\n📋 الكود: ' + data.classroom.code + '\n\nشارك هذا الكود مع طلابك لينضموا للفصل.');
+        }, 200);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+    }
+}
+
+async function loadMyClassrooms() {
+    var grid = document.getElementById('cls-grid');
+    if (!grid) return;
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/my?teacher_id=' + _getTeacherId());
+        var data = await res.json();
+        _myClassrooms = data.classrooms || [];
+        renderClassroomsGrid();
+    } catch(e) {
+        grid.innerHTML = '<div style="grid-column:1/-1;color:#e74c3c;text-align:center;padding:30px;">❌ فشل التحميل</div>';
+    }
+}
+
+function renderClassroomsGrid() {
+    var grid = document.getElementById('cls-grid');
+    if (!grid) return;
+    
+    if (!_myClassrooms.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px 20px;color:rgba(255,255,255,0.5);">' +
+            '<div style="font-size:5rem;margin-bottom:14px;">🏛️</div>' +
+            '<h3 style="color:#5dd5ff;font-family:\'Amiri\';margin-bottom:8px;">لا توجد فصول بعد</h3>' +
+            '<p>اضغط "أنشئ فصلاً جديداً" للبدء</p></div>';
+        return;
+    }
+    
+    var html = '';
+    _myClassrooms.forEach(function(c) {
+        html += '<div onclick="openClassroom(' + c.id + ')" style="background:linear-gradient(160deg,' + c.cover_color + '40,rgba(0,8,20,0.85));border:2px solid ' + c.cover_color + ';border-radius:16px;padding:20px;cursor:pointer;transition:all 0.3s;position:relative;overflow:hidden;" onmouseover="this.style.transform=\'translateY(-4px)\';this.style.boxShadow=\'0 12px 30px ' + c.cover_color + '50\'" onmouseout="this.style.transform=\'\';this.style.boxShadow=\'\'">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px;">';
+        html += '<div style="font-size:3rem;">' + (c.cover_emoji || '📚') + '</div>';
+        html += '<div style="background:rgba(0,0,0,0.3);padding:6px 12px;border-radius:8px;font-family:monospace;font-size:0.9rem;font-weight:bold;color:#fff;">' + esc(c.code) + '</div>';
+        html += '</div>';
+        html += '<h3 style="font-family:\'Amiri\';color:#fff;margin:0 0 6px;font-size:1.2rem;">' + esc(c.name) + '</h3>';
+        if (c.grade) html += '<p style="color:rgba(255,255,255,0.7);margin:0 0 10px;font-size:0.85rem;">🎓 ' + esc(c.grade) + '</p>';
+        if (c.description) html += '<p style="color:rgba(255,255,255,0.6);margin:0 0 10px;font-size:0.82rem;line-height:1.7;">' + esc(c.description.substring(0, 100)) + '</p>';
+        html += '<div style="display:flex;gap:10px;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">';
+        html += '<span style="color:#7fffd4;font-size:0.88rem;font-weight:600;">👥 ' + (c.members_count || 0) + ' / ' + (c.max_students || 50) + '</span>';
+        html += '<span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">' + (c.is_active ? '🟢 نشط' : '⚫ متوقّف') + '</span>';
+        html += '</div></div>';
+    });
+    grid.innerHTML = html;
+}
+
+async function openClassroom(classroomId) {
+    document.getElementById('cls-list-view').style.display = 'none';
+    document.getElementById('cls-detail-view').style.display = 'block';
+    
+    var content = document.getElementById('cls-detail-content');
+    content.innerHTML = '<div class="glass-card" style="padding:40px;text-align:center;">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '?teacher_id=' + _getTeacherId());
+        if (!res.ok) throw new Error('فشل التحميل');
+        var data = await res.json();
+        _currentClassroom = data;
+        renderClassroomDetail();
+    } catch(e) {
+        content.innerHTML = '<div class="glass-card" style="padding:30px;text-align:center;color:#e74c3c;">❌ ' + (e.message || 'فشل') + '</div>';
+    }
+}
+
+function backToClassroomsList() {
+    document.getElementById('cls-list-view').style.display = 'block';
+    document.getElementById('cls-detail-view').style.display = 'none';
+    _currentClassroom = null;
+    loadMyClassrooms();
+}
+
+function renderClassroomDetail() {
+    var content = document.getElementById('cls-detail-content');
+    if (!content || !_currentClassroom) return;
+    
+    var c = _currentClassroom.classroom;
+    
+    var html = '';
+    
+    // Header
+    html += '<div class="glass-card" style="padding:24px;background:linear-gradient(160deg,' + c.cover_color + '30,rgba(0,8,20,0.9));border:2px solid ' + c.cover_color + ';margin-bottom:18px;">';
+    html += '<div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">';
+    html += '<div style="font-size:4rem;">' + (c.cover_emoji || '📚') + '</div>';
+    html += '<div style="flex:1;min-width:200px;">';
+    html += '<h2 style="font-family:\'Amiri\';color:#fff;margin:0 0 6px;font-size:1.6rem;">' + esc(c.name) + '</h2>';
+    if (c.grade) html += '<p style="color:rgba(255,255,255,0.75);margin:0;">🎓 ' + esc(c.grade) + '</p>';
+    if (c.description) html += '<p style="color:rgba(255,255,255,0.6);margin:6px 0 0;font-size:0.9rem;">' + esc(c.description) + '</p>';
+    html += '</div>';
+    html += '<div style="text-align:center;background:rgba(0,0,0,0.4);padding:14px 18px;border-radius:12px;">';
+    html += '<div style="color:rgba(255,255,255,0.6);font-size:0.78rem;margin-bottom:4px;">كود الفصل</div>';
+    html += '<div style="font-family:monospace;font-size:1.5rem;font-weight:bold;color:#5dd5ff;letter-spacing:2px;">' + esc(c.code) + '</div>';
+    html += '<button onclick="copyClassroomCode(\'' + esc(c.code) + '\')" style="margin-top:6px;background:rgba(0,191,255,0.15);color:#5dd5ff;border:1px solid #00bfff;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📋 نسخ</button>';
+    html += '</div>';
+    html += '</div>';
+    html += '</div>';
+    
+    // Tabs
+    html += '<div class="glass-card" style="padding:0;margin-bottom:18px;overflow:hidden;">';
+    html += '<div style="display:flex;background:rgba(0,0,0,0.3);border-bottom:1px solid rgba(255,255,255,0.1);overflow-x:auto;">';
+    var tabs = [
+        ['overview', '📊', 'نظرة عامة'],
+        ['members', '👥', 'الأعضاء (' + (_currentClassroom.members_count || 0) + ')'],
+        ['exams', '📝', 'الاختبارات'],
+        ['announcements', '📢', 'الإعلانات'],
+        ['sessions', '🎥', 'الحصص الافتراضية'],
+        ['settings', '⚙️', 'الإعدادات'],
+    ];
+    tabs.forEach(function(t) {
+        var active = t[0] === _currentClassroomTab;
+        html += '<button onclick="switchClassroomTab(\'' + t[0] + '\')" style="background:' + (active ? 'rgba(0,191,255,0.15)' : 'transparent') + ';color:' + (active ? '#5dd5ff' : 'rgba(255,255,255,0.7)') + ';border:none;padding:14px 20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.92rem;border-bottom:3px solid ' + (active ? '#00bfff' : 'transparent') + ';white-space:nowrap;">' + t[1] + ' ' + t[2] + '</button>';
+    });
+    html += '</div>';
+    html += '<div id="cls-tab-content" style="padding:20px;"></div>';
+    html += '</div>';
+    
+    content.innerHTML = html;
+    
+    renderClassroomTab();
+}
+
+function switchClassroomTab(tab) {
+    _currentClassroomTab = tab;
+    renderClassroomDetail();
+}
+
+function copyClassroomCode(code) {
+    if (navigator.clipboard) {
+        navigator.clipboard.writeText(code);
+        if (typeof showToast === 'function') showToast('📋 الكود مُنسخ!', 'success');
+    } else {
+        prompt('انسخ الكود:', code);
+    }
+}
+
+async function renderClassroomTab() {
+    var box = document.getElementById('cls-tab-content');
+    if (!box || !_currentClassroom) return;
+    
+    var t = _currentClassroomTab;
+    var c = _currentClassroom.classroom;
+    
+    if (t === 'overview') {
+        var members = _currentClassroom.members || [];
+        var top5 = members.slice().sort(function(a,b){return (b.total_points||0)-(a.total_points||0);}).slice(0, 5);
+        
+        var html = '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:18px;">';
+        html += '<div style="background:rgba(0,191,255,0.06);border:1px solid rgba(0,191,255,0.3);border-radius:10px;padding:16px;text-align:center;"><div style="font-size:2rem;">👥</div><div style="font-family:Amiri;font-size:1.8rem;color:#5dd5ff;font-weight:bold;">' + members.length + '</div><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">طالب نشط</div></div>';
+        html += '<div style="background:rgba(243,156,18,0.06);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:16px;text-align:center;"><div style="font-size:2rem;">📝</div><div id="cls-stat-exams" style="font-family:Amiri;font-size:1.8rem;color:#f9c74f;font-weight:bold;">-</div><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">اختبار</div></div>';
+        html += '<div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:16px;text-align:center;"><div style="font-size:2rem;">📢</div><div id="cls-stat-announces" style="font-family:Amiri;font-size:1.8rem;color:#7fffd4;font-weight:bold;">-</div><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">إعلان</div></div>';
+        html += '<div style="background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:16px;text-align:center;"><div style="font-size:2rem;">🎥</div><div id="cls-stat-sessions" style="font-family:Amiri;font-size:1.8rem;color:#ff7676;font-weight:bold;">-</div><div style="color:rgba(255,255,255,0.6);font-size:0.85rem;">حصة</div></div>';
+        html += '</div>';
+        
+        if (top5.length) {
+            html += '<h4 style="color:#5dd5ff;font-family:Amiri;margin:0 0 10px;">🏆 المتصدرون</h4>';
+            html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+            top5.forEach(function(m, i) {
+                var medal = ['🥇','🥈','🥉'][i] || '🏅';
+                html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">';
+                html += '<span style="color:#fff;font-weight:600;">' + medal + ' ' + esc(m.full_name || 'طالب #' + m.student_id) + '</span>';
+                html += '<span style="color:#f9c74f;font-weight:bold;">⭐ ' + (m.total_points || 0) + '</span>';
+                html += '</div>';
+            });
+            html += '</div>';
+        }
+        
+        box.innerHTML = html;
+        
+        // اجلب الإحصاءات
+        try {
+            var er = await fetch(API_URL + '/api/teacher/classrooms/' + c.id + '/exams');
+            var ed = await er.json();
+            document.getElementById('cls-stat-exams').textContent = (ed.exams || []).length;
+            
+            var ar = await fetch(API_URL + '/api/teacher/classrooms/' + c.id + '/announcements');
+            var ad = await ar.json();
+            document.getElementById('cls-stat-announces').textContent = (ad.announcements || []).length;
+            
+            var sr = await fetch(API_URL + '/api/teacher/classrooms/' + c.id + '/sessions');
+            var sd = await sr.json();
+            document.getElementById('cls-stat-sessions').textContent = (sd.sessions || []).length;
+        } catch(e) {}
+    }
+    
+    else if (t === 'members') {
+        var members = _currentClassroom.members || [];
+        if (!members.length) {
+            box.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.5);">' +
+                '<div style="font-size:3rem;margin-bottom:10px;">👥</div>' +
+                '<p>لا يوجد طلاب بعد</p>' +
+                '<p style="font-size:0.85rem;color:rgba(255,255,255,0.4);margin-top:8px;">شارك الكود <b style="color:#5dd5ff;">' + esc(c.code) + '</b> مع طلابك</p></div>';
+            return;
+        }
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+        members.forEach(function(m) {
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<div style="color:#fff;font-weight:600;">' + esc(m.full_name || 'طالب #' + m.student_id) + '</div>';
+            if (m.grade) html += '<div style="color:rgba(255,255,255,0.5);font-size:0.82rem;">🎓 ' + esc(m.grade) + '</div>';
+            html += '</div>';
+            html += '<div style="display:flex;gap:8px;align-items:center;">';
+            html += '<span style="color:#f9c74f;font-weight:bold;">⭐ ' + (m.total_points || 0) + '</span>';
+            html += '<button onclick="removeMember(' + m.student_id + ', \'' + esc(m.full_name || '').replace(/\'/g, '&#39;') + '\')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.8rem;font-weight:bold;">🚫 إزالة</button>';
+            html += '</div></div>';
+        });
+        html += '</div>';
+        box.innerHTML = html;
+    }
+    
+    else if (t === 'announcements') {
+        renderAnnouncementsTab(box, c.id);
+    }
+    
+    else if (t === 'exams') {
+        renderExamsTab(box, c.id);
+    }
+    
+    else if (t === 'sessions') {
+        renderSessionsTab(box, c.id);
+    }
+    
+    else if (t === 'settings') {
+        renderSettingsTab(box, c);
+    }
+}
+
+// ─── إعلانات ───
+async function renderAnnouncementsTab(box, classroomId) {
+    box.innerHTML = '<div style="margin-bottom:14px;">' +
+        '<button onclick="showCreateAnnouncementForm()" style="background:linear-gradient(135deg,#2ecc71,#27ae60);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">📢 إعلان جديد</button>' +
+        '</div>' +
+        '<div id="ann-form" style="display:none;background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:16px;margin-bottom:14px;">' +
+        '<input type="text" id="ann-title" placeholder="عنوان الإعلان" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(46,204,113,0.3);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;margin-bottom:10px;">' +
+        '<textarea id="ann-body" rows="3" placeholder="نص الإعلان..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(46,204,113,0.3);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;margin-bottom:10px;resize:vertical;"></textarea>' +
+        '<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">' +
+        '<select id="ann-type" style="background:rgba(255,255,255,0.05);border:1px solid rgba(46,204,113,0.3);color:#fff;padding:8px 12px;border-radius:8px;font-family:Cairo;">' +
+        '<option value="info">📌 معلومة</option><option value="warning">⚠️ تنبيه</option><option value="exam">📝 اختبار</option><option value="celebration">🎉 احتفال</option></select>' +
+        '<label style="color:#fff;display:flex;align-items:center;gap:6px;cursor:pointer;"><input type="checkbox" id="ann-pinned"> 📌 تثبيت</label>' +
+        '</div>' +
+        '<div style="display:flex;gap:8px;"><button onclick="postAnnouncement(' + classroomId + ')" style="background:#27ae60;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ نشر</button>' +
+        '<button onclick="document.getElementById(\'ann-form\').style.display=\'none\'" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">إلغاء</button></div>' +
+        '</div>' +
+        '<div id="ann-list">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/announcements');
+        var data = await res.json();
+        var anns = data.announcements || [];
+        
+        var listEl = document.getElementById('ann-list');
+        if (!anns.length) {
+            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.5);">📭 لا إعلانات بعد</div>';
+            return;
+        }
+        
+        var typeColors = { info:'#3498db', warning:'#f39c12', exam:'#e74c3c', celebration:'#2ecc71' };
+        var typeIcons = { info:'📌', warning:'⚠️', exam:'📝', celebration:'🎉' };
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        anns.forEach(function(a) {
+            var col = typeColors[a.type] || '#3498db';
+            var ic = typeIcons[a.type] || '📌';
+            html += '<div style="background:rgba(255,255,255,0.04);border-right:4px solid ' + col + ';border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">';
+            html += '<h4 style="color:#fff;margin:0;font-size:1rem;">' + ic + ' ' + esc(a.title) + (a.pinned ? ' 📌' : '') + '</h4>';
+            html += '<button onclick="deleteAnnouncement(' + a.id + ', ' + classroomId + ')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:none;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">🗑️</button>';
+            html += '</div>';
+            if (a.body) html += '<p style="color:rgba(255,255,255,0.7);margin:8px 0 0;font-size:0.88rem;line-height:1.7;">' + esc(a.body) + '</p>';
+            html += '<div style="margin-top:8px;color:rgba(255,255,255,0.4);font-size:0.75rem;">' + new Date(a.created_at).toLocaleString('ar') + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+    } catch(e) {
+        document.getElementById('ann-list').innerHTML = '<p style="color:#e74c3c;">❌ فشل التحميل</p>';
+    }
+}
+
+function showCreateAnnouncementForm() {
+    document.getElementById('ann-form').style.display = 'block';
+}
+
+async function postAnnouncement(classroomId) {
+    var title = document.getElementById('ann-title').value.trim();
+    if (!title) {
+        if (typeof showToast === 'function') showToast('⚠️ العنوان مطلوب', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('teacher_id', _getTeacherId());
+    fd.append('title', title);
+    fd.append('body', document.getElementById('ann-body').value || '');
+    fd.append('type', document.getElementById('ann-type').value);
+    fd.append('pinned', document.getElementById('ann-pinned').checked);
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/announcements', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('فشل');
+        if (typeof showToast === 'function') showToast('✅ نُشر!', 'success');
+        renderAnnouncementsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل', 'error');
+    }
+}
+
+async function deleteAnnouncement(id, classroomId) {
+    if (!confirm('🗑️ حذف الإعلان؟')) return;
+    try {
+        await fetch(API_URL + '/api/teacher/classrooms/announcements/' + id + '?teacher_id=' + _getTeacherId(), { method: 'DELETE' });
+        renderAnnouncementsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {}
+}
+
+async function removeMember(studentId, name) {
+    if (!confirm('🚫 إزالة "' + name + '" من الفصل؟')) return;
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + _currentClassroom.classroom.id + '/members/' + studentId + '?teacher_id=' + _getTeacherId(), { method: 'DELETE' });
+        if (!res.ok) throw new Error('فشل');
+        if (typeof showToast === 'function') showToast('🚫 تمت الإزالة', 'success');
+        openClassroom(_currentClassroom.classroom.id);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل', 'error');
+    }
+}
+
+// ─── الاختبارات ───
+async function renderExamsTab(box, classroomId) {
+    box.innerHTML = '<div style="margin-bottom:14px;display:flex;gap:10px;flex-wrap:wrap;">' +
+        '<button onclick="createQuickExam(' + classroomId + ')" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">📝 اختبار سريع من الأسئلة</button>' +
+        '</div>' +
+        '<div id="exam-list">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/exams');
+        var data = await res.json();
+        var exams = data.exams || [];
+        
+        var listEl = document.getElementById('exam-list');
+        if (!exams.length) {
+            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.5);">📭 لا اختبارات بعد</div>';
+            return;
+        }
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        exams.forEach(function(e) {
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<h4 style="color:#fff;margin:0 0 4px;">' + (e.is_published ? '🟢' : '⚪') + ' ' + esc(e.title) + '</h4>';
+            html += '<div style="display:flex;gap:14px;color:rgba(255,255,255,0.6);font-size:0.82rem;flex-wrap:wrap;">';
+            html += '<span>⏱️ ' + e.duration_min + ' د</span>';
+            html += '<span>⭐ ' + e.total_marks + ' درجة</span>';
+            html += '<span>📊 ' + (e.submissions_count || 0) + ' إجابة</span>';
+            html += '<span>❓ ' + ((e.questions_json || []).length || 0) + ' سؤال</span>';
+            html += '</div></div>';
+            html += '<div style="display:flex;gap:6px;">';
+            html += '<button onclick="viewExamResults(' + e.id + ')" style="background:rgba(52,152,219,0.1);color:#5dade2;border:1px solid #3498db;padding:7px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📊 النتائج</button>';
+            html += '<button onclick="deleteExam(' + e.id + ', ' + classroomId + ')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:7px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">🗑️</button>';
+            html += '</div></div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+    } catch(e) {
+        document.getElementById('exam-list').innerHTML = '<p style="color:#e74c3c;">❌ فشل</p>';
+    }
+}
+
+async function createQuickExam(classroomId) {
+    var title = prompt('📝 عنوان الاختبار:');
+    if (!title) return;
+    
+    var grade = prompt('🎓 الصف (للفلترة):', _currentClassroom.classroom.grade || '');
+    var count = parseInt(prompt('🔢 عدد الأسئلة (5-30):', '10') || '10');
+    if (count < 5 || count > 30) count = 10;
+    
+    if (typeof showToast === 'function') showToast('⏳ جارٍ جلب الأسئلة...', 'info');
+    
+    try {
+        // نستخدم endpoint مولّد الاختبارات الموجود
+        var params = new URLSearchParams({grade: grade || '', count: count, types: 'all'});
+        var res = await fetch(API_URL + '/api/teacher/exam_generator/preview?' + params);
+        var data = await res.json();
+        var questions = (data.questions || []).map(function(q) {
+            return {
+                question: q.question,
+                options: q.options,
+                answer: q.correct_answer || q.answer || '',
+                type: q.q_type || q.type || 'mcq',
+            };
+        });
+        
+        if (!questions.length) {
+            if (typeof showToast === 'function') showToast('❌ لا أسئلة مطابقة', 'error');
+            return;
+        }
+        
+        var totalMarks = parseInt(prompt('⭐ الدرجة الكلية:', '20') || '20');
+        var duration = parseInt(prompt('⏱️ المدة (دقيقة):', '30') || '30');
+        var publish = confirm('🟢 هل تريد نشر الاختبار للطلاب الآن؟');
+        
+        var fd = new FormData();
+        fd.append('teacher_id', _getTeacherId());
+        fd.append('title', title);
+        fd.append('questions_json', JSON.stringify(questions));
+        fd.append('total_marks', totalMarks);
+        fd.append('duration_min', duration);
+        fd.append('is_published', publish);
+        
+        var r2 = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/exams', { method: 'POST', body: fd });
+        if (!r2.ok) throw new Error('فشل');
+        
+        if (typeof showToast === 'function') showToast('✅ تم إنشاء الاختبار!', 'success');
+        renderExamsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
+}
+
+async function viewExamResults(examId) {
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/exams/' + examId + '/results?teacher_id=' + _getTeacherId());
+        var data = await res.json();
+        
+        var msg = '📊 نتائج: ' + data.exam.title + '\n\n';
+        msg += '👥 المُسلِّمون: ' + data.stats.submissions + '\n';
+        msg += '📈 المتوسط: ' + data.stats.average + '\n';
+        msg += '🏆 الأعلى: ' + data.stats.highest + '\n';
+        msg += '📉 الأدنى: ' + data.stats.lowest + '\n\n';
+        
+        if (data.results.length) {
+            msg += '──── النتائج ────\n';
+            data.results.slice(0, 20).forEach(function(r, i) {
+                msg += (i+1) + '. ' + (r.full_name || 'طالب') + ': ' + r.score + '/' + r.max_score + '\n';
+            });
+        }
+        
+        alert(msg);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل', 'error');
+    }
+}
+
+async function deleteExam(examId, classroomId) {
+    if (!confirm('🗑️ حذف الاختبار؟ سيُحذف معه كل النتائج.')) return;
+    try {
+        await fetch(API_URL + '/api/teacher/classrooms/exams/' + examId + '?teacher_id=' + _getTeacherId(), { method: 'DELETE' });
+        renderExamsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {}
+}
+
+// ─── الحصص ───
+async function renderSessionsTab(box, classroomId) {
+    box.innerHTML = '<div style="margin-bottom:14px;">' +
+        '<button onclick="showCreateSessionForm()" style="background:linear-gradient(135deg,#9b59b6,#6c3483);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">🎥 جدولة حصة</button>' +
+        '</div>' +
+        '<div id="sess-form" style="display:none;background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.3);border-radius:10px;padding:16px;margin-bottom:14px;">' +
+        '<input type="text" id="sess-title" placeholder="عنوان الحصة" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:10px;">' +
+        '<input type="url" id="sess-link" placeholder="رابط Zoom/Meet/Teams" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:10px;">' +
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">' +
+        '<input type="datetime-local" id="sess-when" style="background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;">' +
+        '<input type="number" id="sess-duration" value="60" min="15" max="240" placeholder="المدة (دقيقة)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;">' +
+        '</div>' +
+        '<textarea id="sess-desc" rows="2" placeholder="وصف الحصة (اختياري)" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;margin-bottom:10px;resize:vertical;"></textarea>' +
+        '<div style="display:flex;gap:8px;"><button onclick="createSession(' + classroomId + ')" style="background:#6c3483;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ جدولة</button>' +
+        '<button onclick="document.getElementById(\'sess-form\').style.display=\'none\'" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">إلغاء</button></div>' +
+        '</div>' +
+        '<div id="sess-list">⏳ جارٍ التحميل...</div>';
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/sessions');
+        var data = await res.json();
+        var sessions = data.sessions || [];
+        
+        var listEl = document.getElementById('sess-list');
+        if (!sessions.length) {
+            listEl.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.5);">📭 لا حصص مجدولة</div>';
+            return;
+        }
+        
+        var html = '<div style="display:flex;flex-direction:column;gap:10px;">';
+        sessions.forEach(function(s) {
+            var when = new Date(s.scheduled_at);
+            var now = new Date();
+            var isPast = when < now;
+            
+            html += '<div style="background:rgba(255,255,255,0.04);border-right:4px solid #9b59b6;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:14px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;">';
+            html += '<div style="flex:1;min-width:200px;">';
+            html += '<h4 style="color:#fff;margin:0 0 4px;">' + (isPast ? '⚪' : '🟢') + ' ' + esc(s.title) + '</h4>';
+            html += '<div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">📅 ' + when.toLocaleString('ar') + ' · ⏱️ ' + s.duration_min + ' دقيقة</div>';
+            if (s.description) html += '<p style="color:rgba(255,255,255,0.7);margin:6px 0 0;font-size:0.85rem;">' + esc(s.description) + '</p>';
+            html += '</div>';
+            html += '<div style="display:flex;gap:6px;">';
+            html += '<a href="' + esc(s.link) + '" target="_blank" style="background:rgba(46,204,113,0.15);color:#2ecc71;border:1px solid #2ecc71;padding:7px 12px;border-radius:6px;font-family:Cairo;font-size:0.78rem;font-weight:bold;text-decoration:none;display:inline-block;">🚀 ابدأ</a>';
+            html += '<button onclick="deleteSession(' + s.id + ', ' + classroomId + ')" style="background:rgba(231,76,60,0.1);color:#e74c3c;border:1px solid #e74c3c;padding:7px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">🗑️</button>';
+            html += '</div></div>';
+            html += '</div>';
+        });
+        html += '</div>';
+        listEl.innerHTML = html;
+    } catch(e) {
+        document.getElementById('sess-list').innerHTML = '<p style="color:#e74c3c;">❌ فشل</p>';
+    }
+}
+
+function showCreateSessionForm() {
+    document.getElementById('sess-form').style.display = 'block';
+}
+
+async function createSession(classroomId) {
+    var title = document.getElementById('sess-title').value.trim();
+    var link = document.getElementById('sess-link').value.trim();
+    var when = document.getElementById('sess-when').value;
+    
+    if (!title || !link || !when) {
+        if (typeof showToast === 'function') showToast('⚠️ العنوان والرابط والوقت مطلوبة', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('teacher_id', _getTeacherId());
+    fd.append('title', title);
+    fd.append('link', link);
+    fd.append('scheduled_at', when);
+    fd.append('duration_min', document.getElementById('sess-duration').value || 60);
+    fd.append('description', document.getElementById('sess-desc').value || '');
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + classroomId + '/sessions', { method: 'POST', body: fd });
+        if (!res.ok) throw new Error('فشل');
+        if (typeof showToast === 'function') showToast('✅ تمت الجدولة!', 'success');
+        renderSessionsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + e.message, 'error');
+    }
+}
+
+async function deleteSession(id, classroomId) {
+    if (!confirm('🗑️ حذف الحصة؟')) return;
+    try {
+        await fetch(API_URL + '/api/teacher/classrooms/sessions/' + id + '?teacher_id=' + _getTeacherId(), { method: 'DELETE' });
+        renderSessionsTab(document.getElementById('cls-tab-content'), classroomId);
+    } catch(e) {}
+}
+
+// ─── الإعدادات ───
+function renderSettingsTab(box, c) {
+    box.innerHTML = '<div style="background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.3);border-radius:10px;padding:18px;">' +
+        '<h4 style="color:#ff7676;margin:0 0 10px;">⚠️ منطقة الخطر</h4>' +
+        '<p style="color:rgba(255,255,255,0.7);margin:0 0 14px;font-size:0.88rem;">حذف الفصل سيحذف كل البيانات (الطلاب، الاختبارات، الإعلانات، الحصص). لا يمكن التراجع.</p>' +
+        '<button onclick="deleteClassroom(' + c.id + ', \'' + esc(c.name).replace(/\'/g, '&#39;') + '\')" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:11px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🗑️ حذف الفصل نهائياً</button>' +
+        '</div>';
+}
+
+async function deleteClassroom(id, name) {
+    var conf = prompt('⚠️ لتأكيد الحذف، اكتب اسم الفصل:\n"' + name + '"');
+    if (conf !== name) {
+        if (typeof showToast === 'function') showToast('❌ الاسم غير متطابق', 'warning');
+        return;
+    }
+    try {
+        var res = await fetch(API_URL + '/api/teacher/classrooms/' + id + '?teacher_id=' + _getTeacherId(), { method: 'DELETE' });
+        if (!res.ok) throw new Error('فشل');
+        if (typeof showToast === 'function') showToast('🗑️ حُذف الفصل', 'success');
+        backToClassroomsList();
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل', 'error');
+    }
+}
+
+// ─── تكامل ───
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'my-classrooms') {
+                setTimeout(function() {
+                    document.getElementById('cls-list-view').style.display = 'block';
+                    document.getElementById('cls-detail-view').style.display = 'none';
+                    loadMyClassrooms();
+                }, 100);
+            }
+        };
+    }
+})();
 
 </script>
 
