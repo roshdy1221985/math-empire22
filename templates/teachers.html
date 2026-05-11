@@ -2147,6 +2147,638 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
+
+        /* ════════════════════════════════════════════════════════
+           🌟 CREATIVE DESIGNS — 10 ابتكارات تصميمية
+        ════════════════════════════════════════════════════════ */
+        
+        /* ──────────────────────────────────────────────────
+           1️⃣ GLASS MORPHISM متقدّم
+        ────────────────────────────────────────────────── */
+        .glass-pro {
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        .glass-pro::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(212, 175, 55, 0.6), 
+                transparent);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .glass-pro::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,55,0.18), transparent 70%);
+            pointer-events: none;
+        }
+        
+        /* ──────────────────────────────────────────────────
+           2️⃣ NEUMORPHISM (تصميم ناعم)
+        ────────────────────────────────────────────────── */
+        .neu-card {
+            background: #0a1228;
+            border-radius: 20px;
+            box-shadow: 
+                -8px -8px 16px rgba(255, 255, 255, 0.03),
+                8px 8px 20px rgba(0, 0, 0, 0.5);
+            padding: 22px;
+            transition: all 0.3s ease;
+        }
+        .neu-inset {
+            background: #0a1228;
+            border-radius: 16px;
+            box-shadow: 
+                inset -4px -4px 8px rgba(255, 255, 255, 0.04),
+                inset 4px 4px 8px rgba(0, 0, 0, 0.5);
+            padding: 16px;
+        }
+        .neu-circle {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: #0a1228;
+            box-shadow: 
+                inset -4px -4px 8px rgba(255, 255, 255, 0.04),
+                inset 4px 4px 8px rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        /* ──────────────────────────────────────────────────
+           3️⃣ AURORA (الشفق القطبي)
+        ────────────────────────────────────────────────── */
+        .aurora-bg {
+            position: relative;
+            background: linear-gradient(135deg, #040d21 0%, #0a1228 50%, #04162e 100%);
+            border-radius: 20px;
+            overflow: hidden;
+            padding: 32px;
+        }
+        .aurora-bg::before {
+            content: '';
+            position: absolute;
+            top: -100px; left: -50px;
+            width: 400px; height: 400px;
+            background: radial-gradient(ellipse, rgba(168, 85, 247, 0.35) 0%, transparent 60%);
+            transform: rotate(-25deg);
+            pointer-events: none;
+            animation: auroraFloat1 15s ease-in-out infinite;
+        }
+        .aurora-bg::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(ellipse, rgba(34, 211, 238, 0.3) 0%, transparent 65%);
+            transform: rotate(20deg);
+            pointer-events: none;
+            animation: auroraFloat2 18s ease-in-out infinite reverse;
+        }
+        .aurora-bg .aurora-third {
+            position: absolute;
+            bottom: -100px; left: 30%;
+            width: 350px; height: 350px;
+            background: radial-gradient(ellipse, rgba(251, 191, 36, 0.28) 0%, transparent 65%);
+            pointer-events: none;
+            animation: auroraFloat3 20s ease-in-out infinite;
+        }
+        .aurora-bg > * { position: relative; z-index: 1; }
+        @keyframes auroraFloat1 {
+            0%, 100% { transform: rotate(-25deg) translate(0, 0); }
+            50% { transform: rotate(-15deg) translate(30px, 20px); }
+        }
+        @keyframes auroraFloat2 {
+            0%, 100% { transform: rotate(20deg) translate(0, 0); }
+            50% { transform: rotate(30deg) translate(-30px, 20px); }
+        }
+        @keyframes auroraFloat3 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, -30px); }
+        }
+        
+        /* ──────────────────────────────────────────────────
+           4️⃣ BENTO BOX GRID
+        ────────────────────────────────────────────────── */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-rows: 140px 140px;
+            gap: 14px;
+        }
+        .bento-card {
+            border-radius: 18px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .bento-card::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+        .bento-big {
+            grid-column: 1; grid-row: 1 / 3;
+            background: linear-gradient(135deg, #1a1f3a, #0f1428);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .bento-big::after { background: radial-gradient(circle, rgba(212,175,55,0.25), transparent); }
+        
+        .bento-purple {
+            grid-column: 2; grid-row: 1;
+            background: linear-gradient(135deg, #2a1a3e, #1a0f2a);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .bento-purple::after { background: radial-gradient(circle, rgba(168,85,247,0.25), transparent); }
+        
+        .bento-green {
+            grid-column: 3; grid-row: 1;
+            background: linear-gradient(135deg, #1a3e2a, #0f2a1a);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .bento-green::after { background: radial-gradient(circle, rgba(74,222,128,0.25), transparent); }
+        
+        .bento-blue {
+            grid-column: 2 / 4; grid-row: 2;
+            background: linear-gradient(135deg, #1a2a3e, #0f1a2a);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .bento-blue::after { background: radial-gradient(circle, rgba(99,102,241,0.25), transparent); right: -30px; left: auto; }
+        
+        @media (max-width: 720px) {
+            .bento-grid {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            .bento-big { grid-column: 1 / 3; grid-row: 1; }
+            .bento-purple { grid-column: 1; grid-row: 2; }
+            .bento-green { grid-column: 2; grid-row: 2; }
+            .bento-blue { grid-column: 1 / 3; grid-row: 3; }
+        }
+        
+        /* ──────────────────────────────────────────────────
+           5️⃣ ICON SIDEBAR (تأثير سايدبار نحيف)
+        ────────────────────────────────────────────────── */
+        .sidebar.compact {
+            width: 78px !important;
+            padding: 14px 8px !important;
+        }
+        .sidebar.compact .nav-btn.nav-royal {
+            min-height: 48px !important;
+            padding: 12px 6px !important;
+            justify-content: center !important;
+            position: relative;
+        }
+        .sidebar.compact .nav-btn.nav-royal span:not(.btn-icon) {
+            display: none;
+        }
+        .sidebar.compact .nav-btn.nav-royal .btn-icon {
+            font-size: 1.5rem !important;
+        }
+        /* Tooltip on hover */
+        .sidebar.compact .nav-btn.nav-royal::after {
+            content: attr(data-label);
+            position: absolute;
+            right: calc(100% + 12px);
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(10, 18, 40, 0.95);
+            backdrop-filter: blur(20px);
+            color: #fff;
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            z-index: 999;
+        }
+        .sidebar.compact .nav-btn.nav-royal:hover::after {
+            opacity: 1;
+        }
+        
+        /* زر التبديل */
+        .sidebar-toggle-compact {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(212, 175, 55, 0.15);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            color: #d4af37;
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+        .sidebar-toggle-compact:hover {
+            background: rgba(212, 175, 55, 0.25);
+            transform: scale(1.05);
+        }
+        
+        /* ──────────────────────────────────────────────────
+           6️⃣ HERO CARD — البطاقة البطل
+        ────────────────────────────────────────────────── */
+        .hero-card {
+            background: linear-gradient(135deg, #1a1a3e 0%, #0a0d28 50%, #1a1a3e 100%);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            border-radius: 22px;
+            padding: 30px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-card::before {
+            content: '';
+            position: absolute;
+            top: -60px; right: -60px;
+            width: 220px; height: 220px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.2), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-card::after {
+            content: '';
+            position: absolute;
+            bottom: -90px; left: -90px;
+            width: 270px; height: 270px;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15), transparent 70%);
+            pointer-events: none;
+        }
+        .hero-card > * { position: relative; z-index: 1; }
+        
+        .hero-stat-num {
+            font-size: 2.2rem;
+            font-weight: 600;
+            font-family: 'Amiri', serif;
+        }
+        .hero-stat-label {
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.78rem;
+        }
+        
+        /* ──────────────────────────────────────────────────
+           7️⃣ TIMELINE — الخط الزمني
+        ────────────────────────────────────────────────── */
+        .timeline-container {
+            position: relative;
+            padding-right: 36px;
+        }
+        .timeline-line {
+            position: absolute;
+            right: 11px;
+            top: 12px;
+            bottom: 12px;
+            width: 2px;
+            background: rgba(212, 175, 55, 0.2);
+        }
+        .timeline-item {
+            position: relative;
+            padding-bottom: 18px;
+        }
+        .timeline-dot {
+            position: absolute;
+            right: -29px;
+            top: 8px;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            border: 3px solid #040d21;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2;
+        }
+        .timeline-dot.done {
+            background: #d4af37;
+        }
+        .timeline-dot.now {
+            background: rgba(99, 102, 241, 0.3);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+            animation: timelinePulse 2s ease-in-out infinite;
+        }
+        .timeline-dot.future {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        @keyframes timelinePulse {
+            0%, 100% { box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15); }
+            50% { box-shadow: 0 0 0 8px rgba(99, 102, 241, 0.3); }
+        }
+        .timeline-content {
+            border-radius: 12px;
+            padding: 12px 16px;
+        }
+        .timeline-content.done {
+            background: rgba(212, 175, 55, 0.06);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+        }
+        .timeline-content.now {
+            background: rgba(99, 102, 241, 0.08);
+            border: 1px solid rgba(99, 102, 241, 0.35);
+        }
+        .timeline-content.future {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        /* ──────────────────────────────────────────────────
+           8️⃣ ONBOARDING PROGRESS — تقدّم الإكمال
+        ────────────────────────────────────────────────── */
+        .progress-steps {
+            position: relative;
+            padding: 0 12px;
+            margin-bottom: 22px;
+        }
+        .progress-line-bg {
+            position: absolute;
+            top: 16px;
+            left: 24px;
+            right: 24px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+        .progress-line-fill {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            height: 2px;
+            background: linear-gradient(90deg, #d4af37, #fcd34d);
+            transition: width 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .progress-step {
+            text-align: center;
+            position: relative;
+            z-index: 2;
+        }
+        .progress-step-circle {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            margin: 0 auto 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .progress-step.done .progress-step-circle {
+            background: #d4af37;
+            color: #052e16;
+        }
+        .progress-step.current .progress-step-circle {
+            background: rgba(212, 175, 55, 0.3);
+            border: 2px solid #d4af37;
+            color: #fcd34d;
+        }
+        .progress-step.todo .progress-step-circle {
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.4);
+        }
+        .progress-step-label {
+            font-size: 11px;
+            font-weight: 500;
+        }
+        .progress-step.done .progress-step-label,
+        .progress-step.current .progress-step-label {
+            color: #fcd34d;
+        }
+        .progress-step.todo .progress-step-label {
+            color: rgba(255, 255, 255, 0.4);
+        }
+        
+        /* ──────────────────────────────────────────────────
+           9️⃣ FAB — الزر العائم السريع
+        ────────────────────────────────────────────────── */
+        .fab-container {
+            position: fixed;
+            bottom: 24px;
+            left: 24px;
+            z-index: 9990;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: flex-start;
+        }
+        body.has-ticker .fab-container {
+            bottom: 24px;
+        }
+        .fab-main {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #d4af37, #b8860b);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(212, 175, 55, 0.4);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+            color: #1a0d2e;
+            font-size: 1.5rem;
+        }
+        .fab-main:hover {
+            transform: scale(1.08) rotate(90deg);
+            box-shadow: 0 12px 32px rgba(212, 175, 55, 0.6);
+        }
+        .fab-main.open {
+            transform: rotate(135deg);
+        }
+        .fab-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: flex-start;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .fab-actions.show {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+        .fab-action {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .fab-action-label {
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            color: #fff;
+            font-size: 0.82rem;
+            font-weight: 600;
+            padding: 7px 12px;
+            border-radius: 8px;
+            white-space: nowrap;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .fab-action-btn {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .fab-action:hover .fab-action-btn {
+            transform: scale(1.1);
+        }
+        .fab-red { background: rgba(239, 68, 68, 0.18); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; }
+        .fab-green { background: rgba(74, 222, 128, 0.18); border: 1px solid rgba(74, 222, 128, 0.4); color: #4ade80; }
+        .fab-blue { background: rgba(99, 102, 241, 0.18); border: 1px solid rgba(99, 102, 241, 0.4); color: #818cf8; }
+        .fab-pink { background: rgba(244, 114, 182, 0.18); border: 1px solid rgba(244, 114, 182, 0.4); color: #f472b6; }
+        
+        /* ──────────────────────────────────────────────────
+           🔟 THEME TOGGLE — الوضع الليلي/النهاري
+        ────────────────────────────────────────────────── */
+        .theme-toggle-group {
+            display: inline-flex;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 4px;
+            gap: 4px;
+        }
+        .theme-toggle-btn {
+            padding: 7px 14px;
+            border-radius: 20px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-family: 'Tajawal', sans-serif;
+        }
+        .theme-toggle-btn.active {
+            background: rgba(212, 175, 55, 0.25);
+            color: #fcd34d;
+        }
+        
+        /* الوضع النهاري — overrides */
+        body.light-mode {
+            background: radial-gradient(circle at center, #f5f3eb 0%, #ebe6d3 100%) !important;
+            color: #1a1a3e;
+        }
+        body.light-mode .sidebar {
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-left: 1px solid rgba(212, 175, 55, 0.3) !important;
+        }
+        body.light-mode .glass-card,
+        body.light-mode .tilt-card,
+        body.light-mode .profile-dashboard,
+        body.light-mode .glass-pro {
+            background: rgba(255, 255, 255, 0.8) !important;
+            border: 1px solid rgba(212, 175, 55, 0.3) !important;
+            color: #1a1a3e !important;
+        }
+        body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4 {
+            color: #1a1a3e !important;
+        }
+        body.light-mode p, body.light-mode label, body.light-mode div {
+            color: inherit;
+        }
+        body.light-mode input, body.light-mode select, body.light-mode textarea {
+            background: rgba(255, 255, 255, 0.9) !important;
+            color: #1a1a3e !important;
+            border: 1px solid rgba(212, 175, 55, 0.3) !important;
+        }
+        body.light-mode .nav-btn.nav-royal {
+            color: #1a1a3e !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(212, 175, 55, 0.4) !important;
+        }
+        
+        /* ──────────────────────────────────────────────────
+           ✨ Micro-animations عامة
+        ────────────────────────────────────────────────── */
+        @keyframes flameFlicker {
+            0%, 100% { transform: scale(1); filter: hue-rotate(0deg); }
+            50% { transform: scale(1.08); filter: hue-rotate(-10deg); }
+        }
+        .flame-icon {
+            animation: flameFlicker 1.5s ease-in-out infinite;
+            display: inline-block;
+        }
+        
+        @keyframes shineLine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .gold-shine-text {
+            background: linear-gradient(
+                90deg,
+                #d4af37 0%,
+                #fcd34d 25%,
+                #ffd75e 50%,
+                #fcd34d 75%,
+                #d4af37 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shineLine 3s linear infinite;
+        }
+        
 </style>
 </head>
 <body>
@@ -2959,16 +3591,55 @@
          🏠 قسم لوحة البيت الذكية (الافتراضي)
     ══════════════════════════════════════════════════════ -->
     <div id="section-home" class="section active">
-        <!-- Welcome Hero -->
-        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:2px solid #f39c12;border-radius:24px;padding:36px 28px;margin-bottom:22px;text-align:center;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:-30px;left:-30px;font-size:8rem;opacity:0.05;color:#f39c12;">⚜️</div>
-            <div style="position:absolute;bottom:-30px;right:-30px;font-size:8rem;opacity:0.05;color:#f39c12;">⚜️</div>
-            <div id="home-greeting-emoji" style="font-size:4rem;margin-bottom:10px;">🌅</div>
-            <h1 style="font-family:'Amiri';margin:0 0 6px;font-size:2.4rem;background:linear-gradient(135deg,#f9c74f,#f39c12,#fdd835,#f39c12);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">
-                <span id="home-greeting">صباح الخير</span>!
-            </h1>
-            <p id="home-subtitle" style="color:rgba(255,255,255,0.8);margin:0;font-size:1.05rem;line-height:1.8;">مرحباً بك في إمبراطوريتك التعليمية ⚜️</p>
-            <p id="home-date" style="color:rgba(255,255,255,0.5);margin:8px 0 0;font-size:0.88rem;"></p>
+        <!-- 🌌 Aurora Hero مع Hero Card -->
+        <div class="aurora-bg" style="margin-bottom:22px;">
+            <div class="aurora-third"></div>
+            <div style="text-align:center;padding:14px 0;">
+                <div style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:rgba(255,255,255,0.85);font-size:0.82rem;margin-bottom:14px;">
+                    <i class="fas fa-sparkles" style="margin-left:6px;"></i>
+                    <span id="home-greeting-badge">صباح الخير</span>
+                </div>
+                <h1 class="gold-shine-text" style="font-family:'Amiri';margin:0 0 6px;font-size:2.6rem;font-weight:700;">
+                    إمبراطورية الرياضيات
+                </h1>
+                <p id="home-subtitle" style="color:rgba(255,255,255,0.7);margin:0 0 8px;font-size:1rem;line-height:1.8;">⚜️ ديوان المعلمين — حيث يصنع العلم الفرق</p>
+                <p id="home-date" style="color:rgba(255,255,255,0.4);margin:6px 0 0;font-size:0.85rem;"></p>
+            </div>
+        </div>
+        
+        <!-- 🎖️ Hero Card — إنجاز الأسبوع -->
+        <div class="hero-card" style="margin-bottom:22px;">
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+                <div style="background:rgba(212,175,55,0.15);color:#fcd34d;font-size:0.75rem;padding:4px 12px;border-radius:14px;border:1px solid rgba(212,175,55,0.3);">⭐ إنجاز أسبوعي</div>
+                <div id="hero-week-range" style="color:rgba(255,255,255,0.4);font-size:0.78rem;"></div>
+            </div>
+            <h2 id="hero-week-title" style="color:#fff;margin:8px 0 18px;font-weight:600;font-size:1.5rem;font-family:'Amiri';">أسبوع رائع، أيها الأستاذ! 🌟</h2>
+            
+            <div class="bento-grid" style="margin-bottom:18px;grid-template-columns:repeat(4,1fr);grid-template-rows:auto;">
+                <div style="grid-column:1;grid-row:1;background:none;border:none;padding:0;text-align:center;">
+                    <div class="hero-stat-num" style="color:#fcd34d;">42</div>
+                    <div class="hero-stat-label">درس جديد</div>
+                </div>
+                <div style="grid-column:2;grid-row:1;background:none;border:none;padding:0;text-align:center;">
+                    <div class="hero-stat-num" style="color:#818cf8;">128</div>
+                    <div class="hero-stat-label">طالب نشط</div>
+                </div>
+                <div style="grid-column:3;grid-row:1;background:none;border:none;padding:0;text-align:center;">
+                    <div class="hero-stat-num" style="color:#4ade80;">86%</div>
+                    <div class="hero-stat-label">معدل النجاح</div>
+                </div>
+                <div style="grid-column:4;grid-row:1;background:none;border:none;padding:0;text-align:center;">
+                    <div class="hero-stat-num" style="color:#f472b6;">23</div>
+                    <div class="hero-stat-label">شهادة</div>
+                </div>
+            </div>
+            
+            <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+                <span class="flame-icon" style="font-size:1.5rem;">🔥</span>
+                <div style="color:rgba(255,255,255,0.75);font-size:0.88rem;line-height:1.7;">
+                    <span style="color:#f97316;font-weight:600;" id="hero-streak">7 أيام متتالية</span> من النشاط — أنت في طريقك لإنجاز شهري ممتاز!
+                </div>
+            </div>
         </div>
 
         <!-- Quick Actions -->
@@ -2990,27 +3661,48 @@
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:18px;">
-            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid rgba(212,175,55,0.6);">
-                <div style="font-size:2.5rem;color:#ff7676;">📝</div>
-                <div id="stat-exams-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">اختبار أنشأته</div>
+        <!-- 📦 Bento Stats Grid -->
+        <div class="bento-grid" style="margin-bottom:18px;">
+            <!-- البطاقة الكبيرة: اختبارات -->
+            <div class="bento-card bento-big">
+                <div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <div style="font-size:1.5rem;">📝</div>
+                        <span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">اختباراتي</span>
+                    </div>
+                    <div id="stat-exams-count" style="color:#fcd34d;font-size:2.5rem;font-weight:600;font-family:'Amiri';line-height:1;">0</div>
+                    <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:6px;">اختبار أنشأته منذ البداية</div>
+                </div>
+                <svg viewBox="0 0 200 60" style="width:100%;height:50px;">
+                    <polyline points="5,45 30,38 55,40 80,28 105,30 130,18 155,22 180,10 195,14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.8"/>
+                    <circle cx="195" cy="14" r="3" fill="#fcd34d"/>
+                </svg>
             </div>
-            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #3498db;">
-                <div style="font-size:2.5rem;color:#5dade2;">📓</div>
-                <div id="stat-plans-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">تحضير منشئ</div>
+            
+            <!-- صغيرة 1: تحضيرات -->
+            <div class="bento-card bento-purple">
+                <div style="font-size:2rem;color:#c084fc;line-height:1;">📓</div>
+                <div id="stat-plans-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">تحضير</div>
             </div>
-            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #16a085;">
-                <div style="font-size:2.5rem;color:#48d1cc;">🏆</div>
-                <div id="stat-certs-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">شهادة طُبعت</div>
+            
+            <!-- صغيرة 2: شهادات -->
+            <div class="bento-card bento-green">
+                <div style="font-size:2rem;color:#4ade80;line-height:1;">🏆</div>
+                <div id="stat-certs-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">شهادة</div>
             </div>
-            <div class="glass-card" style="padding:18px;text-align:center;border-right:4px solid #f39c12;">
-                <div style="font-size:2.5rem;color:#f9c74f;">🎨</div>
-                <div id="stat-shapes-count" style="font-family:'Amiri';font-size:2rem;font-weight:bold;color:#fff;margin:6px 0;">0</div>
-                <div style="font-size:0.85rem;color:rgba(255,255,255,0.6);">شكل بصري</div>
+            
+            <!-- عريضة: أشكال + إجراء -->
+            <div class="bento-card bento-blue">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:1.4rem;">🎨</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="color:#fff;font-size:1rem;font-weight:600;">أشكال بصرية</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;"><span id="stat-shapes-count">0</span> شكل مُصمَّم</div>
+                </div>
+                <button onclick="showSection('visual-maker', null)" style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.4);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:600;flex-shrink:0;">صمّم</button>
             </div>
         </div>
 
@@ -3029,6 +3721,40 @@
                 <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">⭐ المفضّلة</h3>
                 <div id="favorites-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
                     <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا توجد مفضّلة بعد<br><span style="font-size:0.8rem;">اضغط ⭐ على أي قسم</span></p>
+                </div>
+            </div>
+        </div>
+
+                <!-- ⏰ Timeline — جدول اليوم -->
+        <div class="glass-pro" style="padding:24px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
+                <div>
+                    <h3 style="color:#fcd34d;font-family:'Amiri';margin:0 0 4px;font-size:1.2rem;">📅 جدول اليوم</h3>
+                    <p id="timeline-date" style="color:rgba(255,255,255,0.5);margin:0;font-size:0.82rem;"></p>
+                </div>
+            </div>
+            <div class="timeline-container">
+                <div class="timeline-line"></div>
+                <div class="timeline-item">
+                    <div class="timeline-dot done"><i class="fas fa-check" style="font-size:0.7rem;color:#052e16;"></i></div>
+                    <div class="timeline-content done">
+                        <div style="color:#fcd34d;font-weight:600;font-size:0.9rem;">حصة الفصل 6/أ — منتهية</div>
+                        <div style="color:rgba(255,255,255,0.6);font-size:0.78rem;">07:30 - 08:15 · الكسور العشرية</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot now"></div>
+                    <div class="timeline-content now">
+                        <div style="color:#818cf8;font-weight:600;font-size:0.9rem;">حصة الفصل 7/ب — الآن</div>
+                        <div style="color:rgba(255,255,255,0.65);font-size:0.78rem;">08:30 - 09:15 · الجبر</div>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-dot future"></div>
+                    <div class="timeline-content future">
+                        <div style="color:rgba(255,255,255,0.85);font-weight:600;font-size:0.9rem;">حصة الفصل 8/أ</div>
+                        <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">09:30 - 10:15 · الهندسة</div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -3061,6 +3787,35 @@
             <div style="font-size:3.4rem;margin-bottom:12px;">🎨</div>
             <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">التخصيص والثيمات</h2>
             <p style="color:rgba(255,255,255,0.75);margin:0;font-size:1rem;">🎨 اختر ثيماً يناسب ذوقك · ضع شعار مدرستك على كل المخرجات</p>
+        </div>
+
+        <!-- 🌓 Light/Dark Toggle -->
+        <div class="glass-pro" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#fcd34d;font-family:'Amiri';margin:0 0 14px;font-size:1.2rem;">🌓 وضع الإضاءة</h3>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 14px;">اختر الوضع المناسب: ليلي مريح للعين أو نهاري واضح للطباعة</p>
+            <div class="theme-toggle-group">
+                <button class="theme-toggle-btn active" data-mode="dark" onclick="applyThemeMode('dark')">
+                    <i class="fas fa-moon"></i> ليلي
+                </button>
+                <button class="theme-toggle-btn" data-mode="light" onclick="applyThemeMode('light')">
+                    <i class="fas fa-sun"></i> نهاري
+                </button>
+                <button class="theme-toggle-btn" data-mode="auto" onclick="applyThemeMode('auto')">
+                    <i class="fas fa-laptop"></i> تلقائي
+                </button>
+            </div>
+            <p style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:10px 0 0;">
+                <i class="fas fa-info-circle"></i> الوضع التلقائي: نهاري 6ص-6م، ليلي 6م-6ص
+            </p>
+        </div>
+
+        <!-- 🪟 تبديل السايدبار النحيف -->
+        <div class="glass-pro" style="padding:22px;margin-bottom:18px;">
+            <h3 style="color:#fcd34d;font-family:'Amiri';margin:0 0 14px;font-size:1.2rem;">🪟 السايدبار النحيف</h3>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:0 0 14px;">اختصر السايدبار إلى أيقونات فقط — يُتيح مساحة أكبر للمحتوى</p>
+            <button onclick="toggleCompactSidebar()" style="background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a0d2e;border:none;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                <i class="fas fa-bars"></i> تبديل عرض السايدبار
+            </button>
         </div>
 
         <!-- اختيار الثيم -->
@@ -9948,5 +10703,168 @@ async function saveTeacherProfile() {
     }
 })();
 </script>
+
+<!-- 🚀 Floating Action Button (FAB) -->
+<div class="fab-container">
+    <div id="fab-actions" class="fab-actions">
+        <button class="fab-action" onclick="fabAction('exam-gen')">
+            <span class="fab-action-label">📝 إنشاء اختبار</span>
+            <span class="fab-action-btn fab-red"><i class="fas fa-file-alt"></i></span>
+        </button>
+        <button class="fab-action" onclick="fabAction('certificates')">
+            <span class="fab-action-label">🏆 شهادة جديدة</span>
+            <span class="fab-action-btn fab-green"><i class="fas fa-medal"></i></span>
+        </button>
+        <button class="fab-action" onclick="fabAction('ai-assistant')">
+            <span class="fab-action-label">🤖 سؤال للمساعد</span>
+            <span class="fab-action-btn fab-blue"><i class="fas fa-robot"></i></span>
+        </button>
+        <button class="fab-action" onclick="fabAction('plan-gen')">
+            <span class="fab-action-label">📓 تحضير سريع</span>
+            <span class="fab-action-btn fab-pink"><i class="fas fa-pen-fancy"></i></span>
+        </button>
+    </div>
+    <button class="fab-main" id="fab-main" onclick="toggleFab()" title="إجراءات سريعة">
+        <i class="fas fa-plus" id="fab-icon"></i>
+    </button>
+</div>
+
+<script>
+function toggleFab() {
+    var actions = document.getElementById('fab-actions');
+    var main = document.getElementById('fab-main');
+    var icon = document.getElementById('fab-icon');
+    if (!actions || !main) return;
+    var isOpen = actions.classList.toggle('show');
+    main.classList.toggle('open', isOpen);
+    if (icon) icon.className = isOpen ? 'fas fa-times' : 'fas fa-plus';
+}
+
+function fabAction(section) {
+    if (typeof showSection === 'function') {
+        showSection(section, null);
+    }
+    toggleFab();
+}
+
+document.addEventListener('click', function(e) {
+    var fab = document.querySelector('.fab-container');
+    var actions = document.getElementById('fab-actions');
+    if (!fab || !actions || !actions.classList.contains('show')) return;
+    if (!fab.contains(e.target)) {
+        actions.classList.remove('show');
+        var main = document.getElementById('fab-main');
+        var icon = document.getElementById('fab-icon');
+        if (main) main.classList.remove('open');
+        if (icon) icon.className = 'fas fa-plus';
+    }
+});
+
+var _themeMode = localStorage.getItem('theme_mode') || 'auto';
+
+function applyThemeMode(mode) {
+    _themeMode = mode;
+    localStorage.setItem('theme_mode', mode);
+    
+    var actualMode = mode;
+    if (mode === 'auto') {
+        var hour = new Date().getHours();
+        actualMode = (hour >= 6 && hour < 18) ? 'light' : 'dark';
+    }
+    
+    if (actualMode === 'light') {
+        document.body.classList.add('light-mode');
+    } else {
+        document.body.classList.remove('light-mode');
+    }
+    
+    document.querySelectorAll('.theme-toggle-btn').forEach(function(b) {
+        b.classList.toggle('active', b.getAttribute('data-mode') === mode);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    applyThemeMode(_themeMode);
+});
+
+setInterval(function() {
+    if (_themeMode === 'auto') applyThemeMode('auto');
+}, 60000);
+
+function updateTimelineDate() {
+    var el = document.getElementById('timeline-date');
+    if (!el) return;
+    var days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    var d = new Date();
+    el.textContent = days[d.getDay()] + ' · ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+function updateHeroWeekRange() {
+    var el = document.getElementById('hero-week-range');
+    if (!el) return;
+    var now = new Date();
+    var dayOfWeek = now.getDay();
+    var diffToSat = (dayOfWeek === 6) ? 0 : (dayOfWeek + 1);
+    var weekStart = new Date(now);
+    weekStart.setDate(now.getDate() - diffToSat);
+    var weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    var months = ['ينا','فبر','مار','أبر','ماي','يون','يول','أغس','سبت','أكت','نوف','ديس'];
+    el.textContent = weekStart.getDate() + ' ' + months[weekStart.getMonth()] + ' — ' + weekEnd.getDate() + ' ' + months[weekEnd.getMonth()];
+}
+
+function updateGreetingBadge() {
+    var el = document.getElementById('home-greeting-badge');
+    if (!el) return;
+    var hour = new Date().getHours();
+    if (hour < 12) el.textContent = 'صباح الخير، أيها الأستاذ';
+    else if (hour < 17) el.textContent = 'مساء النور';
+    else if (hour < 21) el.textContent = 'مساء الخير';
+    else el.textContent = 'مساء الراحة';
+}
+
+function updateHomeDate() {
+    var el = document.getElementById('home-date');
+    if (!el) return;
+    var days = ['الأحد','الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت'];
+    var months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+    var d = new Date();
+    el.textContent = days[d.getDay()] + ' · ' + d.getDate() + ' ' + months[d.getMonth()] + ' ' + d.getFullYear();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        updateTimelineDate();
+        updateHeroWeekRange();
+        updateGreetingBadge();
+        updateHomeDate();
+    }, 500);
+});
+
+function toggleCompactSidebar() {
+    var sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return;
+    sidebar.classList.toggle('compact');
+    var isCompact = sidebar.classList.contains('compact');
+    localStorage.setItem('sidebar_compact', isCompact ? '1' : '0');
+    
+    if (isCompact) {
+        document.querySelectorAll('.nav-btn.nav-royal').forEach(function(btn) {
+            var labelSpan = btn.querySelector('span:not(.btn-icon)');
+            if (labelSpan && !btn.hasAttribute('data-label')) {
+                btn.setAttribute('data-label', labelSpan.textContent.trim());
+            }
+        });
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (localStorage.getItem('sidebar_compact') === '1') {
+        setTimeout(toggleCompactSidebar, 100);
+    }
+});
+</script>
+
 </body>
 </html>

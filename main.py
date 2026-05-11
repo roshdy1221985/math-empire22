@@ -6878,7 +6878,7 @@ async def teacher_certificate_from_image(
     date: str             = Form(default=""),
     
     # مواقع النصوص (نسبة مئوية من الصورة)
-    name_x: float         = Form(default=50),     # %
+    name_x: float         = Form(default=50),
     name_y: float         = Form(default=45),
     name_size: int        = Form(default=64),
     name_color: str       = Form(default="#000000"),
@@ -6910,93 +6910,138 @@ async def teacher_certificate_from_image(
         if not date:
             date = datetime.now().strftime("%Y/%m/%d")
         
-        # نستخدم نفس الصورة الـ base64 كخلفية + overlay فيه النصوص
-        full_html = (
-            '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n'
-            '<meta charset="UTF-8">\n<title>شهادة - ' + student_name + '</title>\n'
-            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">\n'
-            '<style>\n'
-            '* { box-sizing: border-box; margin: 0; padding: 0; }\n'
-            '@page { size: A4 landscape; margin: 0; }\n'
-            'body { font-family: "Cairo", sans-serif; padding: 0; margin: 0; background: #f0f0f0; }\n'
-            
-            '.cert-page {\n'
-            '    width: 297mm; height: 210mm;\n'
-            '    margin: 20px auto;\n'
-            '    position: relative;\n'
-            '    background-image: url("' + image_data + '");\n'
-            '    background-size: 100% 100%;\n'
-            '    background-repeat: no-repeat;\n'
-            '    background-position: center;\n'
-            '    box-shadow: 0 12px 40px rgba(0,0,0,0.2);\n'
-            '    page-break-after: always;\n'
-            '}\n'
-            '.text-overlay {\n'
-            '    position: absolute;\n'
-            '    transform: translate(50%, -50%);\n'
-            '    text-align: center;\n'
-            '    white-space: nowrap;\n'
-            '    text-shadow: 0 1px 3px rgba(255,255,255,0.6);\n'
-            '}\n'
-            '.controls {\n'
-            '    position: fixed; top: 12px; left: 12px;\n'
-            '    background: #fff; border: 1px solid #ccc; border-radius: 10px; padding: 12px;\n'
-            '    z-index: 9999; box-shadow: 0 4px 16px rgba(0,0,0,0.2);\n'
-            '}\n'
-            '.controls button {\n'
-            '    background: linear-gradient(135deg,#1976d2,#1565c0); color: #fff;\n'
-            '    border: none; padding: 10px 20px; margin: 0 4px; border-radius: 8px;\n'
-            '    cursor: pointer; font-family: "Cairo"; font-weight: 700; font-size: 14px;\n'
-            '}\n'
-            '.controls button.green { background: linear-gradient(135deg,#43a047,#2e7d32); }\n'
-            '@media print {\n'
-            '    .controls { display: none !important; }\n'
-            '    body { background: #fff; margin: 0; padding: 0; }\n'
-            '    .cert-page { margin: 0 !important; box-shadow: none !important; }\n'
-            '}\n'
-            '</style>\n</head>\n<body>\n'
-            
-            '<div class="controls">'
-            '<button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>'
-            '<button class="green" onclick="window.close()">✕ إغلاق</button>'
-            '</div>\n'
-            
-            '<div class="cert-page">\n'
-            
-            # اسم الطالب
+        # بناء النصوص (overlays)
+        overlays_html = ""
+        
+        # اسم الطالب
+        overlays_html += (
             f'<div class="text-overlay" style="right:{100-name_x}%; top:{name_y}%; '
             f'font-family:\'{name_font}\',serif; font-size:{name_size}px; '
             f'color:{name_color}; font-weight:bold;">'
             f'{student_name}</div>\n'
-            
-            # سبب التقدير
-            (f'<div class="text-overlay" style="right:{100-achievement_x}%; top:{achievement_y}%; '
-             f'font-size:{achievement_size}px; color:{achievement_color}; font-weight:600;">'
-             f'{achievement}</div>\n' if achievement else '')
-            +
-            # الصف
-            (f'<div class="text-overlay" style="right:{100-name_x}%; top:{name_y + 7}%; '
-             f'font-size:{achievement_size - 4}px; color:#666;">'
-             f'{grade}</div>\n' if grade else '')
-            +
-            # المعلم
-            (f'<div class="text-overlay" style="right:{100-teacher_x}%; top:{teacher_y}%; '
-             f'font-size:{teacher_size}px; color:#444; font-weight:600;">'
-             f'{teacher_name}</div>\n' if teacher_name else '')
-            +
-            # المدرسة
-            (f'<div class="text-overlay" style="right:{100-school_x}%; top:{school_y}%; '
-             f'font-size:{school_size}px; color:#444; font-weight:600;">'
-             f'{school_name}</div>\n' if school_name else '')
-            +
-            # التاريخ
+        )
+        
+        # سبب التقدير
+        if achievement:
+            overlays_html += (
+                f'<div class="text-overlay" style="right:{100-achievement_x}%; top:{achievement_y}%; '
+                f'font-size:{achievement_size}px; color:{achievement_color}; font-weight:600;">'
+                f'{achievement}</div>\n'
+            )
+        
+        # الصف (تحت الاسم)
+        if grade:
+            overlays_html += (
+                f'<div class="text-overlay" style="right:{100-name_x}%; top:{name_y + 7}%; '
+                f'font-size:{achievement_size - 4}px; color:#666;">'
+                f'{grade}</div>\n'
+            )
+        
+        # المعلم
+        if teacher_name:
+            overlays_html += (
+                f'<div class="text-overlay" style="right:{100-teacher_x}%; top:{teacher_y}%; '
+                f'font-size:{teacher_size}px; color:#444; font-weight:600;">'
+                f'{teacher_name}</div>\n'
+            )
+        
+        # المدرسة
+        if school_name:
+            overlays_html += (
+                f'<div class="text-overlay" style="right:{100-school_x}%; top:{school_y}%; '
+                f'font-size:{school_size}px; color:#444; font-weight:600;">'
+                f'{school_name}</div>\n'
+            )
+        
+        # التاريخ
+        overlays_html += (
             f'<div class="text-overlay" style="right:{100-date_x}%; top:{date_y}%; '
             f'font-size:{date_size}px; color:#666;">'
             f'📅 {date}</div>\n'
-            +
-            '</div>\n'
-            '</body>\n</html>'
         )
+        
+        # بناء HTML الكامل (multi-line string واحد نظيف)
+        full_html = f"""<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>شهادة - {student_name}</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&family=Tajawal:wght@500;700&display=swap" rel="stylesheet">
+<style>
+* {{ box-sizing: border-box; margin: 0; padding: 0; }}
+@page {{ size: A4 landscape; margin: 0; }}
+body {{ font-family: "Cairo", sans-serif; padding: 0; margin: 0; background: #f0f0f0; }}
+
+.cert-page {{
+    width: 297mm;
+    height: 210mm;
+    margin: 20px auto;
+    position: relative;
+    background-image: url("{image_data}");
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    background-position: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    page-break-after: always;
+}}
+
+.text-overlay {{
+    position: absolute;
+    transform: translate(50%, -50%);
+    text-align: center;
+    white-space: nowrap;
+    text-shadow: 0 1px 3px rgba(255,255,255,0.6);
+}}
+
+.controls {{
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    padding: 12px;
+    z-index: 9999;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+}}
+
+.controls button {{
+    background: linear-gradient(135deg, #1976d2, #1565c0);
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    margin: 0 4px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: "Cairo";
+    font-weight: 700;
+    font-size: 14px;
+}}
+
+.controls button.green {{
+    background: linear-gradient(135deg, #43a047, #2e7d32);
+}}
+
+@media print {{
+    .controls {{ display: none !important; }}
+    body {{ background: #fff; margin: 0; padding: 0; }}
+    .cert-page {{ margin: 0 !important; box-shadow: none !important; }}
+}}
+</style>
+</head>
+<body>
+
+<div class="controls">
+    <button onclick="window.print()">🖨️ طباعة / حفظ PDF</button>
+    <button class="green" onclick="window.close()">✕ إغلاق</button>
+</div>
+
+<div class="cert-page">
+{overlays_html}
+</div>
+
+</body>
+</html>"""
         
         from fastapi.responses import HTMLResponse
         return HTMLResponse(content=full_html)
@@ -7007,6 +7052,7 @@ async def teacher_certificate_from_image(
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
 
 
 @app.post("/api/teacher/classrooms/create")
