@@ -8290,6 +8290,316 @@ async def admin_export_teacher_emails():
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
 
 
+
+
+# ════════════════════════════════════════════════════════════════
+# 🚀 COMPLETE AI LESSON PACK — حزمة الدرس الكاملة بالذكاء الاصطناعي
+# يولّد في طلب واحد: تحضير + أسئلة + ورقة عمل + واجب + بطاقات + تحدي
+# ════════════════════════════════════════════════════════════════
+
+LESSON_PACK_PROMPT = """أنت معلم رياضيات خبير في المنهج العماني. مهمتك إنتاج حزمة تعليمية متكاملة لدرس واحد.
+
+أعد الإجابة بصيغة JSON صالحة فقط، بدون أي نص خارجي قبل أو بعد. الصيغة المطلوبة:
+
+{
+  "title": "عنوان الدرس",
+  "subtitle": "وصف موجز في سطر واحد",
+  
+  "lesson_plan": {
+    "objectives": ["هدف 1", "هدف 2", "هدف 3", "هدف 4"],
+    "vocabulary": ["مصطلح: تعريفه", "مصطلح: تعريفه", "مصطلح: تعريفه"],
+    "materials": ["وسيلة 1", "وسيلة 2", "وسيلة 3"],
+    "introduction": "فقرة التمهيد (3-4 أسطر) - كيف يبدأ المعلم الدرس",
+    "main_content": "شرح المحتوى الأساسي (8-10 أسطر) - الأفكار الرئيسية بالتفصيل",
+    "examples": [
+      {"question": "مثال 1", "solution": "الحل خطوة بخطوة"},
+      {"question": "مثال 2", "solution": "الحل خطوة بخطوة"},
+      {"question": "مثال 3", "solution": "الحل خطوة بخطوة"}
+    ],
+    "common_mistakes": ["خطأ شائع 1", "خطأ شائع 2", "خطأ شائع 3"],
+    "closure": "ختام الدرس (2-3 أسطر)"
+  },
+  
+  "exam_questions": [
+    {"q": "السؤال 1 (سهل)", "answer": "الإجابة", "difficulty": "easy"},
+    {"q": "السؤال 2 (سهل)", "answer": "الإجابة", "difficulty": "easy"},
+    {"q": "السؤال 3 (سهل)", "answer": "الإجابة", "difficulty": "easy"},
+    {"q": "السؤال 4 (سهل)", "answer": "الإجابة", "difficulty": "easy"},
+    {"q": "السؤال 5 (متوسط)", "answer": "الإجابة", "difficulty": "medium"},
+    {"q": "السؤال 6 (متوسط)", "answer": "الإجابة", "difficulty": "medium"},
+    {"q": "السؤال 7 (متوسط)", "answer": "الإجابة", "difficulty": "medium"},
+    {"q": "السؤال 8 (متوسط)", "answer": "الإجابة", "difficulty": "medium"},
+    {"q": "السؤال 9 (متوسط)", "answer": "الإجابة", "difficulty": "medium"},
+    {"q": "السؤال 10 (صعب)", "answer": "الإجابة", "difficulty": "hard"}
+  ],
+  
+  "worksheet": {
+    "title": "ورقة عمل صفية",
+    "instructions": "تعليمات للطلاب",
+    "questions": [
+      "سؤال 1 — ورقة العمل",
+      "سؤال 2 — ورقة العمل",
+      "سؤال 3 — ورقة العمل",
+      "سؤال 4 — ورقة العمل",
+      "سؤال 5 — ورقة العمل"
+    ]
+  },
+  
+  "homework": {
+    "title": "الواجب المنزلي",
+    "instructions": "تعليمات الواجب",
+    "questions": [
+      {"q": "سؤال الواجب 1", "answer": "الإجابة"},
+      {"q": "سؤال الواجب 2", "answer": "الإجابة"},
+      {"q": "سؤال الواجب 3", "answer": "الإجابة"},
+      {"q": "سؤال الواجب 4", "answer": "الإجابة"},
+      {"q": "سؤال الواجب 5", "answer": "الإجابة"}
+    ]
+  },
+  
+  "flashcards": [
+    {"front": "السؤال 1", "back": "الإجابة 1"},
+    {"front": "السؤال 2", "back": "الإجابة 2"},
+    {"front": "السؤال 3", "back": "الإجابة 3"},
+    {"front": "السؤال 4", "back": "الإجابة 4"},
+    {"front": "السؤال 5", "back": "الإجابة 5"},
+    {"front": "السؤال 6", "back": "الإجابة 6"},
+    {"front": "السؤال 7", "back": "الإجابة 7"},
+    {"front": "السؤال 8", "back": "الإجابة 8"},
+    {"front": "السؤال 9", "back": "الإجابة 9"},
+    {"front": "السؤال 10", "back": "الإجابة 10"}
+  ],
+  
+  "challenge": {
+    "title": "تحدي اليوم",
+    "question": "سؤال تحدّي صعب ومُمتع",
+    "hint": "تلميح للحل",
+    "answer": "الإجابة الكاملة مع الشرح"
+  },
+  
+  "video_suggestions": [
+    {"title": "عنوان فيديو مقترح", "search": "كلمات بحث في يوتيوب"},
+    {"title": "عنوان فيديو مقترح", "search": "كلمات بحث في يوتيوب"},
+    {"title": "عنوان فيديو مقترح", "search": "كلمات بحث في يوتيوب"}
+  ],
+  
+  "mindmap": {
+    "central": "الموضوع المركزي",
+    "branches": [
+      {"name": "فرع 1", "items": ["نقطة", "نقطة", "نقطة"]},
+      {"name": "فرع 2", "items": ["نقطة", "نقطة", "نقطة"]},
+      {"name": "فرع 3", "items": ["نقطة", "نقطة", "نقطة"]},
+      {"name": "فرع 4", "items": ["نقطة", "نقطة", "نقطة"]}
+    ]
+  }
+}
+
+تأكد من:
+- الإجابات صحيحة رياضياً
+- التدرّج من السهل للصعب
+- المحتوى مناسب لعمر الطلاب
+- اللغة العربية فصحى وواضحة
+- JSON صالح 100% بدون أي markdown أو commentaries
+"""
+
+
+@app.post("/api/teacher/lesson_pack/generate")
+async def teacher_lesson_pack_generate(
+    grade: str            = Form(...),       # مثال: الصف السادس
+    lesson_name: str      = Form(...),       # مثال: الكسور العشرية
+    semester: str         = Form(default=""),
+    unit: str             = Form(default=""),
+    extra_notes: str      = Form(default=""),
+):
+    """🚀 يولّد حزمة درس كاملة (تحضير + أسئلة + ورقة عمل + واجب + بطاقات + تحدي) في طلب واحد"""
+    if not lesson_name.strip():
+        raise HTTPException(status_code=400, detail="اسم الدرس مطلوب")
+    if not grade.strip():
+        raise HTTPException(status_code=400, detail="الصف مطلوب")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="❌ خدمة AI غير مُهيّأة — يجب إضافة GEMINI_API_KEY في إعدادات الخادم"
+        )
+    
+    # بناء الـ prompt
+    user_request = f"""
+أنشئ حزمة درس كاملة للمعلومات التالية:
+
+📚 الصف: {grade.strip()}
+📖 اسم الدرس: {lesson_name.strip()}
+"""
+    if semester.strip():
+        user_request += f"📅 الفصل: {semester.strip()}\n"
+    if unit.strip():
+        user_request += f"📦 الوحدة: {unit.strip()}\n"
+    if extra_notes.strip():
+        user_request += f"\n📝 ملاحظات إضافية: {extra_notes.strip()[:500]}"
+    
+    full_prompt = LESSON_PACK_PROMPT + "\n\n" + user_request
+    
+    # استدعاء Gemini (نستخدم Pro للجودة العالية - يحتاج المزيد من tokens)
+    import httpx
+    import json as json_lib
+    
+    # نُحاول flash أولاً ثم pro لو فشل
+    models_to_try = ["gemini-2.5-flash", "gemini-2.5-pro", "gemini-2.0-flash"]
+    
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": full_prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 8000,  # كبير لأن المحتوى كبير
+                    "topP": 0.9,
+                    "responseMimeType": "application/json",  # نطلب JSON صريحة
+                },
+                "safetySettings": [
+                    {"category": "HARM_CATEGORY_HARASSMENT",        "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH",       "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_LOW_AND_ABOVE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_MEDIUM_AND_ABOVE"},
+                ]
+            }
+            
+            async with httpx.AsyncClient(timeout=120) as client:  # 2 دقائق timeout
+                res = await client.post(url, json=payload)
+                
+                if res.status_code == 429:  # Rate limited — نحاول الموديل التالي
+                    last_error = f"{model_name}: تجاوز الحصة"
+                    continue
+                
+                if res.status_code != 200:
+                    last_error = f"{model_name}: HTTP {res.status_code}"
+                    continue
+                
+                data = res.json()
+                
+                if "candidates" not in data or not data["candidates"]:
+                    last_error = f"{model_name}: لا استجابة"
+                    continue
+                
+                cand = data["candidates"][0]
+                if "content" not in cand or "parts" not in cand["content"]:
+                    last_error = f"{model_name}: استجابة فارغة"
+                    continue
+                
+                text_response = cand["content"]["parts"][0].get("text", "").strip()
+                if not text_response:
+                    last_error = f"{model_name}: نص فارغ"
+                    continue
+                
+                # نُحاول parse JSON
+                # نُزيل أي markdown wrappers لو كانت
+                if text_response.startswith("```"):
+                    text_response = text_response.split("```")[1]
+                    if text_response.startswith("json"):
+                        text_response = text_response[4:]
+                    text_response = text_response.strip()
+                if text_response.endswith("```"):
+                    text_response = text_response[:-3].strip()
+                
+                try:
+                    pack = json_lib.loads(text_response)
+                except json_lib.JSONDecodeError as je:
+                    # نحاول استخراج JSON من النص
+                    start_idx = text_response.find("{")
+                    end_idx = text_response.rfind("}")
+                    if start_idx >= 0 and end_idx > start_idx:
+                        try:
+                            pack = json_lib.loads(text_response[start_idx:end_idx+1])
+                        except Exception:
+                            last_error = f"{model_name}: JSON تالف"
+                            continue
+                    else:
+                        last_error = f"{model_name}: لا JSON"
+                        continue
+                
+                # نجاح!
+                return {
+                    "status": "ok",
+                    "model_used": model_name,
+                    "grade": grade,
+                    "lesson_name": lesson_name,
+                    "pack": pack,
+                    "message": f"✅ تم توليد الحزمة الكاملة (موديل: {model_name})"
+                }
+        
+        except httpx.TimeoutException:
+            last_error = f"{model_name}: انتهت المهلة"
+            continue
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:100]}"
+            continue
+    
+    # كل الموديلات فشلت
+    raise HTTPException(
+        status_code=502,
+        detail=f"❌ فشل توليد الحزمة من كل الموديلات. آخر خطأ: {last_error}"
+    )
+
+
+@app.post("/api/teacher/lesson_pack/save_questions")
+async def teacher_lesson_pack_save_questions(
+    grade: str            = Form(...),
+    lesson_name: str      = Form(...),
+    questions_json: str   = Form(...),       # JSON من exam_questions
+    semester: str         = Form(default=""),
+    unit: str             = Form(default=""),
+):
+    """💾 حفظ الأسئلة المُولّدة في بنك الأسئلة"""
+    if not questions_json.strip():
+        raise HTTPException(status_code=400, detail="لا أسئلة")
+    
+    try:
+        import json as json_lib
+        questions = json_lib.loads(questions_json)
+        
+        if not isinstance(questions, list) or not questions:
+            raise HTTPException(status_code=400, detail="صيغة الأسئلة غير صحيحة")
+        
+        # نُحضّر بيانات الإدراج
+        to_insert = []
+        for q in questions[:30]:  # حد أقصى 30
+            if not isinstance(q, dict):
+                continue
+            qtext = (q.get("q") or q.get("question") or "").strip()
+            ans = (q.get("answer") or q.get("a") or "").strip()
+            if not qtext or not ans:
+                continue
+            
+            to_insert.append({
+                "grade": grade[:80],
+                "semester": semester[:80] if semester else "غير محدد",
+                "unit": unit[:120] if unit else "غير محدد",
+                "lesson": lesson_name[:120],
+                "question": qtext[:2000],
+                "answer": ans[:1000],
+            })
+        
+        if not to_insert:
+            raise HTTPException(status_code=400, detail="لا أسئلة صالحة للحفظ")
+        
+        res = supabase.table("questions").insert(to_insert).execute()
+        saved = len(res.data or [])
+        
+        return {
+            "status": "ok",
+            "saved": saved,
+            "message": f"✅ حُفظ {saved} سؤال في بنك الأسئلة"
+        }
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),

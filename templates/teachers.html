@@ -2779,6 +2779,352 @@
             animation: shineLine 3s linear infinite;
         }
         
+
+        /* ════════════════════════════════════════════════════════
+           🎨 THEME SYSTEM v2 — 9 ثيمات احترافية متكاملة
+        ════════════════════════════════════════════════════════ */
+        
+        /* الافتراضي: 👑 الملكي الذهبي (يستخدم --gold الحالي) */
+        body[data-theme="royal-gold"] {
+            --t-bg-deep: #040d21;
+            --t-bg-mid: #1a1a3e;
+            --t-primary: #d4af37;
+            --t-primary-light: #fcd34d;
+            --t-primary-dark: #b8860b;
+            --t-accent: #f9c74f;
+            --t-border: rgba(212, 175, 55, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        
+        /* 🌊 المحيطي الأزرق */
+        body[data-theme="ocean-blue"] {
+            --t-bg-deep: #0a1e3a;
+            --t-bg-mid: #0c2d5c;
+            --t-primary: #3498db;
+            --t-primary-light: #5dade2;
+            --t-primary-dark: #1e6091;
+            --t-accent: #85c1ea;
+            --t-border: rgba(52, 152, 219, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="ocean-blue"] {
+            background: radial-gradient(circle at center, #0c2d5c 0%, #0a1e3a 100%) !important;
+            background-color: #0a1e3a !important;
+        }
+        body[data-theme="ocean-blue"] .nav-btn.nav-royal:hover,
+        body[data-theme="ocean-blue"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #1e6091, #3498db, #85c1ea, #3498db, #1e6091) !important;
+            color: #001f3f !important;
+            border-color: #3498db !important;
+        }
+        body[data-theme="ocean-blue"] .sidebar {
+            border-left-color: rgba(52, 152, 219, 0.3) !important;
+        }
+        
+        /* 🌿 الزمردي الأخضر */
+        body[data-theme="emerald-forest"] {
+            --t-bg-deep: #0d2818;
+            --t-bg-mid: #1a3e2a;
+            --t-primary: #16a085;
+            --t-primary-light: #7fffd4;
+            --t-primary-dark: #0e7d6c;
+            --t-accent: #48d1cc;
+            --t-border: rgba(22, 160, 133, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="emerald-forest"] {
+            background: radial-gradient(circle at center, #1a3e2a 0%, #0d2818 100%) !important;
+            background-color: #0d2818 !important;
+        }
+        body[data-theme="emerald-forest"] .nav-btn.nav-royal:hover,
+        body[data-theme="emerald-forest"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #0e7d6c, #16a085, #7fffd4, #16a085, #0e7d6c) !important;
+            color: #002d1a !important;
+            border-color: #16a085 !important;
+        }
+        body[data-theme="emerald-forest"] .sidebar {
+            border-left-color: rgba(22, 160, 133, 0.3) !important;
+        }
+        
+        /* 🌹 الوردي العصري */
+        body[data-theme="rose-modern"] {
+            --t-bg-deep: #2d0a1a;
+            --t-bg-mid: #4a1525;
+            --t-primary: #e91e63;
+            --t-primary-light: #ff7676;
+            --t-primary-dark: #c2185b;
+            --t-accent: #f8bbd0;
+            --t-border: rgba(233, 30, 99, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="rose-modern"] {
+            background: radial-gradient(circle at center, #4a1525 0%, #2d0a1a 100%) !important;
+            background-color: #2d0a1a !important;
+        }
+        body[data-theme="rose-modern"] .nav-btn.nav-royal:hover,
+        body[data-theme="rose-modern"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #c2185b, #e91e63, #ff7676, #e91e63, #c2185b) !important;
+            color: #2d0a1a !important;
+            border-color: #e91e63 !important;
+        }
+        body[data-theme="rose-modern"] .sidebar {
+            border-left-color: rgba(233, 30, 99, 0.3) !important;
+        }
+        
+        /* 🌌 الكوني البنفسجي */
+        body[data-theme="cosmic-purple"] {
+            --t-bg-deep: #1a0a2e;
+            --t-bg-mid: #3a1a4e;
+            --t-primary: #9b59b6;
+            --t-primary-light: #bb86fc;
+            --t-primary-dark: #6c3483;
+            --t-accent: #d4a5ff;
+            --t-border: rgba(155, 89, 182, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="cosmic-purple"] {
+            background: radial-gradient(circle at center, #3a1a4e 0%, #1a0a2e 100%) !important;
+            background-color: #1a0a2e !important;
+        }
+        body[data-theme="cosmic-purple"] .nav-btn.nav-royal:hover,
+        body[data-theme="cosmic-purple"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #6c3483, #9b59b6, #bb86fc, #9b59b6, #6c3483) !important;
+            color: #1a0a2e !important;
+            border-color: #9b59b6 !important;
+        }
+        body[data-theme="cosmic-purple"] .sidebar {
+            border-left-color: rgba(155, 89, 182, 0.3) !important;
+        }
+        
+        /* 🌅 غروب الشمس */
+        body[data-theme="sunset-warm"] {
+            --t-bg-deep: #2d1a0a;
+            --t-bg-mid: #4a3015;
+            --t-primary: #f39c12;
+            --t-primary-light: #f9c74f;
+            --t-primary-dark: #b8731f;
+            --t-accent: #ffb74d;
+            --t-border: rgba(243, 156, 18, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="sunset-warm"] {
+            background: radial-gradient(circle at center, #4a3015 0%, #2d1a0a 100%) !important;
+            background-color: #2d1a0a !important;
+        }
+        body[data-theme="sunset-warm"] .nav-btn.nav-royal:hover,
+        body[data-theme="sunset-warm"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #b8731f, #f39c12, #f9c74f, #f39c12, #b8731f) !important;
+            color: #2d1a0a !important;
+            border-color: #f39c12 !important;
+        }
+        body[data-theme="sunset-warm"] .sidebar {
+            border-left-color: rgba(243, 156, 18, 0.3) !important;
+        }
+        
+        /* 💎 التركوازي البلوري */
+        body[data-theme="turquoise-crystal"] {
+            --t-bg-deep: #0a1a1f;
+            --t-bg-mid: #152a2f;
+            --t-primary: #1abc9c;
+            --t-primary-light: #48d1cc;
+            --t-primary-dark: #16a085;
+            --t-accent: #7fffd4;
+            --t-border: rgba(26, 188, 156, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.7);
+        }
+        body[data-theme="turquoise-crystal"] {
+            background: radial-gradient(circle at center, #152a2f 0%, #0a1a1f 100%) !important;
+            background-color: #0a1a1f !important;
+        }
+        body[data-theme="turquoise-crystal"] .nav-btn.nav-royal:hover,
+        body[data-theme="turquoise-crystal"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #16a085, #1abc9c, #48d1cc, #1abc9c, #16a085) !important;
+            color: #001f1a !important;
+            border-color: #1abc9c !important;
+        }
+        body[data-theme="turquoise-crystal"] .sidebar {
+            border-left-color: rgba(26, 188, 156, 0.3) !important;
+        }
+        
+        /* 🌑 الأسود الفاخر */
+        body[data-theme="luxury-black"] {
+            --t-bg-deep: #000000;
+            --t-bg-mid: #1a1a1a;
+            --t-primary: #c0c0c0;
+            --t-primary-light: #e0e0e0;
+            --t-primary-dark: #808080;
+            --t-accent: #ffffff;
+            --t-border: rgba(192, 192, 192, 0.3);
+            --t-text: #ffffff;
+            --t-text-muted: rgba(255, 255, 255, 0.65);
+        }
+        body[data-theme="luxury-black"] {
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%) !important;
+            background-color: #000000 !important;
+        }
+        body[data-theme="luxury-black"] .nav-btn.nav-royal:hover,
+        body[data-theme="luxury-black"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #4a4a4a, #c0c0c0, #ffffff, #c0c0c0, #4a4a4a) !important;
+            color: #000000 !important;
+            border-color: #c0c0c0 !important;
+        }
+        body[data-theme="luxury-black"] .sidebar {
+            border-left-color: rgba(192, 192, 192, 0.3) !important;
+        }
+        
+        /* ☀️ النهاري المشرق */
+        body[data-theme="bright-day"] {
+            --t-bg-deep: #f5f3eb;
+            --t-bg-mid: #ebe6d3;
+            --t-primary: #b8860b;
+            --t-primary-light: #d4af37;
+            --t-primary-dark: #8b6914;
+            --t-accent: #f9c74f;
+            --t-border: rgba(184, 134, 11, 0.4);
+            --t-text: #1a1a3e;
+            --t-text-muted: rgba(26, 26, 62, 0.7);
+        }
+        body[data-theme="bright-day"] {
+            background: radial-gradient(circle at center, #f5f3eb 0%, #ebe6d3 100%) !important;
+            background-color: #f5f3eb !important;
+            color: #1a1a3e !important;
+        }
+        body[data-theme="bright-day"] .sidebar {
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-left-color: rgba(184, 134, 11, 0.4) !important;
+            backdrop-filter: blur(20px);
+        }
+        body[data-theme="bright-day"] .nav-btn.nav-royal {
+            color: #1a1a3e !important;
+            background: rgba(255, 255, 255, 0.6) !important;
+            border-color: rgba(184, 134, 11, 0.3) !important;
+        }
+        body[data-theme="bright-day"] .nav-btn.nav-royal:hover,
+        body[data-theme="bright-day"] .nav-btn.nav-royal.active {
+            background: linear-gradient(45deg, #8b6914, #d4af37, #f9c74f, #d4af37, #8b6914) !important;
+            color: #000000 !important;
+            border-color: #b8860b !important;
+        }
+        body[data-theme="bright-day"] .glass-card,
+        body[data-theme="bright-day"] .glass-pro,
+        body[data-theme="bright-day"] .tilt-card,
+        body[data-theme="bright-day"] .hero-card {
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-color: rgba(184, 134, 11, 0.3) !important;
+            color: #1a1a3e !important;
+        }
+        body[data-theme="bright-day"] h1,
+        body[data-theme="bright-day"] h2,
+        body[data-theme="bright-day"] h3,
+        body[data-theme="bright-day"] h4 {
+            color: #1a1a3e !important;
+        }
+        body[data-theme="bright-day"] input,
+        body[data-theme="bright-day"] select,
+        body[data-theme="bright-day"] textarea {
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #1a1a3e !important;
+            border-color: rgba(184, 134, 11, 0.4) !important;
+        }
+        body[data-theme="bright-day"] p,
+        body[data-theme="bright-day"] label,
+        body[data-theme="bright-day"] li {
+            color: #1a1a3e !important;
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           🎨 Theme Picker — بطاقات اختيار الثيم الفاخرة
+        ════════════════════════════════════════════════════════ */
+        .theme-card-v2 {
+            position: relative;
+            border-radius: 18px;
+            padding: 22px 18px;
+            cursor: pointer;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            overflow: hidden;
+            min-height: 180px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .theme-card-v2:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.4);
+        }
+        .theme-card-v2.active {
+            border-color: #fcd34d;
+            box-shadow: 0 0 0 4px rgba(252, 211, 77, 0.2),
+                        0 12px 32px rgba(212, 175, 55, 0.3);
+        }
+        .theme-card-v2 .theme-emoji {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+        .theme-card-v2 .theme-name {
+            font-family: 'Amiri', serif;
+            font-weight: 700;
+            font-size: 1.15rem;
+            margin-bottom: 4px;
+        }
+        .theme-card-v2 .theme-desc {
+            font-size: 0.78rem;
+            opacity: 0.7;
+            margin-bottom: 12px;
+        }
+        .theme-card-v2 .theme-dots {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            margin-top: auto;
+        }
+        .theme-card-v2 .theme-dot {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .theme-card-v2 .active-badge {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: #fcd34d;
+            color: #1a0d2e;
+            font-size: 0.68rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-weight: bold;
+            display: none;
+        }
+        .theme-card-v2.active .active-badge {
+            display: block;
+            animation: badgePop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes badgePop {
+            0% { transform: scale(0); }
+            100% { transform: scale(1); }
+        }
+        
+        /* تأثير "preview" متحرك */
+        .theme-card-v2 .preview-bars {
+            display: flex;
+            gap: 3px;
+            margin: 8px 0;
+            justify-content: center;
+        }
+        .theme-card-v2 .preview-bar {
+            height: 4px;
+            border-radius: 2px;
+        }
 </style>
 </head>
 <body>
@@ -3521,6 +3867,30 @@
                 <span class="hub-card-arrow">←</span>
                 <div class="hub-card-divider"></div>
             </div>
+            
+            <div class="hub-card" onclick="showSection('lesson-pack', null);" style="position:relative;">
+                <!-- شارة جديد -->
+                <div style="position:absolute;top:14px;left:14px;background:linear-gradient(135deg,#ff6b6b,#ee5a6f);color:#fff;font-size:0.68rem;padding:4px 10px;border-radius:14px;font-weight:bold;box-shadow:0 3px 10px rgba(238,90,111,0.5);z-index:3;animation:newBadgePulse 2s ease-in-out infinite;">
+                    ✨ جديد · أقوى
+                </div>
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon" style="filter:drop-shadow(0 0 15px rgba(255,107,107,0.5));">🚀</div>
+                <h3 class="hub-card-title" style="background:linear-gradient(135deg,#ff6b6b,#ffd93d,#ff6b6b);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:packTitleShimmer 3s linear infinite;">حزمة الدرس الكاملة</h3>
+                <p class="hub-card-desc">أدخل اسم الدرس فقط → AI ينتج <b>تحضير + 10 أسئلة + ورقة عمل + واجب + 10 بطاقات + تحدي + خريطة ذهنية</b> في 60 ثانية!</p>
+                <span class="hub-card-arrow" style="color:#ff6b6b;">←</span>
+                <div class="hub-card-divider" style="background:linear-gradient(90deg,#ff6b6b,transparent);"></div>
+            </div>
+            
+            <style>
+                @keyframes newBadgePulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.08); box-shadow:0 5px 18px rgba(238,90,111,0.7); }
+                }
+                @keyframes packTitleShimmer {
+                    0% { background-position: 0% center; }
+                    100% { background-position: 200% center; }
+                }
+            </style>
         </div>
     </div>
 
@@ -3661,7 +4031,58 @@
             </div>
         </div>
 
-        <!-- 📦 Bento Stats Grid -->
+        <!-- 🎯 Today's Focus — أولويات اليوم -->
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin-bottom:20px;">
+            
+            <!-- 📋 ما الجديد -->
+            <div class="glass-pro" style="padding:20px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(255,107,107,0.2),transparent 70%);"></div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(255,107,107,0.18);border:1px solid rgba(255,107,107,0.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🆕</div>
+                    <h4 style="color:#ff7676;font-family:'Amiri';margin:0;font-size:1.05rem;">ما الجديد لديك</h4>
+                </div>
+                <ul style="margin:0;padding-right:18px;color:rgba(255,255,255,0.8);line-height:2;font-size:0.88rem;">
+                    <li>🚀 <b style="color:#ffd93d;">حزمة الدرس الكاملة AI</b> — متاحة الآن!</li>
+                    <li>🎨 <b style="color:#fcd34d;">9 ثيمات احترافية</b> — اختر ما يناسبك</li>
+                    <li>📰 <b style="color:#7fffd4;">إشعارات الإدارة</b> — تابع التحديثات</li>
+                </ul>
+                <button onclick="showSection('lesson-pack', null)" style="margin-top:12px;background:linear-gradient(135deg,#ff6b6b,#ffd93d);color:#1a0d2e;border:none;padding:8px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">
+                    جرّب الحزمة الجديدة ←
+                </button>
+            </div>
+            
+            <!-- 💡 نصيحة ذكية -->
+            <div class="glass-pro" style="padding:20px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(46,204,113,0.2),transparent 70%);"></div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(46,204,113,0.18);border:1px solid rgba(46,204,113,0.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">💡</div>
+                    <h4 style="color:#7fffd4;font-family:'Amiri';margin:0;font-size:1.05rem;">نصيحة اليوم</h4>
+                </div>
+                <p id="dynamic-tip" style="color:rgba(255,255,255,0.85);margin:0 0 12px;line-height:1.9;font-size:0.92rem;">
+                    💎 استخدم <b style="color:#fcd34d;">حزمة الدرس الكاملة</b> لتوفير ساعات في التحضير — AI ينتج 8 مواد جاهزة!
+                </p>
+                <button onclick="loadNewTip()" style="background:rgba(46,204,113,0.15);color:#7fffd4;border:1px solid #2ecc71;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">
+                    🔄 نصيحة أخرى
+                </button>
+            </div>
+            
+            <!-- 🎯 إجراء سريع -->
+            <div class="glass-pro" style="padding:20px;position:relative;overflow:hidden;">
+                <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(212,175,55,0.2),transparent 70%);"></div>
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(212,175,55,0.18);border:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎯</div>
+                    <h4 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.05rem;">ابدأ بسرعة</h4>
+                </div>
+                <p style="color:rgba(255,255,255,0.7);margin:0 0 14px;font-size:0.85rem;line-height:1.8;">جاهز للتدريس؟ ابدأ بأهم الأدوات:</p>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <button onclick="showSection('exam-gen', null)" style="background:rgba(231,76,60,0.15);color:#ff7676;border:1px solid #e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📝 اختبار</button>
+                    <button onclick="showSection('certificates', null)" style="background:rgba(212,175,55,0.15);color:#fcd34d;border:1px solid #d4af37;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">🏆 شهادة</button>
+                    <button onclick="showSection('plan-gen', null)" style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid #6366f1;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📓 تحضير</button>
+                </div>
+            </div>
+        </div>
+        
+                <!-- 📦 Bento Stats Grid -->
         <div class="bento-grid" style="margin-bottom:18px;">
             <!-- البطاقة الكبيرة: اختبارات -->
             <div class="bento-card bento-big">
@@ -3725,6 +4146,82 @@
             </div>
         </div>
 
+                <!-- ⚡ Quick Access — الوصول السريع المُنظّم -->
+        <div class="glass-pro" style="padding:24px;margin-bottom:20px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+                <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.3rem;">⚡ الوصول السريع</h3>
+                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">أكثر الأدوات استخداماً</span>
+            </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+                
+                <!-- AI Lesson Pack -->
+                <div onclick="showSection('lesson-pack', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(255,107,107,0.12),rgba(255,217,61,0.05));border:1px solid rgba(255,107,107,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="position:absolute;top:8px;left:8px;background:#ff6b6b;color:#fff;font-size:0.62rem;padding:2px 7px;border-radius:10px;font-weight:bold;">جديد</div>
+                    <div style="font-size:2rem;margin-bottom:6px;">🚀</div>
+                    <div style="color:#ff7676;font-weight:bold;font-size:0.88rem;">حزمة كاملة AI</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">8 مواد في دقيقة</div>
+                </div>
+                
+                <!-- Exam Gen -->
+                <div onclick="showSection('exam-gen', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(231,76,60,0.12),rgba(0,0,0,0.2));border:1px solid rgba(231,76,60,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">📝</div>
+                    <div style="color:#ff7676;font-weight:bold;font-size:0.88rem;">مولّد اختبارات</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">اختبار/نشاط</div>
+                </div>
+                
+                <!-- Certificates -->
+                <div onclick="showSection('certificates', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(0,0,0,0.2));border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">🏆</div>
+                    <div style="color:#fcd34d;font-weight:bold;font-size:0.88rem;">الشهادات</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">8 قوالب + صور</div>
+                </div>
+                
+                <!-- Plan Gen -->
+                <div onclick="showSection('plan-gen', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(0,0,0,0.2));border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">📓</div>
+                    <div style="color:#818cf8;font-weight:bold;font-size:0.88rem;">تحضير AI</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">في 30 ثانية</div>
+                </div>
+                
+                <!-- Classrooms -->
+                <div onclick="showSection('my-classrooms', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(0,191,255,0.12),rgba(0,0,0,0.2));border:1px solid rgba(0,191,255,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">🏛️</div>
+                    <div style="color:#5dd5ff;font-weight:bold;font-size:0.88rem;">فصولي</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">إدارة الطلاب</div>
+                </div>
+                
+                <!-- AI Assistant -->
+                <div onclick="showSection('ai-assistant', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(0,0,0,0.2));border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">🤖</div>
+                    <div style="color:#7fffd4;font-weight:bold;font-size:0.88rem;">المساعد AI</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">اسأل أي شيء</div>
+                </div>
+                
+                <!-- Visual Maker -->
+                <div onclick="showSection('visual-maker', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(243,156,18,0.12),rgba(0,0,0,0.2));border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">🎨</div>
+                    <div style="color:#f9c74f;font-weight:bold;font-size:0.88rem;">الأشكال</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">2D + 3D</div>
+                </div>
+                
+                <!-- Schedule -->
+                <div onclick="showSection('schedule-tpl', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(155,89,182,0.12),rgba(0,0,0,0.2));border:1px solid rgba(155,89,182,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
+                    <div style="font-size:2rem;margin-bottom:6px;">📅</div>
+                    <div style="color:#bb86fc;font-weight:bold;font-size:0.88rem;">الجداول</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">6 قوالب</div>
+                </div>
+                
+            </div>
+            
+            <style>
+                .quick-access-card:hover {
+                    transform: translateY(-4px) scale(1.03);
+                    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                }
+            </style>
+        </div>
+        
                 <!-- ⏰ Timeline — جدول اليوم -->
         <div class="glass-pro" style="padding:24px;margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
@@ -3818,65 +4315,155 @@
             </button>
         </div>
 
-        <!-- اختيار الثيم -->
-        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
-            <h3 style="color:#bb86fc;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎨 اختر ثيمك المفضّل</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">
-                <div onclick="applyTheme('royal-gold')" data-theme="royal-gold" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#001f3f,#000a1a);border:2px solid #d4af37;">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">👑</div>
-                    <div style="font-weight:700;color:#d4af37;font-family:'Amiri';">الذهبي الملكي</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#d4af37;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#001f3f;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#f9c74f;border-radius:50%;"></span>
-                    </div>
-                </div>
-                <div onclick="applyTheme('ocean-blue')" data-theme="ocean-blue" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#0c4a6e,#082f49);border:2px solid rgba(14,165,233,0.5);">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🌊</div>
-                    <div style="font-weight:700;color:#5dd5ff;font-family:'Amiri';">المحيطي الأزرق</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#0ea5e9;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#082f49;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#5dd5ff;border-radius:50%;"></span>
-                    </div>
-                </div>
-                <div onclick="applyTheme('emerald-forest')" data-theme="emerald-forest" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#064e3b,#022c22);border:2px solid rgba(16,185,129,0.5);">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🌿</div>
-                    <div style="font-weight:700;color:#7fffd4;font-family:'Amiri';">الزمردي الغابي</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#10b981;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#022c22;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#7fffd4;border-radius:50%;"></span>
-                    </div>
-                </div>
-                <div onclick="applyTheme('sunset-warm')" data-theme="sunset-warm" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#7c2d12,#431407);border:2px solid rgba(249,115,22,0.5);">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🌅</div>
-                    <div style="font-weight:700;color:#fb923c;font-family:'Amiri';">الغروب الدافئ</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#f97316;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#431407;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#fb923c;border-radius:50%;"></span>
-                    </div>
-                </div>
-                <div onclick="applyTheme('purple-night')" data-theme="purple-night" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#3b0764,#1e1b4b);border:2px solid rgba(168,85,247,0.5);">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🌃</div>
-                    <div style="font-weight:700;color:#c084fc;font-family:'Amiri';">الليل البنفسجي</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#a855f7;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#1e1b4b;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#c084fc;border-radius:50%;"></span>
-                    </div>
-                </div>
-                <div onclick="applyTheme('rose-pink')" data-theme="rose-pink" class="theme-card" style="padding:18px;border-radius:14px;cursor:pointer;text-align:center;background:linear-gradient(135deg,#831843,#500724);border:2px solid rgba(244,63,94,0.5);">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🌹</div>
-                    <div style="font-weight:700;color:#fb7185;font-family:'Amiri';">الوردي الأنيق</div>
-                    <div style="display:flex;gap:4px;justify-content:center;margin-top:8px;">
-                        <span style="width:14px;height:14px;background:#f43f5e;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#500724;border-radius:50%;"></span>
-                        <span style="width:14px;height:14px;background:#fb7185;border-radius:50%;"></span>
-                    </div>
-                </div>
+        <!-- 🎨 اختيار الثيم — 9 ثيمات احترافية -->
+        <div class="glass-pro" style="padding:24px;margin-bottom:18px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+                <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.3rem;">🎨 اختر ثيمك المفضّل</h3>
+                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">9 ثيمات احترافية مدروسة</span>
             </div>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;">
+                
+                <!-- 1. الملكي الذهبي -->
+                <div onclick="applyThemeV2('royal-gold')" data-theme="royal-gold" class="theme-card-v2 active" style="background:linear-gradient(135deg,#040d21,#1a1a3e);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">👑</div>
+                        <div class="theme-name" style="color:#fcd34d;">الملكي الذهبي</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">الأنيق والكلاسيكي</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#040d21;"></span>
+                        <span class="theme-dot" style="background:#d4af37;"></span>
+                        <span class="theme-dot" style="background:#fcd34d;"></span>
+                    </div>
+                </div>
+                
+                <!-- 2. المحيطي الأزرق -->
+                <div onclick="applyThemeV2('ocean-blue')" data-theme="ocean-blue" class="theme-card-v2" style="background:linear-gradient(135deg,#0a1e3a,#0c2d5c);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌊</div>
+                        <div class="theme-name" style="color:#5dade2;">المحيطي الأزرق</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">هدوء وعمق</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#0a1e3a;"></span>
+                        <span class="theme-dot" style="background:#3498db;"></span>
+                        <span class="theme-dot" style="background:#5dade2;"></span>
+                    </div>
+                </div>
+                
+                <!-- 3. الزمردي الأخضر -->
+                <div onclick="applyThemeV2('emerald-forest')" data-theme="emerald-forest" class="theme-card-v2" style="background:linear-gradient(135deg,#0d2818,#1a3e2a);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌿</div>
+                        <div class="theme-name" style="color:#7fffd4;">الزمردي الأخضر</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">طبيعي ومنعش</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#0d2818;"></span>
+                        <span class="theme-dot" style="background:#16a085;"></span>
+                        <span class="theme-dot" style="background:#7fffd4;"></span>
+                    </div>
+                </div>
+                
+                <!-- 4. الوردي العصري -->
+                <div onclick="applyThemeV2('rose-modern')" data-theme="rose-modern" class="theme-card-v2" style="background:linear-gradient(135deg,#2d0a1a,#4a1525);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌹</div>
+                        <div class="theme-name" style="color:#ff7676;">الوردي العصري</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">حيوي وعصري</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#2d0a1a;"></span>
+                        <span class="theme-dot" style="background:#e91e63;"></span>
+                        <span class="theme-dot" style="background:#ff7676;"></span>
+                    </div>
+                </div>
+                
+                <!-- 5. الكوني البنفسجي -->
+                <div onclick="applyThemeV2('cosmic-purple')" data-theme="cosmic-purple" class="theme-card-v2" style="background:linear-gradient(135deg,#1a0a2e,#3a1a4e);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌌</div>
+                        <div class="theme-name" style="color:#bb86fc;">الكوني البنفسجي</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">غامض وفاخر</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#1a0a2e;"></span>
+                        <span class="theme-dot" style="background:#9b59b6;"></span>
+                        <span class="theme-dot" style="background:#bb86fc;"></span>
+                    </div>
+                </div>
+                
+                <!-- 6. غروب الشمس -->
+                <div onclick="applyThemeV2('sunset-warm')" data-theme="sunset-warm" class="theme-card-v2" style="background:linear-gradient(135deg,#2d1a0a,#4a3015);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌅</div>
+                        <div class="theme-name" style="color:#f9c74f;">غروب الشمس</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">دافئ ومريح</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#2d1a0a;"></span>
+                        <span class="theme-dot" style="background:#f39c12;"></span>
+                        <span class="theme-dot" style="background:#f9c74f;"></span>
+                    </div>
+                </div>
+                
+                <!-- 7. التركوازي البلوري -->
+                <div onclick="applyThemeV2('turquoise-crystal')" data-theme="turquoise-crystal" class="theme-card-v2" style="background:linear-gradient(135deg,#0a1a1f,#152a2f);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">💎</div>
+                        <div class="theme-name" style="color:#48d1cc;">التركوازي البلوري</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">نقي وصافي</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#0a1a1f;"></span>
+                        <span class="theme-dot" style="background:#1abc9c;"></span>
+                        <span class="theme-dot" style="background:#48d1cc;"></span>
+                    </div>
+                </div>
+                
+                <!-- 8. الأسود الفاخر -->
+                <div onclick="applyThemeV2('luxury-black')" data-theme="luxury-black" class="theme-card-v2" style="background:linear-gradient(135deg,#000000,#1a1a1a);">
+                    <span class="active-badge">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">🌑</div>
+                        <div class="theme-name" style="color:#e0e0e0;">الأسود الفاخر</div>
+                        <div class="theme-desc" style="color:rgba(255,255,255,0.6);">احترافي ومحايد</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#000000;"></span>
+                        <span class="theme-dot" style="background:#808080;"></span>
+                        <span class="theme-dot" style="background:#e0e0e0;"></span>
+                    </div>
+                </div>
+                
+                <!-- 9. النهاري المشرق -->
+                <div onclick="applyThemeV2('bright-day')" data-theme="bright-day" class="theme-card-v2" style="background:linear-gradient(135deg,#f5f3eb,#ebe6d3);color:#1a1a3e;">
+                    <span class="active-badge" style="background:#b8860b;color:#fff;">✓ مُفعّل</span>
+                    <div>
+                        <div class="theme-emoji">☀️</div>
+                        <div class="theme-name" style="color:#b8860b;">النهاري المشرق</div>
+                        <div class="theme-desc" style="color:#666;">واضح للمدرسة</div>
+                    </div>
+                    <div class="theme-dots">
+                        <span class="theme-dot" style="background:#f5f3eb;border:1px solid #ccc;"></span>
+                        <span class="theme-dot" style="background:#d4af37;"></span>
+                        <span class="theme-dot" style="background:#b8860b;"></span>
+                    </div>
+                </div>
+                
+            </div>
+            
+            <p style="margin:18px 0 0;color:rgba(255,255,255,0.5);font-size:0.82rem;text-align:center;">
+                <i class="fas fa-info-circle"></i> الثيم يُحفظ تلقائياً ويظهر في كل مرة تدخل فيها
+            </p>
         </div>
 
         <!-- بيانات افتراضية -->
@@ -4903,7 +5490,163 @@
     <!-- ══════════════════════════════════════════════════════
          📓 قسم منشئ التحضيرات بالـ AI
     ══════════════════════════════════════════════════════ -->
-    <div id="section-plan-gen" class="section">
+
+    <!-- ════════════════════════════════════════════════════════
+         🚀 LESSON PACK — حزمة الدرس الكاملة بالـ AI
+    ════════════════════════════════════════════════════════ -->
+    <div id="section-lesson-pack" class="section">
+        
+        <!-- 🎨 Hero Header مع Aurora -->
+        <div class="aurora-bg" style="margin-bottom:22px;text-align:center;">
+            <div class="aurora-third"></div>
+            <div style="position:relative;">
+                <div style="display:inline-block;padding:6px 16px;background:rgba(255,107,107,0.18);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,107,107,0.4);border-radius:20px;color:#ffb3b3;font-size:0.78rem;font-weight:bold;margin-bottom:14px;">
+                    ✨ أقوى ميزة في النظام
+                </div>
+                <h1 class="gold-shine-text" style="font-family:'Amiri';margin:0 0 8px;font-size:2.4rem;font-weight:700;">
+                    🚀 حزمة الدرس الكاملة
+                </h1>
+                <p style="color:rgba(255,255,255,0.8);margin:0 0 6px;font-size:1.02rem;line-height:1.8;">أدخل اسم الدرس فقط — AI ينتج 8 مواد جاهزة للطباعة في دقيقة</p>
+                <p style="color:rgba(255,255,255,0.45);margin:0;font-size:0.82rem;">📋 تحضير · 📝 10 أسئلة · 📑 ورقة عمل · 📚 واجب · 🎴 10 بطاقات · 🏆 تحدي · 🎬 فيديوهات · 🗺️ خريطة ذهنية</p>
+            </div>
+        </div>
+        
+        <!-- 📥 نموذج الإدخال -->
+        <div id="pack-form-container" class="glass-pro" style="padding:24px;margin-bottom:22px;">
+            <h3 style="color:#fcd34d;font-family:'Amiri';margin:0 0 6px;font-size:1.25rem;">
+                <i class="fas fa-magic" style="margin-left:8px;"></i> اختر الدرس من خريطة المنهج
+            </h3>
+            <p style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin:0 0 18px;">
+                <i class="fas fa-link"></i> القوائم مترابطة — كل اختيار يفلتر التالي تلقائياً
+            </p>
+            
+            <!-- ⚡ Cascade المنهج: الصف ← الفصل ← الوحدة ← الدرس -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:16px;">
+                
+                <!-- 🎓 الصف -->
+                <div>
+                    <label style="display:block;color:rgba(255,255,255,0.75);font-size:0.85rem;margin-bottom:6px;font-weight:600;">
+                        🎓 الصف <span style="color:#ff6b6b;">*</span>
+                    </label>
+                    <select id="pack-grade" onchange="packUpdateSemesters()" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                        <option value="">⏳ جارٍ التحميل...</option>
+                    </select>
+                </div>
+                
+                <!-- 📅 الفصل -->
+                <div>
+                    <label style="display:block;color:rgba(255,255,255,0.75);font-size:0.85rem;margin-bottom:6px;font-weight:600;">
+                        📅 الفصل <span style="color:#ff6b6b;">*</span>
+                    </label>
+                    <select id="pack-semester" onchange="packUpdateUnits()" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                        <option value="">— اختر الصف أولاً —</option>
+                    </select>
+                </div>
+                
+                <!-- 📦 الوحدة -->
+                <div>
+                    <label style="display:block;color:rgba(255,255,255,0.75);font-size:0.85rem;margin-bottom:6px;font-weight:600;">
+                        📦 الوحدة <span style="color:#ff6b6b;">*</span>
+                    </label>
+                    <select id="pack-unit" onchange="packUpdateLessons()" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                        <option value="">— اختر الفصل أولاً —</option>
+                    </select>
+                </div>
+                
+                <!-- 📖 الدرس -->
+                <div>
+                    <label style="display:block;color:rgba(255,255,255,0.75);font-size:0.85rem;margin-bottom:6px;font-weight:600;">
+                        📖 الدرس <span style="color:#ff6b6b;">*</span>
+                    </label>
+                    <select id="pack-lesson-select" onchange="updatePackPathPreview()" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;">
+                        <option value="">— اختر الوحدة أولاً —</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- 📍 معاينة المسار -->
+            <div id="pack-path-preview" style="background:linear-gradient(135deg,rgba(212,175,55,0.06),rgba(0,0,0,0.2));border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:none;">
+                <div style="color:rgba(255,255,255,0.55);font-size:0.78rem;margin-bottom:6px;">
+                    <i class="fas fa-route"></i> مسارك في المنهج:
+                </div>
+                <div id="pack-path-display" style="color:#fcd34d;font-family:'Amiri';font-size:1rem;line-height:1.8;font-weight:bold;">
+                    <!-- يُملأ بـ JS -->
+                </div>
+            </div>
+            
+            <!-- 🆕 خيار: درس مخصص (لو غير موجود في المنهج) -->
+            <div style="background:rgba(255,255,255,0.03);border:1px dashed rgba(212,175,55,0.25);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                    <input type="checkbox" id="pack-custom-mode" onchange="togglePackCustomMode()" style="cursor:pointer;">
+                    <span>✏️ أريد إدخال اسم درس مخصص (غير موجود في المنهج)</span>
+                </label>
+                <div id="pack-custom-input" style="display:none;margin-top:10px;">
+                    <input type="text" id="pack-lesson-custom" oninput="updatePackPathPreview()" placeholder="اكتب اسم الدرس المخصص..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,107,107,0.4);color:#fff;padding:10px;border-radius:8px;font-family:Cairo;">
+                </div>
+            </div>
+            
+            <!-- ملاحظات إضافية -->
+            <div style="margin-bottom:14px;">
+                <label style="display:block;color:rgba(255,255,255,0.75);font-size:0.85rem;margin-bottom:6px;font-weight:600;">💡 ملاحظات أو تفضيلات (اختياري)</label>
+                <textarea id="pack-notes" rows="2" placeholder="مثال: ركّز على التطبيق العملي، أعطِ أمثلة من الحياة اليومية..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:11px;border-radius:10px;font-family:Cairo;resize:vertical;"></textarea>
+            </div>
+            
+            <!-- زر التوليد الكبير -->
+            <button onclick="generateLessonPack()" id="pack-generate-btn" style="width:100%;background:linear-gradient(135deg,#ff6b6b,#ffd93d,#ff6b6b);background-size:200% auto;color:#1a0d2e;border:none;padding:18px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.1rem;box-shadow:0 8px 24px rgba(255,107,107,0.4);transition:0.3s;animation:packBtnShimmer 3s linear infinite;">
+                <i class="fas fa-rocket"></i> توليد الحزمة الكاملة (60 ثانية)
+            </button>
+            
+            <style>
+                @keyframes packBtnShimmer {
+                    0% { background-position: 0% center; }
+                    100% { background-position: 200% center; }
+                }
+                #pack-generate-btn:hover {
+                    transform: translateY(-2px);
+                    box-shadow: 0 12px 32px rgba(255,107,107,0.6);
+                }
+                #pack-generate-btn:disabled {
+                    opacity: 0.5;
+                    cursor: wait;
+                    animation: none;
+                }
+            </style>
+            
+            <p style="color:rgba(255,255,255,0.45);font-size:0.78rem;margin:12px 0 0;text-align:center;">
+                <i class="fas fa-info-circle"></i> الـ AI يستخدم Gemini · العملية تستغرق 30-90 ثانية
+            </p>
+        </div>
+        
+        <!-- ⏳ Loading حالة التوليد -->
+        <div id="pack-loading" style="display:none;" class="glass-pro">
+            <div style="padding:40px 24px;text-align:center;">
+                <div style="font-size:4rem;animation:rocketBounce 2s ease-in-out infinite;display:inline-block;">🚀</div>
+                <h3 style="color:#fcd34d;font-family:'Amiri';margin:18px 0 8px;font-size:1.5rem;">جارٍ توليد الحزمة الكاملة...</h3>
+                <p id="pack-loading-step" style="color:rgba(255,255,255,0.7);margin:0 0 18px;font-size:0.95rem;">🤖 يفكر الـ AI في المحتوى...</p>
+                <div style="max-width:300px;margin:0 auto;background:rgba(255,255,255,0.06);border-radius:20px;height:8px;overflow:hidden;position:relative;">
+                    <div id="pack-progress-bar" style="height:100%;background:linear-gradient(90deg,#ff6b6b,#ffd93d,#ff6b6b);background-size:200% 100%;border-radius:20px;width:0%;transition:width 0.4s;animation:progressShine 1.5s linear infinite;"></div>
+                </div>
+                <p style="color:rgba(255,255,255,0.4);font-size:0.78rem;margin:16px 0 0;">⏰ متوسط الوقت: 60 ثانية</p>
+            </div>
+            
+            <style>
+                @keyframes rocketBounce {
+                    0%, 100% { transform: translateY(0) rotate(-5deg); }
+                    50% { transform: translateY(-12px) rotate(5deg); }
+                }
+                @keyframes progressShine {
+                    0% { background-position: 0% center; }
+                    100% { background-position: 200% center; }
+                }
+            </style>
+        </div>
+        
+        <!-- 📦 النتيجة -->
+        <div id="pack-result" style="display:none;"></div>
+    </div>
+
+
+        <div id="section-plan-gen" class="section">
         <div style="background:linear-gradient(160deg,rgba(52,152,219,0.08),rgba(0,8,20,0.9));border:1px solid rgba(212,175,55,0.3);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
             <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#5dade2;">📋</div>
             <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(52,152,219,0.6));">📓</div>
@@ -10864,6 +11607,881 @@ document.addEventListener('DOMContentLoaded', function() {
         setTimeout(toggleCompactSidebar, 100);
     }
 });
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 🚀 LESSON PACK — منطق التوليد والعرض
+// ════════════════════════════════════════════════════════════
+
+var _currentPack = null;
+
+// ════════════════════════════════════════════════════════════
+// 🔗 LESSON PACK CASCADE — ربط مع خريطة المنهج
+// ════════════════════════════════════════════════════════════
+var _packCurriculum = [];
+
+async function loadPackCurriculum() {
+    // نستخدم cache من exam-gen لو متوفر
+    if (typeof _exgCurriculum !== 'undefined' && _exgCurriculum && _exgCurriculum.length) {
+        _packCurriculum = _exgCurriculum;
+        packFillGrades();
+        return;
+    }
+    
+    if (_packCurriculum.length) {
+        packFillGrades();
+        return;
+    }
+    
+    try {
+        var res = await fetch((typeof API_URL !== 'undefined' ? API_URL : '') + '/api/curriculum/structure');
+        if (res.ok) {
+            _packCurriculum = await res.json();
+            packFillGrades();
+        }
+    } catch(e) {
+        console.warn('[pack] curriculum fetch:', e);
+        // fallback لقائمة افتراضية
+        var sel = document.getElementById('pack-grade');
+        if (sel) {
+            sel.innerHTML = '<option value="">— اختر الصف —</option>';
+            ['الصف الأول','الصف الثاني','الصف الثالث','الصف الرابع','الصف الخامس','الصف السادس','الصف السابع','الصف الثامن','الصف التاسع','الصف العاشر','الصف الحادي عشر','الصف الثاني عشر'].forEach(function(g) {
+                var o = document.createElement('option');
+                o.value = g; o.textContent = g + ' (يدوي)';
+                sel.appendChild(o);
+            });
+        }
+    }
+}
+
+function packFillGrades() {
+    var sel = document.getElementById('pack-grade');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— اختر الصف —</option>';
+    _packCurriculum.forEach(function(g) {
+        if (!g || !g.name) return;
+        var lessons = 0;
+        (g.semesters || []).forEach(function(s) {
+            (s.units || []).forEach(function(u) {
+                lessons += (u.lessons || []).length;
+            });
+        });
+        var opt = document.createElement('option');
+        opt.value = g.name;
+        opt.textContent = g.name + (lessons > 0 ? ' (' + lessons + ' درس)' : '');
+        sel.appendChild(opt);
+    });
+}
+
+function packUpdateSemesters() {
+    var grade = document.getElementById('pack-grade').value;
+    var sel = document.getElementById('pack-semester');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— اختر الفصل —</option>';
+    
+    if (!grade) {
+        sel.innerHTML = '<option value="">— اختر الصف أولاً —</option>';
+        // إعادة تصفير الباقي
+        var unitSel = document.getElementById('pack-unit');
+        var lessonSel = document.getElementById('pack-lesson-select');
+        if (unitSel) unitSel.innerHTML = '<option value="">— اختر الفصل أولاً —</option>';
+        if (lessonSel) lessonSel.innerHTML = '<option value="">— اختر الوحدة أولاً —</option>';
+        return;
+    }
+    
+    var g = _packCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g || !g.semesters || !g.semesters.length) {
+        sel.innerHTML = '<option value="">— لا فصول لهذا الصف —</option>';
+        return;
+    }
+    
+    g.semesters.forEach(function(s) {
+        if (!s || !s.name) return;
+        var lessons = 0;
+        (s.units || []).forEach(function(u) {
+            lessons += (u.lessons || []).length;
+        });
+        var opt = document.createElement('option');
+        opt.value = s.name;
+        opt.textContent = s.name + (lessons > 0 ? ' (' + lessons + ' درس)' : '');
+        sel.appendChild(opt);
+    });
+    
+    updatePackPathPreview();
+    packUpdateUnits();
+}
+
+function packUpdateUnits() {
+    var grade = document.getElementById('pack-grade').value;
+    var sem   = document.getElementById('pack-semester').value;
+    var sel   = document.getElementById('pack-unit');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— اختر الوحدة —</option>';
+    
+    if (!grade || !sem) {
+        sel.innerHTML = '<option value="">— اختر الفصل أولاً —</option>';
+        var lessonSel = document.getElementById('pack-lesson-select');
+        if (lessonSel) lessonSel.innerHTML = '<option value="">— اختر الوحدة أولاً —</option>';
+        return;
+    }
+    
+    var g = _packCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g) return;
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
+    if (!s || !s.units || !s.units.length) {
+        sel.innerHTML = '<option value="">— لا وحدات في هذا الفصل —</option>';
+        return;
+    }
+    
+    s.units.forEach(function(u) {
+        if (!u || !u.name) return;
+        var lessons = (u.lessons || []).length;
+        var opt = document.createElement('option');
+        opt.value = u.name;
+        opt.textContent = u.name + (lessons > 0 ? ' (' + lessons + ' درس)' : '');
+        sel.appendChild(opt);
+    });
+    
+    packUpdateLessons();
+}
+
+function packUpdateLessons() {
+    updatePackPathPreview();
+    var grade = document.getElementById('pack-grade').value;
+    var sem   = document.getElementById('pack-semester').value;
+    var unit  = document.getElementById('pack-unit').value;
+    var sel   = document.getElementById('pack-lesson-select');
+    if (!sel) return;
+    sel.innerHTML = '<option value="">— اختر الدرس —</option>';
+    
+    if (!grade || !sem || !unit) {
+        sel.innerHTML = '<option value="">— اختر الوحدة أولاً —</option>';
+        return;
+    }
+    
+    var g = _packCurriculum.find(function(x) { return x && x.name === grade; });
+    if (!g) return;
+    var s = (g.semesters || []).find(function(x) { return x && x.name === sem; });
+    if (!s) return;
+    var u = (s.units || []).find(function(x) { return x && x.name === unit; });
+    if (!u || !u.lessons || !u.lessons.length) {
+        sel.innerHTML = '<option value="">— لا دروس في هذه الوحدة —</option>';
+        return;
+    }
+    
+    u.lessons.forEach(function(l) {
+        var name = (typeof l === 'string') ? l : (l && l.name) ? l.name : null;
+        if (!name) return;
+        var opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        sel.appendChild(opt);
+    });
+}
+
+function updatePackPathPreview() {
+    var grade = document.getElementById('pack-grade').value;
+    var sem = document.getElementById('pack-semester').value;
+    var unit = document.getElementById('pack-unit').value;
+    var lessonSel = document.getElementById('pack-lesson-select');
+    var lesson = lessonSel ? lessonSel.value : '';
+    var customMode = document.getElementById('pack-custom-mode') ? document.getElementById('pack-custom-mode').checked : false;
+    var customLesson = '';
+    if (customMode) {
+        var ce = document.getElementById('pack-lesson-custom');
+        customLesson = ce ? ce.value.trim() : '';
+    }
+    var actualLesson = customMode ? customLesson : lesson;
+    
+    var preview = document.getElementById('pack-path-preview');
+    var display = document.getElementById('pack-path-display');
+    if (!preview || !display) return;
+    
+    if (!grade) {
+        preview.style.display = 'none';
+        return;
+    }
+    
+    var parts = [];
+    parts.push('🎓 ' + grade);
+    if (sem) parts.push('📅 ' + sem);
+    if (unit) parts.push('📦 ' + unit);
+    if (actualLesson) parts.push('📖 ' + actualLesson + (customMode ? ' <span style="background:rgba(255,107,107,0.2);color:#ff7676;font-size:0.7rem;padding:2px 8px;border-radius:8px;margin-right:6px;">مخصص</span>' : ''));
+    
+    display.innerHTML = parts.join('<span style="color:rgba(255,255,255,0.3);margin:0 8px;">›</span>');
+    preview.style.display = 'block';
+}
+
+function togglePackCustomMode() {
+    var checked = document.getElementById('pack-custom-mode').checked;
+    document.getElementById('pack-custom-input').style.display = checked ? 'block' : 'none';
+    
+    // عند التفعيل، نُعطّل الـ select الخاص بالدرس
+    var lessonSel = document.getElementById('pack-lesson-select');
+    if (lessonSel) {
+        lessonSel.disabled = checked;
+        lessonSel.style.opacity = checked ? '0.4' : '1';
+    }
+    
+    updatePackPathPreview();
+}
+
+// تحميل تلقائي عند الدخول للقسم
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'lesson-pack') {
+                setTimeout(loadPackCurriculum, 200);
+            }
+        };
+    }
+})();
+
+
+async function generateLessonPack() {
+    var grade = document.getElementById('pack-grade').value;
+    var semester = document.getElementById('pack-semester').value;
+    var unit = document.getElementById('pack-unit').value;
+    var customMode = document.getElementById('pack-custom-mode') ? document.getElementById('pack-custom-mode').checked : false;
+    var lesson = '';
+    
+    if (customMode) {
+        var customEl = document.getElementById('pack-lesson-custom');
+        lesson = customEl ? customEl.value.trim() : '';
+    } else {
+        var lessonSel = document.getElementById('pack-lesson-select');
+        lesson = lessonSel ? lessonSel.value : '';
+    }
+    
+    var notes = document.getElementById('pack-notes').value.trim();
+    
+    // التحقق
+    if (!grade) {
+        alert('⚠️ اختر الصف أولاً');
+        return;
+    }
+    if (!semester && !customMode) {
+        alert('⚠️ اختر الفصل أولاً');
+        return;
+    }
+    if (!unit && !customMode) {
+        alert('⚠️ اختر الوحدة أولاً');
+        return;
+    }
+    if (!lesson) {
+        if (customMode) {
+            alert('⚠️ أدخل اسم الدرس المخصص');
+        } else {
+            alert('⚠️ اختر الدرس من القائمة (أو فعّل "درس مخصص")');
+        }
+        return;
+    }
+    
+    // إخفاء النموذج والنتيجة، إظهار loading
+    document.getElementById('pack-form-container').style.display = 'none';
+    document.getElementById('pack-result').style.display = 'none';
+    document.getElementById('pack-loading').style.display = 'block';
+    
+    // محاكاة تقدّم
+    var progressSteps = [
+        { pct: 10, msg: '🤖 يفكر الـ AI في المحتوى...' },
+        { pct: 25, msg: '📋 يبني التحضير الكامل...' },
+        { pct: 45, msg: '📝 يولّد 10 أسئلة متدرّجة...' },
+        { pct: 60, msg: '📑 يُعدّ ورقة العمل الصفية...' },
+        { pct: 75, msg: '📚 يحضّر الواجب المنزلي...' },
+        { pct: 85, msg: '🎴 ينشئ بطاقات الحفظ...' },
+        { pct: 92, msg: '🏆 يخترع تحدي اليوم...' },
+        { pct: 96, msg: '🗺️ يرسم الخريطة الذهنية...' },
+    ];
+    var stepIdx = 0;
+    var progressInterval = setInterval(function() {
+        if (stepIdx < progressSteps.length) {
+            document.getElementById('pack-progress-bar').style.width = progressSteps[stepIdx].pct + '%';
+            document.getElementById('pack-loading-step').textContent = progressSteps[stepIdx].msg;
+            stepIdx++;
+        }
+    }, 5000);
+    
+    var btn = document.getElementById('pack-generate-btn');
+    btn.disabled = true;
+    
+    try {
+        var fd = new FormData();
+        fd.append('grade', grade);
+        fd.append('lesson_name', lesson);
+        if (semester) fd.append('semester', semester);
+        if (unit) fd.append('unit', unit);
+        if (notes) fd.append('extra_notes', notes);
+        
+        var res = await fetch('/api/teacher/lesson_pack/generate', {
+            method: 'POST',
+            body: fd
+        });
+        
+        clearInterval(progressInterval);
+        document.getElementById('pack-progress-bar').style.width = '100%';
+        document.getElementById('pack-loading-step').textContent = '✅ اكتمل التوليد!';
+        
+        var data = await res.json();
+        
+        if (!res.ok) {
+            throw new Error(data.detail || 'فشل التوليد');
+        }
+        
+        _currentPack = data.pack;
+        _currentPack._grade = grade;
+        _currentPack._lesson = lesson;
+        _currentPack._semester = semester;
+        _currentPack._unit = unit;
+        _currentPack._model = data.model_used;
+        
+        // عرض النتيجة بعد ثانية للتأثير
+        setTimeout(function() {
+            renderLessonPack(_currentPack);
+            document.getElementById('pack-loading').style.display = 'none';
+            document.getElementById('pack-result').style.display = 'block';
+            window.scrollTo({ top: document.getElementById('pack-result').offsetTop - 60, behavior: 'smooth' });
+        }, 800);
+        
+    } catch(e) {
+        clearInterval(progressInterval);
+        alert('❌ فشل التوليد: ' + e.message);
+        document.getElementById('pack-loading').style.display = 'none';
+        document.getElementById('pack-form-container').style.display = 'block';
+    } finally {
+        btn.disabled = false;
+    }
+}
+
+function escapeHtmlPack(s) {
+    var d = document.createElement('div');
+    d.textContent = String(s == null ? '' : s);
+    return d.innerHTML;
+}
+
+function renderLessonPack(pack) {
+    var result = document.getElementById('pack-result');
+    if (!pack) { result.innerHTML = '<p style="color:#e74c3c;">لا بيانات</p>'; return; }
+    
+    var html = '';
+    
+    // 🎉 Header + شريط الإجراءات
+    html += '<div class="aurora-bg" style="margin-bottom:20px;text-align:center;padding:24px;">';
+    html += '<div class="aurora-third"></div>';
+    html += '<div style="font-size:3.5rem;margin-bottom:10px;">🎉</div>';
+    html += '<h2 style="color:#fcd34d;font-family:Amiri;margin:0 0 6px;">' + escapeHtmlPack(pack.title || pack._lesson) + '</h2>';
+    if (pack.subtitle) html += '<p style="color:rgba(255,255,255,0.75);margin:0 0 14px;">' + escapeHtmlPack(pack.subtitle) + '</p>';
+    html += '<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:14px;">';
+    html += '<button onclick="printLessonPack()" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;"><i class="fas fa-print"></i> طباعة الكل</button>';
+    html += '<button onclick="saveQuestionsToBank()" style="background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;"><i class="fas fa-save"></i> حفظ الأسئلة في بنك الأسئلة</button>';
+    html += '<button onclick="regenerateLessonPack()" style="background:rgba(243,156,18,0.15);color:#fcd34d;border:1px solid #f39c12;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;"><i class="fas fa-redo"></i> توليد جديد</button>';
+    html += '</div></div>';
+    
+    // التبويبات
+    html += '<div class="glass-pro" style="padding:0;overflow:hidden;margin-bottom:20px;">';
+    html += '<div id="pack-tabs" style="display:flex;background:rgba(0,0,0,0.4);border-bottom:1px solid rgba(212,175,55,0.3);overflow-x:auto;">';
+    
+    var tabs = [
+        { id: 'plan',       icon: '📋', label: 'التحضير' },
+        { id: 'questions',  icon: '📝', label: '10 أسئلة' },
+        { id: 'worksheet',  icon: '📑', label: 'ورقة العمل' },
+        { id: 'homework',   icon: '📚', label: 'الواجب' },
+        { id: 'flashcards', icon: '🎴', label: '10 بطاقات' },
+        { id: 'challenge',  icon: '🏆', label: 'التحدي' },
+        { id: 'videos',     icon: '🎬', label: 'فيديوهات' },
+        { id: 'mindmap',    icon: '🗺️', label: 'الخريطة' },
+    ];
+    tabs.forEach(function(t, idx) {
+        var active = idx === 0;
+        html += '<button onclick="switchPackTab(\'' + t.id + '\')" id="pack-tab-' + t.id + '" class="pack-tab' + (active ? ' active' : '') + '" style="background:' + (active ? 'rgba(212,175,55,0.15)' : 'transparent') + ';color:' + (active ? '#fcd34d' : 'rgba(255,255,255,0.65)') + ';border:none;border-bottom:3px solid ' + (active ? '#d4af37' : 'transparent') + ';padding:14px 18px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.88rem;white-space:nowrap;">' + t.icon + ' ' + t.label + '</button>';
+    });
+    html += '</div>';
+    html += '<div id="pack-content" style="padding:24px;"></div>';
+    html += '</div>';
+    
+    result.innerHTML = html;
+    
+    // عرض التبويب الأول
+    switchPackTab('plan');
+}
+
+function switchPackTab(tabId) {
+    // تحديث الأزرار
+    document.querySelectorAll('.pack-tab').forEach(function(b) {
+        b.classList.remove('active');
+        b.style.background = 'transparent';
+        b.style.color = 'rgba(255,255,255,0.65)';
+        b.style.borderBottomColor = 'transparent';
+    });
+    var activeBtn = document.getElementById('pack-tab-' + tabId);
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        activeBtn.style.background = 'rgba(212,175,55,0.15)';
+        activeBtn.style.color = '#fcd34d';
+        activeBtn.style.borderBottomColor = '#d4af37';
+    }
+    
+    var content = document.getElementById('pack-content');
+    if (!content || !_currentPack) return;
+    
+    if (tabId === 'plan') content.innerHTML = renderPlanTab(_currentPack.lesson_plan);
+    else if (tabId === 'questions') content.innerHTML = renderQuestionsTab(_currentPack.exam_questions);
+    else if (tabId === 'worksheet') content.innerHTML = renderWorksheetTab(_currentPack.worksheet);
+    else if (tabId === 'homework') content.innerHTML = renderHomeworkTab(_currentPack.homework);
+    else if (tabId === 'flashcards') content.innerHTML = renderFlashcardsTab(_currentPack.flashcards);
+    else if (tabId === 'challenge') content.innerHTML = renderChallengeTab(_currentPack.challenge);
+    else if (tabId === 'videos') content.innerHTML = renderVideosTab(_currentPack.video_suggestions);
+    else if (tabId === 'mindmap') content.innerHTML = renderMindmapTab(_currentPack.mindmap);
+}
+
+// ─── العرض ───
+
+function renderPlanTab(plan) {
+    if (!plan) return '<p style="color:rgba(255,255,255,0.5);">لا تحضير</p>';
+    var h = '';
+    
+    if (plan.objectives && plan.objectives.length) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎯 الأهداف</h3><ul style="color:rgba(255,255,255,0.85);line-height:2;padding-right:20px;">';
+        plan.objectives.forEach(function(o) { h += '<li>' + escapeHtmlPack(o) + '</li>'; });
+        h += '</ul></div>';
+    }
+    
+    if (plan.vocabulary && plan.vocabulary.length) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">📚 المصطلحات</h3>';
+        plan.vocabulary.forEach(function(v) {
+            h += '<div style="background:rgba(99,102,241,0.08);border-right:3px solid #818cf8;padding:10px 14px;border-radius:8px;margin-bottom:8px;color:rgba(255,255,255,0.85);">' + escapeHtmlPack(v) + '</div>';
+        });
+        h += '</div>';
+    }
+    
+    if (plan.materials && plan.materials.length) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🛠️ الوسائل</h3><div style="display:flex;flex-wrap:wrap;gap:8px;">';
+        plan.materials.forEach(function(m) {
+            h += '<span style="background:rgba(46,204,113,0.12);color:#7fffd4;padding:6px 12px;border-radius:14px;border:1px solid rgba(46,204,113,0.3);font-size:0.88rem;">' + escapeHtmlPack(m) + '</span>';
+        });
+        h += '</div></div>';
+    }
+    
+    if (plan.introduction) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🌅 التمهيد</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + escapeHtmlPack(plan.introduction) + '</p></div>';
+    }
+    
+    if (plan.main_content) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">📖 المحتوى الأساسي</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;white-space:pre-wrap;">' + escapeHtmlPack(plan.main_content) + '</p></div>';
+    }
+    
+    if (plan.examples && plan.examples.length) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">💡 أمثلة محلولة</h3>';
+        plan.examples.forEach(function(ex, idx) {
+            h += '<div style="background:rgba(212,175,55,0.06);border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:14px;margin-bottom:10px;">';
+            h += '<div style="color:#fcd34d;font-weight:bold;margin-bottom:6px;">مثال ' + (idx+1) + ': ' + escapeHtmlPack(ex.question) + '</div>';
+            h += '<div style="color:rgba(255,255,255,0.85);line-height:1.9;white-space:pre-wrap;">' + escapeHtmlPack(ex.solution) + '</div>';
+            h += '</div>';
+        });
+        h += '</div>';
+    }
+    
+    if (plan.common_mistakes && plan.common_mistakes.length) {
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">⚠️ أخطاء شائعة</h3><ul style="color:rgba(255,255,255,0.85);line-height:2;padding-right:20px;">';
+        plan.common_mistakes.forEach(function(m) { h += '<li>' + escapeHtmlPack(m) + '</li>'; });
+        h += '</ul></div>';
+    }
+    
+    if (plan.closure) {
+        h += '<div><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎬 الختام</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + escapeHtmlPack(plan.closure) + '</p></div>';
+    }
+    
+    return h;
+}
+
+function renderQuestionsTab(qs) {
+    if (!qs || !qs.length) return '<p style="color:rgba(255,255,255,0.5);">لا أسئلة</p>';
+    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 16px;font-size:0.9rem;">📝 ' + qs.length + ' أسئلة متدرّجة الصعوبة</p>';
+    var diffColors = { easy: '#4ade80', medium: '#fbbf24', hard: '#ef4444' };
+    var diffLabels = { easy: 'سهل', medium: 'متوسط', hard: 'صعب' };
+    
+    qs.forEach(function(q, idx) {
+        var col = diffColors[q.difficulty] || '#fcd34d';
+        var lbl = diffLabels[q.difficulty] || '—';
+        h += '<div style="background:rgba(255,255,255,0.03);border-right:3px solid ' + col + ';border-radius:10px;padding:14px;margin-bottom:10px;">';
+        h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">';
+        h += '<div style="color:#fff;font-weight:600;line-height:1.8;flex:1;min-width:200px;"><span style="color:#fcd34d;">السؤال ' + (idx+1) + ':</span> ' + escapeHtmlPack(q.q || q.question) + '</div>';
+        h += '<span style="background:' + col + '20;color:' + col + ';font-size:0.72rem;padding:3px 10px;border-radius:12px;border:1px solid ' + col + '50;flex-shrink:0;">' + lbl + '</span>';
+        h += '</div>';
+        h += '<details style="margin-top:8px;"><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 عرض الإجابة</summary>';
+        h += '<div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:8px;padding:10px 14px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + escapeHtmlPack(q.answer || q.a) + '</div>';
+        h += '</details></div>';
+    });
+    return h;
+}
+
+function renderWorksheetTab(ws) {
+    if (!ws) return '<p style="color:rgba(255,255,255,0.5);">لا ورقة عمل</p>';
+    var h = '<h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 6px;">' + escapeHtmlPack(ws.title || 'ورقة عمل صفية') + '</h3>';
+    if (ws.instructions) h += '<p style="color:rgba(255,255,255,0.7);margin:0 0 18px;line-height:1.8;font-style:italic;">' + escapeHtmlPack(ws.instructions) + '</p>';
+    if (ws.questions && ws.questions.length) {
+        ws.questions.forEach(function(q, idx) {
+            h += '<div style="background:rgba(46,204,113,0.06);border:1px solid rgba(46,204,113,0.25);border-radius:10px;padding:14px;margin-bottom:10px;">';
+            h += '<div style="color:#fff;font-weight:600;line-height:1.8;"><span style="color:#7fffd4;">' + (idx+1) + ')</span> ' + escapeHtmlPack(q) + '</div>';
+            h += '<div style="border-bottom:1px solid rgba(255,255,255,0.15);height:40px;margin:14px 0;"></div>';
+            h += '<div style="border-bottom:1px solid rgba(255,255,255,0.15);height:40px;margin:14px 0;"></div>';
+            h += '</div>';
+        });
+    }
+    return h;
+}
+
+function renderHomeworkTab(hw) {
+    if (!hw) return '<p style="color:rgba(255,255,255,0.5);">لا واجب</p>';
+    var h = '<h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 6px;">' + escapeHtmlPack(hw.title || 'الواجب المنزلي') + '</h3>';
+    if (hw.instructions) h += '<p style="color:rgba(255,255,255,0.7);margin:0 0 18px;line-height:1.8;font-style:italic;">' + escapeHtmlPack(hw.instructions) + '</p>';
+    if (hw.questions && hw.questions.length) {
+        hw.questions.forEach(function(q, idx) {
+            h += '<div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:10px;padding:14px;margin-bottom:10px;">';
+            h += '<div style="color:#fff;font-weight:600;line-height:1.8;margin-bottom:8px;"><span style="color:#bb86fc;">' + (idx+1) + ')</span> ' + escapeHtmlPack(q.q || q) + '</div>';
+            if (q.answer) {
+                h += '<details><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 الإجابة</summary>';
+                h += '<div style="background:rgba(155,89,182,0.1);border-radius:8px;padding:10px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + escapeHtmlPack(q.answer) + '</div></details>';
+            }
+            h += '</div>';
+        });
+    }
+    return h;
+}
+
+function renderFlashcardsTab(cards) {
+    if (!cards || !cards.length) return '<p style="color:rgba(255,255,255,0.5);">لا بطاقات</p>';
+    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 18px;font-size:0.9rem;">🎴 ' + cards.length + ' بطاقة حفظ — اضغط على البطاقة لرؤية الإجابة</p>';
+    h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">';
+    cards.forEach(function(c, idx) {
+        h += '<div onclick="this.classList.toggle(\'flipped\')" class="flashcard-item" style="cursor:pointer;min-height:160px;perspective:1000px;">';
+        h += '<div class="flashcard-inner" style="position:relative;width:100%;height:160px;transition:transform 0.6s;transform-style:preserve-3d;">';
+        // الوجه الأمامي
+        h += '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;background:linear-gradient(135deg,#1a1a3e,#0a0d28);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
+        h += '<div style="color:#fcd34d;font-size:0.72rem;margin-bottom:6px;">' + (idx+1) + ' / ' + cards.length + '</div>';
+        h += '<div style="color:#fff;font-weight:600;line-height:1.7;">' + escapeHtmlPack(c.front) + '</div>';
+        h += '<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;margin-top:auto;">اضغط للقلب</div>';
+        h += '</div>';
+        // الوجه الخلفي
+        h += '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(135deg,#3a1a3e,#1a0d28);border:1px solid rgba(155,89,182,0.4);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:center;text-align:center;">';
+        h += '<div style="color:rgba(255,255,255,0.95);line-height:1.7;">' + escapeHtmlPack(c.back) + '</div>';
+        h += '</div></div></div>';
+    });
+    h += '</div>';
+    h += '<style>.flashcard-item.flipped .flashcard-inner { transform: rotateY(180deg); }</style>';
+    return h;
+}
+
+function renderChallengeTab(ch) {
+    if (!ch) return '<p style="color:rgba(255,255,255,0.5);">لا تحدي</p>';
+    var h = '<div style="background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(255,217,61,0.1));border:2px solid rgba(255,107,107,0.4);border-radius:18px;padding:24px;text-align:center;">';
+    h += '<div style="font-size:4rem;margin-bottom:12px;">🏆</div>';
+    h += '<h2 style="color:#ffd93d;font-family:Amiri;margin:0 0 8px;">' + escapeHtmlPack(ch.title || 'تحدي اليوم') + '</h2>';
+    h += '<p style="color:#fff;font-size:1.1rem;line-height:1.9;margin:16px 0;font-weight:600;">' + escapeHtmlPack(ch.question) + '</p>';
+    if (ch.hint) {
+        h += '<details style="text-align:right;margin-top:18px;background:rgba(255,217,61,0.06);border-radius:10px;padding:12px;"><summary style="cursor:pointer;color:#ffd93d;font-weight:bold;">💡 تلميح</summary><p style="color:rgba(255,255,255,0.85);margin:8px 0 0;line-height:1.8;">' + escapeHtmlPack(ch.hint) + '</p></details>';
+    }
+    if (ch.answer) {
+        h += '<details style="text-align:right;margin-top:10px;background:rgba(46,204,113,0.08);border-radius:10px;padding:12px;"><summary style="cursor:pointer;color:#7fffd4;font-weight:bold;">✅ الإجابة الكاملة</summary><p style="color:rgba(255,255,255,0.9);margin:8px 0 0;line-height:1.9;white-space:pre-wrap;">' + escapeHtmlPack(ch.answer) + '</p></details>';
+    }
+    h += '</div>';
+    return h;
+}
+
+function renderVideosTab(vids) {
+    if (!vids || !vids.length) return '<p style="color:rgba(255,255,255,0.5);">لا اقتراحات</p>';
+    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 18px;font-size:0.9rem;">🎬 ' + vids.length + ' اقتراحات فيديو — اضغط للبحث في يوتيوب</p>';
+    vids.forEach(function(v) {
+        var searchUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(v.search || v.title);
+        h += '<a href="' + searchUrl + '" target="_blank" style="display:flex;align-items:center;gap:14px;background:rgba(255,0,0,0.06);border:1px solid rgba(255,0,0,0.25);border-radius:12px;padding:14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:0.2s;">';
+        h += '<div style="background:#ff0000;color:#fff;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fab fa-youtube"></i></div>';
+        h += '<div style="flex:1;min-width:0;">';
+        h += '<div style="color:#fff;font-weight:600;margin-bottom:4px;">' + escapeHtmlPack(v.title) + '</div>';
+        h += '<div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">🔍 ' + escapeHtmlPack(v.search) + '</div>';
+        h += '</div>';
+        h += '<i class="fas fa-external-link-alt" style="color:rgba(255,255,255,0.4);"></i>';
+        h += '</a>';
+    });
+    return h;
+}
+
+function renderMindmapTab(mm) {
+    if (!mm) return '<p style="color:rgba(255,255,255,0.5);">لا خريطة</p>';
+    var h = '<div style="text-align:center;padding:20px 0;">';
+    // العقدة المركزية
+    h += '<div style="display:inline-block;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a0d2e;padding:18px 32px;border-radius:50px;font-family:Amiri;font-size:1.3rem;font-weight:bold;box-shadow:0 8px 24px rgba(212,175,55,0.4);margin-bottom:30px;">';
+    h += '🎯 ' + escapeHtmlPack(mm.central || 'الموضوع');
+    h += '</div></div>';
+    // الفروع
+    if (mm.branches && mm.branches.length) {
+        h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;">';
+        var colors = [
+            ['rgba(99,102,241,0.12)', 'rgba(99,102,241,0.4)', '#818cf8'],
+            ['rgba(46,204,113,0.12)', 'rgba(46,204,113,0.4)', '#7fffd4'],
+            ['rgba(155,89,182,0.12)', 'rgba(155,89,182,0.4)', '#bb86fc'],
+            ['rgba(255,107,107,0.12)', 'rgba(255,107,107,0.4)', '#ffb3b3'],
+            ['rgba(243,156,18,0.12)', 'rgba(243,156,18,0.4)', '#fcd34d'],
+        ];
+        mm.branches.forEach(function(br, idx) {
+            var c = colors[idx % colors.length];
+            h += '<div style="background:' + c[0] + ';border:1px solid ' + c[1] + ';border-radius:14px;padding:16px;">';
+            h += '<h4 style="color:' + c[2] + ';margin:0 0 10px;font-family:Amiri;">' + escapeHtmlPack(br.name) + '</h4>';
+            if (br.items && br.items.length) {
+                h += '<ul style="color:rgba(255,255,255,0.85);line-height:2;padding-right:20px;margin:0;">';
+                br.items.forEach(function(it) { h += '<li>' + escapeHtmlPack(it) + '</li>'; });
+                h += '</ul>';
+            }
+            h += '</div>';
+        });
+        h += '</div>';
+    }
+    return h;
+}
+
+// ─── الإجراءات ───
+
+async function saveQuestionsToBank() {
+    if (!_currentPack || !_currentPack.exam_questions) {
+        alert('⚠️ لا أسئلة');
+        return;
+    }
+    if (!confirm('💾 سيتم حفظ ' + _currentPack.exam_questions.length + ' سؤال في بنك الأسئلة. متابعة؟')) return;
+    
+    var fd = new FormData();
+    fd.append('grade', _currentPack._grade || '');
+    fd.append('lesson_name', _currentPack._lesson || '');
+    fd.append('questions_json', JSON.stringify(_currentPack.exam_questions));
+    if (_currentPack._semester) fd.append('semester', _currentPack._semester);
+    if (_currentPack._unit) fd.append('unit', _currentPack._unit);
+    
+    try {
+        var res = await fetch('/api/teacher/lesson_pack/save_questions', { method: 'POST', body: fd });
+        var data = await res.json();
+        if (!res.ok) throw new Error(data.detail || 'فشل');
+        alert('✅ ' + data.message);
+    } catch(e) {
+        alert('❌ فشل: ' + e.message);
+    }
+}
+
+function regenerateLessonPack() {
+    if (!confirm('🔄 سيتم إعادة التوليد. متابعة؟')) return;
+    document.getElementById('pack-result').style.display = 'none';
+    document.getElementById('pack-form-container').style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function printLessonPack() {
+    if (!_currentPack) return;
+    var p = _currentPack;
+    var w = window.open('', '_blank');
+    
+    var content = '<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>' + escapeHtmlPack(p.title) + '</title>';
+    content += '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">';
+    content += '<style>';
+    content += 'body { font-family:Cairo,sans-serif; padding:24px; max-width:800px; margin:0 auto; line-height:1.8; color:#1a1a2e; }';
+    content += 'h1 { font-family:Amiri,serif; color:#1565c0; border-bottom:3px solid #d4af37; padding-bottom:10px; }';
+    content += 'h2 { font-family:Amiri,serif; color:#16a085; margin-top:30px; border-right:4px solid #16a085; padding-right:10px; }';
+    content += 'h3 { color:#7c2d12; }';
+    content += '.section { page-break-inside:avoid; margin-bottom:24px; padding:18px; background:#f9f9f9; border-radius:10px; }';
+    content += '.q-box { background:#fff; border-right:4px solid #1565c0; padding:12px; margin:10px 0; border-radius:8px; }';
+    content += '.answer-line { border-bottom:1px solid #ccc; height:30px; margin:10px 0; }';
+    content += '@media print { .no-print { display:none; } body { padding:10px; } }';
+    content += '@page { size:A4; margin:1.5cm; }';
+    content += '</style></head><body>';
+    
+    content += '<div class="no-print" style="position:fixed;top:10px;left:10px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);">';
+    content += '<button onclick="window.print()" style="background:#1565c0;color:#fff;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">🖨️ طباعة</button>';
+    content += '</div>';
+    
+    content += '<h1>📚 ' + escapeHtmlPack(p.title) + '</h1>';
+    content += '<p style="color:#666;">' + escapeHtmlPack(p._grade || '') + ' · ' + escapeHtmlPack(p._lesson) + '</p>';
+    
+    // التحضير
+    if (p.lesson_plan) {
+        content += '<div class="section"><h2>📋 التحضير</h2>';
+        if (p.lesson_plan.objectives) {
+            content += '<h3>🎯 الأهداف</h3><ul>';
+            p.lesson_plan.objectives.forEach(function(o) { content += '<li>' + escapeHtmlPack(o) + '</li>'; });
+            content += '</ul>';
+        }
+        if (p.lesson_plan.introduction) content += '<h3>🌅 التمهيد</h3><p>' + escapeHtmlPack(p.lesson_plan.introduction) + '</p>';
+        if (p.lesson_plan.main_content) content += '<h3>📖 المحتوى</h3><p style="white-space:pre-wrap;">' + escapeHtmlPack(p.lesson_plan.main_content) + '</p>';
+        if (p.lesson_plan.examples) {
+            content += '<h3>💡 أمثلة محلولة</h3>';
+            p.lesson_plan.examples.forEach(function(ex, i) {
+                content += '<div class="q-box"><b>مثال ' + (i+1) + ':</b> ' + escapeHtmlPack(ex.question) + '<br><b style="color:#16a085;">الحل:</b> ' + escapeHtmlPack(ex.solution) + '</div>';
+            });
+        }
+        content += '</div>';
+    }
+    
+    // الأسئلة
+    if (p.exam_questions && p.exam_questions.length) {
+        content += '<div class="section"><h2>📝 أسئلة التقويم</h2>';
+        p.exam_questions.forEach(function(q, i) {
+            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + escapeHtmlPack(q.q || q.question) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
+        });
+        content += '</div>';
+    }
+    
+    // ورقة العمل
+    if (p.worksheet && p.worksheet.questions) {
+        content += '<div class="section"><h2>📑 ' + escapeHtmlPack(p.worksheet.title || 'ورقة عمل صفية') + '</h2>';
+        p.worksheet.questions.forEach(function(q, i) {
+            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + escapeHtmlPack(q) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
+        });
+        content += '</div>';
+    }
+    
+    // الواجب
+    if (p.homework && p.homework.questions) {
+        content += '<div class="section"><h2>📚 ' + escapeHtmlPack(p.homework.title || 'الواجب المنزلي') + '</h2>';
+        p.homework.questions.forEach(function(q, i) {
+            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + escapeHtmlPack(q.q || q) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
+        });
+        content += '</div>';
+    }
+    
+    // التحدي
+    if (p.challenge) {
+        content += '<div class="section" style="background:#fef3c7;border:2px solid #f59e0b;"><h2>🏆 تحدي اليوم</h2>';
+        content += '<p style="font-size:1.1rem;font-weight:600;">' + escapeHtmlPack(p.challenge.question) + '</p>';
+        if (p.challenge.hint) content += '<p><b>💡 تلميح:</b> ' + escapeHtmlPack(p.challenge.hint) + '</p>';
+        content += '</div>';
+    }
+    
+    content += '</body></html>';
+    
+    w.document.write(content);
+    w.document.close();
+}
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 🎨 THEME SYSTEM V2 — تطبيق الثيمات الـ 9
+// ════════════════════════════════════════════════════════════
+function applyThemeV2(themeName) {
+    if (!themeName) themeName = 'royal-gold';
+    
+    // تطبيق الثيم على body
+    document.body.setAttribute('data-theme', themeName);
+    localStorage.setItem('teacher_theme_v2', themeName);
+    
+    // تحديث البطاقات
+    document.querySelectorAll('.theme-card-v2').forEach(function(card) {
+        if (card.getAttribute('data-theme') === themeName) {
+            card.classList.add('active');
+        } else {
+            card.classList.remove('active');
+        }
+    });
+    
+    // إشعار جميل
+    if (typeof showToast === 'function') {
+        var themeNames = {
+            'royal-gold':        '👑 الملكي الذهبي',
+            'ocean-blue':        '🌊 المحيطي الأزرق',
+            'emerald-forest':    '🌿 الزمردي الأخضر',
+            'rose-modern':       '🌹 الوردي العصري',
+            'cosmic-purple':     '🌌 الكوني البنفسجي',
+            'sunset-warm':       '🌅 غروب الشمس',
+            'turquoise-crystal': '💎 التركوازي البلوري',
+            'luxury-black':      '🌑 الأسود الفاخر',
+            'bright-day':        '☀️ النهاري المشرق'
+        };
+        showToast('✨ تم تطبيق ثيم: ' + (themeNames[themeName] || themeName), 'success');
+    }
+    
+    // تحديث flag للتمييز
+    document.body.classList.remove('light-mode');
+    if (themeName === 'bright-day') {
+        document.body.classList.add('light-mode');
+    }
+}
+
+// استعادة الثيم المحفوظ عند التحميل
+document.addEventListener('DOMContentLoaded', function() {
+    var saved = localStorage.getItem('teacher_theme_v2') || 'royal-gold';
+    applyThemeV2(saved);
+});
+
+// متوافق مع applyTheme القديم
+window.applyTheme = function(name) {
+    var map = {
+        'royal-gold': 'royal-gold',
+        'ocean-blue': 'ocean-blue',
+        'emerald-forest': 'emerald-forest',
+        'sunset-warm': 'sunset-warm',
+        'purple-night': 'cosmic-purple',
+        'rose-pink': 'rose-modern'
+    };
+    applyThemeV2(map[name] || name);
+};
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 💡 نصائح ديناميكية
+// ════════════════════════════════════════════════════════════
+var _smartTips = [
+    '💎 استخدم <b style="color:#fcd34d;">حزمة الدرس الكاملة</b> لتوفير ساعات في التحضير — AI ينتج 8 مواد جاهزة!',
+    '🎯 جرّب <b style="color:#7fffd4;">وضع النشاط الصفي</b> في مولّد الاختبارات — أوراق خضراء مع مساحة حل أكبر',
+    '🏆 يمكنك <b style="color:#ff7676;">رفع صورة شهادة فارغة</b> والكتابة عليها بدلاً من القوالب الجاهزة',
+    '📰 الإدارة ترسل <b style="color:#bb86fc;">إشعارات ذهبية</b> — تأكد من النقر على الجرس أعلى الصفحة',
+    '🎨 جرّب <b style="color:#48d1cc;">ثيم النهاري المشرق</b> أثناء التدريس بالمدرسة — أوضح للعين',
+    '⚡ الزر <b style="color:#fcd34d;">العائم الذهبي</b> في الزاوية يوفّر إجراءات سريعة من أي صفحة',
+    '📊 لوحة <b style="color:#7fffd4;">إيميلات المعلمين</b> في الأدمن تُتيح تصدير CSV ونسخ كل الإيميلات',
+    '🌌 تصميم <b style="color:#bb86fc;">Aurora</b> في الـ Hero يتحرك ديناميكياً — شاهده يتغير ببطء',
+    '🎴 بطاقات الحفظ في الحزمة الكاملة <b style="color:#ff7676;">تنقلب بـ 3D</b> عند الضغط عليها',
+    '🚀 يمكنك <b style="color:#fcd34d;">حفظ أسئلة AI</b> في بنك الأسئلة لاستخدامها لاحقاً في الاختبارات',
+    '💡 <b style="color:#7fffd4;">سايدبار النحيف</b> يوفّر 200 بكسل مساحة إضافية — جربه!',
+    '🌟 الـ <b style="color:#bb86fc;">Hero Card</b> يعرض إنجازك الأسبوعي — مع 🔥 للسلسلة المتتالية',
+    '📱 المنصة <b style="color:#48d1cc;">متوافقة مع الموبايل 100%</b> — يمكنك إنشاء الشهادات من الجوال',
+    '🎬 في حزمة الدرس، اضغط <b style="color:#ff7676;">اقتراحات الفيديو</b> لفتح بحث YouTube مباشرة',
+    '⏰ <b style="color:#fcd34d;">Timeline اليوم</b> في لوحة البيت يُظهر حصصك بألوان مختلفة'
+];
+
+function loadNewTip() {
+    var el = document.getElementById('dynamic-tip');
+    if (!el) return;
+    var tip = _smartTips[Math.floor(Math.random() * _smartTips.length)];
+    
+    // تأثير fade
+    el.style.opacity = '0';
+    el.style.transition = 'opacity 0.3s';
+    setTimeout(function() {
+        el.innerHTML = tip;
+        el.style.opacity = '1';
+    }, 300);
+}
+
+// تحميل نصيحة عشوائية عند الدخول للوحة البيت
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(loadNewTip, 1500);
+});
+
+// عند الانتقال للوحة البيت، نُحدّث النصيحة
+(function() {
+    var prev = window.showSection;
+    if (typeof prev === 'function') {
+        var orig = prev;
+        window.showSection = function(name, el) {
+            orig.call(this, name, el);
+            if (name === 'home') {
+                setTimeout(loadNewTip, 300);
+            }
+        };
+    }
+})();
 </script>
 
 </body>
