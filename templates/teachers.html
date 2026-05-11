@@ -3617,6 +3617,63 @@
             <span class="btn-icon">🤖</span> <span>الذكاء الاصطناعي</span>
         </button>
         
+        <!-- 🚀 الهَب 3.5: حزمة الدرس الكاملة (مميز) -->
+        <button class="nav-btn nav-royal nav-pack-special" onclick="showSection('lesson-pack',this)" style="position:relative;">
+            <span class="btn-icon">🚀</span> <span>حزمة الدرس AI</span>
+            <span class="pack-new-badge">جديد</span>
+        </button>
+        
+        <style>
+            /* تصميم خاص لزر الحزمة الكاملة */
+            .nav-btn.nav-pack-special {
+                background: linear-gradient(135deg, rgba(255,107,107,0.12), rgba(255,217,61,0.06)) !important;
+                border: 1px solid rgba(255,107,107,0.35) !important;
+                color: #ff7676 !important;
+                position: relative;
+            }
+            .nav-btn.nav-pack-special:hover,
+            .nav-btn.nav-pack-special.active {
+                background: linear-gradient(135deg, #ff6b6b, #ffd93d, #ff6b6b) !important;
+                background-size: 200% auto !important;
+                color: #1a0d2e !important;
+                border-color: #ff6b6b !important;
+                box-shadow: 0 6px 20px rgba(255,107,107,0.45) !important;
+                animation: packBtnShine 3s linear infinite !important;
+            }
+            @keyframes packBtnShine {
+                0% { background-position: 0% center; }
+                100% { background-position: 200% center; }
+            }
+            
+            .pack-new-badge {
+                position: absolute;
+                top: -6px;
+                left: -6px;
+                background: linear-gradient(135deg, #ff6b6b, #ee5a6f);
+                color: #fff;
+                font-size: 0.62rem;
+                font-weight: bold;
+                padding: 2px 8px;
+                border-radius: 10px;
+                font-family: 'Cairo', sans-serif;
+                box-shadow: 0 2px 8px rgba(238,90,111,0.5);
+                animation: badgePopPulse 2s ease-in-out infinite;
+                z-index: 2;
+            }
+            @keyframes badgePopPulse {
+                0%, 100% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+            }
+            
+            /* في وضع compact (السايدبار النحيف) */
+            .sidebar.compact .pack-new-badge {
+                font-size: 0.55rem;
+                padding: 1px 5px;
+                top: -4px;
+                left: -4px;
+            }
+        </style>
+        
         <!-- 🏛️ الهَب 4: فصولي الخاصة -->
         <button class="nav-btn nav-royal" onclick="showSection('my-classrooms',this)">
             <span class="btn-icon">🏛️</span> <span>فصولي الخاصة</span>
@@ -4146,78 +4203,60 @@
             </div>
         </div>
 
-                <!-- ⚡ Quick Access — الوصول السريع المُنظّم -->
-        <div class="glass-pro" style="padding:24px;margin-bottom:20px;">
+                <!-- ⚡ Quick Actions — شريط الإجراءات السريعة -->
+        <div class="glass-pro" style="padding:22px;margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-                <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.3rem;">⚡ الوصول السريع</h3>
-                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">أكثر الأدوات استخداماً</span>
+                <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.3rem;">⚡ إجراءات سريعة</h3>
+                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">الأكثر استخداماً</span>
             </div>
             
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
                 
-                <!-- AI Lesson Pack -->
-                <div onclick="showSection('lesson-pack', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(255,107,107,0.12),rgba(255,217,61,0.05));border:1px solid rgba(255,107,107,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;position:relative;overflow:hidden;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="position:absolute;top:8px;left:8px;background:#ff6b6b;color:#fff;font-size:0.62rem;padding:2px 7px;border-radius:10px;font-weight:bold;">جديد</div>
-                    <div style="font-size:2rem;margin-bottom:6px;">🚀</div>
-                    <div style="color:#ff7676;font-weight:bold;font-size:0.88rem;">حزمة كاملة AI</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">8 مواد في دقيقة</div>
-                </div>
+                <!-- إنشاء اختبار جديد - أحمر -->
+                <button onclick="showSection('exam-gen', null)" class="quick-action-btn" style="background:linear-gradient(135deg,#e74c3c,#c0392b);border:none;border-radius:14px;padding:24px 18px;cursor:pointer;color:#fff;font-family:'Tajawal',sans-serif;font-weight:bold;text-align:center;box-shadow:0 6px 20px rgba(231,76,60,0.35);transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden;">
+                    <div style="font-size:2rem;margin-bottom:8px;">📝</div>
+                    <div style="font-size:1.05rem;">إنشاء اختبار جديد</div>
+                </button>
                 
-                <!-- Exam Gen -->
-                <div onclick="showSection('exam-gen', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(231,76,60,0.12),rgba(0,0,0,0.2));border:1px solid rgba(231,76,60,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">📝</div>
-                    <div style="color:#ff7676;font-weight:bold;font-size:0.88rem;">مولّد اختبارات</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">اختبار/نشاط</div>
-                </div>
+                <!-- تحضير AI سريع - أزرق -->
+                <button onclick="showSection('plan-gen', null)" class="quick-action-btn" style="background:linear-gradient(135deg,#3498db,#2471a3);border:none;border-radius:14px;padding:24px 18px;cursor:pointer;color:#fff;font-family:'Tajawal',sans-serif;font-weight:bold;text-align:center;box-shadow:0 6px 20px rgba(52,152,219,0.35);transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden;">
+                    <div style="font-size:2rem;margin-bottom:8px;">📓</div>
+                    <div style="font-size:1.05rem;">تحضير AI سريع</div>
+                </button>
                 
-                <!-- Certificates -->
-                <div onclick="showSection('certificates', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(212,175,55,0.12),rgba(0,0,0,0.2));border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">🏆</div>
-                    <div style="color:#fcd34d;font-weight:bold;font-size:0.88rem;">الشهادات</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">8 قوالب + صور</div>
-                </div>
+                <!-- طباعة شهادات - أخضر -->
+                <button onclick="showSection('certificates', null)" class="quick-action-btn" style="background:linear-gradient(135deg,#16a085,#0e7d6c);border:none;border-radius:14px;padding:24px 18px;cursor:pointer;color:#fff;font-family:'Tajawal',sans-serif;font-weight:bold;text-align:center;box-shadow:0 6px 20px rgba(22,160,133,0.35);transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden;">
+                    <div style="font-size:2rem;margin-bottom:8px;">🏆</div>
+                    <div style="font-size:1.05rem;">طباعة شهادات</div>
+                </button>
                 
-                <!-- Plan Gen -->
-                <div onclick="showSection('plan-gen', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(0,0,0,0.2));border:1px solid rgba(99,102,241,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">📓</div>
-                    <div style="color:#818cf8;font-weight:bold;font-size:0.88rem;">تحضير AI</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">في 30 ثانية</div>
-                </div>
-                
-                <!-- Classrooms -->
-                <div onclick="showSection('my-classrooms', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(0,191,255,0.12),rgba(0,0,0,0.2));border:1px solid rgba(0,191,255,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">🏛️</div>
-                    <div style="color:#5dd5ff;font-weight:bold;font-size:0.88rem;">فصولي</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">إدارة الطلاب</div>
-                </div>
-                
-                <!-- AI Assistant -->
-                <div onclick="showSection('ai-assistant', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(0,0,0,0.2));border:1px solid rgba(46,204,113,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">🤖</div>
-                    <div style="color:#7fffd4;font-weight:bold;font-size:0.88rem;">المساعد AI</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">اسأل أي شيء</div>
-                </div>
-                
-                <!-- Visual Maker -->
-                <div onclick="showSection('visual-maker', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(243,156,18,0.12),rgba(0,0,0,0.2));border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">🎨</div>
-                    <div style="color:#f9c74f;font-weight:bold;font-size:0.88rem;">الأشكال</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">2D + 3D</div>
-                </div>
-                
-                <!-- Schedule -->
-                <div onclick="showSection('schedule-tpl', null)" class="quick-access-card" style="background:linear-gradient(135deg,rgba(155,89,182,0.12),rgba(0,0,0,0.2));border:1px solid rgba(155,89,182,0.3);border-radius:14px;padding:16px;cursor:pointer;text-align:center;transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);">
-                    <div style="font-size:2rem;margin-bottom:6px;">📅</div>
-                    <div style="color:#bb86fc;font-weight:bold;font-size:0.88rem;">الجداول</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.7rem;margin-top:2px;">6 قوالب</div>
-                </div>
+                <!-- اسأل المساعد - أخضر فاتح -->
+                <button onclick="showSection('ai-assistant', null)" class="quick-action-btn" style="background:linear-gradient(135deg,#2ecc71,#27ae60);border:none;border-radius:14px;padding:24px 18px;cursor:pointer;color:#fff;font-family:'Tajawal',sans-serif;font-weight:bold;text-align:center;box-shadow:0 6px 20px rgba(46,204,113,0.35);transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);position:relative;overflow:hidden;">
+                    <div style="font-size:2rem;margin-bottom:8px;">🤖</div>
+                    <div style="font-size:1.05rem;">اسأل المساعد</div>
+                </button>
                 
             </div>
             
             <style>
-                .quick-access-card:hover {
-                    transform: translateY(-4px) scale(1.03);
-                    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+                .quick-action-btn::before {
+                    content: '';
+                    position: absolute;
+                    top: 0; left: -100%;
+                    width: 100%; height: 100%;
+                    background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,0.2) 50%, transparent 70%);
+                    transition: left 0.7s ease;
+                    pointer-events: none;
+                }
+                .quick-action-btn:hover {
+                    transform: translateY(-5px) scale(1.03);
+                    filter: brightness(1.1);
+                }
+                .quick-action-btn:hover::before {
+                    left: 100%;
+                }
+                .quick-action-btn:active {
+                    transform: translateY(-2px) scale(0.99);
                 }
             </style>
         </div>
@@ -12043,7 +12082,7 @@ function switchPackTab(tabId) {
 
 function renderPlanTab(plan) {
     if (!plan) return '<p style="color:rgba(255,255,255,0.5);">لا تحضير</p>';
-    var h = '';
+    var h = '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button onclick="printPlanOnly()" style="background:linear-gradient(135deg,#3498db,#1565c0);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(52,152,219,0.4);"><i class="fas fa-print"></i> طباعة التحضير</button></div>';
     
     if (plan.objectives && plan.objectives.length) {
         h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎯 الأهداف</h3><ul style="color:rgba(255,255,255,0.85);line-height:2;padding-right:20px;">';
@@ -12101,7 +12140,10 @@ function renderPlanTab(plan) {
 
 function renderQuestionsTab(qs) {
     if (!qs || !qs.length) return '<p style="color:rgba(255,255,255,0.5);">لا أسئلة</p>';
-    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 16px;font-size:0.9rem;">📝 ' + qs.length + ' أسئلة متدرّجة الصعوبة</p>';
+    var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+    h += '<p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.9rem;">📝 ' + qs.length + ' أسئلة متدرّجة الصعوبة</p>';
+    h += '<button onclick="printQuestionsOnly()" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(231,76,60,0.4);"><i class="fas fa-print"></i> طباعة الأسئلة</button>';
+    h += '</div>';
     var diffColors = { easy: '#4ade80', medium: '#fbbf24', hard: '#ef4444' };
     var diffLabels = { easy: 'سهل', medium: 'متوسط', hard: 'صعب' };
     
@@ -12122,7 +12164,10 @@ function renderQuestionsTab(qs) {
 
 function renderWorksheetTab(ws) {
     if (!ws) return '<p style="color:rgba(255,255,255,0.5);">لا ورقة عمل</p>';
-    var h = '<h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 6px;">' + escapeHtmlPack(ws.title || 'ورقة عمل صفية') + '</h3>';
+    var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+    h += '<h3 style="color:#fcd34d;font-family:Amiri;margin:0;">' + escapeHtmlPack(ws.title || 'ورقة عمل صفية') + '</h3>';
+    h += '<button onclick="printWorksheetOnly()" style="background:linear-gradient(135deg,#27ae60,#10b981);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(16,185,129,0.4);"><i class="fas fa-print"></i> طباعة ورقة العمل</button>';
+    h += '</div>';
     if (ws.instructions) h += '<p style="color:rgba(255,255,255,0.7);margin:0 0 18px;line-height:1.8;font-style:italic;">' + escapeHtmlPack(ws.instructions) + '</p>';
     if (ws.questions && ws.questions.length) {
         ws.questions.forEach(function(q, idx) {
@@ -12138,7 +12183,10 @@ function renderWorksheetTab(ws) {
 
 function renderHomeworkTab(hw) {
     if (!hw) return '<p style="color:rgba(255,255,255,0.5);">لا واجب</p>';
-    var h = '<h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 6px;">' + escapeHtmlPack(hw.title || 'الواجب المنزلي') + '</h3>';
+    var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+    h += '<h3 style="color:#fcd34d;font-family:Amiri;margin:0;">' + escapeHtmlPack(hw.title || 'الواجب المنزلي') + '</h3>';
+    h += '<button onclick="printHomeworkOnly()" style="background:linear-gradient(135deg,#9b59b6,#7c3aed);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(155,89,182,0.4);"><i class="fas fa-print"></i> طباعة الواجب</button>';
+    h += '</div>';
     if (hw.instructions) h += '<p style="color:rgba(255,255,255,0.7);margin:0 0 18px;line-height:1.8;font-style:italic;">' + escapeHtmlPack(hw.instructions) + '</p>';
     if (hw.questions && hw.questions.length) {
         hw.questions.forEach(function(q, idx) {
@@ -12156,7 +12204,10 @@ function renderHomeworkTab(hw) {
 
 function renderFlashcardsTab(cards) {
     if (!cards || !cards.length) return '<p style="color:rgba(255,255,255,0.5);">لا بطاقات</p>';
-    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 18px;font-size:0.9rem;">🎴 ' + cards.length + ' بطاقة حفظ — اضغط على البطاقة لرؤية الإجابة</p>';
+    var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+    h += '<p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.9rem;">🎴 ' + cards.length + ' بطاقة — اضغط للقلب</p>';
+    h += '<button onclick="printFlashcardsOnly()" style="background:linear-gradient(135deg,#db2777,#be185d);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(219,39,119,0.4);"><i class="fas fa-print"></i> طباعة البطاقات</button>';
+    h += '</div>';
     h += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;">';
     cards.forEach(function(c, idx) {
         h += '<div onclick="this.classList.toggle(\'flipped\')" class="flashcard-item" style="cursor:pointer;min-height:160px;perspective:1000px;">';
@@ -12179,7 +12230,8 @@ function renderFlashcardsTab(cards) {
 
 function renderChallengeTab(ch) {
     if (!ch) return '<p style="color:rgba(255,255,255,0.5);">لا تحدي</p>';
-    var h = '<div style="background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(255,217,61,0.1));border:2px solid rgba(255,107,107,0.4);border-radius:18px;padding:24px;text-align:center;">';
+    var h = '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button onclick="printChallengeOnly()" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(245,158,11,0.4);"><i class="fas fa-print"></i> طباعة التحدي</button></div>';
+    h += '<div style="background:linear-gradient(135deg,rgba(255,107,107,0.15),rgba(255,217,61,0.1));border:2px solid rgba(255,107,107,0.4);border-radius:18px;padding:24px;text-align:center;">';
     h += '<div style="font-size:4rem;margin-bottom:12px;">🏆</div>';
     h += '<h2 style="color:#ffd93d;font-family:Amiri;margin:0 0 8px;">' + escapeHtmlPack(ch.title || 'تحدي اليوم') + '</h2>';
     h += '<p style="color:#fff;font-size:1.1rem;line-height:1.9;margin:16px 0;font-weight:600;">' + escapeHtmlPack(ch.question) + '</p>';
@@ -12195,7 +12247,10 @@ function renderChallengeTab(ch) {
 
 function renderVideosTab(vids) {
     if (!vids || !vids.length) return '<p style="color:rgba(255,255,255,0.5);">لا اقتراحات</p>';
-    var h = '<p style="color:rgba(255,255,255,0.6);margin:0 0 18px;font-size:0.9rem;">🎬 ' + vids.length + ' اقتراحات فيديو — اضغط للبحث في يوتيوب</p>';
+    var h = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">';
+    h += '<p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.9rem;">🎬 ' + vids.length + ' اقتراحات — اضغط للبحث في يوتيوب</p>';
+    h += '<button onclick="printVideosOnly()" style="background:linear-gradient(135deg,#dc2626,#991b1b);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(220,38,38,0.4);"><i class="fas fa-print"></i> طباعة القائمة</button>';
+    h += '</div>';
     vids.forEach(function(v) {
         var searchUrl = 'https://www.youtube.com/results?search_query=' + encodeURIComponent(v.search || v.title);
         h += '<a href="' + searchUrl + '" target="_blank" style="display:flex;align-items:center;gap:14px;background:rgba(255,0,0,0.06);border:1px solid rgba(255,0,0,0.25);border-radius:12px;padding:14px;margin-bottom:10px;text-decoration:none;color:inherit;transition:0.2s;">';
@@ -12212,7 +12267,8 @@ function renderVideosTab(vids) {
 
 function renderMindmapTab(mm) {
     if (!mm) return '<p style="color:rgba(255,255,255,0.5);">لا خريطة</p>';
-    var h = '<div style="text-align:center;padding:20px 0;">';
+    var h = '<div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button onclick="printMindmapOnly()" style="background:linear-gradient(135deg,#7c3aed,#5b21b6);color:#fff;border:none;padding:9px 18px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(124,58,237,0.4);"><i class="fas fa-print"></i> طباعة الخريطة</button></div>';
+    h += '<div style="text-align:center;padding:20px 0;">';
     // العقدة المركزية
     h += '<div style="display:inline-block;background:linear-gradient(135deg,#d4af37,#b8860b);color:#1a0d2e;padding:18px 32px;border-radius:50px;font-family:Amiri;font-size:1.3rem;font-weight:bold;box-shadow:0 8px 24px rgba(212,175,55,0.4);margin-bottom:30px;">';
     h += '🎯 ' + escapeHtmlPack(mm.central || 'الموضوع');
@@ -12274,6 +12330,308 @@ function regenerateLessonPack() {
     document.getElementById('pack-result').style.display = 'none';
     document.getElementById('pack-form-container').style.display = 'block';
     window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+
+
+// ════════════════════════════════════════════════════════════
+// 🖨️ Section-specific Print Functions
+// ════════════════════════════════════════════════════════════
+function _printHtml(title, contentHtml, themeColor) {
+    themeColor = themeColor || '#1565c0';
+    var p = _currentPack || {};
+    var w = window.open('', '_blank');
+    if (!w) { alert('⚠️ السماح بالنوافذ المنبثقة مطلوب للطباعة'); return; }
+    
+    var hdr = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">';
+    hdr += '<title>' + escapeHtmlPack(title) + ' - ' + escapeHtmlPack(p._lesson || '') + '</title>';
+    hdr += '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">';
+    hdr += '<style>';
+    hdr += 'body { font-family:Cairo,sans-serif; padding:24px; max-width:800px; margin:0 auto; line-height:1.85; color:#1a1a2e; background:#fff; }';
+    hdr += '.print-header { text-align:center; padding-bottom:18px; margin-bottom:24px; border-bottom:3px solid ' + themeColor + '; }';
+    hdr += '.print-header h1 { font-family:Amiri,serif; color:' + themeColor + '; margin:0 0 8px; font-size:1.8rem; }';
+    hdr += '.print-header .meta { color:#666; font-size:0.95rem; }';
+    hdr += '.print-header .meta b { color:' + themeColor + '; }';
+    hdr += 'h2 { font-family:Amiri,serif; color:' + themeColor + '; margin-top:24px; border-right:5px solid ' + themeColor + '; padding-right:12px; }';
+    hdr += 'h3 { color:#2c3e50; margin-top:18px; }';
+    hdr += '.q-box { background:#f9f9f9; border-right:4px solid ' + themeColor + '; padding:14px; margin:12px 0; border-radius:8px; page-break-inside:avoid; }';
+    hdr += '.q-num { color:' + themeColor + '; font-weight:bold; }';
+    hdr += '.answer-line { border-bottom:1px solid #aaa; height:32px; margin:14px 0; }';
+    hdr += '.answer-area { background:#f3f4f6; border-right:3px solid #10b981; padding:12px; margin-top:10px; border-radius:6px; }';
+    hdr += '.difficulty-badge { display:inline-block; padding:3px 12px; border-radius:14px; font-size:0.78rem; font-weight:bold; margin-right:8px; }';
+    hdr += '.d-easy { background:#dcfce7; color:#15803d; }';
+    hdr += '.d-medium { background:#fef3c7; color:#b45309; }';
+    hdr += '.d-hard { background:#fecaca; color:#b91c1c; }';
+    hdr += '.print-footer { margin-top:40px; padding-top:18px; border-top:2px solid #ccc; text-align:center; color:#666; font-size:0.85rem; }';
+    hdr += 'ul { padding-right:25px; line-height:2; }';
+    hdr += 'li { margin-bottom:6px; }';
+    hdr += '.flashcards-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }';
+    hdr += '.fc-item { background:#fff; border:2px solid ' + themeColor + '40; border-radius:10px; padding:14px; page-break-inside:avoid; }';
+    hdr += '.fc-front { font-weight:bold; color:' + themeColor + '; border-bottom:1px dashed #ccc; padding-bottom:10px; margin-bottom:10px; }';
+    hdr += '.fc-back { color:#374151; }';
+    hdr += '.mindmap-container { text-align:center; padding:20px 0; }';
+    hdr += '.mindmap-center { display:inline-block; background:' + themeColor + '; color:#fff; padding:18px 32px; border-radius:50px; font-family:Amiri,serif; font-size:1.4rem; font-weight:bold; margin-bottom:30px; }';
+    hdr += '.mindmap-branches { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; }';
+    hdr += '.mindmap-branch { background:#f9fafb; border:2px solid #e5e7eb; border-radius:12px; padding:14px; text-align:right; }';
+    hdr += '.mindmap-branch h4 { color:' + themeColor + '; margin:0 0 8px; }';
+    hdr += '.no-print { display:block; }';
+    hdr += '@media print { .no-print { display:none !important; } body { padding:10px; max-width:100%; } @page { size:A4; margin:1.5cm; } }';
+    hdr += '</style></head><body>';
+    
+    // زر طباعة (يختفي عند الطباعة)
+    hdr += '<div class="no-print" style="position:fixed;top:10px;left:10px;background:#fff;padding:10px;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:9999;">';
+    hdr += '<button onclick="window.print()" style="background:' + themeColor + ';color:#fff;border:none;padding:9px 18px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;">🖨️ طباعة الآن</button>';
+    hdr += '</div>';
+    
+    // الترويسة
+    hdr += '<div class="print-header">';
+    hdr += '<h1>' + escapeHtmlPack(title) + '</h1>';
+    hdr += '<div class="meta">';
+    hdr += '<b>' + escapeHtmlPack(p._lesson || '') + '</b> · ';
+    hdr += escapeHtmlPack(p._grade || '') + (p._semester ? ' · ' + escapeHtmlPack(p._semester) : '') + (p._unit ? ' · ' + escapeHtmlPack(p._unit) : '');
+    hdr += '</div>';
+    hdr += '</div>';
+    
+    // المحتوى
+    hdr += contentHtml;
+    
+    // التذييل
+    hdr += '<div class="print-footer">🎓 إمبراطورية الرياضيات · مع تمنياتي بالتوفيق</div>';
+    hdr += '</body></html>';
+    
+    w.document.write(hdr);
+    w.document.close();
+}
+
+function printPlanOnly() {
+    var p = _currentPack;
+    if (!p || !p.lesson_plan) { alert('⚠️ لا تحضير'); return; }
+    var pl = p.lesson_plan;
+    var c = '';
+    
+    if (pl.objectives && pl.objectives.length) {
+        c += '<h2>🎯 أهداف الدرس</h2><ul>';
+        pl.objectives.forEach(function(o) { c += '<li>' + escapeHtmlPack(o) + '</li>'; });
+        c += '</ul>';
+    }
+    if (pl.vocabulary && pl.vocabulary.length) {
+        c += '<h2>📚 المصطلحات الأساسية</h2><ul>';
+        pl.vocabulary.forEach(function(v) { c += '<li>' + escapeHtmlPack(v) + '</li>'; });
+        c += '</ul>';
+    }
+    if (pl.materials && pl.materials.length) {
+        c += '<h2>🛠️ الوسائل التعليمية</h2><ul>';
+        pl.materials.forEach(function(m) { c += '<li>' + escapeHtmlPack(m) + '</li>'; });
+        c += '</ul>';
+    }
+    if (pl.introduction) c += '<h2>🌅 التمهيد</h2><p>' + escapeHtmlPack(pl.introduction) + '</p>';
+    if (pl.main_content) c += '<h2>📖 العرض والشرح</h2><p style="white-space:pre-wrap;">' + escapeHtmlPack(pl.main_content) + '</p>';
+    if (pl.examples && pl.examples.length) {
+        c += '<h2>💡 الأمثلة المحلولة</h2>';
+        pl.examples.forEach(function(ex, i) {
+            c += '<div class="q-box"><div class="q-num">مثال ' + (i+1) + ':</div>';
+            c += '<p>' + escapeHtmlPack(ex.question) + '</p>';
+            c += '<div class="answer-area"><b>الحل:</b><br>' + escapeHtmlPack(ex.solution).replace(/\n/g,'<br>') + '</div></div>';
+        });
+    }
+    if (pl.common_mistakes && pl.common_mistakes.length) {
+        c += '<h2>⚠️ أخطاء شائعة</h2><ul>';
+        pl.common_mistakes.forEach(function(m) { c += '<li>' + escapeHtmlPack(m) + '</li>'; });
+        c += '</ul>';
+    }
+    if (pl.closure) c += '<h2>🎬 الختام</h2><p>' + escapeHtmlPack(pl.closure) + '</p>';
+    
+    _printHtml('📋 تحضير الدرس الكامل', c, '#1565c0');
+}
+
+function printQuestionsOnly() {
+    var p = _currentPack;
+    if (!p || !p.exam_questions || !p.exam_questions.length) { alert('⚠️ لا أسئلة'); return; }
+    
+    var c = '<h2>📝 أسئلة التقويم (' + p.exam_questions.length + ' سؤال)</h2>';
+    
+    // أوراق الأسئلة
+    p.exam_questions.forEach(function(q, i) {
+        var diff = q.difficulty || 'medium';
+        var diffLabel = diff === 'easy' ? 'سهل' : diff === 'medium' ? 'متوسط' : 'صعب';
+        c += '<div class="q-box">';
+        c += '<span class="difficulty-badge d-' + diff + '">' + diffLabel + '</span>';
+        c += '<span class="q-num">السؤال ' + (i+1) + ':</span> ' + escapeHtmlPack(q.q || q.question);
+        c += '<div class="answer-line"></div><div class="answer-line"></div>';
+        c += '</div>';
+    });
+    
+    // ورقة الإجابات
+    c += '<div style="page-break-before:always;"></div>';
+    c += '<h2>✅ ورقة الإجابات النموذجية</h2>';
+    p.exam_questions.forEach(function(q, i) {
+        c += '<div class="q-box">';
+        c += '<span class="q-num">' + (i+1) + ')</span> ';
+        c += '<b>الإجابة:</b> ' + escapeHtmlPack(q.answer || q.a);
+        c += '</div>';
+    });
+    
+    _printHtml('📝 أسئلة التقويم', c, '#dc2626');
+}
+
+function printWorksheetOnly() {
+    var p = _currentPack;
+    if (!p || !p.worksheet) { alert('⚠️ لا ورقة عمل'); return; }
+    var ws = p.worksheet;
+    var c = '<h2>📑 ' + escapeHtmlPack(ws.title || 'ورقة عمل صفية') + '</h2>';
+    
+    // معلومات الطالب
+    c += '<div style="background:#f0fdf4;padding:14px;border-radius:8px;margin-bottom:18px;">';
+    c += '<table style="width:100%;font-size:0.95rem;"><tr>';
+    c += '<td><b>اسم الطالب:</b> ........................................</td>';
+    c += '<td><b>الفصل:</b> .........................</td>';
+    c += '</tr><tr>';
+    c += '<td><b>التاريخ:</b> .........................</td>';
+    c += '<td><b>المجموعة:</b> .........................</td>';
+    c += '</tr></table></div>';
+    
+    if (ws.instructions) c += '<div style="background:#fef9c3;padding:12px;border-radius:6px;margin-bottom:18px;"><b>📌 التعليمات:</b> ' + escapeHtmlPack(ws.instructions) + '</div>';
+    
+    if (ws.questions && ws.questions.length) {
+        ws.questions.forEach(function(q, i) {
+            c += '<div class="q-box" style="border-right-color:#10b981;">';
+            c += '<div><span class="q-num" style="color:#10b981;">' + (i+1) + ')</span> ' + escapeHtmlPack(q) + '</div>';
+            c += '<div class="answer-line"></div><div class="answer-line"></div><div class="answer-line"></div>';
+            c += '</div>';
+        });
+    }
+    
+    _printHtml('📑 ورقة عمل صفية', c, '#10b981');
+}
+
+function printHomeworkOnly() {
+    var p = _currentPack;
+    if (!p || !p.homework) { alert('⚠️ لا واجب'); return; }
+    var hw = p.homework;
+    var c = '<h2>📚 ' + escapeHtmlPack(hw.title || 'الواجب المنزلي') + '</h2>';
+    
+    c += '<div style="background:#faf5ff;padding:14px;border-radius:8px;margin-bottom:18px;">';
+    c += '<table style="width:100%;font-size:0.95rem;"><tr>';
+    c += '<td><b>اسم الطالب:</b> ........................................</td>';
+    c += '<td><b>الفصل:</b> .........................</td>';
+    c += '</tr><tr>';
+    c += '<td><b>تاريخ التسليم:</b> .........................</td>';
+    c += '<td><b>توقيع ولي الأمر:</b> .........................</td>';
+    c += '</tr></table></div>';
+    
+    if (hw.instructions) c += '<div style="background:#fef9c3;padding:12px;border-radius:6px;margin-bottom:18px;"><b>📌 التعليمات:</b> ' + escapeHtmlPack(hw.instructions) + '</div>';
+    
+    if (hw.questions && hw.questions.length) {
+        hw.questions.forEach(function(q, i) {
+            c += '<div class="q-box" style="border-right-color:#9333ea;">';
+            c += '<div><span class="q-num" style="color:#9333ea;">' + (i+1) + ')</span> ' + escapeHtmlPack(q.q || q) + '</div>';
+            c += '<div class="answer-line"></div><div class="answer-line"></div><div class="answer-line"></div>';
+            c += '</div>';
+        });
+        
+        // ورقة الإجابات للمعلم
+        c += '<div style="page-break-before:always;"></div>';
+        c += '<h2>✅ الإجابات النموذجية (للمعلم)</h2>';
+        hw.questions.forEach(function(q, i) {
+            if (q.answer) {
+                c += '<div class="q-box"><span class="q-num">' + (i+1) + ')</span> <b>' + escapeHtmlPack(q.q) + '</b><div class="answer-area">' + escapeHtmlPack(q.answer) + '</div></div>';
+            }
+        });
+    }
+    
+    _printHtml('📚 الواجب المنزلي', c, '#9333ea');
+}
+
+function printFlashcardsOnly() {
+    var p = _currentPack;
+    if (!p || !p.flashcards || !p.flashcards.length) { alert('⚠️ لا بطاقات'); return; }
+    var c = '<h2>🎴 بطاقات الحفظ (' + p.flashcards.length + ' بطاقة)</h2>';
+    c += '<p style="color:#666;text-align:center;margin-bottom:20px;">قطّع البطاقات من الخطوط — كل بطاقة لها وجهان: السؤال والإجابة</p>';
+    
+    c += '<div class="flashcards-grid">';
+    p.flashcards.forEach(function(card, i) {
+        c += '<div class="fc-item">';
+        c += '<div class="fc-front">🎴 بطاقة ' + (i+1) + ': ' + escapeHtmlPack(card.front) + '</div>';
+        c += '<div class="fc-back">💡 ' + escapeHtmlPack(card.back) + '</div>';
+        c += '</div>';
+    });
+    c += '</div>';
+    
+    _printHtml('🎴 بطاقات الحفظ', c, '#db2777');
+}
+
+function printChallengeOnly() {
+    var p = _currentPack;
+    if (!p || !p.challenge) { alert('⚠️ لا تحدي'); return; }
+    var ch = p.challenge;
+    
+    var c = '<div style="text-align:center;padding:30px;background:linear-gradient(135deg,#fef3c7,#fef9c3);border:3px solid #f59e0b;border-radius:18px;margin:20px 0;">';
+    c += '<div style="font-size:5rem;margin-bottom:12px;">🏆</div>';
+    c += '<h2 style="color:#92400e;margin:0 0 12px;font-size:1.6rem;border:none;padding:0;">' + escapeHtmlPack(ch.title || 'تحدي اليوم') + '</h2>';
+    c += '<p style="font-size:1.2rem;color:#451a03;font-weight:600;line-height:1.9;">' + escapeHtmlPack(ch.question) + '</p>';
+    c += '</div>';
+    
+    c += '<div class="answer-line"></div><div class="answer-line"></div><div class="answer-line"></div>';
+    c += '<div class="answer-line"></div><div class="answer-line"></div>';
+    
+    if (ch.hint) {
+        c += '<div style="background:#fef9c3;padding:14px;border-right:4px solid #f59e0b;border-radius:8px;margin-top:20px;">';
+        c += '<b>💡 تلميح:</b> ' + escapeHtmlPack(ch.hint);
+        c += '</div>';
+    }
+    
+    if (ch.answer) {
+        c += '<div style="page-break-before:always;"></div>';
+        c += '<h2>✅ الإجابة الكاملة (للمعلم)</h2>';
+        c += '<div class="answer-area"><p style="white-space:pre-wrap;">' + escapeHtmlPack(ch.answer) + '</p></div>';
+    }
+    
+    _printHtml('🏆 تحدي اليوم', c, '#f59e0b');
+}
+
+function printVideosOnly() {
+    var p = _currentPack;
+    if (!p || !p.video_suggestions || !p.video_suggestions.length) { alert('⚠️ لا فيديوهات'); return; }
+    
+    var c = '<h2>🎬 الفيديوهات المقترحة</h2>';
+    c += '<p style="color:#666;margin-bottom:18px;">يمكنك البحث عن هذه الفيديوهات في YouTube باستخدام كلمات البحث المرفقة</p>';
+    
+    p.video_suggestions.forEach(function(v, i) {
+        c += '<div class="q-box" style="border-right-color:#dc2626;">';
+        c += '<h3 style="margin:0 0 8px;color:#dc2626;">📺 ' + (i+1) + '. ' + escapeHtmlPack(v.title) + '</h3>';
+        c += '<div style="color:#666;font-size:0.92rem;">🔍 <b>للبحث:</b> ' + escapeHtmlPack(v.search) + '</div>';
+        c += '<div style="color:#3b82f6;font-size:0.85rem;margin-top:6px;">🔗 youtube.com/results?search_query=' + encodeURIComponent(v.search) + '</div>';
+        c += '</div>';
+    });
+    
+    _printHtml('🎬 الفيديوهات المقترحة', c, '#dc2626');
+}
+
+function printMindmapOnly() {
+    var p = _currentPack;
+    if (!p || !p.mindmap) { alert('⚠️ لا خريطة'); return; }
+    var mm = p.mindmap;
+    
+    var c = '<div class="mindmap-container">';
+    c += '<div class="mindmap-center">🎯 ' + escapeHtmlPack(mm.central || p._lesson) + '</div>';
+    c += '</div>';
+    
+    if (mm.branches && mm.branches.length) {
+        c += '<div class="mindmap-branches">';
+        mm.branches.forEach(function(br) {
+            c += '<div class="mindmap-branch">';
+            c += '<h4>' + escapeHtmlPack(br.name) + '</h4>';
+            if (br.items && br.items.length) {
+                c += '<ul>';
+                br.items.forEach(function(it) { c += '<li>' + escapeHtmlPack(it) + '</li>'; });
+                c += '</ul>';
+            }
+            c += '</div>';
+        });
+        c += '</div>';
+    }
+    
+    _printHtml('🗺️ الخريطة الذهنية', c, '#7c3aed');
 }
 
 function printLessonPack() {
@@ -12482,6 +12840,202 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 })();
+</script>
+
+
+<!-- 🎨 PALETTE BUTTON — زر طبق الألوان العائم -->
+<button id="palette-trigger" onclick="togglePaletteDrawer()" title="تخصيص الثيم" style="position:fixed;bottom:24px;right:24px;width:60px;height:60px;border-radius:50%;border:none;cursor:pointer;z-index:9989;box-shadow:0 8px 24px rgba(0,0,0,0.5);transition:all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);background:transparent;padding:0;overflow:hidden;">
+    <!-- طبق ألوان متحرك (دائرة مقسّمة لقطاعات ملونة) -->
+    <svg viewBox="0 0 60 60" style="width:100%;height:100%;display:block;">
+        <defs>
+            <filter id="paletteGlow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge>
+                    <feMergeNode in="blur"/>
+                    <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+            </filter>
+        </defs>
+        <!-- قاعدة الطبق (دائرة بيضاء) -->
+        <circle cx="30" cy="30" r="28" fill="#fff" filter="url(#paletteGlow)"/>
+        <!-- القطاعات الملونة (9 قطاعات) -->
+        <g id="palette-segments">
+            <path d="M 30 30 L 30 4 A 26 26 0 0 1 51.5 17 Z" fill="#d4af37"/>
+            <path d="M 30 30 L 51.5 17 A 26 26 0 0 1 56 35 Z" fill="#3498db"/>
+            <path d="M 30 30 L 56 35 A 26 26 0 0 1 47 53 Z" fill="#16a085"/>
+            <path d="M 30 30 L 47 53 A 26 26 0 0 1 25 56 Z" fill="#e91e63"/>
+            <path d="M 30 30 L 25 56 A 26 26 0 0 1 7 45 Z" fill="#9b59b6"/>
+            <path d="M 30 30 L 7 45 A 26 26 0 0 1 4 25 Z" fill="#f39c12"/>
+            <path d="M 30 30 L 4 25 A 26 26 0 0 1 14 8 Z" fill="#1abc9c"/>
+            <path d="M 30 30 L 14 8 A 26 26 0 0 1 30 4 Z" fill="#2c3e50"/>
+        </g>
+        <!-- النقطة المركزية (الفرشاة) -->
+        <circle cx="30" cy="30" r="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="30" y="36" text-anchor="middle" font-size="11" fill="#1a1a1a">🎨</text>
+    </svg>
+</button>
+
+<!-- 🎨 PALETTE DRAWER — صندوق منزلق لاختيار الثيم -->
+<div id="palette-drawer" style="display:none;position:fixed;bottom:96px;right:24px;width:360px;max-width:calc(100vw - 48px);max-height:75vh;overflow-y:auto;background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid var(--gold,#d4af37);border-radius:18px;padding:18px;z-index:9989;box-shadow:0 25px 60px rgba(0,0,0,0.7);">
+    <!-- الترويسة -->
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(212,175,55,0.2);">
+        <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.15rem;">🎨 تخصيص الثيم</h3>
+        <button onclick="togglePaletteDrawer()" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">✕</button>
+    </div>
+    
+    <p style="color:rgba(255,255,255,0.55);font-size:0.8rem;margin:0 0 14px;text-align:center;">اختر ثيمك المفضّل — يُحفظ تلقائياً</p>
+    
+    <!-- شبكة الثيمات -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        
+        <div onclick="applyThemeV2('royal-gold');closePaletteAfterPick()" data-theme="royal-gold" class="palette-mini-card" style="background:linear-gradient(135deg,#040d21,#1a1a3e);border:2px solid #d4af37;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">👑</div>
+            <div style="font-size:0.7rem;color:#fcd34d;margin-top:6px;font-weight:600;">الملكي</div>
+        </div>
+        
+        <div onclick="applyThemeV2('ocean-blue');closePaletteAfterPick()" data-theme="ocean-blue" class="palette-mini-card" style="background:linear-gradient(135deg,#0a1e3a,#0c2d5c);border:2px solid #3498db;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌊</div>
+            <div style="font-size:0.7rem;color:#5dade2;margin-top:6px;font-weight:600;">المحيط</div>
+        </div>
+        
+        <div onclick="applyThemeV2('emerald-forest');closePaletteAfterPick()" data-theme="emerald-forest" class="palette-mini-card" style="background:linear-gradient(135deg,#0d2818,#1a3e2a);border:2px solid #16a085;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌿</div>
+            <div style="font-size:0.7rem;color:#7fffd4;margin-top:6px;font-weight:600;">الزمرد</div>
+        </div>
+        
+        <div onclick="applyThemeV2('rose-modern');closePaletteAfterPick()" data-theme="rose-modern" class="palette-mini-card" style="background:linear-gradient(135deg,#2d0a1a,#4a1525);border:2px solid #e91e63;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌹</div>
+            <div style="font-size:0.7rem;color:#ff7676;margin-top:6px;font-weight:600;">الوردي</div>
+        </div>
+        
+        <div onclick="applyThemeV2('cosmic-purple');closePaletteAfterPick()" data-theme="cosmic-purple" class="palette-mini-card" style="background:linear-gradient(135deg,#1a0a2e,#3a1a4e);border:2px solid #9b59b6;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌌</div>
+            <div style="font-size:0.7rem;color:#bb86fc;margin-top:6px;font-weight:600;">الكوني</div>
+        </div>
+        
+        <div onclick="applyThemeV2('sunset-warm');closePaletteAfterPick()" data-theme="sunset-warm" class="palette-mini-card" style="background:linear-gradient(135deg,#2d1a0a,#4a3015);border:2px solid #f39c12;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌅</div>
+            <div style="font-size:0.7rem;color:#f9c74f;margin-top:6px;font-weight:600;">الغروب</div>
+        </div>
+        
+        <div onclick="applyThemeV2('turquoise-crystal');closePaletteAfterPick()" data-theme="turquoise-crystal" class="palette-mini-card" style="background:linear-gradient(135deg,#0a1a1f,#152a2f);border:2px solid #1abc9c;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">💎</div>
+            <div style="font-size:0.7rem;color:#48d1cc;margin-top:6px;font-weight:600;">التركواز</div>
+        </div>
+        
+        <div onclick="applyThemeV2('luxury-black');closePaletteAfterPick()" data-theme="luxury-black" class="palette-mini-card" style="background:linear-gradient(135deg,#000,#1a1a1a);border:2px solid #c0c0c0;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#fff;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">🌑</div>
+            <div style="font-size:0.7rem;color:#e0e0e0;margin-top:6px;font-weight:600;">الفاخر</div>
+        </div>
+        
+        <div onclick="applyThemeV2('bright-day');closePaletteAfterPick()" data-theme="bright-day" class="palette-mini-card" style="background:linear-gradient(135deg,#f5f3eb,#ebe6d3);border:2px solid #b8860b;border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;color:#1a1a3e;transition:all 0.25s;">
+            <div style="font-size:1.6rem;line-height:1;">☀️</div>
+            <div style="font-size:0.7rem;color:#b8860b;margin-top:6px;font-weight:600;">النهاري</div>
+        </div>
+        
+    </div>
+    
+    <!-- زر فتح إعدادات أكبر -->
+    <button onclick="showSection('themes', null);togglePaletteDrawer()" style="width:100%;margin-top:14px;background:rgba(212,175,55,0.12);color:#fcd34d;border:1px solid #d4af37;padding:10px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">
+        <i class="fas fa-cog"></i> مزيد من الإعدادات
+    </button>
+</div>
+
+<style>
+    /* تأثير الطبق العائم */
+    #palette-trigger:hover {
+        transform: scale(1.1) rotate(15deg);
+        box-shadow: 0 12px 32px rgba(212,175,55,0.6);
+    }
+    #palette-trigger.open {
+        transform: rotate(180deg) scale(0.9);
+    }
+    
+    /* تأثير دوران الطبق */
+    @keyframes paletteSpinSlow {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+    #palette-trigger svg #palette-segments {
+        transform-origin: 30px 30px;
+        animation: paletteSpinSlow 30s linear infinite;
+    }
+    #palette-trigger:hover svg #palette-segments {
+        animation-duration: 3s;
+    }
+    
+    /* بطاقات الثيمات الصغيرة */
+    .palette-mini-card:hover {
+        transform: translateY(-3px) scale(1.05);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+    }
+    .palette-mini-card.active {
+        box-shadow: 0 0 0 3px rgba(252,211,77,0.5), 0 6px 16px rgba(212,175,55,0.4);
+    }
+    
+    /* فتح وإغلاق الـ drawer */
+    #palette-drawer {
+        animation: drawerSlideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes drawerSlideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    
+    /* في الموبايل */
+    @media (max-width: 600px) {
+        #palette-trigger { bottom: 90px; right: 16px; width: 52px; height: 52px; }
+        #palette-drawer { bottom: 150px; right: 16px; left: 16px; width: auto; max-width: none; }
+    }
+    
+    /* لا نعرض الزر عند ظهور شريط الإخبارية المثبت */
+    body.has-ticker #palette-trigger {
+        bottom: 30px;
+    }
+</style>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 🎨 PALETTE DRAWER — زر طبق الألوان
+// ════════════════════════════════════════════════════════════
+function togglePaletteDrawer() {
+    var drawer = document.getElementById('palette-drawer');
+    var btn = document.getElementById('palette-trigger');
+    if (!drawer || !btn) return;
+    
+    var isOpen = drawer.style.display !== 'none' && drawer.style.display !== '';
+    if (isOpen) {
+        drawer.style.display = 'none';
+        btn.classList.remove('open');
+    } else {
+        drawer.style.display = 'block';
+        btn.classList.add('open');
+        // تحديث الثيم النشط
+        var current = localStorage.getItem('teacher_theme_v2') || 'royal-gold';
+        document.querySelectorAll('.palette-mini-card').forEach(function(c) {
+            c.classList.toggle('active', c.getAttribute('data-theme') === current);
+        });
+    }
+}
+
+function closePaletteAfterPick() {
+    setTimeout(function() {
+        var drawer = document.getElementById('palette-drawer');
+        var btn = document.getElementById('palette-trigger');
+        if (drawer) drawer.style.display = 'none';
+        if (btn) btn.classList.remove('open');
+    }, 600);
+}
+
+// إغلاق عند الضغط خارج الـ drawer
+document.addEventListener('click', function(e) {
+    var drawer = document.getElementById('palette-drawer');
+    var btn = document.getElementById('palette-trigger');
+    if (!drawer || drawer.style.display === 'none' || drawer.style.display === '') return;
+    if (drawer.contains(e.target) || (btn && btn.contains(e.target))) return;
+    drawer.style.display = 'none';
+    if (btn) btn.classList.remove('open');
+});
 </script>
 
 </body>
