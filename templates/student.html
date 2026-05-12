@@ -1976,11 +1976,7 @@
         } catch(e) { /* Realtime غير متاح — لا مشكلة */ }
     })();
 
-    /* ── دالة تأمين النص قبل إدراجه في HTML (تمنع XSS) ── */
-    const esc = s => String(s == null ? '' : s)
-        .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        .replace(/>/g,'&gt;').replace(/"/g,'&quot;')
-        .replace(/'/g,'&#39;');
+    /* ── دالة تأمين النص قبل إدراجه في HTML (تمنع XSS) — معرّفة في السكريبت الأول ── */
     const _isDev = ['localhost','127.0.0.1'].includes(window.location.hostname);
     const _log   = (...a) => { if (_isDev) console.log(...a); };
     const _warn  = (...a) => { if (_isDev) console.warn(...a); };

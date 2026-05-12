@@ -1024,6 +1024,377 @@
         select option:disabled {
             color: rgba(255,255,255,0.4) !important;
         }
+
+        /* ════════════════════════════════════════════════════════
+           🎨 ADMIN THEMES v2 — 9 ثيمات احترافية متكاملة
+        ════════════════════════════════════════════════════════ */
+        
+        /* الافتراضي: 👑 الملكي الذهبي */
+        body[data-admin-theme="royal-gold"] {
+            background: radial-gradient(circle at center, #1a1a3e 0%, #040d21 100%);
+        }
+        
+        /* 🌊 المحيطي الأزرق */
+        body[data-admin-theme="ocean-blue"] {
+            background: radial-gradient(circle at center, #0c2d5c 0%, #0a1e3a 100%) !important;
+        }
+        body[data-admin-theme="ocean-blue"] .sidebar {
+            border-left-color: rgba(52, 152, 219, 0.3) !important;
+        }
+        
+        /* 🌿 الزمردي الأخضر */
+        body[data-admin-theme="emerald-forest"] {
+            background: radial-gradient(circle at center, #1a3e2a 0%, #0d2818 100%) !important;
+        }
+        body[data-admin-theme="emerald-forest"] .sidebar {
+            border-left-color: rgba(22, 160, 133, 0.3) !important;
+        }
+        
+        /* 🌹 الوردي العصري */
+        body[data-admin-theme="rose-modern"] {
+            background: radial-gradient(circle at center, #4a1525 0%, #2d0a1a 100%) !important;
+        }
+        body[data-admin-theme="rose-modern"] .sidebar {
+            border-left-color: rgba(233, 30, 99, 0.3) !important;
+        }
+        
+        /* 🌌 الكوني البنفسجي */
+        body[data-admin-theme="cosmic-purple"] {
+            background: radial-gradient(circle at center, #3a1a4e 0%, #1a0a2e 100%) !important;
+        }
+        body[data-admin-theme="cosmic-purple"] .sidebar {
+            border-left-color: rgba(155, 89, 182, 0.3) !important;
+        }
+        
+        /* 🌅 غروب الشمس */
+        body[data-admin-theme="sunset-warm"] {
+            background: radial-gradient(circle at center, #4a3015 0%, #2d1a0a 100%) !important;
+        }
+        body[data-admin-theme="sunset-warm"] .sidebar {
+            border-left-color: rgba(243, 156, 18, 0.3) !important;
+        }
+        
+        /* 💎 التركوازي البلوري */
+        body[data-admin-theme="turquoise-crystal"] {
+            background: radial-gradient(circle at center, #152a2f 0%, #0a1a1f 100%) !important;
+        }
+        body[data-admin-theme="turquoise-crystal"] .sidebar {
+            border-left-color: rgba(26, 188, 156, 0.3) !important;
+        }
+        
+        /* 🌑 الأسود الفاخر */
+        body[data-admin-theme="luxury-black"] {
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%) !important;
+        }
+        body[data-admin-theme="luxury-black"] .sidebar {
+            border-left-color: rgba(192, 192, 192, 0.3) !important;
+        }
+        
+        /* ☀️ النهاري المشرق */
+        body[data-admin-theme="bright-day"] {
+            background: radial-gradient(circle at center, #f5f3eb 0%, #ebe6d3 100%) !important;
+            color: #1a1a3e !important;
+        }
+        body[data-admin-theme="bright-day"] .sidebar {
+            background: rgba(255, 255, 255, 0.85) !important;
+            border-left-color: rgba(184, 134, 11, 0.4) !important;
+            backdrop-filter: blur(20px);
+        }
+        body[data-admin-theme="bright-day"] .nav-link {
+            color: #1a1a3e !important;
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(184, 134, 11, 0.3) !important;
+        }
+        body[data-admin-theme="bright-day"] .glass-pro,
+        body[data-admin-theme="bright-day"] .stat-card,
+        body[data-admin-theme="bright-day"] .panel,
+        body[data-admin-theme="bright-day"] .admin-card {
+            background: rgba(255, 255, 255, 0.85) !important;
+            color: #1a1a3e !important;
+        }
+        body[data-admin-theme="bright-day"] h1,
+        body[data-admin-theme="bright-day"] h2,
+        body[data-admin-theme="bright-day"] h3 {
+            color: #1a1a3e !important;
+        }
+        body[data-admin-theme="bright-day"] .panel-title {
+            color: #b8860b !important;
+        }
+        body[data-admin-theme="bright-day"] input,
+        body[data-admin-theme="bright-day"] select,
+        body[data-admin-theme="bright-day"] textarea {
+            background: rgba(255, 255, 255, 0.95) !important;
+            color: #1a1a3e !important;
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           🪟 GLASS MORPHISM PRO — بطاقات زجاجية فاخرة
+        ════════════════════════════════════════════════════════ */
+        .glass-pro {
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            backdrop-filter: blur(20px) saturate(1.4);
+            -webkit-backdrop-filter: blur(20px) saturate(1.4);
+            border: 1px solid rgba(255, 255, 255, 0.10);
+            border-radius: 20px;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.3),
+                inset 0 1px 0 rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+        .glass-pro::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, 
+                transparent, 
+                rgba(212, 175, 55, 0.6), 
+                transparent);
+            pointer-events: none;
+            z-index: 2;
+        }
+        .glass-pro::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -50px;
+            width: 200px; height: 200px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(212,175,55,0.18), transparent 70%);
+            pointer-events: none;
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           🌌 AURORA — الشفق القطبي
+        ════════════════════════════════════════════════════════ */
+        .aurora-bg {
+            position: relative;
+            background: linear-gradient(135deg, #040d21 0%, #0a1228 50%, #04162e 100%);
+            border-radius: 22px;
+            overflow: hidden;
+            padding: 32px;
+        }
+        .aurora-bg::before {
+            content: '';
+            position: absolute;
+            top: -100px; left: -50px;
+            width: 400px; height: 400px;
+            background: radial-gradient(ellipse, rgba(168, 85, 247, 0.35) 0%, transparent 60%);
+            transform: rotate(-25deg);
+            pointer-events: none;
+            animation: adminAurora1 15s ease-in-out infinite;
+        }
+        .aurora-bg::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -100px;
+            width: 400px; height: 400px;
+            background: radial-gradient(ellipse, rgba(34, 211, 238, 0.3) 0%, transparent 65%);
+            transform: rotate(20deg);
+            pointer-events: none;
+            animation: adminAurora2 18s ease-in-out infinite reverse;
+        }
+        .aurora-bg .aurora-third {
+            position: absolute;
+            bottom: -100px; left: 30%;
+            width: 350px; height: 350px;
+            background: radial-gradient(ellipse, rgba(251, 191, 36, 0.28) 0%, transparent 65%);
+            pointer-events: none;
+            animation: adminAurora3 20s ease-in-out infinite;
+        }
+        .aurora-bg > * { position: relative; z-index: 1; }
+        @keyframes adminAurora1 {
+            0%, 100% { transform: rotate(-25deg) translate(0, 0); }
+            50% { transform: rotate(-15deg) translate(30px, 20px); }
+        }
+        @keyframes adminAurora2 {
+            0%, 100% { transform: rotate(20deg) translate(0, 0); }
+            50% { transform: rotate(30deg) translate(-30px, 20px); }
+        }
+        @keyframes adminAurora3 {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-20px, -30px); }
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           📦 BENTO BOX GRID — صناديق بأحجام مختلفة
+        ════════════════════════════════════════════════════════ */
+        .admin-bento {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr;
+            grid-template-rows: 130px 130px;
+            gap: 14px;
+        }
+        .admin-bento .bento-card {
+            border-radius: 18px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+        }
+        .admin-bento .bento-card::after {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            pointer-events: none;
+            opacity: 0.6;
+        }
+        .admin-bento .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+        }
+        .admin-bento .bento-big {
+            grid-column: 1; grid-row: 1 / 3;
+            background: linear-gradient(135deg, #1a1f3a, #0f1428);
+            border: 1px solid rgba(212, 175, 55, 0.25);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .admin-bento .bento-big::after { background: radial-gradient(circle, rgba(212,175,55,0.25), transparent); }
+        
+        .admin-bento .bento-purple {
+            grid-column: 2; grid-row: 1;
+            background: linear-gradient(135deg, #2a1a3e, #1a0f2a);
+            border: 1px solid rgba(168, 85, 247, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .admin-bento .bento-purple::after { background: radial-gradient(circle, rgba(168,85,247,0.25), transparent); }
+        
+        .admin-bento .bento-green {
+            grid-column: 3; grid-row: 1;
+            background: linear-gradient(135deg, #1a3e2a, #0f2a1a);
+            border: 1px solid rgba(74, 222, 128, 0.3);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+        }
+        .admin-bento .bento-green::after { background: radial-gradient(circle, rgba(74,222,128,0.25), transparent); }
+        
+        .admin-bento .bento-blue {
+            grid-column: 2 / 4; grid-row: 2;
+            background: linear-gradient(135deg, #1a2a3e, #0f1a2a);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            display: flex; align-items: center; gap: 14px;
+        }
+        .admin-bento .bento-blue::after { background: radial-gradient(circle, rgba(99,102,241,0.25), transparent); right: -30px; left: auto; }
+        
+        @media (max-width: 720px) {
+            .admin-bento {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: auto auto auto;
+            }
+            .admin-bento .bento-big { grid-column: 1 / 3; grid-row: 1; }
+            .admin-bento .bento-purple { grid-column: 1; grid-row: 2; }
+            .admin-bento .bento-green { grid-column: 2; grid-row: 2; }
+            .admin-bento .bento-blue { grid-column: 1 / 3; grid-row: 3; }
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           ✨ النصوص المتلألئة
+        ════════════════════════════════════════════════════════ */
+        @keyframes adminGoldShine {
+            0% { background-position: -200% center; }
+            100% { background-position: 200% center; }
+        }
+        .gold-shine-text {
+            background: linear-gradient(
+                90deg,
+                #d4af37 0%,
+                #fcd34d 25%,
+                #ffd75e 50%,
+                #fcd34d 75%,
+                #d4af37 100%
+            );
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: adminGoldShine 3s linear infinite;
+        }
+        
+        /* ════════════════════════════════════════════════════════
+           🎨 PALETTE BUTTON — زر طبق الألوان
+        ════════════════════════════════════════════════════════ */
+        #admin-palette-trigger {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: none;
+            cursor: pointer;
+            z-index: 9989;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: transparent;
+            padding: 0;
+            overflow: hidden;
+        }
+        #admin-palette-trigger:hover {
+            transform: scale(1.1) rotate(15deg);
+            box-shadow: 0 12px 32px rgba(212,175,55,0.6);
+        }
+        #admin-palette-trigger.open {
+            transform: rotate(180deg) scale(0.9);
+        }
+        @keyframes adminPaletteSpin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        #admin-palette-trigger svg #admin-palette-segments {
+            transform-origin: 30px 30px;
+            animation: adminPaletteSpin 30s linear infinite;
+        }
+        #admin-palette-trigger:hover svg #admin-palette-segments {
+            animation-duration: 3s;
+        }
+        
+        #admin-palette-drawer {
+            display: none;
+            position: fixed;
+            bottom: 96px;
+            right: 24px;
+            width: 360px;
+            max-width: calc(100vw - 48px);
+            max-height: 75vh;
+            overflow-y: auto;
+            background: linear-gradient(135deg, #0a1228, #050a1a);
+            border: 2px solid var(--gold);
+            border-radius: 18px;
+            padding: 18px;
+            z-index: 9989;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7);
+            animation: adminDrawerSlide 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes adminDrawerSlide {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        
+        .admin-mini-theme {
+            border-radius: 12px;
+            padding: 14px 8px;
+            cursor: pointer;
+            text-align: center;
+            color: #fff;
+            transition: all 0.25s;
+            border: 2px solid transparent;
+        }
+        .admin-mini-theme:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.4);
+        }
+        .admin-mini-theme.active {
+            box-shadow: 0 0 0 3px rgba(252,211,77,0.5), 0 6px 16px rgba(212,175,55,0.4);
+        }
+        
+        @media (max-width: 600px) {
+            #admin-palette-trigger { bottom: 16px; right: 16px; width: 52px; height: 52px; }
+            #admin-palette-drawer { bottom: 80px; right: 16px; left: 16px; width: auto; max-width: none; }
+        }
 </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1812,7 +2183,7 @@
                                 <div class="empire-crown">👑</div>
                                 <div>
                                     <div class="empire-greeting" id="empire-greeting">صباح الخير، ايها الأستاذ</div>
-                                    <h1 class="empire-title">لوحة قيادة الإمبراطورية</h1>
+                                    <h1 class="empire-title gold-shine-text">لوحة قيادة الإمبراطورية</h1>
                                     <div class="empire-subtitle" id="empire-now"></div>
                                 </div>
                             </div>
@@ -3876,6 +4247,64 @@
                         <label>تغيير مفتاح الدخول (كلمة المرور)</label>
                         <input type="password" id="new-admin-pass" placeholder="كلمة المرور الجديدة">
                         <button class="btn-gold" onclick="updateAdminPassword()">تحديث المفتاح الملكي 🗝️</button>
+                    </div>
+                </div>
+
+                <!-- 🎨 بطاقة اختيار الثيم -->
+                <div class="card glass-pro" style="margin-top:20px;padding:24px;">
+                    <h2 style="color:var(--gold);"><i class="fas fa-palette"></i> 🎨 اختر ثيمك المفضّل</h2>
+                    <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin:8px 0 18px;">9 ثيمات احترافية — يُحفظ تلقائياً ويظهر في كل مرة تدخل</p>
+                    
+                    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;">
+                        <div onclick="applyAdminTheme('royal-gold')" data-admin-theme="royal-gold" class="admin-mini-theme" style="background:linear-gradient(135deg,#040d21,#1a1a3e);border-color:#d4af37;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">👑</div>
+                            <div style="font-size:0.95rem;color:#fcd34d;margin-top:8px;font-weight:700;font-family:'Amiri';">الملكي الذهبي</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">الأنيق والكلاسيكي</div>
+                        </div>
+                        <div onclick="applyAdminTheme('ocean-blue')" data-admin-theme="ocean-blue" class="admin-mini-theme" style="background:linear-gradient(135deg,#0a1e3a,#0c2d5c);border-color:#3498db;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌊</div>
+                            <div style="font-size:0.95rem;color:#5dade2;margin-top:8px;font-weight:700;font-family:'Amiri';">المحيطي الأزرق</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">هدوء وعمق</div>
+                        </div>
+                        <div onclick="applyAdminTheme('emerald-forest')" data-admin-theme="emerald-forest" class="admin-mini-theme" style="background:linear-gradient(135deg,#0d2818,#1a3e2a);border-color:#16a085;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌿</div>
+                            <div style="font-size:0.95rem;color:#7fffd4;margin-top:8px;font-weight:700;font-family:'Amiri';">الزمردي الأخضر</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">طبيعي ومنعش</div>
+                        </div>
+                        <div onclick="applyAdminTheme('rose-modern')" data-admin-theme="rose-modern" class="admin-mini-theme" style="background:linear-gradient(135deg,#2d0a1a,#4a1525);border-color:#e91e63;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌹</div>
+                            <div style="font-size:0.95rem;color:#ff7676;margin-top:8px;font-weight:700;font-family:'Amiri';">الوردي العصري</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">حيوي ومعاصر</div>
+                        </div>
+                        <div onclick="applyAdminTheme('cosmic-purple')" data-admin-theme="cosmic-purple" class="admin-mini-theme" style="background:linear-gradient(135deg,#1a0a2e,#3a1a4e);border-color:#9b59b6;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌌</div>
+                            <div style="font-size:0.95rem;color:#bb86fc;margin-top:8px;font-weight:700;font-family:'Amiri';">الكوني البنفسجي</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">غامض وفاخر</div>
+                        </div>
+                        <div onclick="applyAdminTheme('sunset-warm')" data-admin-theme="sunset-warm" class="admin-mini-theme" style="background:linear-gradient(135deg,#2d1a0a,#4a3015);border-color:#f39c12;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌅</div>
+                            <div style="font-size:0.95rem;color:#f9c74f;margin-top:8px;font-weight:700;font-family:'Amiri';">غروب الشمس</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">دافئ ومريح</div>
+                        </div>
+                        <div onclick="applyAdminTheme('turquoise-crystal')" data-admin-theme="turquoise-crystal" class="admin-mini-theme" style="background:linear-gradient(135deg,#0a1a1f,#152a2f);border-color:#1abc9c;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">💎</div>
+                            <div style="font-size:0.95rem;color:#48d1cc;margin-top:8px;font-weight:700;font-family:'Amiri';">التركوازي البلوري</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">نقي وصافي</div>
+                        </div>
+                        <div onclick="applyAdminTheme('luxury-black')" data-admin-theme="luxury-black" class="admin-mini-theme" style="background:linear-gradient(135deg,#000,#1a1a1a);border-color:#c0c0c0;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">🌑</div>
+                            <div style="font-size:0.95rem;color:#e0e0e0;margin-top:8px;font-weight:700;font-family:'Amiri';">الأسود الفاخر</div>
+                            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-top:4px;">احترافي ومحايد</div>
+                        </div>
+                        <div onclick="applyAdminTheme('bright-day')" data-admin-theme="bright-day" class="admin-mini-theme" style="background:linear-gradient(135deg,#f5f3eb,#ebe6d3);border-color:#b8860b;color:#1a1a3e;padding:18px 12px;">
+                            <div style="font-size:2.2rem;line-height:1;">☀️</div>
+                            <div style="font-size:0.95rem;color:#b8860b;margin-top:8px;font-weight:700;font-family:'Amiri';">النهاري المشرق</div>
+                            <div style="font-size:0.7rem;color:#666;margin-top:4px;">واضح للنهار</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top:18px;padding:12px 16px;background:rgba(212,175,55,0.08);border-radius:10px;color:rgba(255,255,255,0.7);font-size:0.85rem;">
+                        💡 <b style="color:var(--gold);">نصيحة:</b> يمكنك أيضاً استخدام زر طبق الألوان العائم في الزاوية اليسرى السفلى لتغيير الثيم بسرعة من أي صفحة!
                     </div>
                 </div>
             </section>
@@ -7880,7 +8309,10 @@
             <style>body{font-family:'Cairo',sans-serif;padding:30px;direction:rtl;}h1{color:#d4af37;border-bottom:2px solid #d4af37;padding-bottom:10px;}table{width:100%;border-collapse:collapse;margin-top:15px;}th,td{padding:10px;border:1px solid #ddd;text-align:right;}th{background:#f5f5f5;}</style></head><body>
             <h1>تقرير الطالب: ${name}</h1>
             <p>إمبراطورية الرياضيات | الأستاذ رشدي سيد | ${new Date().toLocaleDateString('ar-OM',{year:'numeric',month:'long',day:'numeric'})}</p>
-            ${content}<scr' + 'ipt>window.print();window.close();<\/scr' + 'ipt></body></html>`);
+            ${content}<scr' + 'ipt>window.print();window.close();<\/scr' + 'ipt>
+
+
+</body></html>`);
         win.document.close();
     }
 
@@ -14227,6 +14659,103 @@ function copyAllEmails() {
         prompt('انسخ هذه الإيميلات:', text);
     }
 }
+</script>
+
+
+<!-- 🎨 PALETTE BUTTON — زر طبق الألوان العائم -->
+<button id="admin-palette-trigger" onclick="toggleAdminPalette()" title="تخصيص الثيم" aria-label="تخصيص الثيم">
+    <svg viewBox="0 0 60 60" style="width:100%;height:100%;display:block;">
+        <defs>
+            <filter id="admin-paletteGlow">
+                <feGaussianBlur stdDeviation="2" result="blur"/>
+                <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+            </filter>
+        </defs>
+        <circle cx="30" cy="30" r="28" fill="#fff" filter="url(#admin-paletteGlow)"/>
+        <g id="admin-palette-segments">
+            <path d="M 30 30 L 30 4 A 26 26 0 0 1 51.5 17 Z" fill="#d4af37"/>
+            <path d="M 30 30 L 51.5 17 A 26 26 0 0 1 56 35 Z" fill="#3498db"/>
+            <path d="M 30 30 L 56 35 A 26 26 0 0 1 47 53 Z" fill="#16a085"/>
+            <path d="M 30 30 L 47 53 A 26 26 0 0 1 25 56 Z" fill="#e91e63"/>
+            <path d="M 30 30 L 25 56 A 26 26 0 0 1 7 45 Z" fill="#9b59b6"/>
+            <path d="M 30 30 L 7 45 A 26 26 0 0 1 4 25 Z" fill="#f39c12"/>
+            <path d="M 30 30 L 4 25 A 26 26 0 0 1 14 8 Z" fill="#1abc9c"/>
+            <path d="M 30 30 L 14 8 A 26 26 0 0 1 30 4 Z" fill="#2c3e50"/>
+        </g>
+        <circle cx="30" cy="30" r="9" fill="#fff" stroke="#1a1a1a" stroke-width="1.5"/>
+        <text x="30" y="36" text-anchor="middle" font-size="11" fill="#1a1a1a">🎨</text>
+    </svg>
+</button>
+
+<div id="admin-palette-drawer">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid rgba(212,175,55,0.2);">
+        <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.15rem;">🎨 تخصيص الثيم</h3>
+        <button onclick="toggleAdminPalette()" style="background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;padding:4px 10px;border-radius:6px;cursor:pointer;font-size:0.78rem;">✕</button>
+    </div>
+    <p style="color:rgba(255,255,255,0.55);font-size:0.8rem;margin:0 0 14px;text-align:center;">9 ثيمات — يُحفظ تلقائياً</p>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+        <div onclick="applyAdminTheme('royal-gold')" data-admin-theme="royal-gold" class="admin-mini-theme" style="background:linear-gradient(135deg,#040d21,#1a1a3e);border-color:#d4af37;"><div style="font-size:1.6rem;line-height:1;">👑</div><div style="font-size:0.7rem;color:#fcd34d;margin-top:6px;font-weight:600;">الملكي</div></div>
+        <div onclick="applyAdminTheme('ocean-blue')" data-admin-theme="ocean-blue" class="admin-mini-theme" style="background:linear-gradient(135deg,#0a1e3a,#0c2d5c);border-color:#3498db;"><div style="font-size:1.6rem;line-height:1;">🌊</div><div style="font-size:0.7rem;color:#5dade2;margin-top:6px;font-weight:600;">المحيط</div></div>
+        <div onclick="applyAdminTheme('emerald-forest')" data-admin-theme="emerald-forest" class="admin-mini-theme" style="background:linear-gradient(135deg,#0d2818,#1a3e2a);border-color:#16a085;"><div style="font-size:1.6rem;line-height:1;">🌿</div><div style="font-size:0.7rem;color:#7fffd4;margin-top:6px;font-weight:600;">الزمرد</div></div>
+        <div onclick="applyAdminTheme('rose-modern')" data-admin-theme="rose-modern" class="admin-mini-theme" style="background:linear-gradient(135deg,#2d0a1a,#4a1525);border-color:#e91e63;"><div style="font-size:1.6rem;line-height:1;">🌹</div><div style="font-size:0.7rem;color:#ff7676;margin-top:6px;font-weight:600;">الوردي</div></div>
+        <div onclick="applyAdminTheme('cosmic-purple')" data-admin-theme="cosmic-purple" class="admin-mini-theme" style="background:linear-gradient(135deg,#1a0a2e,#3a1a4e);border-color:#9b59b6;"><div style="font-size:1.6rem;line-height:1;">🌌</div><div style="font-size:0.7rem;color:#bb86fc;margin-top:6px;font-weight:600;">الكوني</div></div>
+        <div onclick="applyAdminTheme('sunset-warm')" data-admin-theme="sunset-warm" class="admin-mini-theme" style="background:linear-gradient(135deg,#2d1a0a,#4a3015);border-color:#f39c12;"><div style="font-size:1.6rem;line-height:1;">🌅</div><div style="font-size:0.7rem;color:#f9c74f;margin-top:6px;font-weight:600;">الغروب</div></div>
+        <div onclick="applyAdminTheme('turquoise-crystal')" data-admin-theme="turquoise-crystal" class="admin-mini-theme" style="background:linear-gradient(135deg,#0a1a1f,#152a2f);border-color:#1abc9c;"><div style="font-size:1.6rem;line-height:1;">💎</div><div style="font-size:0.7rem;color:#48d1cc;margin-top:6px;font-weight:600;">التركواز</div></div>
+        <div onclick="applyAdminTheme('luxury-black')" data-admin-theme="luxury-black" class="admin-mini-theme" style="background:linear-gradient(135deg,#000,#1a1a1a);border-color:#c0c0c0;"><div style="font-size:1.6rem;line-height:1;">🌑</div><div style="font-size:0.7rem;color:#e0e0e0;margin-top:6px;font-weight:600;">الفاخر</div></div>
+        <div onclick="applyAdminTheme('bright-day')" data-admin-theme="bright-day" class="admin-mini-theme" style="background:linear-gradient(135deg,#f5f3eb,#ebe6d3);border-color:#b8860b;color:#1a1a3e;"><div style="font-size:1.6rem;line-height:1;">☀️</div><div style="font-size:0.7rem;color:#b8860b;margin-top:6px;font-weight:600;">النهاري</div></div>
+    </div>
+</div>
+
+<script>
+function applyAdminTheme(themeName) {
+    if (!themeName) themeName = 'royal-gold';
+    document.body.setAttribute('data-admin-theme', themeName);
+    try { localStorage.setItem('admin_theme_v2', themeName); } catch(e) {}
+    document.querySelectorAll('.admin-mini-theme').forEach(function(c) {
+        c.classList.toggle('active', c.getAttribute('data-admin-theme') === themeName);
+    });
+    if (typeof showToast === 'function') {
+        var names = {'royal-gold':'الملكي الذهبي','ocean-blue':'المحيطي','emerald-forest':'الزمردي','rose-modern':'الوردي','cosmic-purple':'الكوني','sunset-warm':'الغروب','turquoise-crystal':'التركواز','luxury-black':'الأسود','bright-day':'النهاري'};
+        showToast('تم تطبيق ثيم: ' + (names[themeName] || themeName), 'success', 1800);
+    }
+    setTimeout(function() {
+        var d = document.getElementById('admin-palette-drawer');
+        var b = document.getElementById('admin-palette-trigger');
+        if (d) d.style.display = 'none';
+        if (b) b.classList.remove('open');
+    }, 600);
+}
+
+function toggleAdminPalette() {
+    var d = document.getElementById('admin-palette-drawer');
+    var b = document.getElementById('admin-palette-trigger');
+    if (!d || !b) return;
+    var isOpen = d.style.display === 'block';
+    d.style.display = isOpen ? 'none' : 'block';
+    b.classList.toggle('open', !isOpen);
+    if (!isOpen) {
+        var current = 'royal-gold';
+        try { current = localStorage.getItem('admin_theme_v2') || 'royal-gold'; } catch(e) {}
+        document.querySelectorAll('.admin-mini-theme').forEach(function(c) {
+            c.classList.toggle('active', c.getAttribute('data-admin-theme') === current);
+        });
+    }
+}
+
+document.addEventListener('click', function(e) {
+    var d = document.getElementById('admin-palette-drawer');
+    var b = document.getElementById('admin-palette-trigger');
+    if (!d || d.style.display === 'none' || d.style.display === '') return;
+    if (d.contains(e.target) || (b && b.contains(e.target))) return;
+    d.style.display = 'none';
+    if (b) b.classList.remove('open');
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    var saved = 'royal-gold';
+    try { saved = localStorage.getItem('admin_theme_v2') || 'royal-gold'; } catch(e) {}
+    applyAdminTheme(saved);
+});
 </script>
 
 </body>
