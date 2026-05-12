@@ -1222,7 +1222,26 @@
             background: rgba(212,175,55,0.5);
         }
 
-    </style>
+    
+        /* ⏳ Loading Skeletons */
+        .skeleton {
+            background: linear-gradient(90deg, 
+                rgba(255,255,255,0.04) 0%, 
+                rgba(255,255,255,0.08) 50%, 
+                rgba(255,255,255,0.04) 100%);
+            background-size: 200% 100%;
+            animation: skeletonShimmer 1.5s ease-in-out infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeletonShimmer {
+            0% { background-position: 200% center; }
+            100% { background-position: -200% center; }
+        }
+        .skeleton-line { height: 14px; margin-bottom: 10px; border-radius: 6px; }
+        .skeleton-circle { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
+        .skeleton-box { padding: 16px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
+        .skeleton-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+</style>
 </head>
 <body>
     <!-- PARTICLES CANVAS -->
@@ -1910,6 +1929,16 @@
     <!-- 🎊 canvas-confetti — جربة 3 CDNs بالتسلسل لضمان التحميل -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
     <script>
+
+    // 🔒 XSS Protection
+    function esc(s) {
+        if (s == null) return '';
+        var d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+    if (typeof window.escapeHtml === 'undefined') window.escapeHtml = esc;
+
     if (typeof confetti === 'undefined') {
         console.warn('[confetti] jsdelivr فشل، تجربة unpkg...');
         var s = document.createElement('script');
@@ -2439,7 +2468,7 @@
                 const isMe = (m.username||m.full_name) === (currentUser.username||currentUser.full_name);
                 return `<div style="display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid rgba(255,255,255,0.06); ${isMe?'background:rgba(212,175,55,0.08);border-radius:10px;padding-left:10px;padding-right:10px;':''}">
                     <div style="width:32px; height:32px; border-radius:50%; background:${myClan.bg}; border:1.5px solid ${myClan.color}; display:flex;align-items:center;justify-content:center; font-weight:900; color:${myClan.color};">${i+1}</div>
-                    <img src="${m.avatar_url || '/static/avatars/king.jpg'}" style="width:40px;height:40px;border-radius:50%;border:2px solid ${myClan.color};object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                    <img alt="صورة الطالب" src="${m.avatar_url || '/static/avatars/king.jpg'}" style="width:40px;height:40px;border-radius:50%;border:2px solid ${myClan.color};object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
                     <div style="flex:1; min-width:0;">
                         <div style="font-weight:bold; color:${isMe?'#f39c12':'#fff'}; font-size:0.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${esc(m.full_name||'')}${isMe?' (أنت)':''}</div>
                     </div>
@@ -3747,7 +3776,7 @@
     function renderArenaQuestion(q) {
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
             <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 5</div>`;
-        if (q.image_url) html += `<img src="${q.image_url}" class="question-image" style="max-height:200px;">`;
+        if (q.image_url) html += `<img alt="صورة السؤال" src="${q.image_url}" class="question-image" style="max-height:200px;">`;
         html += `<p class="battle-question">${q.question}</p>
             <div style="text-align:left; margin-bottom:15px;">
                 <button class="hint-btn" onclick="useHintArena()">🧙&#8205;♂️ مساعدة الحكيم (50 XP)</button>
@@ -4307,7 +4336,7 @@
         headerHtml += `</div>`;
 
         let html = `${progressBar}${headerHtml}${timerDisplay}<div>`;
-        if (q.image_url) html += `<div style="text-align:center;"><img src="${q.image_url}" class="question-image"></div>`;
+        if (q.image_url) html += `<div style="text-align:center;"><img alt="صورة السؤال" src="${q.image_url}" class="question-image"></div>`;
         html += `<p style="font-size:1.3rem; margin-bottom:15px;">${esc(q.question)}</p>`;
 
         // 🆕 حفظ بيانات السؤال الحالي للأزرار (آمن ضد escaping)
@@ -6138,7 +6167,7 @@
                 <div class="lesson-item tilt-card" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
                     <div style="display:flex; align-items:center; gap:14px;">
                         <div style="width:32px; height:32px; border-radius:50%; background:rgba(212,175,55,0.15); border:1.5px solid rgba(212,175,55,0.4); display:flex; align-items:center; justify-content:center; font-weight:900; color:var(--gold); font-size:0.9rem;">#${i+4}</div>
-                        <img src="${w.avatar_url||'/static/avatars/king.jpg'}" style="width:42px;height:42px;border-radius:50%;border:2px solid rgba(212,175,55,0.4);object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
+                        <img alt="صورة الفائز" src="${w.avatar_url||'/static/avatars/king.jpg'}" style="width:42px;height:42px;border-radius:50%;border:2px solid rgba(212,175,55,0.4);object-fit:cover;" onerror="this.src='https://ui-avatars.com/api/?background=d4af37&color=000&rounded=true'">
                         <div>
                             <div style="font-weight:bold; font-size:0.95rem;">${esc(w.student_name||'')}</div>
                             ${w.activeTitle ? `<div style="font-size:0.7rem; color:#ffeb3b;">${esc(w.activeTitle)}</div>` : ''}
@@ -6175,7 +6204,7 @@
                 <!-- وسام الرتبة -->
                 <div style="position:absolute; top:-14px; left:50%; transform:translateX(-50%); font-size:1.8rem; filter:drop-shadow(0 0 8px ${cfg.color});">${cfg.medal}</div>
                 <!-- الصورة الرمزية -->
-                <img src="${esc(hero.avatar_url||'/static/avatars/king.jpg')}"
+                <img alt="بطل الفصل" src="${esc(hero.avatar_url||'/static/avatars/king.jpg')}"
                     style="width:${cfg.h}px; height:${cfg.h}px; border-radius:50%; border:3px solid ${cfg.color}; margin:14px auto 8px; display:block; object-fit:cover; box-shadow:0 0 20px ${cfg.color}44;"
                     onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(hero.student_name||'X')}&background=d4af37&color=000&rounded=true&bold=true'">
                 <!-- الاسم -->
@@ -6219,7 +6248,7 @@
             </div>
             <!-- الصورة الرمزية مع التوهج -->
             <div style="position:relative; margin:12px auto 8px; width:${isTop3?'70px':'55px'}; height:${isTop3?'70px':'55px'};">
-                <img src="${hero.avatar_url || '/static/avatars/king.jpg'}"
+                <img alt="بطل" src="${hero.avatar_url || '/static/avatars/king.jpg'}"
                      style="width:100%; height:100%; border-radius:50%;
                             border:3px solid ${cfg.border};
                             ${isTop3 ? `box-shadow:0 0 15px ${cfg.glow}66;` : ''}
@@ -6313,8 +6342,10 @@
             const hours = Math.floor((diff / 36e5) % 24);
             const mins  = Math.floor((diff / 6e4) % 60);
             const secs  = Math.floor((diff / 1e3) % 60);
-            const el = document.getElementById('reset-timer');
-            if (el) el.textContent = `🏆 نهاية الموسم: ${days}ي ${hours}س ${mins}د ${secs}ث`;
+            var elements = [document.getElementById('reset-timer'), document.getElementById('reset-timer-alt')].filter(Boolean);
+            elements.forEach(function(el) {
+                el.textContent = `🏆 نهاية الموسم: ${days}ي ${hours}س ${mins}د ${secs}ث`;
+            });
         };
         tick();
         window._seasonTimerInterval = setInterval(tick, 1000);
@@ -6568,7 +6599,7 @@
             const top10 = winners.slice(0,10);
             c.innerHTML = `
             <div style="text-align:center; margin-bottom:15px;">
-                <p id="reset-timer" style="color:#ff5e5e; font-weight:bold; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
+                <p id="reset-timer-alt" style="color:#ff5e5e; font-weight:bold; background:rgba(255,0,0,0.1); display:inline-block; padding:5px 20px; border-radius:10px;">⏳ جاري حساب وقت الموسم...</p>
             </div>
             <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:15px; margin-bottom:30px;">
                 ${top10.map((w,i) => renderHeroCard(w, i+1)).join('')}
@@ -7208,19 +7239,44 @@
         }
     }
 
+    // 🔊 نظام الصوت المحسّن — يدعم mute + retry + fallback
+    window._audioMuted = (localStorage.getItem('student_muted') === '1');
+    window._audioUnlocked = false;
+    
     function playSound(audioEl) {
+        if (typeof audioEl === 'string') {
+            audioEl = document.getElementById(audioEl);
+        }
         if (!audioEl) return;
-        // نُشغّل حتى لو isSoundOn غير مُعرّفة
-        if (typeof isSoundOn !== 'undefined' && !isSoundOn) return;
+        if (window._audioMuted) return;
+        
         try {
             audioEl.currentTime = 0;
+            audioEl.volume = audioEl.volume || 0.7;
             var p = audioEl.play();
-            if (p && p.catch) p.catch(function(err) {
-                // فشل التشغيل — قد يكون بسبب autoplay policy
-                console.warn('[playSound] failed for', audioEl.id, ':', err && err.name);
-            });
-        } catch(e) {
-            console.warn('[playSound] error:', e);
+            if (p && p.catch) {
+                p.catch(function(err) {
+                    if (err && err.name === 'NotAllowedError') {
+                        // في انتظار تفاعل المستخدم
+                    }
+                });
+            }
+        } catch(e) {}
+    }
+    
+    function toggleMute() {
+        window._audioMuted = !window._audioMuted;
+        localStorage.setItem('student_muted', window._audioMuted ? '1' : '0');
+        var btn = document.getElementById('mute-toggle-btn');
+        if (btn) {
+            btn.innerHTML = window._audioMuted ? '🔇' : '🔊';
+            btn.title = window._audioMuted ? 'تشغيل الصوت' : 'كتم الصوت';
+        }
+        if (!window._audioMuted) {
+            setTimeout(function() {
+                var s = document.getElementById('scroll-sfx');
+                if (s) { s.volume = 0.3; playSound(s); }
+            }, 100);
         }
     }
 
@@ -8087,7 +8143,6 @@
         try {
             if (window._abNotifId) {
                 localStorage.setItem('abCompleted_' + window._abNotifId, '1');
-                console.log('[ability] marked notification', window._abNotifId, 'as completed');
             }
         } catch(e) {}
         
@@ -8189,8 +8244,6 @@
         document.body.appendChild(modal);
 
         var grade = (currentUser && currentUser.grade) ? currentUser.grade : '';
-        console.log('[lessons] جلب شامل للصف:', grade);
-        
         if (!grade) {
             document.getElementById('hll-content').innerHTML = 
                 '<div style="text-align:center;padding:60px;color:#ff6b6b;">⚠️ لم يُحدّد صفك — أعد تسجيل الدخول</div>';
@@ -8201,10 +8254,8 @@
         var data = null;
         try {
             var res = await fetch(API_URL + '/api/student/lessons_overview?grade=' + encodeURIComponent(grade));
-            console.log('[lessons] status:', res.status);
             if (res.ok) {
                 data = await res.json();
-                console.log('[lessons] data:', data);
             } else {
                 console.error('[lessons] فشل الجلب — status:', res.status);
             }
@@ -8565,8 +8616,6 @@
         try {
             // 1. سجّل الـ service worker
             const registration = await navigator.serviceWorker.register('/static/sw.js', { scope: '/' });
-            console.log('[push] SW registered');
-
             // 2. اطلب إذن الإشعارات
             let permission = Notification.permission;
             if (permission === 'default') {
@@ -8606,8 +8655,6 @@
             fd.append('auth', subJson.keys.auth);
             fd.append('user_agent', navigator.userAgent.substring(0, 200));
             await fetch(API_URL + '/api/push/subscribe', { method: 'POST', body: fd });
-
-            console.log('[push] ✅ مُسجَّل بنجاح');
             return true;
         } catch (e) {
             console.warn('[push] فشل التسجيل:', e);
@@ -9423,7 +9470,7 @@ function playBadgeSound() {
 // ════════════════════════════════════════════════════════════
 (function() {
     var audioUnlocked = false;
-    var audioIds = ['correct-sfx', 'wrong-sfx', 'win-sfx', 'notify-sfx', 'badge-sfx', 'sword-sfx', 'door-sfx', 'scroll-sfx', 'podium-sfx', 'applause-sfx', 'exam-end-sfx'];
+    var audioIds = ['correct-sfx', 'wrong-sfx', 'win-sfx', 'notif-sfx', 'notify-sfx', 'badge-sfx', 'sword-sfx', 'door-sfx', 'scroll-sfx', 'podium-sfx', 'applause-sfx', 'exam-end-sfx'];  // كل ملفات الصوت في DOM
     
     function unlockAudio() {
         if (audioUnlocked) return;
@@ -9460,9 +9507,8 @@ function playBadgeSound() {
             } catch(e) {}
         });
         
-        // ✅ تأكيد فك القفل
         setTimeout(function() {
-            console.log('[audio] 🔓 unlocked (' + unlocked + '/' + audioIds.length + ')');
+            window._audioUnlocked = true;
         }, 500);
     }
     
@@ -10613,5 +10659,29 @@ async function submitExam() {
 
 
 
+
+<!-- 🔊 Master Mute Toggle -->
+<button id="mute-toggle-btn" onclick="toggleMute()" aria-label="كتم أو تشغيل الصوت" title="كتم/تشغيل الصوت" style="position:fixed;top:14px;left:14px;width:42px;height:42px;border-radius:50%;background:rgba(0,0,0,0.7);backdrop-filter:blur(10px);border:1px solid rgba(212,175,55,0.4);color:#fcd34d;font-size:1.2rem;cursor:pointer;z-index:9988;transition:all 0.25s;display:flex;align-items:center;justify-content:center;">🔊</button>
+
+<style>
+    #mute-toggle-btn:hover {
+        transform: scale(1.12);
+        background: rgba(212,175,55,0.2);
+        box-shadow: 0 4px 16px rgba(212,175,55,0.4);
+    }
+    @media (max-width: 600px) {
+        #mute-toggle-btn { width:36px;height:36px;font-size:1rem;top:10px;left:10px; }
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('mute-toggle-btn');
+    if (btn) {
+        btn.innerHTML = window._audioMuted ? '🔇' : '🔊';
+        btn.title = window._audioMuted ? 'تشغيل الصوت' : 'كتم الصوت';
+    }
+});
+</script>
 </body>
 </html>

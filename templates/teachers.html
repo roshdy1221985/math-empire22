@@ -4139,70 +4139,6 @@
             </div>
         </div>
         
-                <!-- 📦 Bento Stats Grid -->
-        <div class="bento-grid" style="margin-bottom:18px;">
-            <!-- البطاقة الكبيرة: اختبارات -->
-            <div class="bento-card bento-big">
-                <div>
-                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
-                        <div style="font-size:1.5rem;">📝</div>
-                        <span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">اختباراتي</span>
-                    </div>
-                    <div id="stat-exams-count" style="color:#fcd34d;font-size:2.5rem;font-weight:600;font-family:'Amiri';line-height:1;">0</div>
-                    <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:6px;">اختبار أنشأته منذ البداية</div>
-                </div>
-                <svg viewBox="0 0 200 60" style="width:100%;height:50px;">
-                    <polyline points="5,45 30,38 55,40 80,28 105,30 130,18 155,22 180,10 195,14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.8"/>
-                    <circle cx="195" cy="14" r="3" fill="#fcd34d"/>
-                </svg>
-            </div>
-            
-            <!-- صغيرة 1: تحضيرات -->
-            <div class="bento-card bento-purple">
-                <div style="font-size:2rem;color:#c084fc;line-height:1;">📓</div>
-                <div id="stat-plans-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
-                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">تحضير</div>
-            </div>
-            
-            <!-- صغيرة 2: شهادات -->
-            <div class="bento-card bento-green">
-                <div style="font-size:2rem;color:#4ade80;line-height:1;">🏆</div>
-                <div id="stat-certs-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
-                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">شهادة</div>
-            </div>
-            
-            <!-- عريضة: أشكال + إجراء -->
-            <div class="bento-card bento-blue">
-                <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                    <span style="font-size:1.4rem;">🎨</span>
-                </div>
-                <div style="flex:1;min-width:0;">
-                    <div style="color:#fff;font-size:1rem;font-weight:600;">أشكال بصرية</div>
-                    <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;"><span id="stat-shapes-count">0</span> شكل مُصمَّم</div>
-                </div>
-                <button onclick="showSection('visual-maker', null)" style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.4);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:600;flex-shrink:0;">صمّم</button>
-            </div>
-        </div>
-
-        <!-- Last Activity + Favorites -->
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;" id="home-twocol">
-            <!-- آخر نشاط -->
-            <div class="glass-card" style="padding:18px;">
-                <h3 style="color:#5dade2;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">🕐 آخر نشاطاتك</h3>
-                <div id="recent-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
-                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا يوجد نشاط بعد</p>
-                </div>
-            </div>
-            
-            <!-- المفضّلة -->
-            <div class="glass-card" style="padding:18px;">
-                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">⭐ المفضّلة</h3>
-                <div id="favorites-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
-                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا توجد مفضّلة بعد<br><span style="font-size:0.8rem;">اضغط ⭐ على أي قسم</span></p>
-                </div>
-            </div>
-        </div>
-
                 <!-- ⚡ الوصول السريع — 8 بطاقات أيقونية بألوان مميزة -->
         <div class="glass-pro" style="padding:22px;margin-bottom:20px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
@@ -4389,6 +4325,70 @@
                     50% { transform: scale(1.1); }
                 }
             </style>
+        </div>
+
+        <!-- Last Activity + Favorites -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;" id="home-twocol">
+            <!-- آخر نشاط -->
+            <div class="glass-card" style="padding:18px;">
+                <h3 style="color:#5dade2;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">🕐 آخر نشاطاتك</h3>
+                <div id="recent-activity-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
+                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا يوجد نشاط بعد</p>
+                </div>
+            </div>
+            
+            <!-- المفضّلة -->
+            <div class="glass-card" style="padding:18px;">
+                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 12px;font-size:1.1rem;">⭐ المفضّلة</h3>
+                <div id="favorites-list" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;">
+                    <p style="color:rgba(255,255,255,0.4);text-align:center;padding:30px;">لا توجد مفضّلة بعد<br><span style="font-size:0.8rem;">اضغط ⭐ على أي قسم</span></p>
+                </div>
+            </div>
+        </div>
+
+                <!-- 📦 Bento Stats Grid -->
+        <div class="bento-grid" style="margin-bottom:18px;">
+            <!-- البطاقة الكبيرة: اختبارات -->
+            <div class="bento-card bento-big">
+                <div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+                        <div style="font-size:1.5rem;">📝</div>
+                        <span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">اختباراتي</span>
+                    </div>
+                    <div id="stat-exams-count" style="color:#fcd34d;font-size:2.5rem;font-weight:600;font-family:'Amiri';line-height:1;">0</div>
+                    <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:6px;">اختبار أنشأته منذ البداية</div>
+                </div>
+                <svg viewBox="0 0 200 60" style="width:100%;height:50px;">
+                    <polyline points="5,45 30,38 55,40 80,28 105,30 130,18 155,22 180,10 195,14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.8"/>
+                    <circle cx="195" cy="14" r="3" fill="#fcd34d"/>
+                </svg>
+            </div>
+            
+            <!-- صغيرة 1: تحضيرات -->
+            <div class="bento-card bento-purple">
+                <div style="font-size:2rem;color:#c084fc;line-height:1;">📓</div>
+                <div id="stat-plans-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">تحضير</div>
+            </div>
+            
+            <!-- صغيرة 2: شهادات -->
+            <div class="bento-card bento-green">
+                <div style="font-size:2rem;color:#4ade80;line-height:1;">🏆</div>
+                <div id="stat-certs-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">شهادة</div>
+            </div>
+            
+            <!-- عريضة: أشكال + إجراء -->
+            <div class="bento-card bento-blue">
+                <div style="width:44px;height:44px;border-radius:12px;background:rgba(99,102,241,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                    <span style="font-size:1.4rem;">🎨</span>
+                </div>
+                <div style="flex:1;min-width:0;">
+                    <div style="color:#fff;font-size:1rem;font-weight:600;">أشكال بصرية</div>
+                    <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;"><span id="stat-shapes-count">0</span> شكل مُصمَّم</div>
+                </div>
+                <button onclick="showSection('visual-maker', null)" style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.4);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:600;flex-shrink:0;">صمّم</button>
+            </div>
         </div>
         
                 <!-- ⏰ Timeline — جدول اليوم -->
