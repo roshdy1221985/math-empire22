@@ -5611,7 +5611,7 @@
                     <td>${q.image_url ? '🖼️ نعم' : '<span style="color:rgba(255,255,255,0.3);">لا</span>'}</td>
                     <td>
                         <button class="btn-action btn-edit" style="margin-left:5px;" onclick="editQuestion(${q.id})">تعديل ✏️</button>
-                        <button class="btn-action btn-del" onclick="deleteQuestion(${q.id})">حذف 🗑️</button>
+                        <button class="btn-action btn-del" onclick="deleteQuestion(${q.id}, this)">حذف 🗑️</button>
                     </td>
                 </tr>`;
             });
@@ -5768,10 +5768,62 @@
         }
     }
 
-    async function deleteQuestion(id) {
-        if(confirm("هل تريد حذف هذا التحدي نهائياً؟")) {
-            await authFetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
-            await loadQuestions();
+    async function deleteQuestion(id, btn) {
+        if (!id) {
+            showToast('⚠️ معرّف السؤال غير صالح', 'warning');
+            return;
+        }
+        
+        if (!confirm("هل تريد حذف هذا السؤال نهائياً؟\n\nهذا الإجراء غير قابل للتراجع.")) {
+            return;
+        }
+        
+        // تعطيل الزر أثناء العملية (btn يُمرّر من onclick)
+        var originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحذف...';
+        }
+        
+        try {
+            var r = await authFetch(`/api/admin/questions/${id}`, { method: 'DELETE' });
+            
+            // ✅ تحقق من فشل الاتصال (authFetch يُرجع null)
+            if (!r) {
+                showToast('❌ فشل الاتصال بالخادم — حاول مرة أخرى', 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                return;
+            }
+            
+            // ✅ تحقق من نجاح HTTP
+            if (!r.ok) {
+                var err = await r.json().catch(function() { return { detail: 'خطأ غير معروف' }; });
+                showToast('❌ فشل الحذف: ' + (err.detail || 'خطأ ' + r.status), 'error');
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = originalHtml;
+                }
+                return;
+            }
+            
+            // ✅ نجاح
+            showToast('✅ تم حذف السؤال بنجاح', 'success');
+            
+            // تأخير صغير لرؤية الإشعار قبل إعادة التحميل
+            setTimeout(async function() {
+                await loadQuestions();
+            }, 300);
+            
+        } catch (e) {
+            console.error('[deleteQuestion]', e);
+            showToast('❌ خطأ: ' + (e.message || 'فشل الحذف'), 'error');
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
         }
     }
 
@@ -8136,9 +8188,39 @@
         window.scrollTo(0, document.getElementById('elite-panel-questions').offsetTop - 80);
     }
     async function eliteDelQ(id) {
-        if (!confirm('حذف هذا السؤال؟')) return;
-        const res = await authFetch('/api/admin/questions/'+id, {method:'DELETE'});
-        if (res.ok) { showToast('🗑️ تم الحذف','success'); eliteLoadQuestions(); }
+        if (!id) {
+            showToast('⚠️ معرّف السؤال غير صالح', 'warning');
+            return;
+        }
+        if (!confirm('🗑️ حذف هذا السؤال نهائياً؟\n\nهذا الإجراء غير قابل للتراجع.')) return;
+        
+        try {
+            const res = await authFetch('/api/admin/questions/'+id, {method:'DELETE'});
+            
+            if (!res) {
+                showToast('❌ فشل الاتصال بالخادم', 'error');
+                return;
+            }
+            
+            if (!res.ok) {
+                var err = await res.json().catch(function() { return { detail: 'خطأ' }; });
+                showToast('❌ فشل الحذف: ' + (err.detail || 'خطأ ' + res.status), 'error');
+                return;
+            }
+            
+            showToast('✅ تم حذف السؤال بنجاح', 'success');
+            
+            // إزالة فورية من cache + إعادة render
+            if (typeof eliteQsCache !== 'undefined' && Array.isArray(eliteQsCache)) {
+                eliteQsCache = eliteQsCache.filter(function(x) { return x.id !== id; });
+            }
+            
+            setTimeout(function() { eliteLoadQuestions(); }, 200);
+            
+        } catch (e) {
+            console.error('[eliteDelQ]', e);
+            showToast('❌ خطأ: ' + (e.message || 'فشل الحذف'), 'error');
+        }
     }
     async function eliteLoadLeaderboard() {
         try {
