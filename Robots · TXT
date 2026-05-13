@@ -1,0 +1,36 @@
+# ════════════════════════════════════════════════════════════
+# 🤖 robots.txt — إمبراطورية الرياضيات
+# https://math-empire22.onrender.com
+# ════════════════════════════════════════════════════════════
+
+User-agent: *
+Allow: /
+Allow: /student
+Allow: /parent
+Allow: /teachers
+Allow: /static/
+
+# منع زحف المسارات الخاصة
+Disallow: /admin
+Disallow: /api/
+Disallow: /static/avatars/
+
+# Google خاص
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing خاص
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# منع الـ Bots السيئة
+User-agent: GPTBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+# رابط الـ sitemap
+Sitemap: https://math-empire22.onrender.com/sitemap.xml

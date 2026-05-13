@@ -5,6 +5,12 @@
          SEO & META TAGS الاحترافية
     ============================================================ -->
     <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#d4af37">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="الإمبراطورية">
+    <link rel="apple-touch-icon" href="/static/icon-192.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
     <title>إمبراطورية الرياضيات | الأستاذ رشدي سيد</title>
@@ -1984,6 +1990,16 @@
     const _grpE  = ()     => { if (_isDev) console.groupEnd(); };
     const API_BASE = window.location.origin;
     let currentUser = JSON.parse(localStorage.getItem('mathHero'));
+
+    // 🧹 تنظيف: إزالة xp_backup_* القديمة (من نسخة سابقة)
+    try {
+        var _keysToRemove = [];
+        for (var _i = 0; _i < localStorage.length; _i++) {
+            var _k = localStorage.key(_i);
+            if (_k && _k.indexOf('xp_backup_') === 0) _keysToRemove.push(_k);
+        }
+        _keysToRemove.forEach(function(k) { localStorage.removeItem(k); });
+    } catch(e) {}
 
     /* ════════════════════════════════════════════════════════
        فحص الإجابة عبر السيرفر (أمان: الإجابة مش محلياً)
@@ -5815,6 +5831,40 @@
     /* ================================================================
        XP & RANK
     ================================================================ */
+
+        // 🌐 إرسال XP للسيرفر + استلام القيمة الموثوقة
+        var _syncXpDebounce = null;
+        async function _syncXpToServer(xp) {
+            if (!currentUser || !currentUser.id) return;
+            if (_syncXpDebounce) clearTimeout(_syncXpDebounce);
+            
+            _syncXpDebounce = setTimeout(async function() {
+                try {
+                    const fd = new FormData();
+                    fd.append('student_id', currentUser.id);
+                    fd.append('xp', xp);
+                    fd.append('full_name', currentUser.full_name || '');
+                    
+                    const res = await fetch(`${API_URL}/api/student/sync_xp`, {
+                        method: 'POST',
+                        body: fd
+                    });
+                    
+                    // 🛡️ نستلم القيمة الصحيحة من السيرفر
+                    if (res && res.ok) {
+                        const data = await res.json();
+                        if (typeof data.new_xp === 'number' && data.new_xp !== currentUser.xp) {
+                            currentUser.xp = data.new_xp;
+                            // نُحدّث الواجهة
+                            if (typeof updateRank === 'function') updateRank(currentUser.xp);
+                            const xpDash = document.getElementById('xp-dashboard');
+                            if (xpDash) xpDash.textContent = currentUser.xp + ' XP';
+                        }
+                    }
+                } catch(e) {}
+            }, 1500);
+        }
+
     function animateXP(start, end) {
         const xpEls = document.querySelectorAll('#xp-count, #dashboard-xp-count');
         if (!xpEls.length) return;
@@ -5847,7 +5897,18 @@
         }
         const newXp = Math.max(0, oldXp + finalXp);
         currentUser.xp = newXp;
-        localStorage.setItem('mathHero', JSON.stringify(currentUser));
+        
+        // 🌐 السيرفر هو المصدر الوحيد — نُرسل XP فوراً
+        if (currentUser.id && Math.abs(finalXp) >= 1) {
+            _syncXpToServer(newXp);
+        }
+        
+        // 💾 mathHero (بدون xp — للحفاظ على معلومات الجلسة فقط)
+        try {
+            var sessionUser = Object.assign({}, currentUser);
+            localStorage.setItem('mathHero', JSON.stringify(sessionUser));
+        } catch(e) {}
+        
         updateAllStudentsList(currentUser);
         animateXP(oldXp, newXp);
 
@@ -6694,18 +6755,9 @@
             if (!u.history)             u.history = [];
             if (!u.roadmap)             u.roadmap = [];
             if (!u._roadmapDoneLessons) u._roadmapDoneLessons = [];
-            // ═══ الحفاظ على XP المحلي إن وُجد (السيرفر ما يرجعه مباشرة) ═══
-            const localStored = JSON.parse(localStorage.getItem('mathHero') || 'null');
-            if (localStored && localStored.username === u.username) {
-                // نحتفظ بالـ XP والإنجازات المحلية
-                if (typeof localStored.xp === 'number')        u.xp = localStored.xp;
-                if (localStored.streak)                        u.streak = localStored.streak;
-                if (localStored.mistakes)                      u.mistakes = localStored.mistakes;
-                if (localStored.history && localStored.history.length) u.history = localStored.history;
-                if (localStored.hasShield)                     u.hasShield = localStored.hasShield;
-                if (localStored.hasSecondChance)               u.hasSecondChance = localStored.hasSecondChance;
-                if (localStored.avatarFrame)                   u.avatarFrame = localStored.avatarFrame;
-            }
+            // ═══ 🌐 السيرفر هو المصدر الوحيد للـ XP ═══
+            // نأخذ XP فقط من السيرفر — لا نخلطه مع localStorage
+            u.xp = (typeof u.xp === 'number') ? u.xp : 0;
             // ═══ مزامنة XP من السيرفر (نتائج الاختبارات) ═══
             // نُجريها async في الخلفية بعد التسجيل
             return u;
@@ -6714,23 +6766,46 @@
         async function _syncXpFromServer() {
             if (!currentUser || !currentUser.id) return;
             try {
-                const r = await fetch(`${API_URL}/api/leaderboard`);
-                if (!r.ok) return;
-                const lb = await r.json();
-                const me = (lb || []).find(x => x.student_name === currentUser.full_name);
-                if (me && typeof me.total_points === 'number') {
-                    // نأخذ الأعلى (لو المحلي أكثر بسبب hint penalties)
-                    const serverXp = me.total_points;
-                    const localXp = currentUser.xp || 0;
-                    if (serverXp > localXp) {
-                        currentUser.xp = serverXp;
-                        localStorage.setItem('mathHero', JSON.stringify(currentUser));
-                        if (typeof updateRank === 'function') updateRank(currentUser.xp);
-                        const xpDash = document.getElementById('xp-dashboard');
-                        if (xpDash) xpDash.textContent = currentUser.xp + ' XP';
+                // 🌐 نجلب XP من endpoint مخصّص (أوثق من leaderboard)
+                const r = await fetch(`${API_URL}/api/student/${currentUser.id}/xp`);
+                if (!r.ok) {
+                    // fallback: leaderboard
+                    const r2 = await fetch(`${API_URL}/api/leaderboard`);
+                    if (!r2.ok) return;
+                    const lb = await r2.json();
+                    const me = (lb || []).find(function(x) {
+                        return (x.student_id && x.student_id === currentUser.id) ||
+                               (x.id && x.id === currentUser.id) ||
+                               (x.student_name === currentUser.full_name);
+                    });
+                    if (me) {
+                        const serverXp = typeof me.total_points === 'number' ? me.total_points :
+                                         typeof me.xp === 'number' ? me.xp : 0;
+                        _updateXpFromServer(serverXp);
                     }
+                    return;
                 }
+                
+                const data = await r.json();
+                const serverXp = typeof data.xp === 'number' ? data.xp : 0;
+                _updateXpFromServer(serverXp);
+                
             } catch(e) {}
+        }
+        
+        function _updateXpFromServer(serverXp) {
+            // 🛡️ السيرفر هو المصدر الوحيد — نطبّق قيمته كما هي
+            if (typeof serverXp !== 'number') return;
+            currentUser.xp = serverXp;
+            
+            // نُحدّث mathHero (للجلسة فقط)
+            try {
+                localStorage.setItem('mathHero', JSON.stringify(currentUser));
+            } catch(e) {}
+            
+            if (typeof updateRank === 'function') updateRank(currentUser.xp);
+            const xpDash = document.getElementById('xp-dashboard');
+            if (xpDash) xpDash.textContent = currentUser.xp + ' XP';
         }
 
         // ── محاولة السيرفر أولاً ──
@@ -7152,6 +7227,15 @@
         intensity = intensity || 'normal';
         
         // ═══════════════════════════════════════
+        // 🔓 ضمان فك القفل أولاً (في حالة لم يُفك سابقاً)
+        // ═══════════════════════════════════════
+        try {
+            if (typeof window._forceUnlock === 'function' && !window._audioUnlocked) {
+                window._forceUnlock();
+            }
+        } catch(e) {}
+        
+        // ═══════════════════════════════════════
         // 🔊 الصوت — معزول تماماً، لا يتأثر بأي شيء آخر
         // ═══════════════════════════════════════
         _playCorrectSound();
@@ -7169,32 +7253,55 @@
         _fireConfetti(intensity);
     }
     
-    // 🔊 دالة الصوت المعزولة — تُحاول كل الطرق الممكنة
+    // 🔊 دالة الصوت المضمونة — مع كل الحمايات
     function _playCorrectSound() {
+        _playSoundSafe('correct-sfx', 0.85);
+    }
+    
+    // ✨ نظام تشغيل صوت قوي — يعمل في كل الحالات
+    function _playSoundSafe(audioId, volume) {
         try {
-            var sfx = document.getElementById('correct-sfx');
-            if (!sfx) return;
+            // فحص mute عام
+            if (window._audioMuted) return;
             
-            // إعادة تعيين قبل التشغيل
-            try { sfx.currentTime = 0; } catch(e) {}
-            try { sfx.volume = 0.85; } catch(e) {}
+            var sfx = document.getElementById(audioId);
+            if (!sfx) {
+                console.warn('[sound] العنصر غير موجود:', audioId);
+                return;
+            }
+            
+            // ⚙️ ضبط الخصائص قبل التشغيل
             try { sfx.muted = false; } catch(e) {}
+            try { sfx.volume = (typeof volume === 'number') ? volume : 0.7; } catch(e) {}
+            try { sfx.currentTime = 0; } catch(e) {}
             
+            // 🚀 محاولة التشغيل (مع retry)
             var p = sfx.play();
             if (p && p.catch) {
                 p.catch(function(err) {
-                    console.warn('[sound] play failed:', err && err.name);
-                    // محاولة ثانية بعد فك القفل
+                    // فشل أول مرة — احتمالاً autoplay policy
+                    if (err && err.name === 'NotAllowedError') {
+                        // نحاول unlock أولاً
+                        if (typeof window._forceUnlock === 'function') {
+                            window._forceUnlock();
+                        }
+                    }
+                    // محاولة ثانية بعد 150ms
                     setTimeout(function() {
                         try {
                             sfx.currentTime = 0;
-                            sfx.play().catch(function(){});
+                            var p2 = sfx.play();
+                            if (p2 && p2.catch) {
+                                p2.catch(function(e2) {
+                                    console.warn('[sound] فشل ' + audioId + ':', e2 && e2.name);
+                                });
+                            }
                         } catch(e) {}
-                    }, 100);
+                    }, 150);
                 });
             }
         } catch(e) {
-            console.warn('[sound] error:', e);
+            console.warn('[sound] خطأ:', audioId, e);
         }
     }
     
@@ -7247,14 +7354,28 @@
         if (window._audioMuted) return;
         
         try {
-            audioEl.currentTime = 0;
-            audioEl.volume = audioEl.volume || 0.7;
+            // إعدادات قسرية
+            try { audioEl.muted = false; } catch(e) {}
+            try { audioEl.currentTime = 0; } catch(e) {}
+            
+            // ضبط volume إن كان 0 أو غير محدد (لا تستخدم || لأن 1 truthy)
+            if (typeof audioEl.volume !== 'number' || audioEl.volume === 0) {
+                audioEl.volume = 0.7;
+            }
+            
             var p = audioEl.play();
             if (p && p.catch) {
                 p.catch(function(err) {
-                    if (err && err.name === 'NotAllowedError') {
-                        // في انتظار تفاعل المستخدم
+                    // محاولة ثانية مع unlock
+                    if (typeof window._forceUnlock === 'function') {
+                        window._forceUnlock();
                     }
+                    setTimeout(function() {
+                        try {
+                            audioEl.currentTime = 0;
+                            audioEl.play().catch(function(){});
+                        } catch(e) {}
+                    }, 150);
                 });
             }
         } catch(e) {}
@@ -9472,33 +9593,32 @@ function playBadgeSound() {
         if (audioUnlocked) return;
         audioUnlocked = true;
         
-        var unlocked = 0;
+        var unlockedCount = 0;
         audioIds.forEach(function(id) {
             try {
                 var el = document.getElementById(id);
                 if (!el) return;
                 
-                // حفظ volume الأصلي
-                var originalVolume = el.volume;
-                
-                // نُلغي الصوت ونُشغّل ثم نُوقف فوراً — يكسر autoplay policy
+                // 🔓 تقنية فك القفل: تشغيل صامت + إيقاف فوري
+                var savedVol = (typeof el.volume === 'number') ? el.volume : 0.7;
                 el.volume = 0;
+                el.muted = false;
+                
                 var p = el.play();
                 if (p && p.then) {
                     p.then(function() {
                         el.pause();
                         el.currentTime = 0;
-                        el.volume = originalVolume;
-                        unlocked++;
+                        el.volume = savedVol > 0 ? savedVol : 0.7;
+                        unlockedCount++;
                     }).catch(function(err) {
-                        // قد يفشل بسبب reasons أخرى — نُعيد volume على أي حال
-                        el.volume = originalVolume;
+                        el.volume = savedVol > 0 ? savedVol : 0.7;
                     });
                 } else {
                     el.pause();
                     el.currentTime = 0;
-                    el.volume = originalVolume;
-                    unlocked++;
+                    el.volume = savedVol > 0 ? savedVol : 0.7;
+                    unlockedCount++;
                 }
             } catch(e) {}
         });
@@ -9508,9 +9628,35 @@ function playBadgeSound() {
         }, 500);
     }
     
-    // فعّل عند أول تفاعل
-    ['click', 'touchstart', 'pointerdown', 'keydown'].forEach(function(ev) {
-        document.addEventListener(ev, unlockAudio, { once: true, passive: true, capture: true });
+    // 🚨 forceUnlock - يمكن استدعاؤها أي وقت
+    window._forceUnlock = function() {
+        audioUnlocked = false;
+        unlockAudio();
+    };
+    
+    // فعّل عند أول تفاعل (بدون once - لو فشل المرة الأولى نُحاول ثانية)
+    var _unlockEvents = ['click', 'touchstart', 'touchend', 'pointerdown', 'keydown', 'mousedown'];
+    _unlockEvents.forEach(function(ev) {
+        document.addEventListener(ev, unlockAudio, { passive: true, capture: true });
+    });
+    
+    // 🆘 جرّب فك القفل عند تحميل الصفحة لو ممكن
+    document.addEventListener('DOMContentLoaded', function() {
+        // محاولة استباقية بعد ثانية
+        setTimeout(function() {
+            if (!audioUnlocked) {
+                // لا نُحاول هنا - autoplay policy لن يسمح
+                // لكن نُجهّز كل العناصر
+                audioIds.forEach(function(id) {
+                    try {
+                        var el = document.getElementById(id);
+                        if (el) {
+                            el.load();  // إعادة تحميل صريحة
+                        }
+                    } catch(e) {}
+                });
+            }
+        }, 1000);
     });
 })();
 
@@ -10679,5 +10825,313 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+// 🩺 أداة تشخيص الصوت — للمستخدم لاختبار النظام
+// طريقة الاستخدام: في الـ console اكتب: testAllSounds()
+// ═══════════════════════════════════════════════════════════
+window.testAllSounds = async function() {
+    console.log('🩺 بدء فحص نظام الصوت...');
+    
+    var sounds = [
+        {id: 'correct-sfx', name: 'الإجابة الصحيحة', path: '/static/sounds/correct.mp3'},
+        {id: 'wrong-sfx', name: 'الإجابة الخاطئة', path: '/static/sounds/wrong.mp3'},
+        {id: 'win-sfx', name: 'الفوز', path: '/static/sounds/win.mp3'},
+        {id: 'sword-sfx', name: 'السيف', path: '/static/sword.mp3'},
+        {id: 'door-sfx', name: 'الباب', path: '/static/door.mp3'},
+    ];
+    
+    var results = [];
+    
+    // اختبار 1: العناصر موجودة في DOM
+    sounds.forEach(function(s) {
+        var el = document.getElementById(s.id);
+        results.push({
+            name: s.name + ' (DOM)',
+            ok: !!el,
+            msg: el ? '✅ موجود' : '❌ غير موجود في DOM'
+        });
+    });
+    
+    // اختبار 2: الملفات قابلة للتحميل
+    for (var i = 0; i < sounds.length; i++) {
+        var s = sounds[i];
+        try {
+            var res = await fetch(s.path, { method: 'HEAD' });
+            results.push({
+                name: s.name + ' (ملف)',
+                ok: res.ok,
+                msg: res.ok ? '✅ متاح (' + res.status + ')' : '❌ غير متاح (' + res.status + ')'
+            });
+        } catch(e) {
+            results.push({
+                name: s.name + ' (ملف)',
+                ok: false,
+                msg: '❌ خطأ شبكة: ' + e.message
+            });
+        }
+    }
+    
+    // اختبار 3: حالة Audio API
+    results.push({
+        name: 'Audio API',
+        ok: typeof Audio === 'function',
+        msg: typeof Audio === 'function' ? '✅ مدعوم' : '❌ غير مدعوم'
+    });
+    
+    results.push({
+        name: 'Audio Unlocked',
+        ok: window._audioUnlocked === true,
+        msg: window._audioUnlocked ? '✅ مفعّل' : '⚠️ غير مفعّل (انقر على الصفحة أولاً)'
+    });
+    
+    results.push({
+        name: 'Audio Muted',
+        ok: !window._audioMuted,
+        msg: window._audioMuted ? '⚠️ كاتم - اضغط 🔇 ليتحول 🔊' : '✅ غير كاتم'
+    });
+    
+    // طباعة النتائج
+    console.table(results);
+    
+    // محاولة تشغيل correct-sfx
+    console.log('🔊 محاولة تشغيل correct-sfx...');
+    try {
+        var sfx = document.getElementById('correct-sfx');
+        if (sfx) {
+            sfx.volume = 0.8;
+            sfx.currentTime = 0;
+            var p = sfx.play();
+            if (p) {
+                p.then(function() {
+                    console.log('✅ نجح التشغيل!');
+                }).catch(function(err) {
+                    console.error('❌ فشل التشغيل:', err.name, err.message);
+                });
+            }
+        }
+    } catch(e) {
+        console.error('❌ exception:', e);
+    }
+    
+    return results;
+};
+
+// عرض رسالة في الـ console عن الأداة
+console.log('%c🩺 أداة تشخيص الصوت متاحة', 'color:#fcd34d; font-size:14px; font-weight:bold;');
+console.log('في حال مشاكل صوت، اكتب: testAllSounds()');
+</script>
+
+
+<!-- 📱 PWA Install Banner — رسالة تثبيت التطبيق -->
+<div id="pwa-install-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a1a3e,#040d21);border-top:2px solid #d4af37;padding:14px 16px;z-index:9995;box-shadow:0 -8px 24px rgba(0,0,0,0.5);animation:pwaSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);">
+    <div style="display:flex;align-items:center;gap:12px;max-width:600px;margin:0 auto;">
+        <div style="font-size:2.5rem;flex-shrink:0;">👑</div>
+        <div style="flex:1;min-width:0;">
+            <div style="color:#fcd34d;font-weight:bold;font-size:0.95rem;font-family:'Amiri',serif;margin-bottom:3px;">ثبّت التطبيق على جهازك</div>
+            <div style="color:rgba(255,255,255,0.7);font-size:0.78rem;line-height:1.4;">للوصول السريع + يعمل بدون متصفح + إشعارات فورية</div>
+        </div>
+        <div style="display:flex;gap:8px;flex-shrink:0;">
+            <button id="pwa-install-btn" style="background:linear-gradient(135deg,#d4af37,#fcd34d);color:#1a0d2e;border:none;padding:9px 16px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;box-shadow:0 4px 12px rgba(212,175,55,0.4);">
+                📥 تثبيت
+            </button>
+            <button id="pwa-dismiss-btn" style="background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.2);padding:9px 12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-size:0.85rem;">
+                لاحقاً
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 🍎 رسالة iOS خاصة (Safari لا يدعم beforeinstallprompt) -->
+<div id="ios-install-hint" style="display:none;position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,#1a1a3e,#040d21);border-top:2px solid #d4af37;padding:14px 16px;z-index:9995;box-shadow:0 -8px 24px rgba(0,0,0,0.5);animation:pwaSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);">
+    <div style="max-width:600px;margin:0 auto;text-align:center;position:relative;">
+        <button onclick="dismissIosHint()" style="position:absolute;top:-4px;left:-4px;background:rgba(231,76,60,0.15);color:#e74c3c;border:1px solid #e74c3c;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:0.85rem;">✕</button>
+        <div style="font-size:2rem;margin-bottom:6px;">📲</div>
+        <div style="color:#fcd34d;font-weight:bold;font-size:0.95rem;font-family:'Amiri',serif;margin-bottom:6px;">ثبّت التطبيق على iPhone</div>
+        <div style="color:rgba(255,255,255,0.8);font-size:0.82rem;line-height:1.7;">
+            اضغط <span style="background:rgba(255,255,255,0.15);padding:2px 8px;border-radius:6px;">⬆️ مشاركة</span>
+            ثم اختر <span style="background:rgba(212,175,55,0.2);padding:2px 8px;border-radius:6px;color:#fcd34d;">"إضافة إلى الشاشة الرئيسية"</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    @keyframes pwaSlideUp {
+        from { transform: translateY(100%); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    @media (max-width: 600px) {
+        #pwa-install-banner, #ios-install-hint {
+            padding: 12px 14px !important;
+        }
+        #pwa-install-banner > div {
+            flex-wrap: wrap;
+        }
+        #pwa-install-banner > div > div:nth-child(2) {
+            font-size: 0.82rem;
+        }
+    }
+</style>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📱 PWA Install Manager
+// ════════════════════════════════════════════════════════════
+(function() {
+    var deferredPrompt = null;
+    var INSTALL_DISMISSED_KEY = 'pwa_install_dismissed_v2';
+    var INSTALL_SHOWN_KEY = 'pwa_install_shown_count';
+    
+    // فحص إذا التطبيق مثبت بالفعل
+    function isStandalone() {
+        return window.matchMedia('(display-mode: standalone)').matches ||
+               window.navigator.standalone === true ||
+               document.referrer.includes('android-app://');
+    }
+    
+    // فحص iOS
+    function isIOS() {
+        return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    }
+    
+    // فحص Safari
+    function isSafari() {
+        return /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+    }
+    
+    // فحص إذا تم رفض التثبيت من قبل (لا نزعجه أكثر من 3 مرات)
+    function shouldShow() {
+        if (isStandalone()) return false;
+        
+        try {
+            var dismissed = localStorage.getItem(INSTALL_DISMISSED_KEY);
+            if (dismissed) {
+                var data = JSON.parse(dismissed);
+                // لو رفض قبل أقل من 3 أيام، لا نزعجه
+                if (data.until && Date.now() < data.until) return false;
+            }
+        } catch(e) {}
+        
+        return true;
+    }
+    
+    // عرض البانر العام
+    function showInstallBanner() {
+        if (!shouldShow()) return;
+        var banner = document.getElementById('pwa-install-banner');
+        if (banner) banner.style.display = 'block';
+    }
+    
+    // عرض تعليمات iOS
+    function showIosHint() {
+        if (!shouldShow()) return;
+        var hint = document.getElementById('ios-install-hint');
+        if (hint) hint.style.display = 'block';
+    }
+    
+    // إخفاء كل البانرات
+    function hideAllBanners() {
+        var banner = document.getElementById('pwa-install-banner');
+        var hint = document.getElementById('ios-install-hint');
+        if (banner) banner.style.display = 'none';
+        if (hint) hint.style.display = 'none';
+    }
+    
+    // حفظ "تم الرفض" مع تأجيل لاحق
+    function setDismissed(days) {
+        days = days || 3;
+        try {
+            localStorage.setItem(INSTALL_DISMISSED_KEY, JSON.stringify({
+                dismissed_at: Date.now(),
+                until: Date.now() + (days * 24 * 60 * 60 * 1000)
+            }));
+        } catch(e) {}
+    }
+    
+    // التقاط install prompt (Chrome/Edge/Samsung)
+    window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPrompt = e;
+        // ننتظر 5 ثواني قبل العرض (يحب يستخدم الموقع أولاً)
+        setTimeout(showInstallBanner, 5000);
+    });
+    
+    // عند التثبيت الفعلي
+    window.addEventListener('appinstalled', function() {
+        hideAllBanners();
+        deferredPrompt = null;
+        if (typeof showToast === 'function') {
+            showToast('✅ تم تثبيت التطبيق بنجاح!', 'success');
+        }
+        // نُمسح حالة الـ dismissed
+        try { localStorage.removeItem(INSTALL_DISMISSED_KEY); } catch(e) {}
+    });
+    
+    // ربط الأزرار
+    document.addEventListener('DOMContentLoaded', function() {
+        // زر التثبيت
+        var installBtn = document.getElementById('pwa-install-btn');
+        if (installBtn) {
+            installBtn.addEventListener('click', async function() {
+                if (!deferredPrompt) {
+                    hideAllBanners();
+                    return;
+                }
+                
+                deferredPrompt.prompt();
+                var choice = await deferredPrompt.userChoice;
+                
+                if (choice.outcome === 'accepted') {
+                    hideAllBanners();
+                } else {
+                    setDismissed(3);
+                    hideAllBanners();
+                }
+                
+                deferredPrompt = null;
+            });
+        }
+        
+        // زر "لاحقاً"
+        var dismissBtn = document.getElementById('pwa-dismiss-btn');
+        if (dismissBtn) {
+            dismissBtn.addEventListener('click', function() {
+                setDismissed(3);
+                hideAllBanners();
+            });
+        }
+        
+        // إذا iOS Safari (لا يدعم beforeinstallprompt) — نعرض تعليمات
+        if (isIOS() && isSafari() && !isStandalone()) {
+            setTimeout(showIosHint, 8000);
+        }
+    });
+    
+    // دالة لإخفاء iOS hint
+    window.dismissIosHint = function() {
+        setDismissed(7);  // لا نزعج iOS لمدة أطول
+        var hint = document.getElementById('ios-install-hint');
+        if (hint) hint.style.display = 'none';
+    };
+    
+    // دالة عامة لإظهار البانر يدوياً (لو احتجنا زر "ثبّت التطبيق" في القائمة)
+    window.showPwaInstall = function() {
+        if (deferredPrompt) {
+            showInstallBanner();
+        } else if (isIOS() && isSafari()) {
+            showIosHint();
+        } else if (typeof showToast === 'function') {
+            if (isStandalone()) {
+                showToast('✅ التطبيق مثبّت بالفعل', 'info');
+            } else {
+                showToast('ℹ️ افتح قائمة المتصفح واختر "تثبيت التطبيق"', 'info', 4000);
+            }
+        }
+    };
+})();
+</script>
+
 </body>
 </html>

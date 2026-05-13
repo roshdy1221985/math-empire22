@@ -397,6 +397,62 @@ async def read_teachers(request: Request): return templates.TemplateResponse(req
 @app.get("/manifest.json")
 async def get_manifest(): return FileResponse(os.path.join(BASE_DIR, "manifest.json"))
 
+# ════════════════════════════════════════════════════════════
+# 🔍 SEO Routes — robots.txt + sitemap.xml لإدراج جوجل
+# ════════════════════════════════════════════════════════════
+@app.get("/robots.txt", include_in_schema=False)
+async def get_robots():
+    """ملف توجيه محركات البحث"""
+    robots_path = os.path.join(BASE_DIR, "robots.txt")
+    if os.path.exists(robots_path):
+        return FileResponse(robots_path, media_type="text/plain")
+    # fallback: نُولّد robots.txt افتراضي
+    from fastapi.responses import PlainTextResponse
+    content = """User-agent: *
+Allow: /
+Allow: /student
+Allow: /parent
+Allow: /teachers
+Disallow: /admin
+Disallow: /api/
+
+Sitemap: https://math-empire22.onrender.com/sitemap.xml
+"""
+    return PlainTextResponse(content)
+
+
+@app.get("/sitemap.xml", include_in_schema=False)
+async def get_sitemap():
+    """خريطة الموقع لمحركات البحث"""
+    sitemap_path = os.path.join(BASE_DIR, "sitemap.xml")
+    if os.path.exists(sitemap_path):
+        return FileResponse(sitemap_path, media_type="application/xml")
+    # fallback: نُولّد sitemap ديناميكي
+    from fastapi.responses import Response
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    base_url = "https://math-empire22.onrender.com"
+    
+    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>{base_url}/</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>{base_url}/student</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
+  <url><loc>{base_url}/parent</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+  <url><loc>{base_url}/teachers</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
+</urlset>"""
+    return Response(content=xml, media_type="application/xml")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def get_favicon():
+    """أيقونة المتصفح"""
+    ico = os.path.join(BASE_DIR, "static", "favicon.ico")
+    if os.path.exists(ico):
+        return FileResponse(ico)
+    logo = os.path.join(BASE_DIR, "static", "logo.jpg")
+    if os.path.exists(logo):
+        return FileResponse(logo)
+    raise HTTPException(status_code=404)
+
 @app.get("/sw.js")
 async def get_sw(): return FileResponse(os.path.join(BASE_DIR, "static", "sw.js"))
 
@@ -555,6 +611,11 @@ async def login_student(request: Request, username: str = Form(...), password: s
             )
 
         user.pop('password', None)
+        
+        # ═══ ضمان وجود حقل xp (نأخذ الأعلى بين total_points و xp إن وُجد) ═══
+        server_xp = max(int(user.get('total_points', 0) or 0), int(user.get('xp', 0) or 0))
+        user['xp'] = server_xp
+        user['total_points'] = server_xp
 
         # ═══ تحديث last_active للطالب ═══
         try:
@@ -572,6 +633,71 @@ async def login_student(request: Request, username: str = Form(...), password: s
         })
         return {"status": "success", "access_token": token, "user": user}
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
+
+
+# ════════════════════════════════════════════════════════════
+# 🌐 مزامنة XP من العميل للسيرفر
+# ════════════════════════════════════════════════════════════
+@app.get("/api/student/{student_id}/xp")
+async def get_student_xp(student_id: int):
+    """🔍 جلب XP الحالي للطالب من السيرفر (مصدر الحقيقة)"""
+    try:
+        res = supabase.table("students").select(
+            "id, full_name, total_points, grade"
+        ).eq("id", student_id).limit(1).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الطالب غير موجود")
+        
+        student = res.data[0]
+        return {
+            "status": "ok",
+            "id": student["id"],
+            "full_name": student.get("full_name", ""),
+            "xp": int(student.get("total_points", 0) or 0),
+            "grade": student.get("grade", "")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/student/sync_xp")
+async def sync_student_xp(
+    student_id: int = Form(...),
+    xp: int = Form(...),
+    full_name: str = Form(default="")
+):
+    """🌐 مزامنة XP — يأخذ الأعلى بين السيرفر والعميل + يُرجع القيمة الصحيحة"""
+    try:
+        if xp < 0: xp = 0
+        if xp > 9999999: xp = 9999999  # سقف منطقي
+        
+        # نأخذ القيمة الحالية من السيرفر
+        res = supabase.table("students").select("id, total_points, full_name").eq("id", student_id).limit(1).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الطالب غير موجود")
+        
+        student = res.data[0]
+        server_xp = int(student.get('total_points', 0) or 0)
+        
+        # 🛡️ نُحدّث فقط لو القيمة الجديدة أعلى (حماية ضد التراجع)
+        if xp > server_xp:
+            supabase.table("students").update({
+                "total_points": xp,
+                "last_active": datetime.now(timezone.utc).isoformat()
+            }).eq("id", student_id).execute()
+            return {"status": "ok", "synced": True, "new_xp": xp, "old_xp": server_xp}
+        
+        # السيرفر أعلى أو مساوٍ — نُرجع قيمة السيرفر (للتصحيح في العميل)
+        return {"status": "ok", "synced": False, "new_xp": server_xp, "old_xp": server_xp}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        return {"status": "error", "message": str(e)[:200]}
+
 
 # ==========================================
 # --- 5. مسار المنحة الملكية (XP اليدوي) ---
