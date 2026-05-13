@@ -381,9 +381,7 @@ async def get_current_admin(request: Request):
 # ==========================================
 @app.get("/")
 async def read_root(request: Request): return templates.TemplateResponse(request=request, name="index.html")
-@app.get("/sitemap.xml")
-async def get_sitemap():
-    return FileResponse("sitemap.xml", media_type="application/xml")
+
 @app.get("/admin")
 async def read_admin(request: Request): return templates.TemplateResponse(request=request, name="admin.html")
 
