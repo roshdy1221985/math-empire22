@@ -1395,6 +1395,71 @@
             #admin-palette-trigger { bottom: 16px; right: 16px; width: 52px; height: 52px; }
             #admin-palette-drawer { bottom: 80px; right: 16px; left: 16px; width: auto; max-width: none; }
         }
+
+        /* ════════════════════════════════════════════════════════
+           📂 ORGANIZED NAV — تجميع روابط السايدبار في بطاقات زجاجية
+        ════════════════════════════════════════════════════════ */
+        .organized-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            position: relative;
+            z-index: 1;
+        }
+        .nav-group {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(212, 175, 55, 0.12);
+            border-radius: 12px;
+            padding: 10px 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-group::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+        }
+        .nav-group:hover {
+            background: rgba(212, 175, 55, 0.05);
+            border-color: rgba(212, 175, 55, 0.25);
+            box-shadow: 0 6px 20px rgba(212, 175, 55, 0.15);
+        }
+        .nav-group-title {
+            font-family: 'Amiri', serif;
+            font-size: 0.85rem;
+            color: rgba(212, 175, 55, 0.7);
+            font-weight: bold;
+            padding: 6px 10px 10px;
+            border-bottom: 1px dashed rgba(212, 175, 55, 0.15);
+            margin-bottom: 8px;
+            letter-spacing: 0.5px;
+        }
+        .nav-group .nav-link {
+            margin: 4px 0 !important;
+            padding: 9px 12px !important;
+            font-size: 0.86rem !important;
+            border-radius: 8px;
+            position: relative;
+        }
+        .nav-group .nav-link i {
+            width: 22px;
+            text-align: center;
+        }
+        
+        /* وضع النهار */
+        body[data-admin-theme="bright-day"] .nav-group {
+            background: rgba(255, 255, 255, 0.5) !important;
+            border-color: rgba(184, 134, 11, 0.2) !important;
+        }
+        body[data-admin-theme="bright-day"] .nav-group-title {
+            color: #b8860b !important;
+        }
 </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -2123,44 +2188,72 @@
                 <small style="color:rgba(212,175,55,0.45); letter-spacing:1px; font-size:0.75rem;">الأستاذ رشدي سيد · عُمان 2026</small>
                 <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(212,175,55,0.4),transparent);margin:14px 0 0;"></div>
             </div>
-            <nav>
-                <div class="nav-link nl-gold" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (الإحصائيات)</div>
-                <div class="nav-link nl-blue active" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
-                <div class="nav-link nl-purple" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد 📚</div>
-                <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);setTimeout(updateParentsLoginStats,400);"><i class="fas fa-user-shield"></i> سجل الأبطال (الطلاب)</div>
-                <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات (الأسئلة)</div>
-                <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
-                <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
-                <div class="nav-link" onclick="showSection('workbook');setTimeout(loadAdminTasks,100);" style="color:#f39c12;"><i class="fas fa-book"></i> 📓 دفتر الأعمال</div>
-                <div class="nav-link" onclick="showSection('motivation');" style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب</div>
-                <div class="nav-link" onclick="showSection('parent-emails');setTimeout(loadParentEmails,100);" style="color:#16a085;"><i class="fas fa-envelope"></i> 📧 إيميلات أولياء الأمور</div>
-                <div class="nav-link" onclick="showSection('teacher-emails');setTimeout(loadTeacherEmails,100);" style="color:#48d1cc;"><i class="fas fa-graduation-cap"></i> 📧 إيميلات المعلمين</div>
-                <div class="nav-link" onclick="showSection('issue-reports');setTimeout(loadIssueReports,100);" style="color:#e74c3c;"><i class="fas fa-flag"></i> 🚨 البلاغات</div>
-                <div class="nav-link" onclick="showSection('news-mgr');setTimeout(loadNewsAdmin,100);" style="color:#f9c74f;"><i class="fas fa-bullhorn"></i> 📰 الأشرطة والإشعارات</div>
-                <div class="nav-link" onclick="showSection('tutoring');setTimeout(loadTutoringBookings,100);" style="color:#9b59b6;"><i class="fas fa-graduation-cap"></i> 🎓 حجوزات الدروس</div>
-                <div class="nav-link" onclick="showSection('videos-mgr');setTimeout(loadVideosList,100);" style="color:#e91e63;"><i class="fas fa-video"></i> 🎬 الفيديوهات القصيرة</div>
-                <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> 💾 النسخ الاحتياطي</div>
-                <div class="nav-link" onclick="showSection('virtual-classes');loadVirtualClasses();" style="color:#5dade2;"><i class="fas fa-video"></i> 🏛️ الفصول الافتراضية</div>
-                <div class="nav-link" onclick="showSection('email-reports');" style="color:#3498db;"><i class="fas fa-paper-plane"></i> 📧 تقارير شهرية</div>
-                <div class="nav-link" onclick="showSection('ai-settings');setTimeout(checkAIStatus,100);" style="color:#1abc9c;"><i class="fas fa-robot"></i> 🤖 المساعد الذكي</div>
-                <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
-                <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
-                <div class="nav-link nl-purple" onclick="showSection('analytics');setTimeout(loadAnalyticsDashboard, 200);"><i class="fas fa-chart-line"></i> 📊 التحليلات الذكية</div>
-                <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
-                    <i class="fas fa-bell"></i> مرسال الإشعارات
-                    <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
+            <nav class="organized-nav">
+                <!-- ━━━ 1. الرئيسية ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">🏠 الرئيسية</div>
+                    <div class="nav-link nl-gold" onclick="showSection('dash')"><i class="fas fa-crown"></i> العرش (لوحة القيادة)</div>
+                    <div class="nav-link nl-purple" onclick="showSection('analytics');setTimeout(loadAnalyticsDashboard, 200);"><i class="fas fa-chart-line"></i> التحليلات الذكية 📊</div>
+                    <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
                 </div>
-                <div class="nav-link nl-gold" onclick="showSection('elite')" id="nav-elite">
-                    <i class="fas fa-star"></i> نادي النخبة ⭐
-                    <span id="elite-req-badge" style="display:none;"></span>
+                
+                <!-- ━━━ 2. المحتوى التعليمي ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">📚 المحتوى التعليمي</div>
+                    <div class="nav-link nl-blue" onclick="showSection('curriculum')"><i class="fas fa-sitemap"></i> ديوان المنهج</div>
+                    <div class="nav-link nl-purple" onclick="showSection('resources-admin')"><i class="fas fa-folder-open"></i> إدارة الموارد</div>
+                    <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات</div>
+                    <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
+                    <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
+                    <div class="nav-link" onclick="showSection('videos-mgr');setTimeout(loadVideosList,100);" style="color:#e91e63;"><i class="fas fa-video"></i> الفيديوهات القصيرة</div>
                 </div>
-                <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
-                <div class="nav-link nl-blue" onclick="showSection('preparations-admin')"><i class="fas fa-book-open"></i> التحضيرات الملكية 📋</div>
-                <div class="nav-link nl-purple" onclick="showSection('ai-extractor')"><i class="fas fa-robot"></i> مُستخلِص التحضيرات 🤖</div>
-                <div class="nav-link nl-cyan" onclick="showSection('ai-questions')"><i class="fas fa-brain"></i> مولّد الأسئلة بالذكاء 🧠</div>
-                <div class="nav-link nl-pink" onclick="showSection('monitor')"><i class="fas fa-eye"></i> عرش المراقبة 👁️</div>
-                <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات 🔐</div>
-                <div class="nav-link nl-gray" onclick="showSection('personal-settings')"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
+                
+                <!-- ━━━ 3. الطلاب والمتابعة ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">👥 الطلاب والمتابعة</div>
+                    <div class="nav-link nl-green" onclick="showSection('students');setTimeout(loadChampionsRegistry,100);setTimeout(updateParentsLoginStats,400);"><i class="fas fa-user-shield"></i> سجل الأبطال</div>
+                    <div class="nav-link nl-gold" onclick="showSection('elite')" id="nav-elite">
+                        <i class="fas fa-star"></i> نادي النخبة ⭐
+                        <span id="elite-req-badge" style="display:none;"></span>
+                    </div>
+                    <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
+                    <div class="nav-link nl-pink" onclick="showSection('monitor')"><i class="fas fa-eye"></i> عرش المراقبة</div>
+                    <div class="nav-link" onclick="showSection('tutoring');setTimeout(loadTutoringBookings,100);" style="color:#9b59b6;"><i class="fas fa-graduation-cap"></i> حجوزات الدروس</div>
+                    <div class="nav-link" onclick="showSection('virtual-classes');loadVirtualClasses();" style="color:#5dade2;"><i class="fas fa-video"></i> الفصول الافتراضية</div>
+                </div>
+                
+                <!-- ━━━ 4. التواصل والإشعارات ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">📨 التواصل والإشعارات</div>
+                    <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
+                        <i class="fas fa-bell"></i> مرسال الإشعارات
+                        <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
+                    </div>
+                    <div class="nav-link" onclick="showSection('motivation');" style="color:#e91e63;"><i class="fas fa-paper-plane"></i> تحفيز الطلاب</div>
+                    <div class="nav-link" onclick="showSection('news-mgr');setTimeout(loadNewsAdmin,100);" style="color:#f9c74f;"><i class="fas fa-bullhorn"></i> الأشرطة والإشعارات</div>
+                    <div class="nav-link" onclick="showSection('parent-emails');setTimeout(loadParentEmails,100);" style="color:#16a085;"><i class="fas fa-envelope"></i> إيميلات أولياء الأمور</div>
+                    <div class="nav-link" onclick="showSection('teacher-emails');setTimeout(loadTeacherEmails,100);" style="color:#48d1cc;"><i class="fas fa-graduation-cap"></i> إيميلات المعلمين</div>
+                    <div class="nav-link" onclick="showSection('email-reports');" style="color:#3498db;"><i class="fas fa-paper-plane"></i> تقارير شهرية</div>
+                    <div class="nav-link" onclick="showSection('issue-reports');setTimeout(loadIssueReports,100);" style="color:#e74c3c;"><i class="fas fa-flag"></i> البلاغات 🚨</div>
+                </div>
+                
+                <!-- ━━━ 5. التحضيرات والذكاء الاصطناعي ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">🤖 التحضيرات والذكاء الاصطناعي</div>
+                    <div class="nav-link nl-blue" onclick="showSection('preparations-admin')"><i class="fas fa-book-open"></i> التحضيرات الملكية</div>
+                    <div class="nav-link nl-cyan" onclick="showSection('ai-questions')"><i class="fas fa-brain"></i> مولّد الأسئلة AI</div>
+                    <div class="nav-link" onclick="showSection('ai-settings');setTimeout(checkAIStatus,100);" style="color:#1abc9c;"><i class="fas fa-robot"></i> المساعد الذكي</div>
+                    <div class="nav-link" onclick="showSection('workbook');setTimeout(loadAdminTasks,100);" style="color:#f39c12;"><i class="fas fa-book"></i> دفتر الأعمال</div>
+                </div>
+                
+                <!-- ━━━ 6. الإعدادات والإدارة ━━━ -->
+                <div class="nav-group">
+                    <div class="nav-group-title">⚙️ الإعدادات والإدارة</div>
+                    <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
+                    <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
+                    <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> النسخ الاحتياطي</div>
+                    <div class="nav-link nl-gray" onclick="showSection('personal-settings')"><i class="fas fa-user-cog"></i> الإعدادات الشخصية</div>
+                </div>
             </nav>
             <a href="/" class="home-btn" style="margin-top:20px;"><i class="fas fa-university"></i> العودة للبوابة الرئيسية</a>
             <div class="nav-link" onclick="logout()" style="color:var(--red); margin-top:10px;"><i class="fas fa-power-off"></i> خروج المعلم</div>
@@ -5924,7 +6017,36 @@
         const topXpEl         = document.getElementById('stat-top-xp');
 
         try {
-            // نحاول أولاً الحصول على إحصائيات شاملة من الـ backend
+            // ⚡ نجلب الـ counts السريعة أولاً — تُحدّث كل بطاقات الإحصائيات
+            try {
+                const countsRes = await authFetch('/api/admin/stats/counts');
+                if (countsRes && countsRes.ok) {
+                    const counts = await countsRes.json();
+                    // تحديث كل بطاقات الإحصائيات في "العرش"
+                    var totalQEl = document.getElementById('stat-total-q');
+                    var totalLessonsEl = document.getElementById('stat-total-lessons');
+                    var totalNotifsEl = document.getElementById('stat-total-notifs');
+                    
+                    if (totalQEl) totalQEl.innerText = Number(counts.questions || 0).toLocaleString('ar-EG');
+                    if (totalLessonsEl) totalLessonsEl.innerText = Number(counts.html_lessons || 0).toLocaleString('ar-EG');
+                    if (totalNotifsEl) totalNotifsEl.innerText = Number(counts.results || 0).toLocaleString('ar-EG'); // عدد التحديات المُنجزة
+                }
+            } catch(e) { console.warn('[counts]', e); }
+            
+            // 🎓 إحصائية المعلمين منفصلة
+            try {
+                const tRes = await authFetch('/api/admin/teachers');
+                if (tRes && tRes.ok) {
+                    const tData = await tRes.json();
+                    var totalTeachersEl = document.getElementById('stat-total-teachers');
+                    if (totalTeachersEl) {
+                        var arr = Array.isArray(tData) ? tData : (tData.teachers || []);
+                        totalTeachersEl.innerText = arr.length.toLocaleString('ar-EG');
+                    }
+                }
+            } catch(e) {}
+
+            // نحاول الحصول على إحصائيات شاملة من الـ backend
             let fullStats = null;
             try {
                 const statsRes = await authFetch('/api/admin/reports/full');
@@ -15007,25 +15129,57 @@ async function loadHardestLessons() {
             return;
         }
         
-        var rowsHtml = data.hardest_lessons.map(function(l, i) {
+        var cardsHtml = data.hardest_lessons.map(function(l, i) {
             var color = l.avg_score_pct < 50 ? '#e74c3c' : l.avg_score_pct < 70 ? '#f39c12' : '#4ade80';
-            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
-                '<td style="padding:10px;color:rgba(255,255,255,0.5);">' + (i + 1) + '</td>' +
-                '<td style="padding:10px;color:#fff;">' + esc(l.lesson) + '</td>' +
-                '<td style="padding:10px;text-align:center;color:rgba(255,255,255,0.7);">' + l.attempts + '</td>' +
-                '<td style="padding:10px;text-align:center;color:' + color + ';font-weight:bold;">' + l.avg_score_pct + '%</td>' +
-                '<td style="padding:10px;text-align:center;"><span style="background:' + color + '33;color:' + color + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;">' + l.difficulty_rank + '</span></td>' +
-            '</tr>';
+            var sCount = (l.struggling_students || []).length;
+            
+            // طلاب متعثرين في هذا الدرس
+            var studentsHtml = '';
+            if (sCount > 0) {
+                studentsHtml = '<details style="margin-top:10px;cursor:pointer;">' +
+                    '<summary style="color:#fcd34d;font-size:0.82rem;padding:6px 0;font-weight:bold;">' +
+                        '⚠️ ' + sCount + ' طالب يحتاج مراجعة هذا الدرس <span style="opacity:0.5;font-size:0.75rem;">(انقر للعرض)</span>' +
+                    '</summary>' +
+                    '<div style="margin-top:8px;display:grid;gap:6px;padding:8px;background:rgba(231,76,60,0.05);border-radius:8px;border:1px solid rgba(231,76,60,0.15);">' +
+                    l.struggling_students.map(function(s) {
+                        var scolor = s.accuracy < 35 ? '#e74c3c' : s.accuracy < 50 ? '#f39c12' : '#fbbf24';
+                        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 10px;background:rgba(255,255,255,0.02);border-radius:6px;">' +
+                            '<div style="flex:1;min-width:0;">' +
+                                '<div style="color:#fff;font-weight:bold;font-size:0.85rem;">' + esc(s.name) + '</div>' +
+                                '<div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">' + esc(s.grade) + ' · ' + s.attempts + ' محاولة</div>' +
+                            '</div>' +
+                            '<div style="background:' + scolor + '33;color:' + scolor + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;font-weight:bold;flex-shrink:0;">' +
+                                s.accuracy + '%' +
+                            '</div>' +
+                        '</div>';
+                    }).join('') +
+                    '</div>' +
+                    '</details>';
+            }
+            
+            // البطاقة كاملة
+            return '<div style="padding:14px 16px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.08);border-right:4px solid ' + color + ';margin-bottom:10px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;">' +
+                    '<div style="flex:1;min-width:0;">' +
+                        '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">' +
+                            '<span style="color:rgba(255,255,255,0.4);font-weight:bold;">#' + (i + 1) + '</span>' +
+                            '<span style="color:#fff;font-weight:bold;font-size:1rem;">' + esc(l.lesson) + '</span>' +
+                        '</div>' +
+                        '<div style="display:flex;gap:14px;font-size:0.8rem;color:rgba(255,255,255,0.6);">' +
+                            '<span>📝 ' + l.attempts + ' محاولة</span>' +
+                            '<span>👥 ' + (l.students_count || 0) + ' طالب</span>' +
+                        '</div>' +
+                    '</div>' +
+                    '<div style="text-align:left;flex-shrink:0;">' +
+                        '<div style="color:' + color + ';font-weight:900;font-size:1.4rem;line-height:1;">' + l.avg_score_pct + '%</div>' +
+                        '<div style="background:' + color + '33;color:' + color + ';padding:3px 10px;border-radius:6px;font-size:0.72rem;margin-top:4px;text-align:center;">' + l.difficulty_rank + '</div>' +
+                    '</div>' +
+                '</div>' +
+                studentsHtml +
+            '</div>';
         }).join('');
         
-        container.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
-            '<thead><tr style="background:rgba(255,255,255,0.04);">' +
-                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">#</th>' +
-                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">الدرس</th>' +
-                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">المحاولات</th>' +
-                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">متوسط الدقة</th>' +
-                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">الصعوبة</th>' +
-            '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+        container.innerHTML = cardsHtml;
     } catch(e) {
         container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
     }

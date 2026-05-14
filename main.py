@@ -9036,16 +9036,18 @@ async def get_full_report(admin=Depends(get_current_admin)):
 
 @app.get("/api/admin/analytics/hardest_lessons")
 async def get_hardest_lessons(limit: int = 10, admin=Depends(get_current_admin)):
-    """🎯 الدروس الأكثر صعوبة على الطلاب (متوسط نسبة الإجابات الصحيحة)"""
+    """🎯 الدروس الأكثر صعوبة على الطلاب
+    يُرجع: الدروس + الطلاب المتعثرين في كل درس
+    """
     from collections import defaultdict
     
-    # جلب كل النتائج
+    # 1. جلب كل النتائج مع اسم الطالب
     results = []
     offset = 0
     for _ in range(50):
         try:
             res = supabase.table("results").select(
-                "lesson, score, total"
+                "student_id, student_name, grade, lesson, score, total"
             ).range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch: break
@@ -9055,28 +9057,65 @@ async def get_hardest_lessons(limit: int = 10, admin=Depends(get_current_admin))
         except Exception:
             break
     
-    # تجميع حسب الدرس
-    lesson_stats = defaultdict(lambda: {"attempts": 0, "score_sum": 0, "total_sum": 0})
+    # 2. تجميع حسب الدرس + اسم الطالب
+    # lesson_stats[lesson] = {total_score, total_max, attempts, student_perfs: {sid: {name, score_sum, total_sum}}}
+    lesson_stats = defaultdict(lambda: {
+        "attempts": 0,
+        "score_sum": 0,
+        "total_sum": 0,
+        "students": defaultdict(lambda: {
+            "name": "", "grade": "", "score_sum": 0, "total_sum": 0, "attempts": 0
+        })
+    })
+    
     for r in results:
         lesson = (r.get("lesson") or "").strip()
         if not lesson: continue
         lesson_stats[lesson]["attempts"]   += 1
         lesson_stats[lesson]["score_sum"]  += (r.get("score") or 0)
         lesson_stats[lesson]["total_sum"]  += (r.get("total") or 0)
+        
+        sid = r.get("student_id")
+        sname = r.get("student_name") or "—"
+        sgrade = r.get("grade") or ""
+        if sid:
+            sp = lesson_stats[lesson]["students"][sid]
+            sp["name"] = sname
+            sp["grade"] = sgrade
+            sp["score_sum"] += (r.get("score") or 0)
+            sp["total_sum"] += (r.get("total") or 0)
+            sp["attempts"]  += 1
     
-    # حساب المتوسطات
+    # 3. حساب المتوسطات + استخراج الطلاب المتعثرين
     lessons_ranked = []
     for lesson, st in lesson_stats.items():
-        if st["total_sum"] < 5: continue  # نتجاهل الدروس التي بها أقل من 5 محاولات
+        if st["total_sum"] < 5: continue
         avg_pct = round((st["score_sum"] / st["total_sum"]) * 100, 1)
+        
+        # استخراج الطلاب المتعثرين في هذا الدرس (دقة < 60% مع عينة كافية)
+        struggling = []
+        for sid, sp in st["students"].items():
+            if sp["total_sum"] < 3: continue
+            sp_pct = round((sp["score_sum"] / sp["total_sum"]) * 100, 1)
+            if sp_pct < 60:
+                struggling.append({
+                    "id":       sid,
+                    "name":     sp["name"],
+                    "grade":    sp["grade"],
+                    "accuracy": sp_pct,
+                    "attempts": sp["attempts"]
+                })
+        struggling.sort(key=lambda x: x["accuracy"])
+        
         lessons_ranked.append({
-            "lesson":          lesson,
-            "attempts":        st["attempts"],
-            "avg_score_pct":   avg_pct,
-            "difficulty_rank": "صعب جداً" if avg_pct < 50 else "صعب" if avg_pct < 70 else "متوسط" if avg_pct < 85 else "سهل"
+            "lesson":              lesson,
+            "attempts":            st["attempts"],
+            "students_count":      len(st["students"]),
+            "avg_score_pct":       avg_pct,
+            "difficulty_rank":     "صعب جداً" if avg_pct < 50 else "صعب" if avg_pct < 70 else "متوسط" if avg_pct < 85 else "سهل",
+            "struggling_students": struggling[:10]  # أصعب 10 طلاب فقط
         })
     
-    # ترتيب من الأصعب للأسهل
     lessons_ranked.sort(key=lambda x: x["avg_score_pct"])
     
     return {
