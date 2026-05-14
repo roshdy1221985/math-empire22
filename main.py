@@ -450,17 +450,12 @@ async def get_sitemap():
     
     xml_content = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
-        'xmlns:image="http://www.google.com/schemas/sitemap-image/0.9">\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
         f'  <url>\n'
         f'    <loc>{base_url}/</loc>\n'
         f'    <lastmod>{today}</lastmod>\n'
         f'    <changefreq>weekly</changefreq>\n'
         f'    <priority>1.0</priority>\n'
-        f'    <image:image>\n'
-        f'      <image:loc>{base_url}/static/logo.jpg</image:loc>\n'
-        f'      <image:title>إمبراطورية الرياضيات الملكية</image:title>\n'
-        f'    </image:image>\n'
         f'  </url>\n'
         f'  <url>\n'
         f'    <loc>{base_url}/student</loc>\n'
