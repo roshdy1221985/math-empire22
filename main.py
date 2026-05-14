@@ -402,44 +402,94 @@ async def get_manifest(): return FileResponse(os.path.join(BASE_DIR, "manifest.j
 # ════════════════════════════════════════════════════════════
 @app.get("/robots.txt", include_in_schema=False)
 async def get_robots():
-    """ملف توجيه محركات البحث"""
-    robots_path = os.path.join(BASE_DIR, "robots.txt")
-    if os.path.exists(robots_path):
-        return FileResponse(robots_path, media_type="text/plain")
-    # fallback: نُولّد robots.txt افتراضي
+    """🤖 ملف توجيه محركات البحث — ديناميكي"""
     from fastapi.responses import PlainTextResponse
-    content = """User-agent: *
-Allow: /
-Allow: /student
-Allow: /parent
-Allow: /teachers
-Disallow: /admin
-Disallow: /api/
-
-Sitemap: https://math-empire22.onrender.com/sitemap.xml
-"""
-    return PlainTextResponse(content)
+    content = (
+        "User-agent: *\n"
+        "Allow: /\n"
+        "Allow: /student\n"
+        "Allow: /parent\n"
+        "Allow: /teachers\n"
+        "Allow: /static/\n"
+        "\n"
+        "Disallow: /admin\n"
+        "Disallow: /api/\n"
+        "Disallow: /static/avatars/\n"
+        "\n"
+        "User-agent: Googlebot\n"
+        "Allow: /\n"
+        "Crawl-delay: 1\n"
+        "\n"
+        "User-agent: Bingbot\n"
+        "Allow: /\n"
+        "Crawl-delay: 1\n"
+        "\n"
+        "User-agent: GPTBot\n"
+        "Disallow: /\n"
+        "\n"
+        "User-agent: SemrushBot\n"
+        "Disallow: /\n"
+        "\n"
+        "Sitemap: https://math-empire22.onrender.com/sitemap.xml\n"
+    )
+    return PlainTextResponse(
+        content=content,
+        headers={
+            "Content-Type": "text/plain; charset=utf-8",
+            "Cache-Control": "public, max-age=3600"
+        }
+    )
 
 
 @app.get("/sitemap.xml", include_in_schema=False)
 async def get_sitemap():
-    """خريطة الموقع لمحركات البحث"""
-    sitemap_path = os.path.join(BASE_DIR, "sitemap.xml")
-    if os.path.exists(sitemap_path):
-        return FileResponse(sitemap_path, media_type="application/xml")
-    # fallback: نُولّد sitemap ديناميكي
+    """خريطة الموقع — ديناميكية مع headers صحيحة"""
     from fastapi.responses import Response
     today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
     base_url = "https://math-empire22.onrender.com"
     
-    xml = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url><loc>{base_url}/</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>
-  <url><loc>{base_url}/student</loc><lastmod>{today}</lastmod><changefreq>daily</changefreq><priority>0.9</priority></url>
-  <url><loc>{base_url}/parent</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-  <url><loc>{base_url}/teachers</loc><lastmod>{today}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>
-</urlset>"""
-    return Response(content=xml, media_type="application/xml")
+    xml_content = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:image="http://www.google.com/schemas/sitemap-image/0.9">\n'
+        f'  <url>\n'
+        f'    <loc>{base_url}/</loc>\n'
+        f'    <lastmod>{today}</lastmod>\n'
+        f'    <changefreq>weekly</changefreq>\n'
+        f'    <priority>1.0</priority>\n'
+        f'    <image:image>\n'
+        f'      <image:loc>{base_url}/static/logo.jpg</image:loc>\n'
+        f'      <image:title>إمبراطورية الرياضيات الملكية</image:title>\n'
+        f'    </image:image>\n'
+        f'  </url>\n'
+        f'  <url>\n'
+        f'    <loc>{base_url}/student</loc>\n'
+        f'    <lastmod>{today}</lastmod>\n'
+        f'    <changefreq>daily</changefreq>\n'
+        f'    <priority>0.9</priority>\n'
+        f'  </url>\n'
+        f'  <url>\n'
+        f'    <loc>{base_url}/parent</loc>\n'
+        f'    <lastmod>{today}</lastmod>\n'
+        f'    <changefreq>weekly</changefreq>\n'
+        f'    <priority>0.8</priority>\n'
+        f'  </url>\n'
+        f'  <url>\n'
+        f'    <loc>{base_url}/teachers</loc>\n'
+        f'    <lastmod>{today}</lastmod>\n'
+        f'    <changefreq>weekly</changefreq>\n'
+        f'    <priority>0.8</priority>\n'
+        f'  </url>\n'
+        '</urlset>'
+    )
+    return Response(
+        content=xml_content,
+        media_type="application/xml",
+        headers={
+            "Content-Type": "application/xml; charset=utf-8",
+            "Cache-Control": "public, max-age=3600"
+        }
+    )
 
 
 @app.get("/favicon.ico", include_in_schema=False)
