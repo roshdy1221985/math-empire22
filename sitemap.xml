@@ -1,9 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
-        xmlns:xhtml="http://www.w3.org/1999/xhtml"
         xmlns:image="http://www.google.com/schemas/sitemap-image/0.9">
-  
-  <!-- 🏠 الصفحة الرئيسية - بوابة الدخول -->
   <url>
     <loc>https://math-empire22.onrender.com/</loc>
     <lastmod>2026-05-14</lastmod>
@@ -12,27 +9,20 @@
     <image:image>
       <image:loc>https://math-empire22.onrender.com/static/logo.jpg</image:loc>
       <image:title>إمبراطورية الرياضيات الملكية</image:title>
-      <image:caption>منصة الأستاذ رشدي سيد للتميز في الرياضيات</image:caption>
     </image:image>
   </url>
-  
-  <!-- 👑 بوابة الطالب -->
   <url>
     <loc>https://math-empire22.onrender.com/student</loc>
     <lastmod>2026-05-14</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
-  
-  <!-- 👨‍👩‍👧 بوابة ولي الأمر -->
   <url>
     <loc>https://math-empire22.onrender.com/parent</loc>
     <lastmod>2026-05-14</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
-  
-  <!-- 🎓 بوابة المعلمين -->
   <url>
     <loc>https://math-empire22.onrender.com/teachers</loc>
     <lastmod>2026-05-14</lastmod>
