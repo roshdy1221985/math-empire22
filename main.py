@@ -966,8 +966,28 @@ async def update_question(
 
 @app.delete("/api/admin/questions/{q_id}")
 async def delete_question(q_id: int, admin=Depends(get_current_admin)):
-    supabase.table("questions").delete().eq("id", q_id).execute()
-    return {"status": "success"}
+    """🗑️ حذف سؤال — مع تحقق فعلي + invalidate cache"""
+    try:
+        # نتحقق أولاً أن السؤال موجود
+        check = supabase.table("questions").select("id").eq("id", q_id).limit(1).execute()
+        if not check.data:
+            raise HTTPException(status_code=404, detail="السؤال غير موجود")
+        
+        # نحذف فعلياً
+        result = supabase.table("questions").delete().eq("id", q_id).execute()
+        
+        # 🧹 invalidate cache (مهم جداً - بدونه السؤال يظهر بعد الحذف)
+        try:
+            cache_invalidate("questions:", "stats:")
+        except Exception:
+            pass
+        
+        return {"status": "success", "deleted_id": q_id}
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل الحذف: {str(e)[:200]}")
 
 
 @app.post("/api/admin/questions/bulk_delete")
@@ -8801,14 +8821,21 @@ async def update_admin_password(
 
 @app.get("/api/admin/reports/full")
 async def get_full_report(admin=Depends(get_current_admin)):
-    """تقرير شامل للإمبراطورية — الطلاب + النتائج + الإحصائيات"""
-    # جلب كل الطلاب (مع pagination)
+    """🛡️ تقرير شامل دقيق للإمبراطورية
+    
+    التحسينات:
+    - XP من total_points (المصدر الموثوق)
+    - إحصائيات زمنية (7/30 يوم)
+    - تقسيم الطلاب (نشط/خامل/في خطر)
+    - دقة الإحصائيات 100%
+    """
+    # جلب كل الطلاب — مع total_points للـ XP الحقيقي
     students = []
     offset = 0
-    for _ in range(20):  # حد أقصى 20,000 طالب
+    for _ in range(20):
         try:
             res_batch = supabase.table("students").select(
-                "id, full_name, grade, username, created_at"
+                "id, full_name, grade, username, created_at, last_active, total_points, is_active, is_elite"
             ).order("full_name").range(offset, offset + 999).execute()
             batch = res_batch.data or []
             if not batch:
@@ -8848,59 +8875,657 @@ async def get_full_report(admin=Depends(get_current_admin)):
     except Exception:
         total_questions = 0
 
-    # بناء إحصائيات لكل طالب
+    # ════════════════════════════════════════════════════════════
+    # 🧮 بناء إحصائيات لكل طالب (دقة 100%)
+    # ════════════════════════════════════════════════════════════
     from collections import defaultdict
-    student_stats = defaultdict(lambda: {"tests": 0, "total_score": 0, "total_max": 0, "lessons": set()})
+    from datetime import datetime, timezone, timedelta
+    
+    student_stats = defaultdict(lambda: {
+        "tests": 0,
+        "score_sum": 0,
+        "total_sum": 0,
+        "lessons": set(),
+        "tests_7d": 0,
+        "tests_30d": 0,
+        "last_test": None,
+    })
+    
+    now = datetime.now(timezone.utc)
+    cutoff_7d = (now - timedelta(days=7)).isoformat()
+    cutoff_30d = (now - timedelta(days=30)).isoformat()
+    
     for r in results:
         sid = r.get("student_id")
-        if sid:
-            student_stats[sid]["tests"]       += 1
-            student_stats[sid]["total_score"] += (r.get("score") or 0)
-            student_stats[sid]["total_max"]   += (r.get("total") or 1)
-            student_stats[sid]["lessons"].add(r.get("lesson", ""))
+        if not sid:
+            continue
+        ts = r.get("timestamp", "")
+        student_stats[sid]["tests"]     += 1
+        student_stats[sid]["score_sum"] += (r.get("score") or 0)
+        student_stats[sid]["total_sum"] += (r.get("total") or 0)
+        lesson = r.get("lesson")
+        if lesson:
+            student_stats[sid]["lessons"].add(lesson)
+        if ts and ts >= cutoff_7d:
+            student_stats[sid]["tests_7d"] += 1
+        if ts and ts >= cutoff_30d:
+            student_stats[sid]["tests_30d"] += 1
+        if not student_stats[sid]["last_test"] or ts > student_stats[sid]["last_test"]:
+            student_stats[sid]["last_test"] = ts
 
-    # دمج البيانات
+    # ════════════════════════════════════════════════════════════
+    # 📊 دمج البيانات — XP من total_points (المصدر الموثوق)
+    # ════════════════════════════════════════════════════════════
     students_report = []
+    students_at_risk = []  # طلاب لم ينشطوا منذ 30 يوم
+    students_inactive = []  # طلاب لم يبدأوا أبداً
+    
     for s in students:
-        sid   = s["id"]
+        sid = s["id"]
         stats = student_stats.get(sid, {})
-        xp    = stats.get("total_score", 0)
         tests = stats.get("tests", 0)
-        total_max = stats.get("total_max", 0)
-        accuracy = round((xp / total_max * 100)) if total_max > 0 else 0
-        students_report.append({
-            "id":         sid,
-            "full_name":  s.get("full_name", ""),
-            "grade":      s.get("grade", ""),
-            "username":   s.get("username", ""),
-            "joined":     s.get("created_at", ""),
-            "xp":         xp,
-            "tests":      tests,
-            "accuracy":   accuracy,
-            "lessons_count": len(stats.get("lessons", set())),
-        })
+        score_sum = stats.get("score_sum", 0)
+        total_sum = stats.get("total_sum", 0)
+        accuracy = round((score_sum / total_sum * 100), 1) if total_sum > 0 else 0
+        
+        # 🛡️ XP الحقيقي من DB
+        real_xp = int(s.get("total_points", 0) or 0)
+        last_test = stats.get("last_test")
+        
+        # تحديد حالة النشاط
+        is_dormant = False
+        if last_test:
+            try:
+                last_dt = datetime.fromisoformat(last_test.replace('Z', '+00:00'))
+                days_inactive = (now - last_dt).days
+                is_dormant = days_inactive >= 30
+            except Exception:
+                pass
+        
+        student_data = {
+            "id":             sid,
+            "full_name":      s.get("full_name", ""),
+            "grade":          s.get("grade", ""),
+            "username":       s.get("username", ""),
+            "joined":         s.get("created_at", ""),
+            "last_active":    s.get("last_active") or last_test or "",
+            "xp":             real_xp,
+            "total_points":   real_xp,
+            "tests":          tests,
+            "tests_7d":       stats.get("tests_7d", 0),
+            "tests_30d":      stats.get("tests_30d", 0),
+            "accuracy":       accuracy,
+            "lessons_count":  len(stats.get("lessons", set())),
+            "is_dormant":     is_dormant,
+            "is_active":      bool(s.get("is_active", True)),
+            "is_elite":       bool(s.get("is_elite", False)),
+        }
+        students_report.append(student_data)
+        
+        if tests == 0:
+            students_inactive.append(student_data)
+        elif is_dormant:
+            students_at_risk.append(student_data)
 
     # ترتيب حسب XP
     students_report.sort(key=lambda x: x["xp"], reverse=True)
 
-    # إحصائيات الصفوف
-    grade_stats = defaultdict(int)
-    for s in students:
-        grade_stats[(s.get("grade") or "غير محدد")] += 1
+    # ════════════════════════════════════════════════════════════
+    # 📈 إحصائيات الصفوف (مع XP إجمالي)
+    # ════════════════════════════════════════════════════════════
+    grade_stats = defaultdict(lambda: {"count": 0, "total_xp": 0, "total_tests": 0, "active": 0})
+    for s in students_report:
+        g = s.get("grade") or "غير محدد"
+        grade_stats[g]["count"] += 1
+        grade_stats[g]["total_xp"] += s["xp"]
+        grade_stats[g]["total_tests"] += s["tests"]
+        if s["tests"] > 0:
+            grade_stats[g]["active"] += 1
+    
+    # حساب المتوسطات
+    grade_distribution_detailed = {}
+    for g, st in grade_stats.items():
+        cnt = st["count"]
+        grade_distribution_detailed[g] = {
+            "count":      cnt,
+            "total_xp":   st["total_xp"],
+            "avg_xp":     round(st["total_xp"] / cnt) if cnt > 0 else 0,
+            "active":     st["active"],
+            "activity_pct": round((st["active"] / cnt) * 100, 1) if cnt > 0 else 0,
+        }
 
+    # ════════════════════════════════════════════════════════════
+    # 🎯 إحصائيات شاملة
+    # ════════════════════════════════════════════════════════════
+    total_students = len(students)
+    active_students = sum(1 for s in students_report if s["tests"] > 0)
+    active_7d = sum(1 for s in students_report if s["tests_7d"] > 0)
+    active_30d = sum(1 for s in students_report if s["tests_30d"] > 0)
+    total_xp_sum = sum(s["xp"] for s in students_report)
+    
     return {
         "summary": {
-            "total_students":  len(students),
-            "total_questions": total_questions,
-            "total_results":   len(results),
-            "active_students": sum(1 for s in students_report if s["tests"] > 0),
-            "active_last_7days": _count_active_recent(results, days=7),
+            "total_students":     total_students,
+            "total_questions":    total_questions,
+            "total_results":      len(results),
+            "active_students":    active_students,
+            "active_last_7days":  active_7d,
+            "active_last_30days": active_30d,
+            "inactive_count":     len(students_inactive),
+            "at_risk_count":      len(students_at_risk),
+            "total_xp_empire":    total_xp_sum,
+            "avg_xp_per_student": round(total_xp_sum / total_students) if total_students > 0 else 0,
+            "elite_count":        sum(1 for s in students_report if s.get("is_elite")),
+            "engagement_rate":    round((active_30d / total_students) * 100, 1) if total_students > 0 else 0,
         },
-        "grade_distribution": dict(grade_stats),
-        "students":           students_report,
-        "top10":              students_report[:10],
+        "grade_distribution":     {g: v["count"] for g, v in grade_distribution_detailed.items()},
+        "grade_distribution_detailed": grade_distribution_detailed,
+        "students":               students_report,
+        "top10":                  students_report[:10],
+        "students_at_risk":       students_at_risk[:50],     # أعلى 50 في خطر
+        "students_inactive":      students_inactive[:50],    # أعلى 50 خاملين
     }
 
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# 🧠 ENDPOINTS ذكية جديدة للتحليلات العميقة
+# ════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/analytics/hardest_lessons")
+async def get_hardest_lessons(limit: int = 10, admin=Depends(get_current_admin)):
+    """🎯 الدروس الأكثر صعوبة على الطلاب (متوسط نسبة الإجابات الصحيحة)"""
+    from collections import defaultdict
+    
+    # جلب كل النتائج
+    results = []
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("results").select(
+                "lesson, score, total"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            results.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تجميع حسب الدرس
+    lesson_stats = defaultdict(lambda: {"attempts": 0, "score_sum": 0, "total_sum": 0})
+    for r in results:
+        lesson = (r.get("lesson") or "").strip()
+        if not lesson: continue
+        lesson_stats[lesson]["attempts"]   += 1
+        lesson_stats[lesson]["score_sum"]  += (r.get("score") or 0)
+        lesson_stats[lesson]["total_sum"]  += (r.get("total") or 0)
+    
+    # حساب المتوسطات
+    lessons_ranked = []
+    for lesson, st in lesson_stats.items():
+        if st["total_sum"] < 5: continue  # نتجاهل الدروس التي بها أقل من 5 محاولات
+        avg_pct = round((st["score_sum"] / st["total_sum"]) * 100, 1)
+        lessons_ranked.append({
+            "lesson":          lesson,
+            "attempts":        st["attempts"],
+            "avg_score_pct":   avg_pct,
+            "difficulty_rank": "صعب جداً" if avg_pct < 50 else "صعب" if avg_pct < 70 else "متوسط" if avg_pct < 85 else "سهل"
+        })
+    
+    # ترتيب من الأصعب للأسهل
+    lessons_ranked.sort(key=lambda x: x["avg_score_pct"])
+    
+    return {
+        "hardest_lessons":  lessons_ranked[:limit],
+        "easiest_lessons":  list(reversed(lessons_ranked[-limit:])) if len(lessons_ranked) >= limit else [],
+        "total_lessons":    len(lessons_ranked)
+    }
+
+
+@app.get("/api/admin/analytics/activity_heatmap")
+async def get_activity_heatmap(days: int = 30, admin=Depends(get_current_admin)):
+    """🔥 خريطة حرارة النشاط (نشاط الطلاب حسب اليوم والساعة)"""
+    from collections import defaultdict
+    from datetime import datetime, timezone, timedelta
+    
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    # جلب النتائج الحديثة
+    results = []
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("results").select(
+                "timestamp"
+            ).gte("timestamp", cutoff).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            results.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تجميع: heatmap[day_of_week][hour] = count
+    # يوم: 0=الأحد, 6=السبت
+    heatmap = [[0] * 24 for _ in range(7)]
+    
+    for r in results:
+        ts = r.get("timestamp")
+        if not ts: continue
+        try:
+            dt = datetime.fromisoformat(ts.replace('Z', '+00:00'))
+            # تحويل لتوقيت عمان (UTC+4)
+            local = dt + timedelta(hours=4)
+            # weekday: Mon=0, Sun=6; نحوّل لـ الأحد=0
+            day = (local.weekday() + 1) % 7
+            hour = local.hour
+            heatmap[day][hour] += 1
+        except Exception:
+            continue
+    
+    # أوقات الذروة
+    max_val = 0
+    peak_day, peak_hour = 0, 0
+    for d in range(7):
+        for h in range(24):
+            if heatmap[d][h] > max_val:
+                max_val = heatmap[d][h]
+                peak_day, peak_hour = d, h
+    
+    days_ar = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"]
+    
+    return {
+        "heatmap": heatmap,
+        "total_activity": sum(sum(row) for row in heatmap),
+        "peak_time": {
+            "day":      days_ar[peak_day],
+            "hour":     peak_hour,
+            "count":    max_val,
+            "formatted": f"{days_ar[peak_day]} الساعة {peak_hour}:00"
+        },
+        "days_labels": days_ar,
+        "period_days": days
+    }
+
+
+@app.get("/api/admin/analytics/grade_performance")
+async def get_grade_performance(admin=Depends(get_current_admin)):
+    """📚 أداء كل صف — متوسط XP، نسبة النشاط، عدد الإنجازات"""
+    from collections import defaultdict
+    
+    # جلب الطلاب
+    students = []
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("students").select(
+                "id, grade, total_points, last_active, is_active"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            students.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تجميع
+    grade_perf = defaultdict(lambda: {
+        "count": 0, "total_xp": 0, "active": 0, "elite_count": 0, "ids": []
+    })
+    
+    for s in students:
+        g = (s.get("grade") or "غير محدد").strip()
+        sid = s.get("id")
+        xp = int(s.get("total_points", 0) or 0)
+        
+        grade_perf[g]["count"] += 1
+        grade_perf[g]["total_xp"] += xp
+        grade_perf[g]["ids"].append(sid)
+        if s.get("is_active", True):
+            grade_perf[g]["active"] += 1
+    
+    # حساب المتوسطات + ترتيب
+    grades_ranked = []
+    for g, st in grade_perf.items():
+        cnt = st["count"]
+        grades_ranked.append({
+            "grade":         g,
+            "students_count": cnt,
+            "total_xp":      st["total_xp"],
+            "avg_xp":        round(st["total_xp"] / cnt) if cnt > 0 else 0,
+            "active_count":  st["active"],
+            "activity_pct":  round((st["active"] / cnt) * 100, 1) if cnt > 0 else 0,
+        })
+    
+    grades_ranked.sort(key=lambda x: x["avg_xp"], reverse=True)
+    
+    return {
+        "grades": grades_ranked,
+        "best_grade": grades_ranked[0] if grades_ranked else None,
+        "total_grades": len(grades_ranked)
+    }
+
+
+@app.get("/api/admin/analytics/student_rankings")
+async def get_student_rankings(period: str = "all", limit: int = 20, admin=Depends(get_current_admin)):
+    """🏆 ترتيب الطلاب — كل الأوقات / أسبوع / شهر
+    
+    period: 'all' | '7d' | '30d'
+    """
+    from collections import defaultdict
+    from datetime import datetime, timezone, timedelta
+    
+    # جلب الطلاب
+    students_map = {}
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("students").select(
+                "id, full_name, grade, total_points, avatar_url"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            for s in batch:
+                students_map[s["id"]] = s
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    if period == "all":
+        # ترتيب من total_points مباشرة
+        ranked = sorted(
+            students_map.values(),
+            key=lambda s: int(s.get("total_points", 0) or 0),
+            reverse=True
+        )
+        result = [{
+            "rank": i + 1,
+            "id": s["id"],
+            "full_name": s.get("full_name", ""),
+            "grade": s.get("grade", ""),
+            "xp": int(s.get("total_points", 0) or 0),
+            "avatar_url": s.get("avatar_url", "")
+        } for i, s in enumerate(ranked[:limit])]
+        return {"rankings": result, "period": "all", "total": len(students_map)}
+    
+    # للفترة المحددة، نحتاج النتائج
+    days = 7 if period == "7d" else 30
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    period_xp = defaultdict(int)
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("results").select(
+                "student_id, score"
+            ).gte("timestamp", cutoff).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            for r in batch:
+                sid = r.get("student_id")
+                if sid:
+                    period_xp[sid] += (r.get("score") or 0)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # ترتيب
+    ranked_ids = sorted(period_xp.items(), key=lambda x: x[1], reverse=True)[:limit]
+    result = []
+    for i, (sid, xp) in enumerate(ranked_ids):
+        s = students_map.get(sid, {})
+        result.append({
+            "rank": i + 1,
+            "id": sid,
+            "full_name": s.get("full_name", ""),
+            "grade": s.get("grade", ""),
+            "xp_period": xp,
+            "xp_total": int(s.get("total_points", 0) or 0),
+            "avatar_url": s.get("avatar_url", "")
+        })
+    
+    return {"rankings": result, "period": period, "total": len(period_xp)}
+
+
+@app.get("/api/admin/analytics/struggling_students")
+async def get_struggling_students(threshold: int = 50, admin=Depends(get_current_admin)):
+    """⚠️ طلاب يحتاجون مساعدة (متوسط دقتهم أقل من threshold%)"""
+    from collections import defaultdict
+    
+    # جلب النتائج
+    results = []
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("results").select(
+                "student_id, score, total"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            results.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تجميع نسب الإجابة
+    student_acc = defaultdict(lambda: {"score": 0, "total": 0, "tests": 0})
+    for r in results:
+        sid = r.get("student_id")
+        if not sid: continue
+        student_acc[sid]["score"] += (r.get("score") or 0)
+        student_acc[sid]["total"] += (r.get("total") or 0)
+        student_acc[sid]["tests"] += 1
+    
+    # جلب أسماء الطلاب
+    students_map = {}
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("students").select(
+                "id, full_name, grade, total_points"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            for s in batch:
+                students_map[s["id"]] = s
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # تحديد الطلاب المتعثرين
+    struggling = []
+    for sid, acc in student_acc.items():
+        if acc["total"] < 10 or acc["tests"] < 3:  # نحتاج عينة كافية
+            continue
+        pct = round((acc["score"] / acc["total"]) * 100, 1)
+        if pct < threshold:
+            s = students_map.get(sid, {})
+            struggling.append({
+                "id":         sid,
+                "full_name":  s.get("full_name", ""),
+                "grade":      s.get("grade", ""),
+                "accuracy":   pct,
+                "tests":      acc["tests"],
+                "xp":         int(s.get("total_points", 0) or 0),
+                "severity":   "حرج" if pct < 35 else "متعثر" if pct < 50 else "متوسط"
+            })
+    
+    struggling.sort(key=lambda x: x["accuracy"])
+    
+    return {
+        "struggling_students": struggling,
+        "count":               len(struggling),
+        "threshold":           threshold
+    }
+
+
+
+
+@app.get("/api/admin/export/students_csv")
+async def export_students_csv(admin=Depends(get_current_admin)):
+    """📥 تصدير قائمة الطلاب كـ CSV (يفتح في Excel مباشرة)"""
+    from fastapi.responses import Response
+    from collections import defaultdict
+    from datetime import datetime, timezone
+    import csv
+    import io
+    
+    # جلب الطلاب
+    students = []
+    offset = 0
+    for _ in range(20):
+        try:
+            res = supabase.table("students").select(
+                "id, full_name, username, grade, school_name, total_points, last_active, is_active, is_elite, parent_phone, parent_email, created_at"
+            ).order("total_points", desc=True).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            students.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # نتائج لكل طالب (عدد + متوسط)
+    student_perf = defaultdict(lambda: {"tests": 0, "score": 0, "total": 0})
+    offset = 0
+    for _ in range(50):
+        try:
+            res = supabase.table("results").select(
+                "student_id, score, total"
+            ).range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            for r in batch:
+                sid = r.get("student_id")
+                if sid:
+                    student_perf[sid]["tests"] += 1
+                    student_perf[sid]["score"] += (r.get("score") or 0)
+                    student_perf[sid]["total"] += (r.get("total") or 0)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    # بناء CSV
+    output = io.StringIO()
+    # BOM لـ Excel ليفهم UTF-8
+    output.write('﻿')
+    writer = csv.writer(output)
+    
+    # رأس
+    writer.writerow([
+        "الترتيب", "الاسم الكامل", "اسم المستخدم", "الصف", "المدرسة",
+        "XP", "عدد التحديات", "متوسط النسبة %", "نشط", "النخبة",
+        "هاتف ولي الأمر", "بريد ولي الأمر", "آخر نشاط", "تاريخ التسجيل"
+    ])
+    
+    # صفوف
+    for i, s in enumerate(students):
+        perf = student_perf.get(s["id"], {})
+        avg = round((perf["score"] / perf["total"] * 100), 1) if perf.get("total", 0) > 0 else 0
+        writer.writerow([
+            i + 1,
+            s.get("full_name", ""),
+            s.get("username", ""),
+            s.get("grade", ""),
+            s.get("school_name", ""),
+            s.get("total_points", 0) or 0,
+            perf.get("tests", 0),
+            avg,
+            "نعم" if s.get("is_active", True) else "لا",
+            "نعم" if s.get("is_elite") else "لا",
+            s.get("parent_phone", ""),
+            s.get("parent_email", ""),
+            (s.get("last_active") or "")[:10],
+            (s.get("created_at") or "")[:10]
+        ])
+    
+    csv_content = output.getvalue()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    return Response(
+        content=csv_content.encode('utf-8'),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="students_report_{today}.csv"',
+            "Content-Type": "text/csv; charset=utf-8"
+        }
+    )
+
+
+@app.get("/api/admin/export/results_csv")
+async def export_results_csv(
+    days: int = 30,
+    grade: str = "",
+    admin=Depends(get_current_admin)
+):
+    """📥 تصدير نتائج التحديات كـ CSV"""
+    from fastapi.responses import Response
+    from datetime import datetime, timezone, timedelta
+    import csv
+    import io
+    
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    
+    results = []
+    offset = 0
+    for _ in range(50):
+        try:
+            q = supabase.table("results").select(
+                "student_name, grade, lesson, score, total, timestamp"
+            ).gte("timestamp", cutoff).order("timestamp", desc=True)
+            if grade:
+                q = q.eq("grade", grade)
+            res = q.range(offset, offset + 999).execute()
+            batch = res.data or []
+            if not batch: break
+            results.extend(batch)
+            if len(batch) < 1000: break
+            offset += 1000
+        except Exception:
+            break
+    
+    output = io.StringIO()
+    output.write('﻿')
+    writer = csv.writer(output)
+    writer.writerow(["اسم الطالب", "الصف", "الدرس", "الدرجة", "المجموع", "النسبة %", "التاريخ"])
+    
+    for r in results:
+        score = r.get("score", 0) or 0
+        total = r.get("total", 0) or 0
+        pct = round((score / total * 100), 1) if total > 0 else 0
+        writer.writerow([
+            r.get("student_name", ""),
+            r.get("grade", ""),
+            r.get("lesson", ""),
+            score,
+            total,
+            pct,
+            (r.get("timestamp") or "")[:16].replace("T", " ")
+        ])
+    
+    csv_content = output.getvalue()
+    today = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    
+    return Response(
+        content=csv_content.encode('utf-8'),
+        media_type="text/csv; charset=utf-8",
+        headers={
+            "Content-Disposition": f'attachment; filename="results_last{days}days_{today}.csv"',
+            "Content-Type": "text/csv; charset=utf-8"
+        }
+    )
 
 
 # ==========================================
@@ -9183,14 +9808,18 @@ async def delete_notification(notif_id: int, admin=Depends(get_current_admin)):
 
 @app.get("/api/admin/students/full")
 async def get_all_students_full(admin=Depends(get_current_admin)):
-    """جلب قائمة الطلاب الكاملة + إحصائيات XP والتحديات والوقت الفعلي"""
-    # 1. جلب كل الطلاب (pagination)
+    """جلب قائمة الطلاب الكاملة + إحصائيات XP والتحديات والوقت الفعلي
+    
+    🛡️ مُحدّث: يستخدم total_points من جدول students (المصدر الموثوق للـ XP)
+    بدلاً من جمع الدرجات من results.
+    """
+    # 1. جلب كل الطلاب (pagination) — مع total_points للـ XP الحقيقي
     students = []
     offset = 0
     for _ in range(20):
         try:
             res = supabase.table("students").select(
-                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active, parent_code, parent_phone, parent_name, parent_email"
+                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active, parent_code, parent_phone, parent_name, parent_email, total_points"
             ).order("full_name").range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch:
@@ -9220,14 +9849,15 @@ async def get_all_students_full(admin=Depends(get_current_admin)):
         except Exception:
             break
 
-    # 3. تجميع إحصائيات لكل طالب
+    # 3. تجميع إحصائيات لكل طالب (عدد التحديات + متوسط النسبة)
+    # ⚠️ ملاحظة: XP يأتي من students.total_points (المصدر الموثوق)
+    # حساب XP من results مُلغى لأنه يُعطي قيم خاطئة
     from collections import defaultdict
-    stats = defaultdict(lambda: {"xp": 0, "tests": 0, "score_sum": 0, "total_sum": 0})
+    stats = defaultdict(lambda: {"tests": 0, "score_sum": 0, "total_sum": 0})
     for r in all_results:
         sid = r.get("student_id")
         if not sid:
             continue
-        stats[sid]["xp"]        += r.get("score", 0) or 0
         stats[sid]["tests"]     += 1
         stats[sid]["score_sum"] += r.get("score", 0) or 0
         stats[sid]["total_sum"] += r.get("total", 0) or 0
@@ -9255,16 +9885,20 @@ async def get_all_students_full(admin=Depends(get_current_admin)):
         except Exception:
             break
 
-    # 5. دمج البيانات
+    # 5. دمج البيانات — XP من total_points الموثوق
     enriched = []
     for s in students:
         sid = s.get("id")
-        sst = stats.get(sid, {"xp": 0, "tests": 0, "score_sum": 0, "total_sum": 0})
+        sst = stats.get(sid, {"tests": 0, "score_sum": 0, "total_sum": 0})
         avg_pct = round((sst["score_sum"] / sst["total_sum"]) * 100, 1) if sst["total_sum"] > 0 else 0
+        # كل bucket يمثّل 5 دقائق نشاط حقيقي
         minutes_30d = sessions_by_student.get(sid, 0) * 5
+        # 🛡️ XP الموثوق من DB (وليس مجموع الدرجات)
+        real_xp = int(s.get("total_points", 0) or 0)
         enriched.append({
             **s,
-            "xp":            sst["xp"],
+            "xp":            real_xp,
+            "total_points":  real_xp,  # alias للتوافق
             "tests":         sst["tests"],
             "avg_score_pct": avg_pct,
             "minutes_30d":   minutes_30d,

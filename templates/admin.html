@@ -2145,6 +2145,7 @@
                 <div class="nav-link" onclick="showSection('ai-settings');setTimeout(checkAIStatus,100);" style="color:#1abc9c;"><i class="fas fa-robot"></i> 🤖 المساعد الذكي</div>
                 <div class="nav-link nl-red" onclick="showSection('exams')"><i class="fas fa-hourglass-start"></i> الملاحم (الاختبارات)</div>
                 <div class="nav-link nl-cyan" onclick="showSection('reports')"><i class="fas fa-print"></i> التقارير والطباعة</div>
+                <div class="nav-link nl-purple" onclick="showSection('analytics');setTimeout(loadAnalyticsDashboard, 200);"><i class="fas fa-chart-line"></i> 📊 التحليلات الذكية</div>
                 <div class="nav-link nl-yellow" onclick="openNotifModal()" style="position:relative;">
                     <i class="fas fa-bell"></i> مرسال الإشعارات
                     <span id="notif-unread-badge" style="display:none;position:absolute;top:8px;left:12px;background:var(--red);color:#fff;border-radius:50%;width:18px;height:18px;font-size:0.7rem;display:flex;align-items:center;justify-content:center;font-weight:bold;">0</span>
@@ -5325,6 +5326,110 @@
                 </div>
             </section>
 
+
+            <!-- ════════════════════════════════════════════════════════
+                 📊 ANALYTICS DASHBOARD — لوحة التحليلات الذكية
+            ════════════════════════════════════════════════════════ -->
+            <section id="analytics" class="section">
+                <div class="card glass-pro" style="margin-bottom:20px;">
+                    <h2 style="color:#bb86fc;"><i class="fas fa-brain"></i> 📊 التحليلات الذكية</h2>
+                    <p style="color:rgba(255,255,255,0.6);margin:8px 0 0;">نظرة عميقة على أداء الإمبراطورية — مدعومة بالبيانات الحقيقية</p>
+                </div>
+                
+                <!-- إحصائيات سريعة ذكية -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(74,222,128,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🔥</div>
+                        <div id="an-active-7d" style="font-size:1.8rem;color:#4ade80;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">نشط آخر 7 أيام</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(99,102,241,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🌟</div>
+                        <div id="an-active-30d" style="font-size:1.8rem;color:#818cf8;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">نشط آخر 30 يوم</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(251,191,36,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">⚡</div>
+                        <div id="an-engagement" style="font-size:1.8rem;color:#fbbf24;font-weight:900;margin-top:6px;">—%</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">نسبة التفاعل الشهرية</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(231,76,60,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">⚠️</div>
+                        <div id="an-at-risk" style="font-size:1.8rem;color:#e74c3c;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">طلاب في خطر</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(212,175,55,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">👑</div>
+                        <div id="an-total-xp" style="font-size:1.8rem;color:#fcd34d;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">إجمالي XP الإمبراطورية</div>
+                    </div>
+                </div>
+                
+                <div style="text-align:center;margin-bottom:20px;">
+                    <button onclick="loadAnalyticsDashboard()" style="background:linear-gradient(135deg,#bb86fc,#9b59b6);color:#fff;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
+                        🔄 تحديث التحليلات
+                    </button>
+                </div>
+                
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="color:#fcd34d;margin:0;"><i class="fas fa-crown"></i> 🏆 أعلى 10 طلاب</h3>
+                        <select id="rankings-period" onchange="loadRankings()" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;">
+                            <option value="all">كل الأوقات</option>
+                            <option value="30d">آخر 30 يوم</option>
+                            <option value="7d">آخر 7 أيام</option>
+                        </select>
+                    </div>
+                    <div id="rankings-list" style="display:grid;gap:8px;">
+                        <p style="opacity:0.5;text-align:center;padding:20px;">⏳ اضغط تحديث</p>
+                    </div>
+                </div>
+                
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <h3 style="color:#48d1cc;margin-bottom:14px;"><i class="fas fa-school"></i> 📚 أداء الصفوف</h3>
+                    <div id="grade-performance" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+                        <p style="opacity:0.5;text-align:center;padding:20px;grid-column:1/-1;">⏳ اضغط تحديث</p>
+                    </div>
+                </div>
+                
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <h3 style="color:#ff7676;margin-bottom:14px;"><i class="fas fa-exclamation-triangle"></i> 🎯 الدروس الأصعب على الطلاب</h3>
+                    <div id="hardest-lessons">
+                        <p style="opacity:0.5;text-align:center;padding:20px;">⏳ اضغط تحديث</p>
+                    </div>
+                </div>
+                
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="color:#e74c3c;margin:0;"><i class="fas fa-heart-broken"></i> ⚠️ طلاب يحتاجون مساعدة</h3>
+                        <select id="struggle-threshold" onchange="loadStrugglingStudents()" style="background:rgba(255,255,255,0.05);color:#fff;border:1px solid rgba(255,255,255,0.15);padding:6px 14px;border-radius:8px;">
+                            <option value="50">أقل من 50%</option>
+                            <option value="35">أقل من 35% (حرج)</option>
+                            <option value="70">أقل من 70%</option>
+                        </select>
+                    </div>
+                    <div id="struggling-students">
+                        <p style="opacity:0.5;text-align:center;padding:20px;">⏳ اضغط تحديث</p>
+                    </div>
+                </div>
+                
+                <div class="card glass-pro">
+                    <h3 style="color:#16a085;margin-bottom:14px;"><i class="fas fa-download"></i> 📥 تصدير البيانات</h3>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;">
+                        <button onclick="exportStudentsCSV()" style="background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                            👥 تصدير الطلاب (Excel)
+                        </button>
+                        <button onclick="exportResultsCSV(30)" style="background:linear-gradient(135deg,#3498db,#2c80b4);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                            📋 نتائج آخر 30 يوم
+                        </button>
+                        <button onclick="exportResultsCSV(7)" style="background:linear-gradient(135deg,#9b59b6,#8444a3);color:#fff;border:none;padding:14px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                            📊 نتائج آخر 7 أيام
+                        </button>
+                    </div>
+                    <p style="color:rgba(255,255,255,0.5);font-size:0.78rem;margin-top:12px;">💡 الملفات بصيغة CSV — تفتح في Microsoft Excel مباشرة</p>
+                </div>
+            </section>
+
 </main>
     </div>
 
@@ -6009,7 +6114,32 @@
         }
 
         if (lessonName !== 'all') {
-            filtered = filtered.filter(q => norm(q.lesson) === norm(lessonName));
+            // 🛡️ مرونة في المطابقة: قبول الاسم + lesson_id + معالجة الفروق
+            filtered = filtered.filter(q => {
+                // 1) مطابقة مباشرة بالاسم (norm)
+                if (q.lesson && norm(q.lesson) === norm(lessonName)) return true;
+                
+                // 2) لو الـ q.lesson فارغ، نتحقق من lesson_id
+                if (q.lesson_id && fullCurriculum) {
+                    for (const g of fullCurriculum) {
+                        for (const s of (g.semesters || [])) {
+                            for (const u of (s.units || [])) {
+                                for (const l of (u.lessons || [])) {
+                                    if (l.id == q.lesson_id && norm(l.name) === norm(lessonName)) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 3) مطابقة جزئية (contains) كملاذ أخير
+                if (q.lesson && norm(q.lesson).includes(norm(lessonName))) return true;
+                if (q.lesson && norm(lessonName).includes(norm(q.lesson))) return true;
+                
+                return false;
+            });
         }
 
         // تجميع حسب الدرس — الأسئلة اللي بدون درس تحت "غير مصنفة"
@@ -14756,6 +14886,229 @@ document.addEventListener('DOMContentLoaded', function() {
     try { saved = localStorage.getItem('admin_theme_v2') || 'royal-gold'; } catch(e) {}
     applyAdminTheme(saved);
 });
+</script>
+
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 📊 لوحة التحليلات الذكية - JavaScript
+// ════════════════════════════════════════════════════════════
+
+async function loadAnalyticsDashboard() {
+    try {
+        const res = await authFetch('/api/admin/reports/full');
+        if (res && res.ok) {
+            const data = await res.json();
+            const s = data.summary || {};
+            
+            document.getElementById('an-active-7d').textContent = (s.active_last_7days || 0).toLocaleString('ar-EG');
+            document.getElementById('an-active-30d').textContent = (s.active_last_30days || 0).toLocaleString('ar-EG');
+            document.getElementById('an-engagement').textContent = (s.engagement_rate || 0) + '%';
+            document.getElementById('an-at-risk').textContent = (s.at_risk_count || 0).toLocaleString('ar-EG');
+            document.getElementById('an-total-xp').textContent = (s.total_xp_empire || 0).toLocaleString('ar-EG');
+        }
+        
+        await Promise.all([
+            loadRankings(),
+            loadGradePerformance(),
+            loadHardestLessons(),
+            loadStrugglingStudents()
+        ]);
+    } catch(e) {
+        console.error('[analytics]', e);
+        if (typeof showToast === 'function') showToast('❌ فشل تحميل التحليلات', 'error');
+    }
+}
+
+async function loadRankings() {
+    const period = document.getElementById('rankings-period')?.value || 'all';
+    const container = document.getElementById('rankings-list');
+    if (!container) return;
+    container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">⏳ جارٍ التحميل...</p>';
+    
+    try {
+        const res = await authFetch('/api/admin/analytics/student_rankings?period=' + period + '&limit=10');
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        
+        if (!data.rankings || data.rankings.length === 0) {
+            container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا توجد بيانات</p>';
+            return;
+        }
+        
+        const medals = ['🥇', '🥈', '🥉'];
+        const xpField = period === 'all' ? 'xp' : 'xp_period';
+        
+        container.innerHTML = data.rankings.map(function(r, i) {
+            return '<div style="display:flex;align-items:center;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid rgba(255,255,255,0.08);">' +
+                '<div style="font-size:1.5rem;width:40px;text-align:center;">' + (i < 3 ? medals[i] : '#' + r.rank) + '</div>' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="color:#fcd34d;font-weight:bold;font-size:0.95rem;">' + esc(r.full_name) + '</div>' +
+                    '<div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">' + esc(r.grade) + '</div>' +
+                '</div>' +
+                '<div style="text-align:left;flex-shrink:0;">' +
+                    '<div style="color:#fcd34d;font-weight:900;font-size:1.1rem;">' + (r[xpField] || 0).toLocaleString('ar-EG') + '</div>' +
+                    '<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;">XP</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
+    }
+}
+
+async function loadGradePerformance() {
+    const container = document.getElementById('grade-performance');
+    if (!container) return;
+    
+    try {
+        const res = await authFetch('/api/admin/analytics/grade_performance');
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        
+        if (!data.grades || data.grades.length === 0) {
+            container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;grid-column:1/-1;">لا توجد بيانات</p>';
+            return;
+        }
+        
+        container.innerHTML = data.grades.map(function(g, i) {
+            return '<div style="padding:14px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(72,209,204,0.2);">' +
+                '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">' +
+                    '<div style="color:#48d1cc;font-weight:bold;font-size:1rem;font-family:Amiri;">' + esc(g.grade) + '</div>' +
+                    (i === 0 ? '<span style="background:rgba(252,211,77,0.15);color:#fcd34d;padding:2px 8px;border-radius:6px;font-size:0.7rem;">⭐ الأعلى</span>' : '') +
+                '</div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.82rem;">' +
+                    '<div><div style="color:rgba(255,255,255,0.5);font-size:0.7rem;">عدد الطلاب</div><div style="color:#fff;font-weight:bold;">' + g.students_count.toLocaleString('ar-EG') + '</div></div>' +
+                    '<div><div style="color:rgba(255,255,255,0.5);font-size:0.7rem;">متوسط XP</div><div style="color:#fcd34d;font-weight:bold;">' + g.avg_xp.toLocaleString('ar-EG') + '</div></div>' +
+                    '<div><div style="color:rgba(255,255,255,0.5);font-size:0.7rem;">نشطين</div><div style="color:#4ade80;font-weight:bold;">' + g.active_count + '</div></div>' +
+                    '<div><div style="color:rgba(255,255,255,0.5);font-size:0.7rem;">معدّل النشاط</div><div style="color:#48d1cc;font-weight:bold;">' + g.activity_pct + '%</div></div>' +
+                '</div>' +
+                '<div style="margin-top:10px;height:6px;background:rgba(255,255,255,0.05);border-radius:3px;overflow:hidden;">' +
+                    '<div style="height:100%;width:' + g.activity_pct + '%;background:linear-gradient(90deg,#48d1cc,#4ade80);"></div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;grid-column:1/-1;">❌ فشل التحميل</p>';
+    }
+}
+
+async function loadHardestLessons() {
+    const container = document.getElementById('hardest-lessons');
+    if (!container) return;
+    
+    try {
+        const res = await authFetch('/api/admin/analytics/hardest_lessons?limit=10');
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        
+        if (!data.hardest_lessons || data.hardest_lessons.length === 0) {
+            container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا توجد بيانات كافية</p>';
+            return;
+        }
+        
+        var rowsHtml = data.hardest_lessons.map(function(l, i) {
+            var color = l.avg_score_pct < 50 ? '#e74c3c' : l.avg_score_pct < 70 ? '#f39c12' : '#4ade80';
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                '<td style="padding:10px;color:rgba(255,255,255,0.5);">' + (i + 1) + '</td>' +
+                '<td style="padding:10px;color:#fff;">' + esc(l.lesson) + '</td>' +
+                '<td style="padding:10px;text-align:center;color:rgba(255,255,255,0.7);">' + l.attempts + '</td>' +
+                '<td style="padding:10px;text-align:center;color:' + color + ';font-weight:bold;">' + l.avg_score_pct + '%</td>' +
+                '<td style="padding:10px;text-align:center;"><span style="background:' + color + '33;color:' + color + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;">' + l.difficulty_rank + '</span></td>' +
+            '</tr>';
+        }).join('');
+        
+        container.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
+            '<thead><tr style="background:rgba(255,255,255,0.04);">' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">#</th>' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">الدرس</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">المحاولات</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">متوسط الدقة</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">الصعوبة</th>' +
+            '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
+    }
+}
+
+async function loadStrugglingStudents() {
+    const threshold = document.getElementById('struggle-threshold')?.value || 50;
+    const container = document.getElementById('struggling-students');
+    if (!container) return;
+    container.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">⏳ جارٍ التحميل...</p>';
+    
+    try {
+        const res = await authFetch('/api/admin/analytics/struggling_students?threshold=' + threshold);
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        
+        if (!data.struggling_students || data.struggling_students.length === 0) {
+            container.innerHTML = '<p style="color:#4ade80;text-align:center;padding:20px;">✅ لا يوجد طلاب متعثرين بهذا المعيار!</p>';
+            return;
+        }
+        
+        var rowsHtml = data.struggling_students.slice(0, 30).map(function(s) {
+            var sevColor = s.severity === 'حرج' ? '#e74c3c' : s.severity === 'متعثر' ? '#f39c12' : '#fbbf24';
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                '<td style="padding:10px;color:#fff;font-weight:bold;">' + esc(s.full_name) + '</td>' +
+                '<td style="padding:10px;color:rgba(255,255,255,0.6);">' + esc(s.grade) + '</td>' +
+                '<td style="padding:10px;text-align:center;color:' + sevColor + ';font-weight:bold;">' + s.accuracy + '%</td>' +
+                '<td style="padding:10px;text-align:center;color:rgba(255,255,255,0.7);">' + s.tests + '</td>' +
+                '<td style="padding:10px;text-align:center;color:#fcd34d;">' + s.xp.toLocaleString('ar-EG') + '</td>' +
+                '<td style="padding:10px;text-align:center;"><span style="background:' + sevColor + '33;color:' + sevColor + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;">' + s.severity + '</span></td>' +
+            '</tr>';
+        }).join('');
+        
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:12px;">📊 يُعرض ' + data.count + ' طالب يحتاج اهتمام إضافي</p>' +
+            '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
+            '<thead><tr style="background:rgba(231,76,60,0.08);">' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">الاسم</th>' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">الصف</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">الدقة</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">التحديات</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">XP</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">الحالة</th>' +
+            '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
+    }
+}
+
+async function exportStudentsCSV() {
+    if (typeof showToast === 'function') showToast('⏳ جارٍ تحضير الملف...', 'info');
+    try {
+        const res = await authFetch('/api/admin/export/students_csv');
+        if (!res || !res.ok) throw new Error('failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'students_report_' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showToast === 'function') showToast('✅ تم تنزيل الملف', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل التصدير', 'error');
+    }
+}
+
+async function exportResultsCSV(days) {
+    if (typeof showToast === 'function') showToast('⏳ جارٍ تحضير نتائج آخر ' + days + ' يوم...', 'info');
+    try {
+        const res = await authFetch('/api/admin/export/results_csv?days=' + days);
+        if (!res || !res.ok) throw new Error('failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'results_last' + days + 'days_' + new Date().toISOString().slice(0, 10) + '.csv';
+        a.click();
+        URL.revokeObjectURL(url);
+        if (typeof showToast === 'function') showToast('✅ تم تنزيل الملف', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل التصدير', 'error');
+    }
+}
 </script>
 
 </body>
