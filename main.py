@@ -516,14 +516,17 @@ async def admin_login(request: Request, username: str = Form(...), password: str
     raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
 
 @app.post("/api/teacher/register")
-async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...)):
+async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...), email: str=Form(default="")):
     existing = supabase.table("teachers").select("username").eq("username", username).execute()
     if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود مسبقاً")
-    supabase.table("teachers").insert({
+    insert_data = {
         "full_name": full_name, 
         "username": username, 
         "password": hash_password(password)
-    }).execute()
+    }
+    if email.strip():
+        insert_data["email"] = email.strip().lower()[:200]
+    supabase.table("teachers").insert(insert_data).execute()
     return {"status": "success"}
 
 @app.post("/api/teacher/login")

@@ -3471,6 +3471,7 @@
     <div id="register-form" class="access-box" style="display:none;">
         <h2 style="font-family:'Amiri';color:var(--gold);font-size:2rem;margin:0 0 18px;">تسجيل معلم جديد 📜</h2>
         <input type="text"     id="reg-name"   class="auth-input" placeholder="الاسم الكامل">
+        <input type="email"    id="reg-email"  class="auth-input" placeholder="البريد الإلكتروني">
         <input type="text"     id="reg-school" class="auth-input" placeholder="اسم المدرسة">
         <input type="text"     id="reg-user"   class="auth-input" placeholder="اسم المستخدم">
         <input type="password" id="reg-pass"   class="auth-input" placeholder="كلمة المرور">
@@ -6125,12 +6126,15 @@
     }
 
     async function handleRegister() {
-        const name = document.getElementById('reg-name').value.trim();
-        const user = document.getElementById('reg-user').value.trim();
-        const pass = document.getElementById('reg-pass').value;
+        const name  = document.getElementById('reg-name').value.trim();
+        const email = document.getElementById('reg-email').value.trim();
+        const user  = document.getElementById('reg-user').value.trim();
+        const pass  = document.getElementById('reg-pass').value;
         if (!name || !user || !pass) { toast('⚠️ أكمل جميع الحقول', false); return; }
+        if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { toast('⚠️ صيغة البريد الإلكتروني غير صحيحة', false); return; }
         const fd = new FormData();
         fd.append('full_name', name); fd.append('username', user); fd.append('password', pass);
+        if (email) fd.append('email', email);
         try {
             const r = await fetch(`${API_URL}/api/teacher/register`, { method:'POST', body:fd });
             if (r.ok) { toast('✅ تم التسجيل بنجاح — يمكنك الدخول الآن'); toggleAuth(false); }
@@ -6385,7 +6389,7 @@
             summative_eval: document.getElementById('edit-summative').value,
             attachments:    editAttachments,
         };
-        const token = sessionStorage.getItem('adminToken') || '';
+        const token = (teacherData && teacherData.token) ? teacherData.token : (JSON.parse(sessionStorage.getItem('teacherData') || '{}').token || '');
         try {
             const r = await fetch(`${API_URL}/api/admin/preparations`, {
                 method: 'POST',
@@ -6411,7 +6415,7 @@
         const progWrap  = document.getElementById('upload-progress');
         const progFill  = document.getElementById('upload-progress-fill');
         progWrap.style.display = 'block'; progFill.style.width = '10%'; status.textContent = 'جاري الرفع...';
-        const token = sessionStorage.getItem('adminToken') || '';
+        const token = (teacherData && teacherData.token) ? teacherData.token : (JSON.parse(sessionStorage.getItem('teacherData') || '{}').token || '');
         let done = 0;
         for (const file of files) {
             const fd = new FormData(); fd.append('file', file);
