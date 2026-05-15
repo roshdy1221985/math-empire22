@@ -135,7 +135,7 @@
             text-align: center; width: 400px; backdrop-filter: blur(20px); box-shadow: 0 0 50px rgba(212, 175, 55, 0.2);
         }
 
-        #admin-panel { min-height: 100vh; position: relative; z-index: 1; display: flex; }
+        #admin-panel { min-height: 100vh; position: relative; z-index: 1; display: none; }
         
         .sidebar {
             width: 300px;
@@ -1460,6 +1460,203 @@
         body[data-admin-theme="bright-day"] .nav-group-title {
             color: #b8860b !important;
         }
+
+        /* ════════════════════════════════════════════════════════
+           🎨 PREMIUM ADMIN — تأثيرات هادئة على hover فقط
+        ════════════════════════════════════════════════════════ */
+        
+        /* nav-link hover */
+        .nav-group .nav-link {
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-group .nav-link:hover {
+            transform: translateX(-4px) scale(1.02);
+            background: linear-gradient(135deg, rgba(212,175,55,0.12), rgba(255,255,255,0.04)) !important;
+            border-color: rgba(212,175,55,0.4) !important;
+            box-shadow: 0 4px 14px rgba(212,175,55,0.15);
+        }
+        .nav-group .nav-link i {
+            transition: transform 0.3s ease;
+        }
+        .nav-group .nav-link:hover i {
+            transform: scale(1.2) rotate(-6deg);
+            color: var(--gold) !important;
+        }
+        .nav-group .nav-link.active {
+            background: linear-gradient(135deg, rgba(212,175,55,0.2), rgba(212,175,55,0.05)) !important;
+            border-color: rgba(212,175,55,0.5) !important;
+            box-shadow: 0 4px 14px rgba(212,175,55,0.25);
+        }
+        .nav-group .nav-link.active::before {
+            content: '◆';
+            position: absolute;
+            right: 6px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold);
+            font-size: 0.65rem;
+        }
+        
+        /* nav-group hover lift */
+        .nav-group {
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        }
+        .nav-group:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* cards hover lift */
+        .card, .panel {
+            transition: transform 0.3s ease, box-shadow 0.3s ease !important;
+        }
+        .card:hover, .panel:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(0,0,0,0.3), 0 0 0 1px rgba(212,175,55,0.15);
+        }
+        
+        /* buttons shine on hover */
+        button:not(#admin-palette-trigger):not(.nav-link)::before,
+        .btn-gold::before {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+        }
+        button:not(#admin-palette-trigger):not(.nav-link),
+        .btn-gold {
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        button:not(#admin-palette-trigger):not(.nav-link):hover::before,
+        .btn-gold:hover::before {
+            left: 100%;
+        }
+        button:not(#admin-palette-trigger):not(.nav-link):hover,
+        .btn-gold:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* scrollbar gold */
+        * {
+            scrollbar-width: thin;
+            scrollbar-color: rgba(212,175,55,0.4) rgba(255,255,255,0.04);
+        }
+        *::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+        *::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, rgba(212,175,55,0.5), rgba(212,175,55,0.3));
+            border-radius: 10px;
+        }
+        *::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(180deg, rgba(212,175,55,0.8), rgba(212,175,55,0.6));
+        }
+        
+        /* table row hover */
+        table tbody tr {
+            transition: background 0.2s ease;
+        }
+        table tbody tr:hover {
+            background: rgba(212,175,55,0.06) !important;
+        }
+        
+        /* input focus glow */
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(212,175,55,0.2) !important;
+            border-color: rgba(212,175,55,0.5) !important;
+        }
+        
+        /* section h2 underline */
+        .section h2 {
+            position: relative;
+            display: inline-block;
+            padding-bottom: 8px;
+        }
+        .section h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0; right: 0;
+            width: 60px; height: 3px;
+            background: linear-gradient(90deg, var(--gold), transparent);
+            border-radius: 3px;
+        }
+        
+        /* TOPBAR — شريط علوي ذكي */
+        #admin-top-bar {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: linear-gradient(135deg, rgba(4,13,33,0.92), rgba(10,18,40,0.92));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(212,175,55,0.15);
+            padding: 10px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin: -30px -30px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        #admin-top-bar .topbar-left,
+        #admin-top-bar .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        #admin-top-bar .topbar-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 24px;
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.85);
+            transition: all 0.3s;
+        }
+        #admin-top-bar .topbar-item.live {
+            border-color: rgba(74,222,128,0.3);
+            background: rgba(74,222,128,0.06);
+        }
+        #admin-top-bar .topbar-item:hover {
+            background: rgba(212,175,55,0.08);
+            border-color: rgba(212,175,55,0.3);
+        }
+        #admin-top-bar .live-dot {
+            width: 8px; height: 8px;
+            background: #4ade80;
+            border-radius: 50%;
+            box-shadow: 0 0 12px rgba(74,222,128,0.6);
+        }
+        body[data-admin-theme="bright-day"] #admin-top-bar {
+            background: linear-gradient(135deg, rgba(255,255,255,0.85), rgba(245,243,235,0.85)) !important;
+            border-bottom-color: rgba(184,134,11,0.2) !important;
+        }
+        body[data-admin-theme="bright-day"] #admin-top-bar .topbar-item {
+            color: #1a1a3e !important;
+            background: rgba(255,255,255,0.6) !important;
+        }
+        @media (max-width: 768px) {
+            #admin-top-bar {
+                margin: -16px -16px 16px;
+                padding: 8px 14px;
+            }
+            #admin-top-bar .topbar-item {
+                padding: 4px 10px;
+                font-size: 0.72rem;
+            }
+        }
 </style>
 
     <!-- ══════════════════════════════════════════════════════════
@@ -1921,8 +2118,8 @@
     <!-- ── إخفاء لوحة الإدارة فوراً قبل أي رسم (يمنع الوميض) ── -->
     <script>
     const _adminDev = ['localhost','127.0.0.1'].includes(window.location.hostname);
-    const _aLog  = (...x) => { if(_adminDev) _aLog(...x); };
-    const _aWarn = (...x) => { if(_adminDev) _aWarn(...x); };
+    const _aLog  = (...x) => { if(_adminDev) console.log(...x); };
+    const _aWarn = (...x) => { if(_adminDev) console.warn(...x); };
 
         document.addEventListener('DOMContentLoaded', function() {
             var panel = document.getElementById('admin-panel');
@@ -2170,14 +2367,163 @@
         </div>
     </div>
 
-    <div id="login-overlay">
-        <div class="login-box">
-            <h2 style="color:var(--gold); font-family:'Amiri'; font-size: 2.5rem; margin-bottom: 10px;">ديوان المعلم</h2>
-            <p style="color: rgba(255,255,255,0.7);">مرحباً بك يا أستاذ رشدي.. أدخل مفتاح الإمبراطورية</p>
-            <input type="password" id="pass-input" placeholder="كلمة المرور الملكية">
-            <button class="btn-gold" id="login-btn" onclick="checkLogin()">فتح أبواب القلعة 🗝️</button>
+    
+<!-- 🔒 MEGA LOCK — تثبيت كامل لشاشة الدخول -->
+<style>
+html, body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+    max-width: 100vw !important;
+}
+
+#login-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    overflow: hidden !important;
+    background: linear-gradient(135deg, #040d21, #0a1228, #04162e) !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 20px !important;
+    z-index: 9999 !important;
+    box-sizing: border-box !important;
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    will-change: auto !important;
+    contain: strict !important;
+}
+
+#login-overlay::before,
+#login-overlay::after {
+    display: none !important;
+    content: none !important;
+}
+
+#login-overlay *,
+#login-overlay *::before,
+#login-overlay *::after {
+    animation: none !important;
+    -webkit-animation: none !important;
+    transition: none !important;
+    -webkit-transition: none !important;
+    transform: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    filter: none !important;
+    will-change: auto !important;
+    box-sizing: border-box !important;
+}
+
+#login-overlay .login-box {
+    position: relative !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    background: linear-gradient(135deg, #0a1228, #0d1a3a) !important;
+    border: 2px solid rgba(212, 175, 55, 0.5) !important;
+    border-radius: 24px !important;
+    padding: 40px 32px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6) !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+    animation: none !important;
+    transform: none !important;
+}
+
+#login-overlay .admin-star,
+#login-overlay [class*="star"],
+#login-overlay [class*="particle"],
+#login-overlay [class*="twinkle"],
+#login-overlay [class*="shimmer"],
+#login-overlay [class*="aurora"],
+#login-overlay [class*="float"],
+#login-overlay [class*="glow"] {
+    display: none !important;
+}
+
+#login-overlay input {
+    width: 100% !important;
+    padding: 14px 50px 14px 16px !important;
+    background: rgba(0,0,0,0.4) !important;
+    border: 1px solid rgba(212,175,55,0.3) !important;
+    border-radius: 12px !important;
+    color: #fff !important;
+    font-size: 1rem !important;
+    font-family: Cairo, sans-serif !important;
+    transition: border-color 0.15s ease !important;
+}
+#login-overlay input:focus {
+    outline: none !important;
+    border-color: rgba(212,175,55,0.7) !important;
+}
+
+#login-overlay button {
+    transition: background 0.15s ease, opacity 0.15s ease !important;
+}
+
+#login-overlay h2, #login-overlay h2.login-title {
+    color: #d4af37 !important;
+    text-align: center !important;
+    -webkit-text-fill-color: #d4af37 !important;
+    background: none !important;
+    margin: 12px 0 !important;
+}
+
+#login-overlay .login-crown {
+    text-align: center !important;
+    font-size: 4rem !important;
+}
+</style>
+
+    <!-- 🔒 شاشة دخول بسيطة بدون أي animations -->
+    <div id="login-overlay" style="position:fixed!important;inset:0!important;background:#040d21!important;display:flex!important;align-items:center!important;justify-content:center!important;z-index:99999!important;padding:20px!important;animation:none!important;transition:none!important;backdrop-filter:none!important;filter:none!important;overflow:hidden!important;">
+        <div id="login-simple-box" style="width:100%!important;max-width:420px!important;background:#0a1228!important;border:2px solid #d4af37!important;border-radius:20px!important;padding:40px 30px!important;text-align:center!important;box-shadow:0 20px 60px rgba(0,0,0,0.5)!important;animation:none!important;transform:none!important;backdrop-filter:none!important;filter:none!important;">
+            <div style="font-size:3.5rem;margin-bottom:10px;animation:none!important;">👑</div>
+            <h2 style="color:#d4af37;font-family:'Amiri',serif;font-size:1.8rem;margin:0 0 8px;animation:none!important;-webkit-text-fill-color:#d4af37!important;background:none!important;">ديوان المعلم</h2>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin:0 0 24px;">مرحباً بك يا أستاذ رشدي<br>أدخل مفتاح الإمبراطورية</p>
+            <input type="password" id="pass-input" placeholder="كلمة المرور" style="width:100%;padding:13px 16px;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:10px;color:#fff;font-size:1rem;font-family:Cairo,sans-serif;box-sizing:border-box;margin-bottom:14px;outline:none;animation:none!important;" onkeypress="if(event.key==='Enter'){checkLogin();}">
+            <div id="login-error-display" style="display:none;background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#ff7676;padding:10px 14px;border-radius:8px;font-size:0.85rem;margin-bottom:14px;text-align:right;word-break:break-word;"></div>
+            <button id="login-btn" onclick="checkLogin()" style="width:100%;padding:13px;background:linear-gradient(135deg,#d4af37,#b38728);color:#0a1228;border:none;border-radius:10px;font-family:Cairo,sans-serif;font-weight:bold;font-size:1rem;cursor:pointer;animation:none!important;transition:opacity 0.2s;">
+                🗝️ فتح أبواب القلعة
+            </button>
         </div>
     </div>
+    
+    <!-- 🛡️ Inline override - بعد العنصر مباشرة -->
+    <style>
+        /* تعطيل كامل لكل ما هو داخل login-overlay */
+        #login-overlay,
+        #login-overlay *,
+        #login-overlay *::before,
+        #login-overlay *::after {
+            animation: none !important;
+            -webkit-animation: none !important;
+            transition: opacity 0.2s, border-color 0.2s !important;
+            transform: none !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            filter: none !important;
+            will-change: auto !important;
+        }
+        #login-overlay #pass-input:focus {
+            border-color: #d4af37 !important;
+        }
+        #login-overlay #login-btn:hover {
+            opacity: 0.9;
+        }
+        /* نُخفي canvas particles على login */
+        body:has(#login-overlay:not([style*="display: none"])) #particles-js,
+        body:has(#login-overlay:not([style*="display:none"])) #particles-js {
+            display: none !important;
+        }
+    </style>
 
     <div id="admin-panel">
         <aside class="sidebar" id="admin-sidebar">
@@ -2260,6 +2606,32 @@
         </aside>
 
         <main class="main-content">
+            
+            <!-- TOP BAR -->
+            <div id="admin-top-bar">
+                <div class="topbar-left">
+                    <div class="topbar-item live">
+                        <span class="live-dot"></span>
+                        <span>النظام يعمل</span>
+                    </div>
+                    <div class="topbar-item" id="topbar-clock">
+                        <i class="fas fa-clock" style="color:#fcd34d;"></i>
+                        <span id="topbar-time">—</span>
+                    </div>
+                </div>
+                <div class="topbar-right">
+                    <div class="topbar-item" title="الطلاب المتصلين" style="cursor:pointer;" onclick="showSection('monitor')">
+                        <i class="fas fa-users" style="color:#4ade80;"></i>
+                        <span id="topbar-online-count">—</span>
+                        <span style="opacity:0.6;">طالب</span>
+                    </div>
+                    <div class="topbar-item" title="تحديث" style="cursor:pointer;" onclick="if(typeof loadDashboard==='function'){loadDashboard();showToast('🔄 تم التحديث','success',1500);}">
+                        <i class="fas fa-sync-alt" style="color:#bb86fc;"></i>
+                        <span>تحديث</span>
+                    </div>
+                </div>
+            </div>
+
             <header style="margin-bottom: 40px;">
                 <h1 style="color:var(--gold); font-family:'Amiri'; font-size:3rem; margin:0;">أهلاً بك يا أستاذ رشدي سيد</h1>
                 <p style="color: rgba(255,255,255,0.5); font-size: 1rem;"><i class="far fa-calendar-alt"></i> <span id="current-date"></span></p>
@@ -5623,10 +5995,41 @@
     }
 
     function enterEmpire() {
-        document.getElementById('login-overlay').style.display = 'none';
-        document.getElementById('admin-panel').style.display = 'flex';
-        document.getElementById('current-date').innerText = new Date().toLocaleDateString('ar-OM', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-        loadAllData();
+        console.log('[enterEmpire] بدء الدخول للوحة...');
+        
+        // 1. إخفاء شاشة الدخول فوراً
+        const loginEl = document.getElementById('login-overlay');
+        const panelEl = document.getElementById('admin-panel');
+        if (loginEl) {
+            loginEl.setAttribute('style', 'display:none!important');
+            console.log('[enterEmpire] ✅ تم إخفاء شاشة الدخول');
+        }
+        if (panelEl) {
+            panelEl.style.display = 'flex';
+            console.log('[enterEmpire] ✅ تم عرض لوحة الإدارة');
+        }
+        
+        // 2. الجسيمات (لا تكسر لو فشلت)
+        try {
+            if (typeof _startParticlesAfterLogin === 'function') {
+                _startParticlesAfterLogin();
+            }
+        } catch(e) { console.warn('[particles]', e); }
+        
+        // 3. التاريخ
+        try {
+            const dateEl = document.getElementById('current-date');
+            if (dateEl) {
+                dateEl.innerText = new Date().toLocaleDateString('ar-OM', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            }
+        } catch(e) { console.warn('[date]', e); }
+        
+        // 4. loadAllData — مع try/catch (لا تكسر لو فشلت)
+        try {
+            loadAllData().catch(e => console.warn('[loadAllData]', e));
+        } catch(e) { console.warn('[loadAllData sync]', e); }
+        
+        console.log('[enterEmpire] ✅ مكتمل');
     }
 
     function logout() { localStorage.removeItem('adminToken'); window.location.reload(); }
@@ -6715,6 +7118,13 @@
     let particles = [];
 
     function initParticles() {
+        // 🛑 لو login مفتوح، لا ننشئ جسيمات (تجنّب الوميض)
+        var loginEl = document.getElementById('login-overlay');
+        if (loginEl && getComputedStyle(loginEl).display !== 'none') {
+            particles = [];
+            return;
+        }
+        if (!canvas || !ctx) return;
         canvas.width  = window.innerWidth;
         canvas.height = window.innerHeight;
         particles = [];
@@ -6730,6 +7140,15 @@
     }
 
     function animateParticles() {
+        // 🛑 إيقاف الجسيمات لو شاشة الدخول مفتوحة (تسبب وميض)
+        var loginEl = document.getElementById('login-overlay');
+        if (loginEl && loginEl.style.display !== 'none' && getComputedStyle(loginEl).display !== 'none') {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // نُعيد المحاولة بعد ثانية (لو الـ login أُغلق)
+            setTimeout(animateParticles, 1000);
+            return;
+        }
+        
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         particles.forEach(p => {
             p.y -= p.speed;
@@ -7174,30 +7593,105 @@
         fd.append('username', 'admin');
         fd.append('password', pass);
 
-        fetch(`${API_URL}/api/admin/login`, { method: 'POST', body: fd })
+        console.log('[login] 🔐 محاولة الدخول...');
+        console.log('[login] API_URL:', API_URL);
+        
+        // دالة عرض الخطأ في الـ UI
+        function _showLoginError(msg) {
+            console.error('[login] ❌', msg);
+            const errEl = document.getElementById('login-error-display');
+            if (errEl) {
+                errEl.textContent = msg;
+                errEl.style.display = 'block';
+            }
+            if (typeof showToast === 'function') {
+                try { showToast(msg, 'error', 6000); } catch(e) {}
+            }
+        }
+        
+        // إخفاء أي خطأ سابق
+        const prevErr = document.getElementById('login-error-display');
+        if (prevErr) prevErr.style.display = 'none';
+        
+        // ⏰ TIMEOUT - لو الـ fetch تجاوز 15 ثانية، نتوقف
+        const fetchController = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.error('[login] ⏰ TIMEOUT بعد 15 ثانية');
+            fetchController.abort();
+        }, 15000);
+        
+        fetch(`${API_URL}/api/admin/login`, { 
+            method: 'POST', 
+            body: fd,
+            signal: fetchController.signal 
+        })
             .then(res => {
+                clearTimeout(timeoutId);
+                console.log('[login] 📡 استجابة:', res.status, res.statusText);
                 if (res.ok) {
                     loginAttempts = 0;
                     return res.json().then(data => {
+                        console.log('[login] ✅ نجح الدخول، token:', data.access_token ? 'موجود' : 'مفقود');
+                        if (!data.access_token) {
+                            _showLoginError('❌ الخادم لم يرسل token صحيح');
+                            return;
+                        }
                         localStorage.setItem('adminToken', data.access_token);
-                        enterEmpire();
-                        startSessionGuard();
+                        console.log('[login] ✅ token محفوظ');
+                        
+                        // 🎯 الخطوة الأهم: نُخفي شاشة الدخول فوراً (لا انتظار)
+                        const loginEl = document.getElementById('login-overlay');
+                        const panelEl = document.getElementById('admin-panel');
+                        if (loginEl) loginEl.setAttribute('style', 'display:none!important');
+                        if (panelEl) panelEl.style.display = 'flex';
+                        console.log('[login] ✅ شاشة الدخول مخفية');
+                        
+                        // الباقي في background — لا توقف الدخول لو فشل أي منها
+                        setTimeout(() => {
+                            try {
+                                if (typeof enterEmpire === 'function') enterEmpire();
+                            } catch(e) { console.warn('[enterEmpire]', e); }
+                            try {
+                                if (typeof startSessionGuard === 'function') startSessionGuard();
+                            } catch(e) { console.warn('[sessionGuard]', e); }
+                        }, 100);
+                    }).catch(jerr => {
+                        console.error('[login] خطأ في JSON:', jerr);
+                        _showLoginError('❌ الخادم أعاد بيانات غير صحيحة');
                     });
                 } else {
-                    loginAttempts++;
-                    const rem = MAX_LOGIN_ATTEMPTS - loginAttempts;
-                    if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
-                        lockoutUntil = Date.now() + LOCKOUT_DURATION;
-                        showToast('🔒 تم إغلاق الحساب 15 دقيقة بعد محاولات متكررة', 'error', 8000);
-                    } else {
-                        showToast(`❌ مفتاح خاطئ — تبقّى ${rem} محاولة`, 'error');
-                    }
+                    return res.text().then(txt => {
+                        console.log('[login] فشل:', res.status, 'النص:', txt.substring(0, 200));
+                        loginAttempts++;
+                        const rem = MAX_LOGIN_ATTEMPTS - loginAttempts;
+                        if (loginAttempts >= MAX_LOGIN_ATTEMPTS) {
+                            lockoutUntil = Date.now() + LOCKOUT_DURATION;
+                            _showLoginError('🔒 الحساب مُقفل 15 دقيقة بعد محاولات متكررة');
+                        } else if (res.status === 401) {
+                            _showLoginError(`❌ كلمة المرور خاطئة — تبقّى ${rem} محاولة`);
+                        } else if (res.status === 422) {
+                            _showLoginError('❌ صيغة الطلب غير صحيحة (422)');
+                        } else if (res.status === 500) {
+                            _showLoginError('❌ خطأ داخلي في الخادم (500): ' + txt.substring(0, 100));
+                        } else {
+                            _showLoginError(`❌ خطأ من الخادم (${res.status}): ${txt.substring(0, 100)}`);
+                        }
+                    });
                 }
             })
-            .catch(() => showToast('❌ خطأ في الاتصال', 'error'))
+            .catch(err => {
+                clearTimeout(timeoutId);
+                console.error('[login] استثناء الشبكة:', err);
+                if (err.name === 'AbortError') {
+                    _showLoginError('⏰ انتهت المهلة (15 ثانية) — الخادم لا يستجيب');
+                } else {
+                    _showLoginError('❌ خطأ في الاتصال: ' + (err.message || 'غير معروف'));
+                }
+            })
             .finally(() => {
+                clearTimeout(timeoutId);
                 btn.disabled = false;
-                btn.innerHTML = 'فتح أبواب القلعة 🗝️';
+                btn.innerHTML = '🗝️ فتح أبواب القلعة';
             });
     }
 
@@ -8209,17 +8703,29 @@
         showToast('🗑️ تم مسح الأكواد المستخدمة', 'info');
     }
 
+    // 🛑 تشغيل الجسيمات فقط بعد الدخول الفعلي (تجنّب الوميض)
+    function _startParticlesAfterLogin() {
+        try {
+            initParticles();
+            animateParticles();
+        } catch(e) { console.warn('[particles]', e); }
+    }
+    
     window.onload = () => {
-        initParticles();
-        animateParticles();
-        if(localStorage.getItem('adminToken')) {
+        const hasToken = !!localStorage.getItem('adminToken');
+        
+        if (hasToken) {
+            // المستخدم مسجّل دخول — نُشغّل الجسيمات + ندخل
+            _startParticlesAfterLogin();
             enterEmpire();
             startSessionGuard();
         }
-        // ربط زر الدخول بالدالة الآمنة
+        // لو لا token → لا تُشغّل الجسيمات أبداً (شاشة دخول هادئة)
+        
+        // ربط زر الدخول
         const loginBtn = document.getElementById('login-btn');
         if (loginBtn) { loginBtn.onclick = checkLoginSafe; }
-        // دعم Enter في حقل كلمة المرور
+        // دعم Enter
         const passInput = document.getElementById('pass-input');
         if (passInput) { passInput.addEventListener('keydown', e => { if(e.key === 'Enter') checkLoginSafe(); }); }
     };
@@ -12928,8 +13434,8 @@
     /* ════════════════════════════════════════════════════════════
        💾 EXPORT TABLES — التصدير
     ════════════════════════════════════════════════════════════ */
-    async function exportTable(tableName) {
-        var card = event?.currentTarget;
+    async function exportTable(tableName, evt) {
+        var card = (evt && evt.currentTarget) || (typeof event !== 'undefined' && event && event.currentTarget);
         var origHtml = card?.innerHTML;
         if (card) card.innerHTML = '<div style="font-size:2.4rem;margin-bottom:8px;">⏳</div><div style="font-weight:bold;">جارٍ التصدير...</div>';
         
@@ -15263,6 +15769,98 @@ async function exportResultsCSV(days) {
         if (typeof showToast === 'function') showToast('❌ فشل التصدير', 'error');
     }
 }
+</script>
+
+
+<script>
+// TOP BAR LIVE
+(function() {
+    function updateClock() {
+        var now = new Date();
+        var h = now.getHours().toString().padStart(2, '0');
+        var m = now.getMinutes().toString().padStart(2, '0');
+        var s = now.getSeconds().toString().padStart(2, '0');
+        var el = document.getElementById('topbar-time');
+        if (el) el.textContent = h + ':' + m + ':' + s;
+    }
+    async function updateOnlineCount() {
+        // 🛡️ لا نُحدّث لو المستخدم لم يسجل دخوله بعد
+        if (!localStorage.getItem('adminToken')) return;
+        // 🛡️ لا نُحدّث لو شاشة الدخول مفتوحة
+        var loginEl = document.getElementById('login-overlay');
+        if (loginEl && getComputedStyle(loginEl).display !== 'none') return;
+        
+        try {
+            // نستخدم fetch مباشر بدون authFetch (لتجنّب redirect عند 401)
+            var token = localStorage.getItem('adminToken');
+            var res = await fetch('/api/admin/monitor/active', {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            if (res && res.ok) {
+                var data = await res.json();
+                var count = (data.active_students || data.online_count || (Array.isArray(data) ? data.length : 0)) || 0;
+                var el = document.getElementById('topbar-online-count');
+                if (el) el.textContent = count.toLocaleString('ar-EG');
+            }
+        } catch(e) {}
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        updateClock();
+        setInterval(updateClock, 1000);
+        // 🛡️ نُحدّث عدد المتصلين فقط بعد الدخول (مع تأخير)
+        setTimeout(updateOnlineCount, 2000);
+        setInterval(updateOnlineCount, 30000);
+    });
+})();
+</script>
+
+
+<!-- 🛑 إيقاف الجسيمات على شاشة الدخول -->
+<style>
+    /* عندما يكون login-overlay ظاهراً، نُخفي canvas */
+    #login-overlay:not([style*="display: none"]) ~ #particles-js,
+    body:has(#login-overlay:not([style*="display:none"])) #particles-js {
+        display: none !important;
+    }
+</style>
+
+
+<script>
+// 🛑 إيقاف الجسيمات على شاشة الدخول
+(function() {
+    function hideParticlesIfLogin() {
+        var login = document.getElementById('login-overlay');
+        var particles = document.getElementById('particles-js');
+        if (!login || !particles) return;
+        
+        var loginVisible = login.style.display !== 'none' && 
+                          getComputedStyle(login).display !== 'none';
+        
+        if (loginVisible) {
+            // نُخفي الـ canvas تماماً
+            particles.style.display = 'none';
+            particles.style.visibility = 'hidden';
+        } else {
+            particles.style.display = '';
+            particles.style.visibility = '';
+        }
+    }
+    
+    // نُشغّلها فوراً
+    if (document.readyState !== 'loading') {
+        hideParticlesIfLogin();
+    } else {
+        document.addEventListener('DOMContentLoaded', hideParticlesIfLogin);
+    }
+    
+    // نراقب أي تغيير في login-overlay
+    setTimeout(function() {
+        var login = document.getElementById('login-overlay');
+        if (!login) return;
+        var observer = new MutationObserver(hideParticlesIfLogin);
+        observer.observe(login, { attributes: true, attributeFilter: ['style'] });
+    }, 100);
+})();
 </script>
 
 </body>

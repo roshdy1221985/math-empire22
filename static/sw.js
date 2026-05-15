@@ -1,41 +1,44 @@
-// 📡 Service Worker — إمبراطورية الرياضيات
-// يجمع: Offline Caching + Push Notifications
+// ════════════════════════════════════════════════════════════
+// 📡 Service Worker — إمبراطورية الرياضيات v4
+// PWA + Push Notifications + Smart Caching
+// ════════════════════════════════════════════════════════════
 
-const cacheName = 'royal-math-v3'; // تحديث الإصدار لتفعيل النسخة الجديدة
-const staticAssets = [
-  '/',
-  '/student',
-  '/parent',
-  '/manifest.json',
-  '/static/staticcss/style.css',
-  '/static/staticjs/script.js',
-  '/static/teacher.jpg'
+const CACHE_VERSION = 'royal-math-v4';
+const CACHE_NAME = `royal-math-cache-${CACHE_VERSION}`;
+
+// ملفات أساسية فقط (نتجاهل الأخطاء)
+const ESSENTIAL_ASSETS = [
+    '/manifest.json',
+    '/static/logo.jpg'
 ];
 
 // ════════════════════════════════════════════════════════════
-// 1️⃣ التثبيت: تخزين الملفات الأساسية للعمل بدون إنترنت
+// 1️⃣ التثبيت
 // ════════════════════════════════════════════════════════════
-self.addEventListener('install', async (e) => {
-    const cache = await caches.open(cacheName);
-    // نتجاهل الأخطاء لكل ملف بشكل منفصل (لو ملف غير موجود، لا يفشل التثبيت)
-    await Promise.all(
-        staticAssets.map(url =>
-            cache.add(url).catch(err => console.warn('[sw] فشل تخزين:', url, err))
-        )
+self.addEventListener('install', (event) => {
+    event.waitUntil(
+        caches.open(CACHE_NAME)
+            .then((cache) => {
+                // نُضيف ملف بملف لتجنب فشل الكل
+                return Promise.allSettled(
+                    ESSENTIAL_ASSETS.map(url => cache.add(url).catch(() => {}))
+                );
+            })
+            .then(() => self.skipWaiting())
     );
-    return self.skipWaiting();
 });
 
 // ════════════════════════════════════════════════════════════
-// 2️⃣ التفعيل: تنظيف الكاش القديم
+// 2️⃣ التفعيل
 // ════════════════════════════════════════════════════════════
-self.addEventListener('activate', (e) => {
-    e.waitUntil(
+self.addEventListener('activate', (event) => {
+    event.waitUntil(
         Promise.all([
-            caches.keys().then(keys =>
-                Promise.all(keys.map(key => {
-                    if (key !== cacheName) return caches.delete(key);
-                }))
+            caches.keys().then((keys) =>
+                Promise.all(
+                    keys.filter(k => k.startsWith('royal-math-') && k !== CACHE_NAME)
+                        .map(k => caches.delete(k))
+                )
             ),
             self.clients.claim()
         ])
@@ -43,21 +46,45 @@ self.addEventListener('activate', (e) => {
 });
 
 // ════════════════════════════════════════════════════════════
-// 3️⃣ استراتيجية fetch: Network-first مع fallback للكاش
+// 3️⃣ Fetch — Network First (لتحديثات سريعة)
 // ════════════════════════════════════════════════════════════
-self.addEventListener('fetch', (e) => {
-    // تخطّى طلبات API و POST (لا نخزّنها)
-    if (e.request.method !== 'GET') return;
-    if (e.request.url.includes('/api/')) return;
+self.addEventListener('fetch', (event) => {
+    if (event.request.method !== 'GET') return;
     
-    e.respondWith(
-        fetch(e.request).catch(() => caches.match(e.request))
+    const url = new URL(event.request.url);
+    
+    // 🛑 تجاهل كل الطلبات الخارجية (CDNs, fonts, etc.) - تركها للمتصفح
+    if (url.origin !== self.location.origin) return;
+    
+    // تجاهل API و Supabase
+    if (url.pathname.startsWith('/api/') || url.hostname.includes('supabase')) return;
+    
+    event.respondWith(
+        fetch(event.request)
+            .then((response) => {
+                // خزّن النسخة الحديثة
+                if (response.ok && url.origin === self.location.origin) {
+                    const clone = response.clone();
+                    caches.open(CACHE_NAME).then(c => 
+                        c.put(event.request, clone).catch(() => {})
+                    );
+                }
+                return response;
+            })
+            .catch(() => {
+                // fallback من cache
+                return caches.match(event.request).then((cached) => {
+                    if (cached) return cached;
+                    if (event.request.mode === 'navigate') {
+                        return caches.match('/');
+                    }
+                });
+            })
     );
 });
 
 // ════════════════════════════════════════════════════════════
-// 4️⃣ 📬 استقبال Push Notifications من الخادم
-// تظهر الإشعارات على شاشة الجهاز حتى لو كان التطبيق مغلقاً
+// 4️⃣ Push Notifications
 // ════════════════════════════════════════════════════════════
 self.addEventListener('push', (event) => {
     let data = {};
@@ -73,8 +100,8 @@ self.addEventListener('push', (event) => {
     const title = data.title || '📚 إمبراطورية الرياضيات';
     const options = {
         body: data.body || 'لديك تحديث جديد!',
-        icon: data.icon || '/static/teacher.jpg',
-        badge: data.badge || '/static/teacher.jpg',
+        icon: data.icon || '/static/logo.jpg',
+        badge: data.badge || '/static/logo.jpg',
         image: data.image,
         tag: data.tag || 'math-empire-notif',
         requireInteraction: data.requireInteraction || false,
@@ -98,25 +125,22 @@ self.addEventListener('push', (event) => {
 });
 
 // ════════════════════════════════════════════════════════════
-// 5️⃣ 🖱️ معالجة النقر على الإشعار
+// 5️⃣ Notification Click
 // ════════════════════════════════════════════════════════════
 self.addEventListener('notificationclick', (event) => {
     event.notification.close();
-    
     if (event.action === 'close') return;
     
-    const targetUrl = event.notification.data?.url || '/student';
+    const targetUrl = (event.notification.data && event.notification.data.url) || '/student';
     
     event.waitUntil(
         self.clients.matchAll({ type: 'window', includeUncontrolled: true })
             .then((clients) => {
-                // إن كانت نافذة مفتوحة، ركّز عليها
                 for (const client of clients) {
                     if (client.url.includes('/student') && 'focus' in client) {
                         return client.focus();
                     }
                 }
-                // وإلا افتح نافذة جديدة
                 if (self.clients.openWindow) {
                     return self.clients.openWindow(targetUrl);
                 }
@@ -125,7 +149,7 @@ self.addEventListener('notificationclick', (event) => {
 });
 
 // ════════════════════════════════════════════════════════════
-// 6️⃣ 🔄 تحديث الاشتراك تلقائياً إن انتهى
+// 6️⃣ Push Subscription Refresh
 // ════════════════════════════════════════════════════════════
 self.addEventListener('pushsubscriptionchange', (event) => {
     event.waitUntil(
@@ -136,6 +160,15 @@ self.addEventListener('pushsubscriptionchange', (event) => {
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ subscription: newSub })
                 });
-            })
+            }).catch(() => {})
     );
+});
+
+// ════════════════════════════════════════════════════════════
+// 7️⃣ Message handler (للتحديث)
+// ════════════════════════════════════════════════════════════
+self.addEventListener('message', (event) => {
+    if (event.data && event.data.type === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
 });

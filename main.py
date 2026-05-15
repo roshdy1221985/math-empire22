@@ -208,6 +208,12 @@ async def security_headers(request: Request, call_next):
             "https://*.supabase.co "
             "https://generativelanguage.googleapis.com "
             "https://api.x.ai "
+            "https://fonts.googleapis.com "
+            "https://fonts.gstatic.com "
+            "https://cdnjs.cloudflare.com "
+            "https://cdn.jsdelivr.net "
+            "https://unpkg.com "
+            "https://www.gstatic.com "
             "wss: ws:",
         "frame-ancestors 'self'",
         "base-uri 'self'",
@@ -450,12 +456,17 @@ async def get_sitemap():
     
     xml_content = (
         '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" '
+        'xmlns:image="http://www.google.com/schemas/sitemap-image/0.9">\n'
         f'  <url>\n'
         f'    <loc>{base_url}/</loc>\n'
         f'    <lastmod>{today}</lastmod>\n'
         f'    <changefreq>weekly</changefreq>\n'
         f'    <priority>1.0</priority>\n'
+        f'    <image:image>\n'
+        f'      <image:loc>{base_url}/static/logo.jpg</image:loc>\n'
+        f'      <image:title>إمبراطورية الرياضيات الملكية</image:title>\n'
+        f'    </image:image>\n'
         f'  </url>\n'
         f'  <url>\n'
         f'    <loc>{base_url}/student</loc>\n'
@@ -516,17 +527,14 @@ async def admin_login(request: Request, username: str = Form(...), password: str
     raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
 
 @app.post("/api/teacher/register")
-async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...), email: str=Form(default="")):
+async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...)):
     existing = supabase.table("teachers").select("username").eq("username", username).execute()
     if existing.data: raise HTTPException(status_code=400, detail="المستخدم موجود مسبقاً")
-    insert_data = {
+    supabase.table("teachers").insert({
         "full_name": full_name, 
         "username": username, 
         "password": hash_password(password)
-    }
-    if email.strip():
-        insert_data["email"] = email.strip().lower()[:200]
-    supabase.table("teachers").insert(insert_data).execute()
+    }).execute()
     return {"status": "success"}
 
 @app.post("/api/teacher/login")
