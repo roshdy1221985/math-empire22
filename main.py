@@ -9,6 +9,8 @@ from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, UploadFile, File, Form, Request, Depends, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import FileResponse, JSONResponse
@@ -354,6 +356,64 @@ _ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
     "http://localhost:8001,http://127.0.0.1:8001"
 ).split(",") if o.strip()]
 
+
+# ════════════════════════════════════════════════════════════
+# 🛡️ SECURITY MIDDLEWARE — حماية متعددة الطبقات
+# ════════════════════════════════════════════════════════════
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """يُضيف security headers لكل response"""
+    async def dispatch(self, request: Request, call_next):
+        response = await call_next(request)
+        # HSTS: يُجبر HTTPS لمدة سنة كاملة (production فقط)
+        if os.getenv("ENV", "production").lower() == "production":
+            response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains; preload"
+        # منع التضمين في iframes (clickjacking)
+        response.headers["X-Frame-Options"] = "SAMEORIGIN"
+        # منع MIME sniffing
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        # سياسة المُحيل (لا نُسرّب URLs لمواقع خارجية)
+        response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+        # منع تتبع المتصفحات
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        # XSS Protection للمتصفحات القديمة
+        response.headers["X-XSS-Protection"] = "1; mode=block"
+        return response
+
+
+class HTTPSRedirectInProduction(BaseHTTPMiddleware):
+    """يُحوّل HTTP → HTTPS في الإنتاج فقط"""
+    async def dispatch(self, request: Request, call_next):
+        if os.getenv("ENV", "production").lower() == "production":
+            # نتحقق من X-Forwarded-Proto (لأن Render يُمرّر HTTPS عبر proxy)
+            proto = request.headers.get("x-forwarded-proto", "").lower()
+            if proto == "http":
+                # نُعيد التوجيه لـ HTTPS
+                url = str(request.url).replace("http://", "https://", 1)
+                from fastapi.responses import RedirectResponse
+                return RedirectResponse(url=url, status_code=301)
+        return await call_next(request)
+
+# نُضيف الـ middlewares (الترتيب مهم: من الخارج للداخل)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(HTTPSRedirectInProduction)
+
+# Trusted Hosts — يمنع Host Header Injection
+_TRUSTED_HOSTS = [
+    "math-empire22.onrender.com",
+    "*.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+# نُضيف custom domains من env إن وُجدت
+_extra_hosts = os.getenv("TRUSTED_HOSTS", "").split(",")
+_TRUSTED_HOSTS.extend([h.strip() for h in _extra_hosts if h.strip()])
+
+app.add_middleware(
+    TrustedHostMiddleware,
+    allowed_hosts=_TRUSTED_HOSTS
+)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=_ALLOWED_ORIGINS,
@@ -369,6 +429,90 @@ for folder in ["static", "templates"]:
 
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+
+# ════════════════════════════════════════════════════════════
+# 🔐 PROGRESSIVE LOCKOUT — قفل متدرج للحسابات
+# ════════════════════════════════════════════════════════════
+# يحفظ في الذاكرة (للسرعة) - يُمكن نقله لـ Redis لاحقاً
+_login_attempts = {}  # {key: {"count": int, "first": ts, "locked_until": ts}}
+
+def _get_lockout_duration(attempts: int) -> int:
+    """يُرجع مدة القفل بالثواني حسب عدد المحاولات الفاشلة"""
+    if attempts < 3:   return 0          # لا قفل
+    if attempts < 5:   return 60         # دقيقة
+    if attempts < 10:  return 300        # 5 دقائق
+    if attempts < 15:  return 3600       # ساعة
+    if attempts < 20:  return 21600      # 6 ساعات
+    return 86400                          # 24 ساعة
+
+def check_progressive_lockout(key: str) -> tuple:
+    """يتحقق من حالة القفل. يُرجع (مقفول؟, ثواني متبقية)"""
+    import time as _time
+    now = _time.time()
+    rec = _login_attempts.get(key)
+    if not rec:
+        return False, 0
+    # نُزيل السجلات القديمة (أكثر من 24 ساعة)
+    if now - rec.get("first", 0) > 86400:
+        _login_attempts.pop(key, None)
+        return False, 0
+    # هل ما زال مقفولاً؟
+    locked_until = rec.get("locked_until", 0)
+    if locked_until > now:
+        return True, int(locked_until - now)
+    return False, 0
+
+def record_login_failure(key: str):
+    """يُسجّل محاولة فاشلة + يحسب القفل"""
+    import time as _time
+    now = _time.time()
+    rec = _login_attempts.get(key, {"count": 0, "first": now})
+    rec["count"] += 1
+    rec["last"] = now
+    duration = _get_lockout_duration(rec["count"])
+    if duration > 0:
+        rec["locked_until"] = now + duration
+    _login_attempts[key] = rec
+    return rec["count"], duration
+
+def record_login_success(key: str):
+    """يُزيل السجل عند نجاح الدخول"""
+    _login_attempts.pop(key, None)
+
+def cleanup_old_attempts():
+    """تنظيف دوري - يحذف السجلات الأقدم من 24 ساعة"""
+    import time as _time
+    now = _time.time()
+    to_remove = [k for k, v in _login_attempts.items() if now - v.get("first", 0) > 86400]
+    for k in to_remove:
+        _login_attempts.pop(k, None)
+
+
+# ════════════════════════════════════════════════════════════
+# 📝 AUDIT LOG — سجل التدقيق للعمليات الأمنية
+# ════════════════════════════════════════════════════════════
+def security_log(event: str, ip: str, details: dict = None):
+    """يُسجّل عمليات أمنية حساسة"""
+    try:
+        from datetime import datetime, timezone
+        log_entry = {
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "event": event,
+            "ip": ip,
+            "details": details or {}
+        }
+        # طباعة في console (يلتقطها Render Logs)
+        print(f"[SECURITY] {log_entry}", flush=True)
+        # محاولة الحفظ في DB (لو الجدول موجود)
+        try:
+            supabase.table("security_log").insert(log_entry).execute()
+        except Exception:
+            pass  # الجدول غير موجود - نكتفي بـ console
+    except Exception as e:
+        print(f"[SECURITY LOG ERROR] {e}", flush=True)
+
+
 
 async def get_current_admin(request: Request):
     auth_header = request.headers.get("Authorization")
@@ -517,14 +661,53 @@ async def get_sw(): return FileResponse(os.path.join(BASE_DIR, "static", "sw.js"
 # ==========================================
 @app.post("/api/admin/login")
 async def admin_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Rate limit: 5 محاولات/دقيقة لكل IP
+    """🔐 تسجيل دخول الأدمن مع حماية شاملة"""
     client_ip = request.client.host if request.client else "unknown"
-    if _is_rate_limited(client_ip, max_calls=5, window_seconds=60):
-        raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات المسموحة — انتظر دقيقة")
-    if username == os.getenv("ADMIN_USERNAME", "admin") and password == ADMIN_PASSWORD:
+    lockout_key = f"admin:{client_ip}"
+    
+    # 1️⃣ تحقق من القفل المتدرج
+    is_locked, seconds_left = check_progressive_lockout(lockout_key)
+    if is_locked:
+        minutes = max(1, seconds_left // 60)
+        security_log("admin_login_blocked", client_ip, {"reason": "lockout", "seconds_left": seconds_left})
+        raise HTTPException(
+            status_code=429,
+            detail=f"🔒 الحساب مقفول مؤقتاً — حاول بعد {minutes} دقيقة"
+        )
+    
+    # 2️⃣ rate limit بسيط للهجمات السريعة
+    if _is_rate_limited(client_ip, max_calls=10, window_seconds=60):
+        security_log("admin_login_rate_limited", client_ip)
+        raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات — انتظر دقيقة")
+    
+    # 3️⃣ التحقق من البيانات
+    expected_user = os.getenv("ADMIN_USERNAME", "admin")
+    if username == expected_user and password == ADMIN_PASSWORD:
+        # نجح الدخول
+        record_login_success(lockout_key)
         token = create_access_token(data={"sub": username})
+        security_log("admin_login_success", client_ip, {"username": username})
         return {"access_token": token, "token_type": "bearer"}
-    raise HTTPException(status_code=401, detail="بيانات دخول المعلم خاطئة")
+    
+    # 4️⃣ فشل الدخول — نُسجّل المحاولة
+    count, duration = record_login_failure(lockout_key)
+    security_log("admin_login_failed", client_ip, {
+        "username": username,
+        "attempts": count,
+        "lockout_seconds": duration
+    })
+    
+    if duration > 0:
+        minutes = max(1, duration // 60)
+        raise HTTPException(
+            status_code=401,
+            detail=f"❌ بيانات خاطئة — تم قفل المحاولات لمدة {minutes} دقيقة"
+        )
+    
+    remaining = max(0, 3 - count)
+    if remaining > 0:
+        raise HTTPException(status_code=401, detail=f"❌ بيانات خاطئة — تبقّى {remaining} محاولات قبل القفل")
+    raise HTTPException(status_code=401, detail="❌ بيانات دخول المعلم خاطئة")
 
 @app.post("/api/teacher/register")
 async def register_teacher(full_name: str=Form(...), username: str=Form(...), password: str=Form(...)):
@@ -539,8 +722,17 @@ async def register_teacher(full_name: str=Form(...), username: str=Form(...), pa
 
 @app.post("/api/teacher/login")
 async def teacher_login(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Rate limiting (كما في admin/student login)
+    """🔐 تسجيل دخول معلم مع حماية متدرجة"""
     ip = request.client.host if request.client else "unknown"
+    lockout_key = f"teacher:{username}:{ip}"
+    
+    # القفل المتدرج
+    is_locked, seconds_left = check_progressive_lockout(lockout_key)
+    if is_locked:
+        minutes = max(1, seconds_left // 60)
+        security_log("teacher_login_blocked", ip, {"username": username})
+        raise HTTPException(status_code=429, detail=f"🔒 الحساب مقفول مؤقتاً — حاول بعد {minutes} دقيقة")
+    
     if _is_rate_limited(f"teacher_login:{ip}", max_calls=10, window_seconds=60):
         raise HTTPException(status_code=429, detail="محاولات كثيرة — انتظر دقيقة")
 
@@ -650,10 +842,21 @@ def get_current_student(request: Request):
 
 @app.post("/api/student/login")
 async def login_student(request: Request, username: str = Form(...), password: str = Form(...)):
-    # Rate limit: 10 محاولات/دقيقة لكل IP
+    """🔐 تسجيل دخول الطالب مع حماية متدرجة"""
     client_ip = request.client.host if request.client else "unknown"
+    lockout_key = f"student:{username}:{client_ip}"
+    
+    # القفل المتدرج
+    is_locked, seconds_left = check_progressive_lockout(lockout_key)
+    if is_locked:
+        minutes = max(1, seconds_left // 60)
+        security_log("student_login_blocked", client_ip, {"username": username})
+        raise HTTPException(status_code=429, detail=f"🔒 الحساب مقفول مؤقتاً — حاول بعد {minutes} دقيقة")
+    
+    # Rate limit
     if _is_rate_limited(client_ip, max_calls=10, window_seconds=60):
         raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات المسموحة — انتظر دقيقة")
+    
     res = supabase.table("students").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
         user = res.data[0]
@@ -4244,6 +4447,144 @@ AI_SYSTEM_PROMPT = """أنت مساعد رياضيات ذكي للطلاب في 
 7. لا تتجاوز 200 كلمة في الإجابة
 8. لا تتحدث عن نفسك إلا لو سُئلت
 """
+
+
+
+# ════════════════════════════════════════════════════════════
+# 🤖 AI VISUAL GENERATOR — توليد أشكال بصرية بالذكاء الاصطناعي
+# ════════════════════════════════════════════════════════════
+@app.post("/api/admin/ai/generate_visual")
+async def ai_generate_visual(
+    description: str = Form(...),
+    admin = Depends(get_current_admin)
+):
+    """🤖 يحوّل وصفاً عربياً لإعدادات شكل بصري (JSON)"""
+    description = (description or "").strip()
+    if not description:
+        raise HTTPException(status_code=400, detail="الوصف فارغ")
+    if len(description) > 500:
+        raise HTTPException(status_code=400, detail="الوصف طويل جداً")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="الذكاء الاصطناعي غير مفعّل")
+    
+    # System prompt - يُعطي قواعد دقيقة لـ Gemini
+    system_prompt = """أنت مساعد ذكي لمعلم رياضيات. مهمتك تحويل وصف عربي لشكل رياضي إلى JSON بإعدادات الشكل.
+
+الأشكال المتاحة (tool): triangle, rectangle, circle, circle-sector, number-line, bar-chart, pie-chart, grid, fraction-bar, cube, cuboid, pyramid-3, pyramid-4, pyramid-5, pyramid-6, pyramid-8, cylinder, cone, prism-tri, polygon, angle, venn, vector, box-plot, scatter
+
+الحقول لكل شكل:
+- triangle: {tri_type: "right|equilateral|isosceles|scalene", tri_a, tri_b, tri_c}
+- rectangle: {rect_w, rect_h, rect_color}
+- circle: {circle_r, circle_color}
+- circle-sector: {sec_angle, sec_r, sec_color}
+- number-line: {nl_min, nl_max, nl_points (نص مفصول بفاصلة), nl_color}
+- bar-chart: {bar_data (مثال: "أحمد:25,سارة:30,محمد:18"), bar_color, bar_title}
+- pie-chart: {pie_data (مثال: "تفاح:40,موز:30,برتقال:30"), pie_title}
+- grid: {grid_cols, grid_rows}
+- fraction-bar: {frac_denom, frac_num, frac_color}
+- cube: {cube_side, cube_color}
+- cuboid: {cb_l, cb_w, cb_h, cb_color}
+- pyramid-X: {py_base, py_height, py_color}
+- cylinder: {cyl_r, cyl_h, cyl_color}
+- cone: {cone_r, cone_h, cone_color}
+- prism-tri: {pr_base, pr_len, pr_color}
+- polygon: {poly_sides, poly_side, poly_color}
+- angle: {ang_deg, ang_label, ang_color}
+- venn: {venn_count (2 أو 3), venn_a, venn_b, venn_c, venn_shade (true/false)}
+- vector: {vec_name, vec_x, vec_y, vec_color}
+- box-plot: {box_data, box_title, box_color}
+- scatter: {sc_data (مثال: "1,2; 3,5; 4,4"), sc_title, sc_trend (true/false), sc_color}
+
+الألوان: استخدم hex مثل #3498db (أزرق)، #e74c3c (أحمر)، #2ecc71 (أخضر)، #f39c12 (برتقالي)، #9b59b6 (بنفسجي)
+
+أرجِع JSON فقط، بدون أي شرح أو نص آخر، بالتنسيق:
+{"tool": "اسم الأداة", "settings": {...الحقول...}}
+
+أمثلة:
+الوصف: "مكعب طول ضلعه 5"
+الرد: {"tool":"cube","settings":{"cube_side":5,"cube_color":"#3498db"}}
+
+الوصف: "مثلث قائم الأضلاع 3 و 4 و 5"
+الرد: {"tool":"triangle","settings":{"tri_type":"right","tri_a":3,"tri_b":4,"tri_c":5}}
+
+الوصف: "رسم بياني لدرجات أحمد 90 وسارة 85 ومحمد 70"
+الرد: {"tool":"bar-chart","settings":{"bar_data":"أحمد:90,سارة:85,محمد:70","bar_color":"#3498db","bar_title":"الدرجات"}}
+
+الوصف: "زاوية 45 درجة"
+الرد: {"tool":"angle","settings":{"ang_deg":45,"ang_label":"θ","ang_color":"#a855f7"}}
+"""
+    
+    full_prompt = system_prompt + f"\n\nالوصف: \"{description}\"\nالرد:"
+    
+    import httpx, json as _json
+    try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": full_prompt}]}],
+            "generationConfig": {
+                "temperature": 0.3,  # دقة عالية للJSON
+                "maxOutputTokens": 400,
+                "topP": 0.9,
+                "responseMimeType": "application/json"
+            }
+        }
+        
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.post(url, json=payload)
+            
+            # fallback لو الأساسي فشل
+            if r.status_code in (404, 429):
+                fallback_url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-lite:generateContent?key={api_key}"
+                r = await client.post(fallback_url, json=payload)
+            
+            r.raise_for_status()
+            data = r.json()
+            
+            # استخراج النص
+            candidates = data.get("candidates", [])
+            if not candidates:
+                raise HTTPException(status_code=500, detail="لم يُرجع الذكاء أي نتيجة")
+            
+            parts = candidates[0].get("content", {}).get("parts", [])
+            if not parts:
+                raise HTTPException(status_code=500, detail="استجابة فارغة")
+            
+            ai_text = parts[0].get("text", "").strip()
+            
+            # نُحاول parse JSON (قد يحوي markdown blocks)
+            ai_text = ai_text.strip()
+            if ai_text.startswith("```"):
+                # نُزيل ```json ... ```
+                ai_text = ai_text.split("```")[1] if "```" in ai_text else ai_text
+                if ai_text.startswith("json"):
+                    ai_text = ai_text[4:].strip()
+            
+            try:
+                parsed = _json.loads(ai_text)
+            except Exception as parse_err:
+                # نحاول استخراج JSON من النص
+                import re
+                match = re.search(r'\{[\s\S]*\}', ai_text)
+                if match:
+                    parsed = _json.loads(match.group(0))
+                else:
+                    raise HTTPException(status_code=500, detail=f"فشل تحليل JSON: {ai_text[:100]}")
+            
+            # نتحقق من البنية
+            if "tool" not in parsed or "settings" not in parsed:
+                raise HTTPException(status_code=500, detail="JSON غير صالح من AI")
+            
+            return parsed
+            
+    except HTTPException:
+        raise
+    except httpx.TimeoutException:
+        raise HTTPException(status_code=504, detail="انتهت مهلة الذكاء — حاول مرة أخرى")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
 
 @app.post("/api/ai/ask")
 async def ai_ask(
@@ -9571,6 +9912,100 @@ async def export_results_csv(
             "Content-Type": "text/csv; charset=utf-8"
         }
     )
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# 🛡️ ADMIN SECURITY ENDPOINTS
+# ════════════════════════════════════════════════════════════
+
+@app.get("/api/admin/security/locked_accounts")
+async def get_locked_accounts(admin=Depends(get_current_admin)):
+    """🔒 يُرجع قائمة الحسابات المقفولة حالياً"""
+    import time as _time
+    now = _time.time()
+    
+    locked = []
+    for key, rec in list(_login_attempts.items()):
+        locked_until = rec.get("locked_until", 0)
+        if locked_until > now:
+            seconds_left = int(locked_until - now)
+            locked.append({
+                "key": key,
+                "attempts": rec.get("count", 0),
+                "first_attempt": rec.get("first", 0),
+                "last_attempt": rec.get("last", 0),
+                "locked_until": locked_until,
+                "seconds_left": seconds_left,
+                "minutes_left": max(1, seconds_left // 60)
+            })
+    
+    locked.sort(key=lambda x: x["seconds_left"], reverse=True)
+    return {
+        "locked_count": len(locked),
+        "locked_accounts": locked,
+        "total_tracked": len(_login_attempts)
+    }
+
+
+@app.post("/api/admin/security/unlock")
+async def unlock_account(
+    key: str = Form(...),
+    admin=Depends(get_current_admin)
+):
+    """🔓 فك قفل حساب يدوياً (للأدمن)"""
+    if key in _login_attempts:
+        del _login_attempts[key]
+        security_log("manual_unlock", "admin", {"key": key})
+        return {"status": "success", "message": f"تم فك قفل {key}"}
+    return {"status": "not_found", "message": "الحساب غير موجود في قائمة القفل"}
+
+
+@app.post("/api/admin/security/cleanup")
+async def cleanup_security_records(admin=Depends(get_current_admin)):
+    """🧹 تنظيف السجلات القديمة (أكثر من 24 ساعة)"""
+    before = len(_login_attempts)
+    cleanup_old_attempts()
+    after = len(_login_attempts)
+    cleaned = before - after
+    return {
+        "status": "success",
+        "cleaned": cleaned,
+        "remaining": after
+    }
+
+
+@app.get("/api/admin/security/status")
+async def security_status(admin=Depends(get_current_admin)):
+    """📊 لوحة معلومات أمنية"""
+    import time as _time
+    now = _time.time()
+    
+    total = len(_login_attempts)
+    locked = sum(1 for r in _login_attempts.values() if r.get("locked_until", 0) > now)
+    
+    # تجميع حسب النوع
+    by_type = {"admin": 0, "student": 0, "teacher": 0, "parent": 0, "other": 0}
+    for key in _login_attempts.keys():
+        if key.startswith("admin:"):
+            by_type["admin"] += 1
+        elif key.startswith("student:"):
+            by_type["student"] += 1
+        elif key.startswith("teacher:"):
+            by_type["teacher"] += 1
+        elif key.startswith("parent:"):
+            by_type["parent"] += 1
+        else:
+            by_type["other"] += 1
+    
+    return {
+        "total_tracked": total,
+        "currently_locked": locked,
+        "by_type": by_type,
+        "https_enforced": os.getenv("ENV", "production").lower() == "production",
+        "trusted_hosts": _TRUSTED_HOSTS
+    }
 
 
 # ==========================================

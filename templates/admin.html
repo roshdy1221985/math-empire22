@@ -2595,6 +2595,7 @@ html, body {
                 <!-- ━━━ 6. الإعدادات والإدارة ━━━ -->
                 <div class="nav-group">
                     <div class="nav-group-title">⚙️ الإعدادات والإدارة</div>
+                    <div class="nav-link nl-red" onclick="showSection('security');setTimeout(loadSecurityDashboard, 200);"><i class="fas fa-shield-alt"></i> 🛡️ مركز الأمان</div>
                     <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
                     <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
                     <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> النسخ الاحتياطي</div>
@@ -3162,6 +3163,24 @@ html, body {
                             </button>
                         </div>
                         <div id="visual-preview-mini" style="display:none;background:#fff;border-radius:8px;padding:10px;margin-top:10px;text-align:center;"></div>
+                        
+                        <!-- 👁️ خيارات الشكل بعد الإدراج -->
+                        <div id="visual-options-bar" style="display:none;background:rgba(243,156,18,0.08);border:1px solid rgba(243,156,18,0.3);border-radius:10px;padding:10px 14px;margin-top:10px;">
+                            <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;">
+                                <label style="display:flex;align-items:center;gap:8px;color:#fff;cursor:pointer;font-size:0.88rem;font-weight:600;">
+                                    <input type="checkbox" id="vqi-show-students" checked onchange="vqiToggleStudentVisibility()" style="width:18px;height:18px;cursor:pointer;accent-color:#f39c12;">
+                                    <span>👁️ إظهار الشكل للطلاب</span>
+                                </label>
+                                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                                    <button type="button" onclick="vqiOpenFullPreview()" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">
+                                        🔍 معاينة كاملة
+                                    </button>
+                                    <button type="button" onclick="vqiRemoveVisual()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">
+                                        🗑️ إزالة
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <div id="options-container">
@@ -5894,6 +5913,204 @@ html, body {
                     <p style="color:rgba(255,255,255,0.5);font-size:0.78rem;margin-top:12px;">💡 الملفات بصيغة CSV — تفتح في Microsoft Excel مباشرة</p>
                 </div>
             </section>
+
+
+            <!-- ════════════════════════════════════════════════════════
+                 🛡️ SECURITY DASHBOARD — مركز الأمان
+            ════════════════════════════════════════════════════════ -->
+            <section id="security" class="section">
+                <div class="card glass-pro" style="margin-bottom:20px;">
+                    <h2 style="color:#e74c3c;"><i class="fas fa-shield-alt"></i> 🛡️ مركز الأمان</h2>
+                    <p style="color:rgba(255,255,255,0.6);margin:8px 0 0;">مراقبة وإدارة الحماية الأمنية للمنصة</p>
+                </div>
+                
+                <!-- الإحصاءات الأمنية -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:24px;">
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(231,76,60,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🔒</div>
+                        <div id="sec-locked-count" style="font-size:1.8rem;color:#e74c3c;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">حسابات مقفولة</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(251,191,36,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">📋</div>
+                        <div id="sec-tracked-count" style="font-size:1.8rem;color:#fbbf24;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">محاولات مُتعقّبة</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(74,222,128,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🔐</div>
+                        <div id="sec-https" style="font-size:1rem;color:#4ade80;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">HTTPS مُفعّل</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(99,102,241,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🛡️</div>
+                        <div id="sec-shields" style="font-size:1rem;color:#818cf8;font-weight:900;margin-top:6px;">5/5</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">طبقات الحماية</div>
+                    </div>
+                </div>
+                
+                <!-- أزرار التحكم -->
+                <div style="text-align:center;margin-bottom:20px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                    <button onclick="loadSecurityDashboard()" style="background:linear-gradient(135deg,#3498db,#2c80b4);color:#fff;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
+                        🔄 تحديث
+                    </button>
+                    <button onclick="cleanupSecurityRecords()" style="background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
+                        🧹 تنظيف السجلات القديمة
+                    </button>
+                </div>
+                
+                <!-- قائمة الحسابات المقفولة -->
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <h3 style="color:#e74c3c;margin-bottom:14px;"><i class="fas fa-lock"></i> 🔒 الحسابات المقفولة حالياً</h3>
+                    <div id="locked-accounts-list">
+                        <p style="opacity:0.5;text-align:center;padding:20px;">⏳ اضغط تحديث</p>
+                    </div>
+                </div>
+                
+                <!-- طبقات الحماية -->
+                <div class="card glass-pro" style="margin-bottom:18px;">
+                    <h3 style="color:#bb86fc;margin-bottom:14px;"><i class="fas fa-layer-group"></i> 🛡️ طبقات الحماية المُفعّلة</h3>
+                    <div style="display:grid;gap:10px;">
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(74,222,128,0.05);border-radius:8px;border:1px solid rgba(74,222,128,0.15);">
+                            <span style="font-size:1.5rem;">✅</span>
+                            <div style="flex:1;">
+                                <div style="color:#4ade80;font-weight:bold;">HTTPS Redirect</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">يُجبر استخدام HTTPS - يمنع MITM attacks</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(74,222,128,0.05);border-radius:8px;border:1px solid rgba(74,222,128,0.15);">
+                            <span style="font-size:1.5rem;">✅</span>
+                            <div style="flex:1;">
+                                <div style="color:#4ade80;font-weight:bold;">Trusted Hosts</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">يقبل فقط من النطاقات الموثوقة - يمنع Host Header Injection</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(74,222,128,0.05);border-radius:8px;border:1px solid rgba(74,222,128,0.15);">
+                            <span style="font-size:1.5rem;">✅</span>
+                            <div style="flex:1;">
+                                <div style="color:#4ade80;font-weight:bold;">Security Headers</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">HSTS, X-Frame-Options, X-Content-Type-Options, Referrer-Policy</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(74,222,128,0.05);border-radius:8px;border:1px solid rgba(74,222,128,0.15);">
+                            <span style="font-size:1.5rem;">✅</span>
+                            <div style="flex:1;">
+                                <div style="color:#4ade80;font-weight:bold;">Progressive Lockout</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">3 محاولات = 1د، 5 = 5د، 10 = ساعة، 20 = يوم</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:12px;padding:10px;background:rgba(74,222,128,0.05);border-radius:8px;border:1px solid rgba(74,222,128,0.15);">
+                            <span style="font-size:1.5rem;">✅</span>
+                            <div style="flex:1;">
+                                <div style="color:#4ade80;font-weight:bold;">Audit Log</div>
+                                <div style="color:rgba(255,255,255,0.6);font-size:0.82rem;">تسجيل كل عملية أمنية حساسة في Render Logs</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 🛡️ SECURITY DASHBOARD JS
+// ════════════════════════════════════════════════════════════
+async function loadSecurityDashboard() {
+    try {
+        // 1. الإحصاءات
+        const statusRes = await authFetch('/api/admin/security/status');
+        if (statusRes && statusRes.ok) {
+            const s = await statusRes.json();
+            document.getElementById('sec-locked-count').textContent = (s.currently_locked || 0).toLocaleString('ar-EG');
+            document.getElementById('sec-tracked-count').textContent = (s.total_tracked || 0).toLocaleString('ar-EG');
+            document.getElementById('sec-https').textContent = s.https_enforced ? '✅ نعم' : '⚠️ لا';
+        }
+        
+        // 2. قائمة المقفولة
+        await loadLockedAccounts();
+    } catch(e) {
+        console.error('[security]', e);
+        if (typeof showToast === 'function') showToast('❌ فشل تحميل بيانات الأمان', 'error');
+    }
+}
+
+async function loadLockedAccounts() {
+    const container = document.getElementById('locked-accounts-list');
+    if (!container) return;
+    
+    try {
+        const res = await authFetch('/api/admin/security/locked_accounts');
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        
+        if (!data.locked_accounts || data.locked_accounts.length === 0) {
+            container.innerHTML = '<p style="color:#4ade80;text-align:center;padding:20px;">✅ لا توجد حسابات مقفولة حالياً</p>';
+            return;
+        }
+        
+        var rowsHtml = data.locked_accounts.map(function(acc) {
+            var keyParts = acc.key.split(':');
+            var type = keyParts[0] || 'unknown';
+            var typeAr = type === 'admin' ? 'أدمن' : type === 'student' ? 'طالب' : type === 'teacher' ? 'معلم' : 'آخر';
+            var typeColor = type === 'admin' ? '#e74c3c' : type === 'student' ? '#3498db' : type === 'teacher' ? '#9b59b6' : '#95a5a6';
+            
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                '<td style="padding:10px;"><span style="background:' + typeColor + '33;color:' + typeColor + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;">' + typeAr + '</span></td>' +
+                '<td style="padding:10px;color:#fff;font-family:monospace;font-size:0.85rem;">' + esc(acc.key) + '</td>' +
+                '<td style="padding:10px;text-align:center;color:#fbbf24;font-weight:bold;">' + acc.attempts + '</td>' +
+                '<td style="padding:10px;text-align:center;color:#e74c3c;font-weight:bold;">' + acc.minutes_left + ' د</td>' +
+                '<td style="padding:10px;text-align:center;">' +
+                    '<button onclick="unlockAccount(\'' + acc.key + '\')" style="background:#16a085;color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.8rem;">🔓 فك القفل</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+        
+        container.innerHTML = '<p style="color:rgba(255,255,255,0.6);font-size:0.85rem;margin-bottom:12px;">⚠️ ' + data.locked_count + ' حساب مقفول</p>' +
+            '<table style="width:100%;border-collapse:collapse;font-size:0.85rem;">' +
+            '<thead><tr style="background:rgba(231,76,60,0.08);">' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">النوع</th>' +
+                '<th style="padding:10px;text-align:right;color:rgba(255,255,255,0.6);">المُعرّف</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">محاولات</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">متبقي</th>' +
+                '<th style="padding:10px;text-align:center;color:rgba(255,255,255,0.6);">إجراء</th>' +
+            '</tr></thead><tbody>' + rowsHtml + '</tbody></table>';
+    } catch(e) {
+        container.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ فشل التحميل</p>';
+    }
+}
+
+async function unlockAccount(key) {
+    if (!confirm('هل أنت متأكد من فك قفل: ' + key + '؟')) return;
+    try {
+        const fd = new FormData();
+        fd.append('key', key);
+        const res = await authFetch('/api/admin/security/unlock', {
+            method: 'POST',
+            body: fd
+        });
+        if (res && res.ok) {
+            if (typeof showToast === 'function') showToast('✅ تم فك القفل', 'success');
+            await loadSecurityDashboard();
+        } else {
+            if (typeof showToast === 'function') showToast('❌ فشلت العملية', 'error');
+        }
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ خطأ: ' + e.message, 'error');
+    }
+}
+
+async function cleanupSecurityRecords() {
+    if (!confirm('تنظيف السجلات الأقدم من 24 ساعة؟')) return;
+    try {
+        const res = await authFetch('/api/admin/security/cleanup', { method: 'POST' });
+        if (res && res.ok) {
+            const data = await res.json();
+            if (typeof showToast === 'function') showToast('✅ تم تنظيف ' + data.cleaned + ' سجل', 'success');
+            await loadSecurityDashboard();
+        }
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ فشل التنظيف', 'error');
+    }
+}
+</script>
 
 </main>
     </div>
@@ -14065,6 +14282,43 @@ html, body {
             <button onclick="closeVisualMaker()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إغلاق</button>
         </div>
         
+        <!-- ✨ تبويبات الصانع المطورة ✨ -->
+        <div id="amvm-tabs-bar" style="display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;background:rgba(0,0,0,0.3);padding:8px;border-radius:14px;border:1px solid rgba(243,156,18,0.2);">
+            <button class="amvm-tab active" data-tab="shapes" onclick="amvmSwitchTab('shapes')" style="flex:1;min-width:130px;padding:10px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;transition:all 0.3s;">📐 الأشكال</button>
+            <button class="amvm-tab" data-tab="equations" onclick="amvmSwitchTab('equations')" style="flex:1;min-width:130px;padding:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;transition:all 0.3s;">∫ محرر المعادلات</button>
+            <button class="amvm-tab" data-tab="plane" onclick="amvmSwitchTab('plane')" style="flex:1;min-width:130px;padding:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;transition:all 0.3s;">📈 المستوى الإحداثي</button>
+            <button class="amvm-tab" data-tab="symbols" onclick="amvmSwitchTab('symbols')" style="flex:1;min-width:130px;padding:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;transition:all 0.3s;">π معرض الرموز</button>
+            <button class="amvm-tab" data-tab="templates" onclick="amvmSwitchTab('templates')" style="flex:1;min-width:130px;padding:10px;background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;transition:all 0.3s;">📚 القوالب</button>
+        </div>
+        
+        <!-- ━━━ التبويب 1: الأشكال (الافتراضي) ━━━ -->
+        <div id="amvm-tab-shapes" class="amvm-tab-content">
+        
+        <!-- 🤖 شريط الذكاء الاصطناعي -->
+        <div style="background:linear-gradient(135deg,rgba(168,85,247,0.15),rgba(99,102,241,0.15));border:1px solid rgba(168,85,247,0.4);border-radius:14px;padding:14px 16px;margin-bottom:14px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+                <span style="font-size:1.5rem;">🤖</span>
+                <h3 style="color:#a855f7;margin:0;font-size:1rem;font-weight:bold;">توليد بالذكاء الاصطناعي</h3>
+                <span style="background:rgba(168,85,247,0.2);color:#c084fc;padding:2px 8px;border-radius:12px;font-size:0.7rem;font-weight:bold;">جديد ✨</span>
+            </div>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.83rem;margin:0 0 10px;">اكتب وصفاً بالعربية والذكاء الاصطناعي سيختار الشكل وإعداداته تلقائياً</p>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <input id="amvm-ai-input" type="text" placeholder='مثال: "مكعب طول ضلعه 5" أو "زاوية 60 درجة" أو "رسم بياني لدرجات الطلاب"' onkeypress="if(event.key==='Enter')amvmAiGenerate()" style="flex:1;min-width:200px;background:rgba(0,0,0,0.4);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;box-sizing:border-box;">
+                <button onclick="amvmAiGenerate()" id="amvm-ai-btn" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;display:flex;align-items:center;gap:6px;white-space:nowrap;">
+                    <span>✨ توليد</span>
+                </button>
+            </div>
+            <!-- أمثلة سريعة -->
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;">
+                <span style="color:rgba(255,255,255,0.5);font-size:0.78rem;margin-left:4px;">جرّب:</span>
+                <button onclick="amvmAiQuick('مثلث قائم الأضلاع 3 و 4 و 5')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:14px;cursor:pointer;font-family:Cairo;font-size:0.75rem;">مثلث قائم 3-4-5</button>
+                <button onclick="amvmAiQuick('مكعب ضلعه 6')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:14px;cursor:pointer;font-family:Cairo;font-size:0.75rem;">مكعب ضلعه 6</button>
+                <button onclick="amvmAiQuick('قطاع دائري بزاوية 90 درجة')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:14px;cursor:pointer;font-family:Cairo;font-size:0.75rem;">قطاع 90°</button>
+                <button onclick="amvmAiQuick('متوازي مستطيلات طول 8 عرض 5 ارتفاع 3')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:14px;cursor:pointer;font-family:Cairo;font-size:0.75rem;">متوازي 8×5×3</button>
+                <button onclick="amvmAiQuick('مخطط فن لمجموعتين A و B')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.8);padding:4px 10px;border-radius:14px;cursor:pointer;font-family:Cairo;font-size:0.75rem;">مخطط فن</button>
+            </div>
+        </div>
+        
         <!-- اختيار النوع -->
         <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:14px;padding:18px;margin-bottom:18px;">
             <h3 style="color:#f9c74f;margin:0 0 14px;font-size:1.05rem;">🎯 اختر نوع الشكل</h3>
@@ -14151,6 +14405,27 @@ html, body {
                     <div style="font-size:1.6rem;">⬡</div>
                     <div style="font-weight:700;font-size:0.78rem;color:#5dd5ff;margin-top:3px;">مضلع</div>
                 </div>
+                <!-- 🆕 أدوات جديدة -->
+                <div class="amvm-tool" data-tool="angle" style="background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📐</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#c084fc;margin-top:3px;">زاوية</div>
+                </div>
+                <div class="amvm-tool" data-tool="venn" style="background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">🔀</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#c084fc;margin-top:3px;">مخطط فن</div>
+                </div>
+                <div class="amvm-tool" data-tool="vector" style="background:rgba(168,85,247,0.06);border:2px solid rgba(168,85,247,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">➡️</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#c084fc;margin-top:3px;">متجه</div>
+                </div>
+                <div class="amvm-tool" data-tool="box-plot" style="background:rgba(236,72,153,0.06);border:2px solid rgba(236,72,153,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📦</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9a8d4;margin-top:3px;">box plot</div>
+                </div>
+                <div class="amvm-tool" data-tool="scatter" style="background:rgba(236,72,153,0.06);border:2px solid rgba(236,72,153,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">📍</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#f9a8d4;margin-top:3px;">انتشار</div>
+                </div>
             </div>
         </div>
         
@@ -14184,6 +14459,187 @@ html, body {
             <button onclick="amvmDownloadPng()" id="amvm-png-btn" disabled style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:12px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;opacity:0.5;">
                 📥 تنزيل PNG
             </button>
+            <button onclick="amvmToggleDnd()" id="amvm-dnd-btn" style="background:rgba(16,185,129,0.15);border:1px solid rgba(16,185,129,0.4);color:#10b981;padding:12px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">
+                🖱️ السحب: متوقف
+            </button>
+        </div>
+        
+        </div> <!-- نهاية tab-shapes -->
+        
+        <!-- ━━━ التبويب 2: محرر المعادلات ━━━ -->
+        <div id="amvm-tab-equations" class="amvm-tab-content" style="display:none;">
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:18px;margin-bottom:14px;">
+                <h3 style="color:#10b981;margin:0 0 12px;font-size:1.05rem;">∫ محرر المعادلات الرياضية</h3>
+                <p style="color:rgba(255,255,255,0.6);font-size:0.83rem;margin:0 0 14px;">اكتب معادلتك مباشرة أو استخدم الأزرار لإدراج رموز خاصة (كسور، أُسس، جذور، إلخ.)</p>
+                
+                <!-- شريط الأدوات -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(80px,1fr));gap:6px;margin-bottom:12px;">
+                    <button onclick="eqInsertFrac()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.05rem;">𝑎/𝑏</button>
+                    <button onclick="eqInsertPower()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.05rem;">𝑥²</button>
+                    <button onclick="eqInsertSubscript()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.05rem;">𝑥₁</button>
+                    <button onclick="eqInsertSqrt()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.05rem;">√‾</button>
+                    <button onclick="eqInsertNthRoot()" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:0.95rem;">ⁿ√‾</button>
+                    <button onclick="eqInsertSym('∫')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.1rem;">∫</button>
+                    <button onclick="eqInsertSym('∑')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.1rem;">∑</button>
+                    <button onclick="eqInsertSym('∏')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.1rem;">∏</button>
+                    <button onclick="eqInsertSym('lim')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:0.9rem;">lim</button>
+                    <button onclick="eqInsertSym('≤')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">≤</button>
+                    <button onclick="eqInsertSym('≥')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">≥</button>
+                    <button onclick="eqInsertSym('≠')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">≠</button>
+                    <button onclick="eqInsertSym('×')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">×</button>
+                    <button onclick="eqInsertSym('÷')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">÷</button>
+                    <button onclick="eqInsertSym('±')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">±</button>
+                    <button onclick="eqInsertSym('∞')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">∞</button>
+                    <button onclick="eqInsertSym('π')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">π</button>
+                    <button onclick="eqInsertSym('θ')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">θ</button>
+                    <button onclick="eqInsertSym('α')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">α</button>
+                    <button onclick="eqInsertSym('β')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">β</button>
+                    <button onclick="eqInsertSym('Δ')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">Δ</button>
+                    <button onclick="eqInsertSym('°')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">°</button>
+                    <button onclick="eqInsertSym('→')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">→</button>
+                    <button onclick="eqInsertSym('∈')" style="background:rgba(16,185,129,0.1);border:1px solid rgba(16,185,129,0.3);color:#10b981;padding:8px;border-radius:6px;cursor:pointer;font-size:1.05rem;">∈</button>
+                </div>
+                
+                <!-- منطقة الكتابة -->
+                <textarea id="eq-input" oninput="eqUpdatePreview()" placeholder="اكتب معادلتك هنا... مثال: 𝑥² + 3𝑥 + 2 = 0" style="width:100%;min-height:100px;background:rgba(0,0,0,0.4);border:1px solid rgba(16,185,129,0.3);color:#fff;padding:14px;border-radius:10px;font-family:'Times New Roman','Cairo',serif;font-size:1.3rem;direction:ltr;text-align:center;resize:vertical;line-height:1.8;box-sizing:border-box;"></textarea>
+                
+                <!-- المعاينة -->
+                <h4 style="color:#10b981;margin:14px 0 8px;font-size:0.95rem;">👁️ المعاينة:</h4>
+                <div id="eq-preview" style="background:#fff;color:#000;padding:20px;border-radius:10px;min-height:80px;font-family:'Times New Roman',serif;font-size:1.8rem;text-align:center;direction:ltr;line-height:2;"></div>
+                
+                <!-- أمثلة سريعة -->
+                <h4 style="color:#10b981;margin:14px 0 8px;font-size:0.95rem;">💡 أمثلة سريعة (انقر لإدراج):</h4>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;">
+                    <button onclick="eqLoadExample('𝑥² + 𝑦² = 𝑟²')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:serif;">𝑥² + 𝑦² = 𝑟²</button>
+                    <button onclick="eqLoadExample('𝑎² + 𝑏² = 𝑐²')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:serif;">𝑎² + 𝑏² = 𝑐²</button>
+                    <button onclick="eqLoadExample('𝑥 = (−𝑏 ± √(𝑏²−4𝑎𝑐))/2𝑎')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:serif;font-size:0.85rem;">القانون العام</button>
+                    <button onclick="eqLoadExample('∑(𝑖=1→𝑛) 𝑖 = 𝑛(𝑛+1)/2')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:serif;font-size:0.85rem;">مجموع الأعداد</button>
+                    <button onclick="eqLoadExample('sin²θ + cos²θ = 1')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:serif;font-size:0.85rem;">المتطابقة المثلثية</button>
+                </div>
+                
+                <!-- أزرار -->
+                <div style="display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+                    <button onclick="eqClear()" style="background:rgba(231,76,60,0.2);border:1px solid #e74c3c;color:#e74c3c;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">🗑️ مسح</button>
+                    <button onclick="eqInsertToQuestion()" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ إدراج في السؤال</button>
+                    <button onclick="eqDownloadImage()" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:10px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">📥 تنزيل صورة</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ━━━ التبويب 3: المستوى الإحداثي ━━━ -->
+        <div id="amvm-tab-plane" class="amvm-tab-content" style="display:none;">
+            <div style="display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start;">
+                <!-- إعدادات الرسم -->
+                <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:16px;">
+                    <h3 style="color:#3b82f6;margin:0 0 12px;font-size:1rem;">⚙️ إعدادات الرسم</h3>
+                    
+                    <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:3px;font-weight:600;">📊 المعادلة (y = ...)</label>
+                    <input id="plane-eq" type="text" value="x^2" oninput="planeRender()" placeholder="مثال: x^2, sin(x), 2*x+3" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:'Courier New',monospace;margin-bottom:8px;direction:ltr;box-sizing:border-box;">
+                    
+                    <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:3px;font-weight:600;">🔢 مدى x من</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                        <input id="plane-xmin" type="number" value="-10" oninput="planeRender()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;direction:ltr;text-align:center;">
+                        <input id="plane-xmax" type="number" value="10" oninput="planeRender()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;direction:ltr;text-align:center;">
+                    </div>
+                    
+                    <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:3px;font-weight:600;">🔢 مدى y من</label>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:8px;">
+                        <input id="plane-ymin" type="number" value="-10" oninput="planeRender()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;direction:ltr;text-align:center;">
+                        <input id="plane-ymax" type="number" value="10" oninput="planeRender()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px;border-radius:8px;font-family:Cairo;direction:ltr;text-align:center;">
+                    </div>
+                    
+                    <label style="display:block;font-size:0.78rem;color:rgba(255,255,255,0.7);margin-bottom:3px;font-weight:600;">🎨 لون المنحنى</label>
+                    <input id="plane-color" type="color" value="#e74c3c" oninput="planeRender()" style="width:100%;height:36px;background:rgba(255,255,255,0.05);border:1px solid rgba(59,130,246,0.3);border-radius:8px;margin-bottom:8px;">
+                    
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:6px;">
+                        <input id="plane-grid" type="checkbox" checked onchange="planeRender()"> إظهار الشبكة
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:6px;">
+                        <input id="plane-axes" type="checkbox" checked onchange="planeRender()"> إظهار المحاور
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:14px;">
+                        <input id="plane-labels" type="checkbox" checked onchange="planeRender()"> إظهار الأعداد
+                    </label>
+                    
+                    <!-- أمثلة سريعة -->
+                    <h4 style="color:#3b82f6;margin:8px 0;font-size:0.85rem;">💡 أمثلة:</h4>
+                    <div style="display:grid;gap:5px;">
+                        <button onclick="planeLoad('x^2')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = x²</button>
+                        <button onclick="planeLoad('sin(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = sin(x)</button>
+                        <button onclick="planeLoad('cos(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = cos(x)</button>
+                        <button onclick="planeLoad('2*x+3')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = 2x + 3</button>
+                        <button onclick="planeLoad('1/x')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = 1/x</button>
+                        <button onclick="planeLoad('sqrt(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = √x</button>
+                        <button onclick="planeLoad('abs(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = |x|</button>
+                        <button onclick="planeLoad('x^3')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = x³</button>
+                    </div>
+                    
+                    <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;">
+                        <button onclick="planeInsertToQuestion()" style="flex:1;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">✅ إدراج</button>
+                        <button onclick="planeDownloadPng()" style="flex:1;background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">📥 PNG</button>
+                    </div>
+                </div>
+                
+                <!-- المعاينة -->
+                <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(59,130,246,0.3);border-radius:14px;padding:16px;">
+                    <h3 style="color:#3b82f6;margin:0 0 12px;font-size:1rem;">📈 المنحنى</h3>
+                    <div id="plane-preview" style="background:#fff;border-radius:10px;padding:10px;min-height:400px;display:flex;align-items:center;justify-content:center;"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ━━━ التبويب 4: معرض الرموز ━━━ -->
+        <div id="amvm-tab-symbols" class="amvm-tab-content" style="display:none;">
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(168,85,247,0.3);border-radius:14px;padding:18px;">
+                <h3 style="color:#a855f7;margin:0 0 12px;font-size:1.05rem;">π معرض الرموز الرياضية</h3>
+                <p style="color:rgba(255,255,255,0.6);font-size:0.83rem;margin:0 0 14px;">انقر على أي رمز لنسخه. مُنظّم حسب الفئة والمرحلة الدراسية.</p>
+                
+                <!-- فلاتر الفئات -->
+                <div id="sym-categories" style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+                    <button class="sym-cat active" data-cat="all" onclick="symFilter('all')" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📚 الكل</button>
+                    <button class="sym-cat" data-cat="basic" onclick="symFilter('basic')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">➕ أساسية (1-6)</button>
+                    <button class="sym-cat" data-cat="compare" onclick="symFilter('compare')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">≤ مقارنة</button>
+                    <button class="sym-cat" data-cat="geom" onclick="symFilter('geom')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📐 هندسة</button>
+                    <button class="sym-cat" data-cat="sets" onclick="symFilter('sets')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">⊂ مجموعات</button>
+                    <button class="sym-cat" data-cat="greek" onclick="symFilter('greek')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">α يونانية</button>
+                    <button class="sym-cat" data-cat="calc" onclick="symFilter('calc')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">∫ تفاضل وتكامل</button>
+                    <button class="sym-cat" data-cat="logic" onclick="symFilter('logic')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">∀ منطق</button>
+                    <button class="sym-cat" data-cat="arrows" onclick="symFilter('arrows')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">→ أسهم</button>
+                    <button class="sym-cat" data-cat="super" onclick="symFilter('super')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:7px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">x² أُسس</button>
+                </div>
+                
+                <!-- بحث -->
+                <input id="sym-search" oninput="symFilter()" type="text" placeholder="🔍 ابحث عن رمز (مثال: جذر، مثلث، sigma)..." style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;margin-bottom:14px;box-sizing:border-box;">
+                
+                <!-- شبكة الرموز -->
+                <div id="sym-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(80px,1fr));gap:6px;max-height:500px;overflow-y:auto;padding:6px;background:rgba(0,0,0,0.2);border-radius:10px;"></div>
+                
+                <!-- شريط النسخ -->
+                <div id="sym-clipboard" style="display:none;background:rgba(168,85,247,0.1);border:1px solid #a855f7;color:#fff;padding:10px 14px;border-radius:10px;margin-top:12px;text-align:center;font-family:'Times New Roman',serif;font-size:1.2rem;">
+                    ✅ تم النسخ: <span id="sym-copied"></span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- ━━━ التبويب 5: مكتبة القوالب ━━━ -->
+        <div id="amvm-tab-templates" class="amvm-tab-content" style="display:none;">
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:18px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                    <h3 style="color:#f59e0b;margin:0;font-size:1.05rem;">📚 مكتبة القوالب الجاهزة</h3>
+                    <button onclick="tplSaveCurrent()" style="background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">💾 حفظ الشكل الحالي</button>
+                </div>
+                <p style="color:rgba(255,255,255,0.6);font-size:0.83rem;margin:0 0 14px;">قوالب جاهزة لاستخدام سريع + احفظ قوالبك الخاصة. تُحفظ في المتصفح.</p>
+                
+                <!-- تصنيف القوالب -->
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px;">
+                    <button class="tpl-cat active" data-cat="all" onclick="tplFilter('all')" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;padding:6px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.78rem;">📚 الكل</button>
+                    <button class="tpl-cat" data-cat="builtin" onclick="tplFilter('builtin')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.78rem;">🏛️ مُدمجة</button>
+                    <button class="tpl-cat" data-cat="custom" onclick="tplFilter('custom')" style="background:rgba(255,255,255,0.05);color:rgba(255,255,255,0.7);border:1px solid rgba(255,255,255,0.1);padding:6px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.78rem;">⭐ قوالبي</button>
+                </div>
+                
+                <!-- شبكة القوالب -->
+                <div id="tpl-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;max-height:550px;overflow-y:auto;padding:6px;"></div>
+            </div>
         </div>
     </div>
 </div>
@@ -14393,6 +14849,50 @@ function amvmRenderControls(tool) {
         html += '<label style="' + ls + '">📏 طول الضلع</label><input type="number" id="amvm-poly-side" value="5" oninput="amvmDraw()" style="' + fs + '">';
         html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-poly-color" value="#00bfff" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
     }
+    // 🆕 الأدوات الجديدة
+    else if (tool === 'angle') {
+        html += '<label style="' + ls + '">📐 قياس الزاوية (درجة)</label><input type="number" id="amvm-ang-deg" value="60" min="0" max="360" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🏷️ التسمية</label><input type="text" id="amvm-ang-label" value="θ" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-ang-color" value="#a855f7" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'venn') {
+        html += '<label style="' + ls + '">🔵 عدد المجموعات</label><select id="amvm-venn-count" onchange="amvmDraw()" style="' + fs + '"><option value="2">دائرتان (A,B)</option><option value="3">3 دوائر (A,B,C)</option></select>';
+        html += '<label style="' + ls + '">🏷️ A</label><input type="text" id="amvm-venn-a" value="A" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🏷️ B</label><input type="text" id="amvm-venn-b" value="B" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🏷️ C</label><input type="text" id="amvm-venn-c" value="C" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="display:flex;align-items:center;gap:6px;color:#fff;margin:8px 0;cursor:pointer;font-size:0.85rem;"><input type="checkbox" id="amvm-venn-shade" onchange="amvmDraw()"> تظليل التقاطع</label>';
+    }
+    else if (tool === 'vector') {
+        html += '<label style="' + ls + '">🏷️ الاسم</label><input type="text" id="amvm-vec-name" value="v" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">↔️ المركبة x</label><input type="number" id="amvm-vec-x" value="5" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">↕️ المركبة y</label><input type="number" id="amvm-vec-y" value="3" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-vec-color" value="#e91e63" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'box-plot') {
+        html += '<label style="' + ls + '">📊 البيانات (مفصولة بفاصلة)</label><input type="text" id="amvm-box-data" value="3,7,8,12,13,14,18,21,23,27" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🏷️ العنوان</label><input type="text" id="amvm-box-title" value="درجات الطلاب" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-box-color" value="#ec4899" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    else if (tool === 'scatter') {
+        html += '<label style="' + ls + '">📊 نقاط (x,y; x,y;...)</label><input type="text" id="amvm-sc-data" value="1,2; 3,5; 4,4; 6,7; 8,8; 10,12" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="' + ls + '">🏷️ العنوان</label><input type="text" id="amvm-sc-title" value="مخطط الانتشار" oninput="amvmDraw()" style="' + fs + '">';
+        html += '<label style="display:flex;align-items:center;gap:6px;color:#fff;margin:8px 0;cursor:pointer;font-size:0.85rem;"><input type="checkbox" id="amvm-sc-trend" onchange="amvmDraw()"> خط الاتجاه</label>';
+        html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-sc-color" value="#ec4899" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
+    }
+    
+    // 🎯 خيارات الإظهار/الإخفاء العامة - لكل الأدوات
+    html += '<div style="margin-top:14px;padding:12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-radius:10px;">';
+    html += '<div style="color:#f59e0b;font-size:0.78rem;font-weight:700;margin-bottom:8px;">👁️ خيارات إظهار البيانات</div>';
+    html += '<label style="display:flex;align-items:center;gap:8px;color:#fff;margin-bottom:6px;cursor:pointer;font-size:0.82rem;">';
+    html += '<input type="checkbox" id="amvm-show-measurements" checked onchange="amvmDraw()" style="width:16px;height:16px;cursor:pointer;accent-color:#f59e0b;">';
+    html += '<span>📏 إظهار القياسات (الأطوال، الأبعاد)</span></label>';
+    html += '<label style="display:flex;align-items:center;gap:8px;color:#fff;margin-bottom:6px;cursor:pointer;font-size:0.82rem;">';
+    html += '<input type="checkbox" id="amvm-show-labels" checked onchange="amvmDraw()" style="width:16px;height:16px;cursor:pointer;accent-color:#f59e0b;">';
+    html += '<span>🏷️ إظهار التسميات (A, B, C...)</span></label>';
+    html += '<label style="display:flex;align-items:center;gap:8px;color:#fff;cursor:pointer;font-size:0.82rem;">';
+    html += '<input type="checkbox" id="amvm-show-values" checked onchange="amvmDraw()" style="width:16px;height:16px;cursor:pointer;accent-color:#f59e0b;">';
+    html += '<span>🔢 إظهار القيم (الأرقام على المحاور)</span></label>';
+    html += '</div>';
     
     ctrl.innerHTML = html;
 }
@@ -14427,6 +14927,11 @@ function amvmDraw() {
     else if (t === 'cone')          svg = vmDrawCone();
     else if (t === 'prism-tri')     svg = vmDrawTriPrism();
     else if (t === 'polygon')       svg = vmDrawPolygon();
+    else if (t === 'angle')         svg = vmDrawAngle();
+    else if (t === 'venn')          svg = vmDrawVenn();
+    else if (t === 'vector')        svg = vmDrawVector();
+    else if (t === 'box-plot')      svg = vmDrawBoxPlot();
+    else if (t === 'scatter')       svg = vmDrawScatter();
     
     _bridgeCleanup();
     
@@ -14459,6 +14964,14 @@ function _bridgeIds(fromPrefix, toPrefix, fromAdmin) {
         'cyl-r','cyl-h','cyl-color',
         'cone-r','cone-h','cone-color',
         'pr-base','pr-len','pr-color',
+        // 🆕 أدوات جديدة
+        'ang-deg','ang-label','ang-color',
+        'venn-count','venn-a','venn-b','venn-c','venn-shade',
+        'vec-name','vec-x','vec-y','vec-color',
+        'box-data','box-title','box-color',
+        'sc-data','sc-title','sc-trend','sc-color',
+        // 🆕 خيارات الإظهار العامة
+        'show-measurements','show-labels','show-values',
         'poly-sides','poly-side','poly-color'
     ];
     fields.forEach(function(f) {
@@ -14518,24 +15031,42 @@ function _bridgeCleanup() {
 function amvmInsertToQuestion() {
     if (!_amvmSVG) return;
     
-    // SVG → PNG → ضع في input file (q-image)
+    // 🎯 نستخرج viewBox من SVG لتحديد الأبعاد الحقيقية
+    var vbMatch = _amvmSVG.match(/viewBox="([^"]+)"/);
+    var width = 800, height = 600;
+    if (vbMatch) {
+        var parts = vbMatch[1].split(/\s+/).map(parseFloat);
+        if (parts.length >= 4) {
+            width = parts[2];
+            height = parts[3];
+        }
+    }
+    
     var img = new Image();
-    var blob = new Blob([_amvmSVG], { type: 'image/svg+xml;charset=utf-8' });
+    // نُضمّن الأبعاد في SVG لو لم تكن موجودة
+    var svgWithSize = _amvmSVG;
+    if (!/<svg[^>]*\swidth=/.test(svgWithSize)) {
+        svgWithSize = svgWithSize.replace(/<svg/, '<svg width="' + width + '" height="' + height + '"');
+    }
+    
+    var blob = new Blob([svgWithSize], { type: 'image/svg+xml;charset=utf-8' });
     var url = URL.createObjectURL(blob);
     
     img.onload = function() {
+        // نستخدم الأبعاد الفعلية (مع scale 2 لجودة عالية)
         var canvas = document.createElement('canvas');
-        canvas.width = (img.naturalWidth || 800) * 2;
-        canvas.height = (img.naturalHeight || 600) * 2;
+        var scale = 2;
+        canvas.width = width * scale;
+        canvas.height = height * scale;
         var ctx = canvas.getContext('2d');
         ctx.fillStyle = '#fff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.scale(2, 2);
-        ctx.drawImage(img, 0, 0);
+        ctx.scale(scale, scale);
+        ctx.drawImage(img, 0, 0, width, height);
         
         canvas.toBlob(function(b) {
-            // نُحوّل blob إلى File ونضعه في input
-            var file = new File([b], 'shape_' + _amvmTool + '_' + Date.now() + '.png', { type: 'image/png' });
+            var fileName = 'shape_' + _amvmTool + '_' + Date.now() + '.png';
+            var file = new File([b], fileName, { type: 'image/png' });
             var dt = new DataTransfer();
             dt.items.add(file);
             
@@ -14543,13 +15074,22 @@ function amvmInsertToQuestion() {
             if (input) {
                 input.files = dt.files;
                 
-                // نعرض المعاينة الصغيرة
+                // نحفظ المرجع للصورة لاستخدامها لاحقاً
+                window._lastVisualPngDataUrl = canvas.toDataURL('image/png');
+                window._lastVisualSvg = _amvmSVG;
+                window._lastVisualVisible = true;
+                
+                // 🖼️ المعاينة الصغيرة - بأبعاد صحيحة
                 var mini = document.getElementById('visual-preview-mini');
                 if (mini) {
                     mini.style.display = 'block';
-                    mini.innerHTML = '<img src="' + canvas.toDataURL('image/png') + '" style="max-width:100%;max-height:200px;display:inline-block;">' +
-                        '<div style="margin-top:8px;color:#2ecc71;font-weight:bold;font-size:0.9rem;">✅ تم إدراج الشكل في السؤال</div>';
+                    mini.innerHTML = '<img id="vqi-preview-img" src="' + window._lastVisualPngDataUrl + '" style="max-width:100%;max-height:300px;width:auto;height:auto;display:inline-block;border-radius:6px;cursor:pointer;" onclick="vqiOpenFullPreview()" title="انقر للمعاينة الكاملة">' +
+                        '<div style="margin-top:8px;color:#2ecc71;font-weight:bold;font-size:0.9rem;">✅ تم إدراج الشكل في السؤال - انقر على الصورة للمعاينة</div>';
                 }
+                
+                // إظهار شريط الخيارات
+                var optsBar = document.getElementById('visual-options-bar');
+                if (optsBar) optsBar.style.display = 'block';
                 
                 if (typeof showToast === 'function') showToast('✅ الشكل أُدرج كصورة للسؤال', 'success');
                 closeVisualMaker();
@@ -14557,7 +15097,121 @@ function amvmInsertToQuestion() {
             URL.revokeObjectURL(url);
         }, 'image/png');
     };
+    
+    img.onerror = function() {
+        if (typeof showToast === 'function') showToast('❌ فشل تحويل الصورة', 'error');
+        URL.revokeObjectURL(url);
+    };
+    
     img.src = url;
+}
+
+// ════════════════════════════════════════════════════════════
+// 👁️ Visual Question Image - دوال الخيارات
+// ════════════════════════════════════════════════════════════
+function vqiOpenFullPreview() {
+    if (!window._lastVisualPngDataUrl) {
+        if (typeof showToast === 'function') showToast('⚠️ لا توجد صورة', 'warning');
+        return;
+    }
+    
+    // نُنشئ modal للمعاينة الكاملة
+    var modal = document.getElementById('vqi-full-preview-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'vqi-full-preview-modal';
+        modal.style.cssText = 'display:flex;position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,0.95);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:30px;cursor:pointer;';
+        modal.onclick = function(e) { if (e.target === modal) vqiCloseFullPreview(); };
+        document.body.appendChild(modal);
+    }
+    
+    modal.style.display = 'flex';
+    modal.innerHTML = '<div style="position:relative;max-width:95%;max-height:95%;background:#fff;border-radius:16px;padding:20px;cursor:default;box-shadow:0 20px 60px rgba(0,0,0,0.5);">' +
+        '<button onclick="vqiCloseFullPreview()" style="position:absolute;top:-12px;left:-12px;background:#e74c3c;color:#fff;border:none;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:1.2rem;font-weight:bold;box-shadow:0 4px 12px rgba(0,0,0,0.3);">✕</button>' +
+        '<img src="' + window._lastVisualPngDataUrl + '" style="max-width:100%;max-height:80vh;display:block;border-radius:8px;">' +
+        '<div style="text-align:center;margin-top:14px;color:#666;font-family:Cairo,sans-serif;font-size:0.9rem;">' +
+            '🔍 معاينة بحجم كامل - هذا ما سيراه الطالب' +
+            (window._lastVisualVisible === false ? ' (مُخفى حالياً)' : '') +
+        '</div>' +
+        '<div style="text-align:center;margin-top:10px;">' +
+            '<button onclick="vqiDownloadVisual()" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin:0 4px;">📥 تنزيل</button>' +
+            '<button onclick="vqiCloseFullPreview()" style="background:rgba(0,0,0,0.05);border:1px solid rgba(0,0,0,0.2);color:#333;padding:8px 20px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin:0 4px;">إغلاق</button>' +
+        '</div>' +
+    '</div>';
+}
+
+function vqiCloseFullPreview() {
+    var modal = document.getElementById('vqi-full-preview-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+function vqiToggleStudentVisibility() {
+    var cb = document.getElementById('vqi-show-students');
+    if (!cb) return;
+    window._lastVisualVisible = cb.checked;
+    
+    // نُحدّث المظهر المرئي
+    var miniImg = document.getElementById('vqi-preview-img');
+    if (miniImg) {
+        if (cb.checked) {
+            miniImg.style.opacity = '1';
+            miniImg.style.filter = '';
+            miniImg.title = 'انقر للمعاينة الكاملة';
+        } else {
+            miniImg.style.opacity = '0.4';
+            miniImg.style.filter = 'grayscale(50%)';
+            miniImg.title = 'مخفي عن الطلاب - انقر للمعاينة';
+        }
+    }
+    
+    // نُضيف/نُحذف hidden field يحدد visibility للسؤال
+    var hiddenField = document.getElementById('q-visual-visible');
+    if (!hiddenField) {
+        hiddenField = document.createElement('input');
+        hiddenField.type = 'hidden';
+        hiddenField.id = 'q-visual-visible';
+        hiddenField.name = 'visual_visible';
+        // نُضيفه بجوار q-image
+        var qImg = document.getElementById('q-image');
+        if (qImg && qImg.parentElement) {
+            qImg.parentElement.appendChild(hiddenField);
+        }
+    }
+    hiddenField.value = cb.checked ? 'true' : 'false';
+    
+    if (typeof showToast === 'function') {
+        showToast(cb.checked ? '👁️ الشكل سيظهر للطلاب' : '🙈 الشكل مُخفي عن الطلاب', 'info', 2000);
+    }
+}
+
+function vqiRemoveVisual() {
+    if (!confirm('هل تريد إزالة الشكل من السؤال؟')) return;
+    
+    var input = document.getElementById('q-image');
+    if (input) input.value = '';
+    
+    var mini = document.getElementById('visual-preview-mini');
+    if (mini) {
+        mini.style.display = 'none';
+        mini.innerHTML = '';
+    }
+    
+    var optsBar = document.getElementById('visual-options-bar');
+    if (optsBar) optsBar.style.display = 'none';
+    
+    window._lastVisualPngDataUrl = null;
+    window._lastVisualSvg = null;
+    window._lastVisualVisible = true;
+    
+    if (typeof showToast === 'function') showToast('🗑️ تمت إزالة الشكل', 'info');
+}
+
+function vqiDownloadVisual() {
+    if (!window._lastVisualPngDataUrl) return;
+    var a = document.createElement('a');
+    a.href = window._lastVisualPngDataUrl;
+    a.download = 'shape_' + Date.now() + '.png';
+    a.click();
 }
 
 function amvmDownloadPng() {
@@ -14591,6 +15245,13 @@ function amvmDownloadPng() {
 // ════════════════════════════════════════════════════════════
 // 🎨 دوال الرسم (نسخة من teachers.html — كاملة)
 // ════════════════════════════════════════════════════════════
+// 👁️ Helper - نفحص هل بيانات معينة يجب إظهارها
+function _vmShowFlag(flag) {
+    var el = document.getElementById('vm-show-' + flag);
+    if (!el) return true; // افتراضياً نُظهر
+    return el.checked;
+}
+
 function vmDrawTriangle() {
     var type = (document.getElementById('vm-tri-type') || {}).value || 'right';
     var a = parseFloat((document.getElementById('vm-tri-a') || {}).value) || 6;
@@ -14794,15 +15455,47 @@ function vmDrawFractionBar() {
 function vmDrawCube() {
     var sd = parseFloat((document.getElementById('vm-cube-side')||{}).value) || 6;
     var color = (document.getElementById('vm-cube-color')||{}).value || '#3498db';
-    var W=600,H=500,size=Math.min(25*sd,280),depth=size*0.4,cx=W/2,cy=H/2+30;
+    var showLabels = !((document.getElementById('vm-cube-nolabel')||{}).checked);
+    var W=600,H=500,size=Math.min(25*sd,280),depth=size*0.45,cx=W/2,cy=H/2+30;
     var x=cx-size/2,y=cy+size/2;
-    var ftl={x:x,y:y-size}, ftr={x:x+size,y:y-size}, fbl={x:x,y:y}, fbr={x:x+size,y:y};
-    var btl={x:ftl.x+depth,y:ftl.y-depth}, btr={x:ftr.x+depth,y:ftr.y-depth}, bbr={x:fbr.x+depth,y:fbr.y-depth};
+    // الرؤوس الأمامية: A=bl, B=br, C=tr, D=tl
+    var A={x:x,y:y}, B={x:x+size,y:y}, C={x:x+size,y:y-size}, D={x:x,y:y-size};
+    // الرؤوس الخلفية: E=bl, F=br, G=tr, H=tl (بالعمق)
+    var E={x:A.x+depth*0.7,y:A.y-depth*0.5};
+    var F={x:B.x+depth*0.7,y:B.y-depth*0.5};
+    var G={x:C.x+depth*0.7,y:C.y-depth*0.5};
+    var Ht={x:D.x+depth*0.7,y:D.y-depth*0.5};
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
-    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+btr.x+','+btr.y+' '+btl.x+','+btl.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+bbr.x+','+bbr.y+' '+btr.x+','+btr.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+fbl.x+','+fbl.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
-    s += '<text x="'+cx+'" y="'+(fbr.y+60)+'" font-family="Cairo" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600">'+sd+' سم</text>';
+    
+    // الحواف الخلفية المخفية (متقطعة) - 3 حواف فقط (E-F, E-H, لا نرسم F-G لأنه خلف الوجه الأيمن)
+    s += '<line x1="'+E.x+'" y1="'+E.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    s += '<line x1="'+E.x+'" y1="'+E.y+'" x2="'+Ht.x+'" y2="'+Ht.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    s += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+E.x+'" y2="'+E.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    
+    // الوجه العلوي (D-C-G-H)
+    s += '<polygon points="'+D.x+','+D.y+' '+C.x+','+C.y+' '+G.x+','+G.y+' '+Ht.x+','+Ht.y+'" fill="'+color+'55" stroke="'+color+'" stroke-width="2.5"/>';
+    // الوجه الأيمن (B-C-G-F)
+    s += '<polygon points="'+B.x+','+B.y+' '+C.x+','+C.y+' '+G.x+','+G.y+' '+F.x+','+F.y+'" fill="'+color+'35" stroke="'+color+'" stroke-width="2.5"/>';
+    // الوجه الأمامي (A-B-C-D)
+    s += '<polygon points="'+A.x+','+A.y+' '+B.x+','+B.y+' '+C.x+','+C.y+' '+D.x+','+D.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    
+    // تسمية الرؤوس A-H
+    if (_vmShowFlag('labels')) {
+        var lblStyle = 'font-family:"Times New Roman",serif;font-size:18px;font-weight:bold;fill:'+color+';';
+        s += '<text x="'+(A.x-15)+'" y="'+(A.y+5)+'" style="'+lblStyle+'">A</text>';
+        s += '<text x="'+(B.x+8)+'" y="'+(B.y+5)+'" style="'+lblStyle+'">B</text>';
+        s += '<text x="'+(C.x+8)+'" y="'+(C.y-5)+'" style="'+lblStyle+'">C</text>';
+        s += '<text x="'+(D.x-15)+'" y="'+(D.y-5)+'" style="'+lblStyle+'">D</text>';
+        s += '<text x="'+(E.x-10)+'" y="'+(E.y+15)+'" style="'+lblStyle+';opacity:0.6">E</text>';
+        s += '<text x="'+(F.x+8)+'" y="'+(F.y+5)+'" style="'+lblStyle+'">F</text>';
+        s += '<text x="'+(G.x+8)+'" y="'+(G.y-2)+'" style="'+lblStyle+'">G</text>';
+        s += '<text x="'+(Ht.x-12)+'" y="'+(Ht.y-2)+'" style="'+lblStyle+'">H</text>';
+    }
+    
+    // قياس الضلع
+    if (_vmShowFlag('measurements')) {
+        s += '<text x="'+cx+'" y="'+(A.y+60)+'" font-family="Cairo,sans-serif" font-size="17" fill="'+color+'" text-anchor="middle" font-weight="600">طول الضلع = '+sd+' سم</text>';
+    }
     s += '</svg>';
     return s;
 }
@@ -14814,14 +15507,43 @@ function vmDrawCuboid() {
     var color = (document.getElementById('vm-cb-color')||{}).value || '#e74c3c';
     var W=700,H=500,scale=18,sl=l*scale,sw=w*scale,sh=h*scale;
     if (sl > 320) { var rt=320/sl; sl*=rt; sw*=rt; sh*=rt; }
-    var depth=sw*0.6,cx=W/2,cy=H/2+50,x=cx-sl/2,y=cy+sh/2;
-    var ftl={x:x,y:y-sh}, ftr={x:x+sl,y:y-sh}, fbl={x:x,y:y}, fbr={x:x+sl,y:y};
-    var btl={x:ftl.x+depth*0.7,y:ftl.y-depth*0.5}, btr={x:ftr.x+depth*0.7,y:ftr.y-depth*0.5}, bbr={x:fbr.x+depth*0.7,y:fbr.y-depth*0.5};
+    var depth=sw*0.65,cx=W/2,cy=H/2+50,x=cx-sl/2,y=cy+sh/2;
+    var A={x:x,y:y}, B={x:x+sl,y:y}, C={x:x+sl,y:y-sh}, D={x:x,y:y-sh};
+    var E={x:A.x+depth*0.7,y:A.y-depth*0.5};
+    var F={x:B.x+depth*0.7,y:B.y-depth*0.5};
+    var G={x:C.x+depth*0.7,y:C.y-depth*0.5};
+    var Ht={x:D.x+depth*0.7,y:D.y-depth*0.5};
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
-    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+btr.x+','+btr.y+' '+btl.x+','+btl.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+bbr.x+','+bbr.y+' '+btr.x+','+btr.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+ftl.x+','+ftl.y+' '+ftr.x+','+ftr.y+' '+fbr.x+','+fbr.y+' '+fbl.x+','+fbl.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
-    s += '<text x="'+cx+'" y="'+(fbr.y+60)+'" font-family="Cairo" font-size="16" fill="'+color+'" text-anchor="middle" font-weight="600">الطول = '+l+' سم</text>';
+    
+    // الحواف الخلفية المخفية
+    s += '<line x1="'+E.x+'" y1="'+E.y+'" x2="'+F.x+'" y2="'+F.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    s += '<line x1="'+E.x+'" y1="'+E.y+'" x2="'+Ht.x+'" y2="'+Ht.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    s += '<line x1="'+A.x+'" y1="'+A.y+'" x2="'+E.x+'" y2="'+E.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    
+    // الوجوه المرئية
+    s += '<polygon points="'+D.x+','+D.y+' '+C.x+','+C.y+' '+G.x+','+G.y+' '+Ht.x+','+Ht.y+'" fill="'+color+'55" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<polygon points="'+B.x+','+B.y+' '+C.x+','+C.y+' '+G.x+','+G.y+' '+F.x+','+F.y+'" fill="'+color+'35" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<polygon points="'+A.x+','+A.y+' '+B.x+','+B.y+' '+C.x+','+C.y+' '+D.x+','+D.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
+    
+    // تسمية الرؤوس
+    if (_vmShowFlag('labels')) {
+        var lblStyle = 'font-family:"Times New Roman",serif;font-size:16px;font-weight:bold;fill:'+color+';';
+        s += '<text x="'+(A.x-15)+'" y="'+(A.y+5)+'" style="'+lblStyle+'">A</text>';
+        s += '<text x="'+(B.x+8)+'" y="'+(B.y+5)+'" style="'+lblStyle+'">B</text>';
+        s += '<text x="'+(C.x+8)+'" y="'+(C.y-3)+'" style="'+lblStyle+'">C</text>';
+        s += '<text x="'+(D.x-15)+'" y="'+(D.y-3)+'" style="'+lblStyle+'">D</text>';
+        s += '<text x="'+(F.x+8)+'" y="'+(F.y+5)+'" style="'+lblStyle+'">F</text>';
+        s += '<text x="'+(G.x+8)+'" y="'+(G.y-2)+'" style="'+lblStyle+'">G</text>';
+        s += '<text x="'+(Ht.x-10)+'" y="'+(Ht.y-2)+'" style="'+lblStyle+'">H</text>';
+    }
+    
+    // قياسات الأبعاد
+    if (_vmShowFlag('measurements')) {
+        s += '<text x="'+((A.x+B.x)/2)+'" y="'+(A.y+25)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">الطول = '+l+'</text>';
+        s += '<text x="'+(D.x-32)+'" y="'+((A.y+D.y)/2+5)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">'+h+'</text>';
+        s += '<text x="'+(B.x+30)+'" y="'+(B.y-15)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">'+w+'</text>';
+    }
+    
     s += '</svg>';
     return s;
 }
@@ -14839,16 +15561,46 @@ function vmDrawPyramid(sides) {
         points.push({x:cx+baseR*Math.cos(angle), y:baseY+(baseR*0.35)*Math.sin(angle)});
     }
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
-    var basePoly = points.map(function(p){return p.x+','+p.y;}).join(' ');
-    s += '<polygon points="'+basePoly+'" fill="'+color+'15" stroke="'+color+'" stroke-width="2"/>';
+    
+    // الحواف الخلفية للقاعدة (متقطعة)
+    for (var i=0;i<sides;i++) {
+        var p1=points[i], p2=points[(i+1)%sides];
+        var midY = (p1.y+p2.y)/2;
+        if (midY < baseY-5) {
+            // حافة خلفية - متقطعة
+            s += '<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.4"/>';
+            // والحافة من القمة لأسفل
+            s += '<line x1="'+apex.x+'" y1="'+apex.y+'" x2="'+p1.x+'" y2="'+p1.y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.4"/>';
+        }
+    }
+    
+    // الوجوه الأمامية (مرئية)
     for (var i=0;i<sides;i++) {
         var p1=points[i], p2=points[(i+1)%sides];
         var midY = (p1.y+p2.y)/2;
         if (midY >= baseY-5) {
-            s += '<polygon points="'+apex.x+','+apex.y+' '+p1.x+','+p1.y+' '+p2.x+','+p2.y+'" fill="'+color+(i%2===0?'50':'30')+'" stroke="'+color+'" stroke-width="2"/>';
+            s += '<polygon points="'+apex.x+','+apex.y+' '+p1.x+','+p1.y+' '+p2.x+','+p2.y+'" fill="'+color+(i%2===0?'55':'35')+'" stroke="'+color+'" stroke-width="2"/>';
         }
     }
-    s += '<text x="'+cx+'" y="'+(baseY+70)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">قاعدة = '+base+' · ارتفاع = '+height+'</text>';
+    
+    // القاعدة (الخط الأمامي فقط)
+    var frontEdges = '';
+    for (var i=0;i<sides;i++) {
+        var p1=points[i], p2=points[(i+1)%sides];
+        var midY = (p1.y+p2.y)/2;
+        if (midY >= baseY-5) {
+            frontEdges += '<line x1="'+p1.x+'" y1="'+p1.y+'" x2="'+p2.x+'" y2="'+p2.y+'" stroke="'+color+'" stroke-width="2.5"/>';
+        }
+    }
+    s += frontEdges;
+    
+    // قمة + ارتفاع متقطع
+    s += '<line x1="'+apex.x+'" y1="'+apex.y+'" x2="'+cx+'" y2="'+baseY+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>';
+    s += '<circle cx="'+apex.x+'" cy="'+apex.y+'" r="3" fill="'+color+'"/>';
+    
+    if (_vmShowFlag('measurements')) {
+        s += '<text x="'+cx+'" y="'+(baseY+70)+'" font-family="Cairo,sans-serif" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">القاعدة = '+base+' · الارتفاع = '+height+'</text>';
+    }
     s += '</svg>';
     return s;
 }
@@ -14861,12 +15613,26 @@ function vmDrawCylinder() {
     if (sh > 320) { var rt=320/sh; sr*=rt; sh*=rt; }
     var cx=W/2,cy=H/2+30,topY=cy-sh/2,botY=cy+sh/2,erY=sr*0.3;
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
-    s += '<rect x="'+(cx-sr)+'" y="'+topY+'" width="'+(sr*2)+'" height="'+sh+'" fill="'+color+'20"/>';
+    
+    // الجسم
+    s += '<rect x="'+(cx-sr)+'" y="'+topY+'" width="'+(sr*2)+'" height="'+sh+'" fill="'+color+'25"/>';
+    // الخطوط الجانبية
     s += '<line x1="'+(cx-sr)+'" y1="'+topY+'" x2="'+(cx-sr)+'" y2="'+botY+'" stroke="'+color+'" stroke-width="2.5"/>';
     s += '<line x1="'+(cx+sr)+'" y1="'+topY+'" x2="'+(cx+sr)+'" y2="'+botY+'" stroke="'+color+'" stroke-width="2.5"/>';
-    s += '<ellipse cx="'+cx+'" cy="'+topY+'" rx="'+sr+'" ry="'+erY+'" fill="'+color+'40" stroke="'+color+'" stroke-width="2.5"/>';
+    // القاعدة العليا (كاملة)
+    s += '<ellipse cx="'+cx+'" cy="'+topY+'" rx="'+sr+'" ry="'+erY+'" fill="'+color+'45" stroke="'+color+'" stroke-width="2.5"/>';
+    // القاعدة السفلى (الجزء الأمامي فقط - الخلفي متقطع)
     s += '<path d="M '+(cx-sr)+' '+botY+' A '+sr+' '+erY+' 0 0 0 '+(cx+sr)+' '+botY+'" fill="none" stroke="'+color+'" stroke-width="2.5"/>';
-    s += '<text x="'+cx+'" y="'+(botY+50)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق='+r+'، ارتفاع='+h+'</text>';
+    s += '<path d="M '+(cx-sr)+' '+botY+' A '+sr+' '+erY+' 0 0 1 '+(cx+sr)+' '+botY+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    
+    // نصف القطر + الارتفاع
+    if (_vmShowFlag('measurements')) {
+        s += '<line x1="'+cx+'" y1="'+topY+'" x2="'+(cx+sr)+'" y2="'+topY+'" stroke="'+color+'" stroke-width="1" opacity="0.7"/>';
+        s += '<text x="'+(cx+sr/2)+'" y="'+(topY-6)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">'+r+'</text>';
+        s += '<line x1="'+(cx-sr-15)+'" y1="'+topY+'" x2="'+(cx-sr-15)+'" y2="'+botY+'" stroke="'+color+'" stroke-width="1" opacity="0.7"/>';
+        s += '<text x="'+(cx-sr-22)+'" y="'+((topY+botY)/2+5)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">'+h+'</text>';
+        s += '<text x="'+cx+'" y="'+(botY+50)+'" font-family="Cairo,sans-serif" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق = '+r+' · الارتفاع = '+h+'</text>';
+    }
     s += '</svg>';
     return s;
 }
@@ -14879,9 +15645,25 @@ function vmDrawCone() {
     if (sh > 320) { var rt=320/sh; sr*=rt; sh*=rt; }
     var cx=W/2,cy=H/2+30,apex={x:cx,y:cy-sh/2},baseY=cy+sh/2,erY=sr*0.3;
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    
+    // الجانب الخارجي (المثلث الكبير)
     s += '<polygon points="'+apex.x+','+apex.y+' '+(cx-sr)+','+baseY+' '+(cx+sr)+','+baseY+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2.5"/>';
-    s += '<path d="M '+(cx-sr)+' '+baseY+' A '+sr+' '+erY+' 0 0 0 '+(cx+sr)+' '+baseY+'" fill="'+color+'40" stroke="'+color+'" stroke-width="2.5"/>';
-    s += '<text x="'+cx+'" y="'+(baseY+50)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق='+r+'، ارتفاع='+h+'</text>';
+    // القاعدة الأمامية
+    s += '<path d="M '+(cx-sr)+' '+baseY+' A '+sr+' '+erY+' 0 0 0 '+(cx+sr)+' '+baseY+'" fill="'+color+'45" stroke="'+color+'" stroke-width="2.5"/>';
+    // القاعدة الخلفية (متقطعة)
+    s += '<path d="M '+(cx-sr)+' '+baseY+' A '+sr+' '+erY+' 0 0 1 '+(cx+sr)+' '+baseY+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.5"/>';
+    
+    // الارتفاع المتقطع من القمة لمركز القاعدة
+    s += '<line x1="'+apex.x+'" y1="'+apex.y+'" x2="'+cx+'" y2="'+baseY+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6"/>';
+    s += '<circle cx="'+cx+'" cy="'+baseY+'" r="3" fill="'+color+'"/>';
+    
+    // قياسات
+    if (_vmShowFlag('measurements')) {
+        s += '<line x1="'+cx+'" y1="'+baseY+'" x2="'+(cx+sr)+'" y2="'+baseY+'" stroke="'+color+'" stroke-width="1" opacity="0.7"/>';
+        s += '<text x="'+(cx+sr/2)+'" y="'+(baseY+18)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="600">'+r+'</text>';
+        s += '<text x="'+(cx-10)+'" y="'+((apex.y+baseY)/2+5)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="end" font-weight="600">'+h+'</text>';
+        s += '<text x="'+cx+'" y="'+(baseY+50)+'" font-family="Cairo,sans-serif" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">نق = '+r+' · الارتفاع = '+h+'</text>';
+    }
     s += '</svg>';
     return s;
 }
@@ -14923,6 +15705,308 @@ function vmDrawPolygon() {
     s += '</svg>';
     return s;
 }
+
+
+// ════════════════════════════════════════════════════════════
+// 🆕 دوال رسم الأدوات الجديدة
+// ════════════════════════════════════════════════════════════
+
+function vmDrawAngle() {
+    var deg = parseFloat((document.getElementById('vm-ang-deg')||{}).value) || 60;
+    var label = (document.getElementById('vm-ang-label')||{}).value || 'θ';
+    var color = (document.getElementById('vm-ang-color')||{}).value || '#a855f7';
+    var W=500,H=400,cx=W/2,cy=H/2+30;
+    var rayLen = 160;
+    var rad = deg * Math.PI / 180;
+    
+    // الرأس
+    var endX1 = cx + rayLen, endY1 = cy; // ضلع أفقي
+    var endX2 = cx + rayLen * Math.cos(-rad), endY2 = cy + rayLen * Math.sin(-rad);
+    
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:500px;background:#fff;">';
+    
+    // قوس الزاوية
+    var arcR = 50;
+    var arcX1 = cx + arcR, arcY1 = cy;
+    var arcX2 = cx + arcR * Math.cos(-rad), arcY2 = cy + arcR * Math.sin(-rad);
+    var largeArc = deg > 180 ? 1 : 0;
+    s += '<path d="M '+arcX1+' '+arcY1+' A '+arcR+' '+arcR+' 0 '+largeArc+' 0 '+arcX2+' '+arcY2+'" fill="'+color+'25" stroke="'+color+'" stroke-width="2"/>';
+    
+    // الضلعان
+    s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+endX1+'" y2="'+endY1+'" stroke="#333" stroke-width="3" stroke-linecap="round"/>';
+    s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+endX2+'" y2="'+endY2+'" stroke="#333" stroke-width="3" stroke-linecap="round"/>';
+    
+    // الأسهم في النهايات
+    s += '<polygon points="'+endX1+','+endY1+' '+(endX1-12)+','+(endY1-6)+' '+(endX1-12)+','+(endY1+6)+'" fill="#333"/>';
+    var ang2 = Math.atan2(endY2-cy, endX2-cx);
+    s += '<polygon points="'+endX2+','+endY2+' '+(endX2-12*Math.cos(ang2)+6*Math.sin(ang2))+','+(endY2-12*Math.sin(ang2)-6*Math.cos(ang2))+' '+(endX2-12*Math.cos(ang2)-6*Math.sin(ang2))+','+(endY2-12*Math.sin(ang2)+6*Math.cos(ang2))+'" fill="#333"/>';
+    
+    // الرأس - نقطة
+    s += '<circle cx="'+cx+'" cy="'+cy+'" r="5" fill="#333"/>';
+    
+    // التسمية
+    var lblX = cx + 75 * Math.cos(-rad/2);
+    var lblY = cy + 75 * Math.sin(-rad/2);
+    s += '<text x="'+lblX+'" y="'+lblY+'" font-family="Times New Roman,serif" font-size="28" font-style="italic" fill="'+color+'" text-anchor="middle" font-weight="bold">'+label+'</text>';
+    
+    // قياس الزاوية
+    s += '<text x="'+cx+'" y="'+(H-30)+'" font-family="Cairo,sans-serif" font-size="20" fill="'+color+'" text-anchor="middle" font-weight="700">'+label+' = '+deg+'°</text>';
+    
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawVenn() {
+    var count = parseInt((document.getElementById('vm-venn-count')||{}).value) || 2;
+    var a = (document.getElementById('vm-venn-a')||{}).value || 'A';
+    var b = (document.getElementById('vm-venn-b')||{}).value || 'B';
+    var c = (document.getElementById('vm-venn-c')||{}).value || 'C';
+    var shade = (document.getElementById('vm-venn-shade')||{}).checked;
+    
+    var W=600,H=500;
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    
+    // المستطيل المحيط (Universal Set)
+    s += '<rect x="20" y="20" width="'+(W-40)+'" height="'+(H-40)+'" fill="none" stroke="#666" stroke-width="2"/>';
+    s += '<text x="40" y="50" font-family="Times New Roman,serif" font-size="22" fill="#666" font-style="italic">U</text>';
+    
+    if (count === 2) {
+        var r = 130, cy = H/2;
+        var cx1 = W/2 - 80, cx2 = W/2 + 80;
+        
+        if (shade) {
+            // التقاطع - clip path
+            s += '<defs><clipPath id="clipA"><circle cx="'+cx1+'" cy="'+cy+'" r="'+r+'"/></clipPath></defs>';
+            s += '<circle cx="'+cx2+'" cy="'+cy+'" r="'+r+'" fill="#a855f750" clip-path="url(#clipA)"/>';
+        }
+        
+        s += '<circle cx="'+cx1+'" cy="'+cy+'" r="'+r+'" fill="#3b82f620" stroke="#3b82f6" stroke-width="3"/>';
+        s += '<circle cx="'+cx2+'" cy="'+cy+'" r="'+r+'" fill="#ef444420" stroke="#ef4444" stroke-width="3"/>';
+        
+        s += '<text x="'+(cx1-60)+'" y="'+(cy-r+30)+'" font-family="Times New Roman,serif" font-size="32" fill="#1e40af" font-weight="bold">'+a+'</text>';
+        s += '<text x="'+(cx2+30)+'" y="'+(cy-r+30)+'" font-family="Times New Roman,serif" font-size="32" fill="#b91c1c" font-weight="bold">'+b+'</text>';
+        
+        if (shade) {
+            s += '<text x="'+(W/2)+'" y="'+(cy+5)+'" font-family="Times New Roman,serif" font-size="18" fill="#581c87" text-anchor="middle" font-weight="600">'+a+' ∩ '+b+'</text>';
+        }
+    } else {
+        var r = 110;
+        var cx1 = W/2 - 70, cy1 = H/2 - 50;
+        var cx2 = W/2 + 70, cy2 = H/2 - 50;
+        var cx3 = W/2,      cy3 = H/2 + 60;
+        
+        s += '<circle cx="'+cx1+'" cy="'+cy1+'" r="'+r+'" fill="#3b82f620" stroke="#3b82f6" stroke-width="3"/>';
+        s += '<circle cx="'+cx2+'" cy="'+cy2+'" r="'+r+'" fill="#ef444420" stroke="#ef4444" stroke-width="3"/>';
+        s += '<circle cx="'+cx3+'" cy="'+cy3+'" r="'+r+'" fill="#10b98120" stroke="#10b981" stroke-width="3"/>';
+        
+        s += '<text x="'+(cx1-50)+'" y="'+(cy1-r+25)+'" font-family="Times New Roman,serif" font-size="28" fill="#1e40af" font-weight="bold">'+a+'</text>';
+        s += '<text x="'+(cx2+20)+'" y="'+(cy2-r+25)+'" font-family="Times New Roman,serif" font-size="28" fill="#b91c1c" font-weight="bold">'+b+'</text>';
+        s += '<text x="'+(cx3-15)+'" y="'+(cy3+r+30)+'" font-family="Times New Roman,serif" font-size="28" fill="#047857" font-weight="bold">'+c+'</text>';
+    }
+    
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawVector() {
+    var name = (document.getElementById('vm-vec-name')||{}).value || 'v';
+    var vx = parseFloat((document.getElementById('vm-vec-x')||{}).value) || 5;
+    var vy = parseFloat((document.getElementById('vm-vec-y')||{}).value) || 3;
+    var color = (document.getElementById('vm-vec-color')||{}).value || '#e91e63';
+    
+    var W=600,H=500,pad=40;
+    var range = Math.max(Math.abs(vx), Math.abs(vy)) + 2;
+    var scale = (W - 2*pad) / (2*range);
+    var cx = W/2, cy = H/2;
+    
+    var endX = cx + vx*scale, endY = cy - vy*scale;
+    
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:600px;background:#fff;">';
+    
+    // الشبكة
+    for (var i = -range; i <= range; i++) {
+        s += '<line x1="'+(cx+i*scale)+'" y1="'+pad+'" x2="'+(cx+i*scale)+'" y2="'+(H-pad)+'" stroke="#f3f4f6" stroke-width="1"/>';
+        s += '<line x1="'+pad+'" y1="'+(cy+i*scale)+'" x2="'+(W-pad)+'" y2="'+(cy+i*scale)+'" stroke="#f3f4f6" stroke-width="1"/>';
+    }
+    
+    // المحاور
+    s += '<line x1="'+pad+'" y1="'+cy+'" x2="'+(W-pad)+'" y2="'+cy+'" stroke="#333" stroke-width="2"/>';
+    s += '<line x1="'+cx+'" y1="'+pad+'" x2="'+cx+'" y2="'+(H-pad)+'" stroke="#333" stroke-width="2"/>';
+    s += '<polygon points="'+(W-pad)+','+cy+' '+(W-pad-10)+','+(cy-6)+' '+(W-pad-10)+','+(cy+6)+'" fill="#333"/>';
+    s += '<polygon points="'+cx+','+pad+' '+(cx-6)+','+(pad+10)+' '+(cx+6)+','+(pad+10)+'" fill="#333"/>';
+    s += '<text x="'+(W-pad+5)+'" y="'+(cy+18)+'" font-family="Times New Roman,serif" font-size="18" font-style="italic">x</text>';
+    s += '<text x="'+(cx-18)+'" y="'+(pad-5)+'" font-family="Times New Roman,serif" font-size="18" font-style="italic">y</text>';
+    
+    // الأرقام
+    for (var i = -Math.floor(range); i <= Math.floor(range); i++) {
+        if (i === 0) continue;
+        s += '<text x="'+(cx+i*scale)+'" y="'+(cy+18)+'" font-family="Cairo,sans-serif" font-size="12" fill="#666" text-anchor="middle">'+i+'</text>';
+        s += '<text x="'+(cx-8)+'" y="'+(cy-i*scale+4)+'" font-family="Cairo,sans-serif" font-size="12" fill="#666" text-anchor="end">'+i+'</text>';
+    }
+    
+    // المتجه
+    s += '<line x1="'+cx+'" y1="'+cy+'" x2="'+endX+'" y2="'+endY+'" stroke="'+color+'" stroke-width="3.5" stroke-linecap="round"/>';
+    // رأس السهم
+    var ang = Math.atan2(endY-cy, endX-cx);
+    var ah1x = endX - 16*Math.cos(ang) + 8*Math.sin(ang);
+    var ah1y = endY - 16*Math.sin(ang) - 8*Math.cos(ang);
+    var ah2x = endX - 16*Math.cos(ang) - 8*Math.sin(ang);
+    var ah2y = endY - 16*Math.sin(ang) + 8*Math.cos(ang);
+    s += '<polygon points="'+endX+','+endY+' '+ah1x+','+ah1y+' '+ah2x+','+ah2y+'" fill="'+color+'"/>';
+    
+    // التسمية
+    s += '<text x="'+(endX+15)+'" y="'+(endY-5)+'" font-family="Times New Roman,serif" font-size="22" font-style="italic" fill="'+color+'" font-weight="bold">'+name+'⃗</text>';
+    
+    // المركبات
+    s += '<text x="'+(W/2)+'" y="'+(H-15)+'" font-family="Times New Roman,serif" font-size="18" fill="'+color+'" text-anchor="middle" font-weight="600">'+name+' = ('+vx+', '+vy+')</text>';
+    
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawBoxPlot() {
+    var dataStr = (document.getElementById('vm-box-data')||{}).value || '3,7,8,12,13,14,18,21,23,27';
+    var title = (document.getElementById('vm-box-title')||{}).value || 'البيانات';
+    var color = (document.getElementById('vm-box-color')||{}).value || '#ec4899';
+    
+    var data = dataStr.split(/[,،\s]+/).map(parseFloat).filter(function(n){return !isNaN(n);}).sort(function(a,b){return a-b;});
+    if (data.length < 4) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" style="background:#fff;"><text x="300" y="100" font-family="Cairo" font-size="16" fill="#999" text-anchor="middle">يجب إدخال 4 قيم على الأقل</text></svg>';
+    
+    function quantile(arr, q) {
+        var pos = (arr.length - 1) * q;
+        var b = Math.floor(pos);
+        var rest = pos - b;
+        if (arr[b+1] !== undefined) return arr[b] + rest*(arr[b+1]-arr[b]);
+        return arr[b];
+    }
+    
+    var min = data[0], max = data[data.length-1];
+    var q1 = quantile(data, 0.25), q2 = quantile(data, 0.5), q3 = quantile(data, 0.75);
+    var iqr = q3 - q1;
+    
+    var W=700,H=350,pad=60;
+    var plotW = W - 2*pad;
+    var range = max - min || 1;
+    function tx(v) { return pad + ((v - min) / range) * plotW; }
+    
+    var cy = H/2 + 20;
+    var boxH = 80;
+    
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
+    
+    // المحور
+    s += '<line x1="'+pad+'" y1="'+(H-40)+'" x2="'+(W-pad)+'" y2="'+(H-40)+'" stroke="#333" stroke-width="2"/>';
+    // علامات على المحور
+    for (var i=0; i<=10; i++) {
+        var v = min + (i/10)*range;
+        var x = tx(v);
+        s += '<line x1="'+x+'" y1="'+(H-40)+'" x2="'+x+'" y2="'+(H-35)+'" stroke="#333" stroke-width="1"/>';
+        s += '<text x="'+x+'" y="'+(H-22)+'" font-family="Cairo,sans-serif" font-size="12" fill="#666" text-anchor="middle">'+v.toFixed(1)+'</text>';
+    }
+    
+    // الصندوق (Q1 → Q3)
+    s += '<rect x="'+tx(q1)+'" y="'+(cy-boxH/2)+'" width="'+(tx(q3)-tx(q1))+'" height="'+boxH+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2.5"/>';
+    
+    // الوسيط Q2
+    s += '<line x1="'+tx(q2)+'" y1="'+(cy-boxH/2)+'" x2="'+tx(q2)+'" y2="'+(cy+boxH/2)+'" stroke="'+color+'" stroke-width="3.5"/>';
+    
+    // الشوارب (Whiskers)
+    s += '<line x1="'+tx(min)+'" y1="'+cy+'" x2="'+tx(q1)+'" y2="'+cy+'" stroke="'+color+'" stroke-width="2"/>';
+    s += '<line x1="'+tx(q3)+'" y1="'+cy+'" x2="'+tx(max)+'" y2="'+cy+'" stroke="'+color+'" stroke-width="2"/>';
+    s += '<line x1="'+tx(min)+'" y1="'+(cy-20)+'" x2="'+tx(min)+'" y2="'+(cy+20)+'" stroke="'+color+'" stroke-width="2.5"/>';
+    s += '<line x1="'+tx(max)+'" y1="'+(cy-20)+'" x2="'+tx(max)+'" y2="'+(cy+20)+'" stroke="'+color+'" stroke-width="2.5"/>';
+    
+    // التسميات
+    s += '<text x="'+tx(min)+'" y="'+(cy-30)+'" font-family="Cairo,sans-serif" font-size="12" fill="'+color+'" text-anchor="middle" font-weight="600">Min='+min+'</text>';
+    s += '<text x="'+tx(q1)+'" y="'+(cy-boxH/2-10)+'" font-family="Cairo,sans-serif" font-size="12" fill="'+color+'" text-anchor="middle" font-weight="600">Q1='+q1.toFixed(1)+'</text>';
+    s += '<text x="'+tx(q2)+'" y="'+(cy-boxH/2-10)+'" font-family="Cairo,sans-serif" font-size="13" fill="'+color+'" text-anchor="middle" font-weight="700">M='+q2.toFixed(1)+'</text>';
+    s += '<text x="'+tx(q3)+'" y="'+(cy-boxH/2-10)+'" font-family="Cairo,sans-serif" font-size="12" fill="'+color+'" text-anchor="middle" font-weight="600">Q3='+q3.toFixed(1)+'</text>';
+    s += '<text x="'+tx(max)+'" y="'+(cy-30)+'" font-family="Cairo,sans-serif" font-size="12" fill="'+color+'" text-anchor="middle" font-weight="600">Max='+max+'</text>';
+    
+    // العنوان
+    s += '<text x="'+(W/2)+'" y="35" font-family="Cairo,sans-serif" font-size="20" fill="#333" text-anchor="middle" font-weight="700">'+title+'</text>';
+    s += '<text x="'+(W/2)+'" y="60" font-family="Cairo,sans-serif" font-size="13" fill="#666" text-anchor="middle">IQR = '+iqr.toFixed(1)+' (المدى الربعي)</text>';
+    
+    s += '</svg>';
+    return s;
+}
+
+function vmDrawScatter() {
+    var dataStr = (document.getElementById('vm-sc-data')||{}).value || '1,2; 3,5; 4,4; 6,7; 8,8; 10,12';
+    var title = (document.getElementById('vm-sc-title')||{}).value || 'مخطط الانتشار';
+    var showTrend = (document.getElementById('vm-sc-trend')||{}).checked;
+    var color = (document.getElementById('vm-sc-color')||{}).value || '#ec4899';
+    
+    var pairs = dataStr.split(/[;؛]/).map(function(s) {
+        var p = s.trim().split(/[,،\s]+/).map(parseFloat).filter(function(n){return !isNaN(n);});
+        return p.length >= 2 ? {x:p[0], y:p[1]} : null;
+    }).filter(function(p){return p;});
+    
+    if (pairs.length < 2) return '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 200" style="background:#fff;"><text x="300" y="100" font-family="Cairo" font-size="16" fill="#999" text-anchor="middle">يجب إدخال نقطتين على الأقل</text></svg>';
+    
+    var xs = pairs.map(function(p){return p.x;});
+    var ys = pairs.map(function(p){return p.y;});
+    var xmin = Math.min.apply(null, xs), xmax = Math.max.apply(null, xs);
+    var ymin = Math.min.apply(null, ys), ymax = Math.max.apply(null, ys);
+    var xpad = (xmax-xmin)*0.1 || 1, ypad = (ymax-ymin)*0.1 || 1;
+    xmin -= xpad; xmax += xpad; ymin -= ypad; ymax += ypad;
+    
+    var W=700,H=500,pad=60;
+    var plotW = W - 2*pad, plotH = H - 2*pad;
+    function tx(x) { return pad + ((x - xmin) / (xmax - xmin)) * plotW; }
+    function ty(y) { return H - pad - ((y - ymin) / (ymax - ymin)) * plotH; }
+    
+    var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
+    
+    // العنوان
+    s += '<text x="'+(W/2)+'" y="30" font-family="Cairo,sans-serif" font-size="18" fill="#333" text-anchor="middle" font-weight="700">'+title+'</text>';
+    
+    // الشبكة
+    for (var i=0; i<=10; i++) {
+        var gx = pad + (i/10) * plotW;
+        var gy = pad + (i/10) * plotH;
+        s += '<line x1="'+gx+'" y1="'+pad+'" x2="'+gx+'" y2="'+(H-pad)+'" stroke="#f3f4f6" stroke-width="1"/>';
+        s += '<line x1="'+pad+'" y1="'+gy+'" x2="'+(W-pad)+'" y2="'+gy+'" stroke="#f3f4f6" stroke-width="1"/>';
+    }
+    
+    // المحاور
+    s += '<line x1="'+pad+'" y1="'+(H-pad)+'" x2="'+(W-pad)+'" y2="'+(H-pad)+'" stroke="#333" stroke-width="2"/>';
+    s += '<line x1="'+pad+'" y1="'+pad+'" x2="'+pad+'" y2="'+(H-pad)+'" stroke="#333" stroke-width="2"/>';
+    
+    // علامات المحاور
+    for (var i=0; i<=5; i++) {
+        var v = xmin + (i/5) * (xmax-xmin);
+        s += '<text x="'+(pad + (i/5)*plotW)+'" y="'+(H-pad+18)+'" font-family="Cairo,sans-serif" font-size="11" fill="#666" text-anchor="middle">'+v.toFixed(1)+'</text>';
+        var v2 = ymin + (i/5) * (ymax-ymin);
+        s += '<text x="'+(pad-8)+'" y="'+(H-pad - (i/5)*plotH +4)+'" font-family="Cairo,sans-serif" font-size="11" fill="#666" text-anchor="end">'+v2.toFixed(1)+'</text>';
+    }
+    
+    // خط الاتجاه (Linear Regression)
+    if (showTrend && pairs.length >= 2) {
+        var n = pairs.length;
+        var sumX=0, sumY=0, sumXY=0, sumX2=0;
+        pairs.forEach(function(p){ sumX+=p.x; sumY+=p.y; sumXY+=p.x*p.y; sumX2+=p.x*p.x; });
+        var slope = (n*sumXY - sumX*sumY) / (n*sumX2 - sumX*sumX);
+        var intercept = (sumY - slope*sumX) / n;
+        var x1 = xmin, y1 = slope*x1 + intercept;
+        var x2 = xmax, y2 = slope*x2 + intercept;
+        s += '<line x1="'+tx(x1)+'" y1="'+ty(y1)+'" x2="'+tx(x2)+'" y2="'+ty(y2)+'" stroke="#999" stroke-width="2" stroke-dasharray="6,4"/>';
+        s += '<text x="'+(W-pad-10)+'" y="'+(ty(y2)-8)+'" font-family="Cairo,sans-serif" font-size="12" fill="#666" text-anchor="end">y = '+slope.toFixed(2)+'x + '+intercept.toFixed(2)+'</text>';
+    }
+    
+    // النقاط
+    pairs.forEach(function(p) {
+        s += '<circle cx="'+tx(p.x)+'" cy="'+ty(p.y)+'" r="6" fill="'+color+'" stroke="#fff" stroke-width="2"/>';
+    });
+    
+    // labels
+    s += '<text x="'+(W-pad)+'" y="'+(H-pad+38)+'" font-family="Times New Roman,serif" font-size="16" font-style="italic" fill="#333" text-anchor="end">x</text>';
+    s += '<text x="'+(pad-25)+'" y="'+pad+'" font-family="Times New Roman,serif" font-size="16" font-style="italic" fill="#333">y</text>';
+    
+    s += '</svg>';
+    return s;
+}
+
 
 </script>
 
@@ -15860,6 +16944,932 @@ async function exportResultsCSV(days) {
         var observer = new MutationObserver(hideParticlesIfLogin);
         observer.observe(login, { attributes: true, attributeFilter: ['style'] });
     }, 100);
+})();
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     🎨 صانع المسائل البصرية - التبويبات الجديدة JS
+════════════════════════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════════════════
+// 🎯 إدارة التبويبات
+// ════════════════════════════════════════════════════════════
+function amvmSwitchTab(tabName) {
+    // إخفاء كل المحتوى
+    document.querySelectorAll('.amvm-tab-content').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    // إعادة تعيين أزرار التبويب
+    document.querySelectorAll('.amvm-tab').forEach(function(btn) {
+        btn.classList.remove('active');
+        btn.style.background = 'rgba(255,255,255,0.05)';
+        btn.style.color = 'rgba(255,255,255,0.7)';
+        btn.style.border = '1px solid rgba(255,255,255,0.1)';
+    });
+    // إظهار المحتوى المختار
+    var content = document.getElementById('amvm-tab-' + tabName);
+    if (content) content.style.display = 'block';
+    // تنشيط الزر
+    var activeBtn = document.querySelector('.amvm-tab[data-tab="' + tabName + '"]');
+    if (activeBtn) {
+        activeBtn.classList.add('active');
+        var colors = {
+            shapes: ['#f39c12', '#e67e22'],
+            equations: ['#10b981', '#059669'],
+            plane: ['#3b82f6', '#2563eb'],
+            symbols: ['#a855f7', '#7c3aed']
+        };
+        var c = colors[tabName] || ['#f39c12', '#e67e22'];
+        activeBtn.style.background = 'linear-gradient(135deg,' + c[0] + ',' + c[1] + ')';
+        activeBtn.style.color = '#fff';
+        activeBtn.style.border = 'none';
+    }
+    // تفعيل الرسم/البناء للتبويب
+    if (tabName === 'plane') setTimeout(planeRender, 100);
+    if (tabName === 'symbols') setTimeout(symBuildGrid, 100);
+    if (tabName === 'equations') setTimeout(eqUpdatePreview, 100);
+}
+
+// ════════════════════════════════════════════════════════════
+// ∫ محرر المعادلات (Unicode فقط)
+// ════════════════════════════════════════════════════════════
+var _superMap = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻','+':'⁺','(':'⁽',')':'⁾','=':'⁼','n':'ⁿ','i':'ⁱ'};
+var _subMap   = {'0':'₀','1':'₁','2':'₂','3':'₃','4':'₄','5':'₅','6':'₆','7':'₇','8':'₈','9':'₉','-':'₋','+':'₊','(':'₍',')':'₎','=':'₌','n':'ₙ','i':'ᵢ'};
+
+function eqInsertAtCursor(text) {
+    var input = document.getElementById('eq-input');
+    if (!input) return;
+    var start = input.selectionStart || 0;
+    var end = input.selectionEnd || 0;
+    var v = input.value;
+    input.value = v.substring(0, start) + text + v.substring(end);
+    var newPos = start + text.length;
+    input.focus();
+    input.setSelectionRange(newPos, newPos);
+    eqUpdatePreview();
+}
+
+function eqInsertSym(sym) {
+    eqInsertAtCursor(sym);
+}
+
+function eqInsertFrac() {
+    var num = prompt('البسط:', '1');
+    if (num === null) return;
+    var den = prompt('المقام:', '2');
+    if (den === null) return;
+    eqInsertAtCursor('(' + num + ')/(' + den + ')');
+}
+
+function eqInsertPower() {
+    var base = prompt('الأساس (مثال: x):', 'x');
+    if (base === null) return;
+    var exp = prompt('الأس (مثال: 2):', '2');
+    if (exp === null) return;
+    var supText = String(exp).split('').map(function(c){ return _superMap[c] || c; }).join('');
+    eqInsertAtCursor(base + supText);
+}
+
+function eqInsertSubscript() {
+    var base = prompt('الأساس (مثال: x):', 'x');
+    if (base === null) return;
+    var sub = prompt('الترقيم السفلي:', '1');
+    if (sub === null) return;
+    var subText = String(sub).split('').map(function(c){ return _subMap[c] || c; }).join('');
+    eqInsertAtCursor(base + subText);
+}
+
+function eqInsertSqrt() {
+    var val = prompt('القيمة تحت الجذر:', 'x');
+    if (val === null) return;
+    eqInsertAtCursor('√(' + val + ')');
+}
+
+function eqInsertNthRoot() {
+    var n = prompt('الدليل (مثال: 3 للجذر التكعيبي):', '3');
+    if (n === null) return;
+    var val = prompt('القيمة:', 'x');
+    if (val === null) return;
+    var nText = String(n).split('').map(function(c){ return _superMap[c] || c; }).join('');
+    eqInsertAtCursor(nText + '√(' + val + ')');
+}
+
+function eqUpdatePreview() {
+    var input = document.getElementById('eq-input');
+    var preview = document.getElementById('eq-preview');
+    if (!input || !preview) return;
+    var text = input.value || '';
+    if (!text.trim()) {
+        preview.innerHTML = '<span style="color:#999;font-size:1rem;">المعاينة ستظهر هنا...</span>';
+        return;
+    }
+    // نُحوّل /a/b البسيطة لكسر مرئي
+    var html = text
+        .replace(/\(([^()]+)\)\/\(([^()]+)\)/g, '<span style="display:inline-block;vertical-align:middle;text-align:center;margin:0 4px;"><span style="display:block;border-bottom:2px solid #000;padding:0 8px;line-height:1.2;">$1</span><span style="display:block;padding:0 8px;line-height:1.2;">$2</span></span>')
+        .replace(/√\(([^()]+)\)/g, '<span style="display:inline-block;vertical-align:middle;"><span style="border-top:2px solid #000;padding:0 4px;">$1</span></span>');
+    preview.innerHTML = '<span style="font-family:\'Times New Roman\',serif;font-size:1.8rem;">' + html.replace(/^√/, '√').replace(/\n/g, '<br>') + '</span>';
+}
+
+function eqClear() {
+    var input = document.getElementById('eq-input');
+    if (input) {
+        input.value = '';
+        eqUpdatePreview();
+    }
+}
+
+function eqLoadExample(text) {
+    var input = document.getElementById('eq-input');
+    if (input) {
+        input.value = text;
+        eqUpdatePreview();
+        input.focus();
+    }
+}
+
+function eqInsertToQuestion() {
+    var input = document.getElementById('eq-input');
+    if (!input || !input.value.trim()) {
+        if (typeof showToast === 'function') showToast('❌ المعادلة فارغة', 'error');
+        return;
+    }
+    // نُضيف للسؤال
+    var qText = document.getElementById('q-text');
+    if (qText) {
+        qText.value = (qText.value || '') + ' ' + input.value;
+        if (typeof showToast === 'function') showToast('✅ تم إدراج المعادلة', 'success');
+        closeVisualMaker();
+    } else {
+        navigator.clipboard.writeText(input.value);
+        if (typeof showToast === 'function') showToast('✅ تم النسخ للحافظة', 'success');
+    }
+}
+
+function eqDownloadImage() {
+    var preview = document.getElementById('eq-preview');
+    if (!preview || !preview.textContent.trim()) {
+        if (typeof showToast === 'function') showToast('❌ لا توجد معادلة', 'error');
+        return;
+    }
+    // نولّد SVG من المعادلة
+    var text = (document.getElementById('eq-input') || {}).value || '';
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" style="background:#fff;"><text x="400" y="115" font-family="Times New Roman, serif" font-size="48" fill="#000" text-anchor="middle">' + text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</text></svg>';
+    var blob = new Blob([svg], {type:'image/svg+xml'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'equation.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ════════════════════════════════════════════════════════════
+// 📈 المستوى الإحداثي + رسم الدوال
+// ════════════════════════════════════════════════════════════
+function planeEvalExpression(expr, x) {
+    // نُحوّل ^ إلى ** ونعالج الدوال المعروفة
+    var safe = expr
+        .replace(/\^/g, '**')
+        .replace(/abs\(/g, 'Math.abs(')
+        .replace(/sin\(/g, 'Math.sin(')
+        .replace(/cos\(/g, 'Math.cos(')
+        .replace(/tan\(/g, 'Math.tan(')
+        .replace(/sqrt\(/g, 'Math.sqrt(')
+        .replace(/log\(/g, 'Math.log10(')
+        .replace(/ln\(/g, 'Math.log(')
+        .replace(/exp\(/g, 'Math.exp(')
+        .replace(/pi/g, 'Math.PI')
+        .replace(/e(?!xp)/g, 'Math.E');
+    try {
+        return new Function('x', 'return ' + safe)(x);
+    } catch(e) {
+        return NaN;
+    }
+}
+
+function planeRender() {
+    var preview = document.getElementById('plane-preview');
+    if (!preview) return;
+    
+    var expr = (document.getElementById('plane-eq') || {}).value || 'x^2';
+    var xmin = parseFloat((document.getElementById('plane-xmin') || {}).value) || -10;
+    var xmax = parseFloat((document.getElementById('plane-xmax') || {}).value) || 10;
+    var ymin = parseFloat((document.getElementById('plane-ymin') || {}).value) || -10;
+    var ymax = parseFloat((document.getElementById('plane-ymax') || {}).value) || 10;
+    var color = (document.getElementById('plane-color') || {}).value || '#e74c3c';
+    var showGrid = (document.getElementById('plane-grid') || {}).checked;
+    var showAxes = (document.getElementById('plane-axes') || {}).checked;
+    var showLabels = (document.getElementById('plane-labels') || {}).checked;
+    
+    var W = 700, H = 500, pad = 40;
+    var plotW = W - 2 * pad, plotH = H - 2 * pad;
+    
+    function tx(x) { return pad + ((x - xmin) / (xmax - xmin)) * plotW; }
+    function ty(y) { return H - pad - ((y - ymin) / (ymax - ymin)) * plotH; }
+    
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;max-width:700px;background:#fff;">';
+    
+    // الشبكة
+    if (showGrid) {
+        var step = Math.max(1, Math.round((xmax - xmin) / 20));
+        for (var x = Math.ceil(xmin / step) * step; x <= xmax; x += step) {
+            svg += '<line x1="' + tx(x) + '" y1="' + pad + '" x2="' + tx(x) + '" y2="' + (H - pad) + '" stroke="#e5e7eb" stroke-width="1"/>';
+        }
+        for (var y = Math.ceil(ymin / step) * step; y <= ymax; y += step) {
+            svg += '<line x1="' + pad + '" y1="' + ty(y) + '" x2="' + (W - pad) + '" y2="' + ty(y) + '" stroke="#e5e7eb" stroke-width="1"/>';
+        }
+    }
+    
+    // المحاور
+    if (showAxes) {
+        // محور X
+        var y0 = ty(0);
+        if (y0 >= pad && y0 <= H - pad) {
+            svg += '<line x1="' + pad + '" y1="' + y0 + '" x2="' + (W - pad) + '" y2="' + y0 + '" stroke="#000" stroke-width="2"/>';
+            svg += '<polygon points="' + (W - pad) + ',' + y0 + ' ' + (W - pad - 10) + ',' + (y0 - 6) + ' ' + (W - pad - 10) + ',' + (y0 + 6) + '" fill="#000"/>';
+            svg += '<text x="' + (W - pad + 8) + '" y="' + (y0 + 5) + '" font-family="Times New Roman, serif" font-size="20" font-style="italic" fill="#000">x</text>';
+        }
+        // محور Y
+        var x0 = tx(0);
+        if (x0 >= pad && x0 <= W - pad) {
+            svg += '<line x1="' + x0 + '" y1="' + pad + '" x2="' + x0 + '" y2="' + (H - pad) + '" stroke="#000" stroke-width="2"/>';
+            svg += '<polygon points="' + x0 + ',' + pad + ' ' + (x0 - 6) + ',' + (pad + 10) + ' ' + (x0 + 6) + ',' + (pad + 10) + '" fill="#000"/>';
+            svg += '<text x="' + (x0 - 18) + '" y="' + (pad - 5) + '" font-family="Times New Roman, serif" font-size="20" font-style="italic" fill="#000">y</text>';
+        }
+    }
+    
+    // الأعداد
+    if (showLabels) {
+        var step2 = Math.max(1, Math.round((xmax - xmin) / 10));
+        var y0 = ty(0);
+        var x0 = tx(0);
+        for (var x = Math.ceil(xmin / step2) * step2; x <= xmax; x += step2) {
+            if (x === 0) continue;
+            if (y0 >= pad && y0 <= H - pad) {
+                svg += '<text x="' + tx(x) + '" y="' + (y0 + 18) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="middle">' + x + '</text>';
+            }
+        }
+        for (var y = Math.ceil(ymin / step2) * step2; y <= ymax; y += step2) {
+            if (y === 0) continue;
+            if (x0 >= pad && x0 <= W - pad) {
+                svg += '<text x="' + (x0 - 8) + '" y="' + (ty(y) + 4) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="end">' + y + '</text>';
+            }
+        }
+        // الأصل
+        if (x0 >= pad && y0 <= H - pad) {
+            svg += '<text x="' + (x0 - 8) + '" y="' + (y0 + 18) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="end">0</text>';
+        }
+    }
+    
+    // رسم الدالة
+    var points = [];
+    var samples = 400;
+    for (var i = 0; i <= samples; i++) {
+        var x = xmin + (i / samples) * (xmax - xmin);
+        var y = planeEvalExpression(expr, x);
+        if (isFinite(y)) {
+            points.push({x: x, y: y, sx: tx(x), sy: ty(y)});
+        } else {
+            points.push(null);
+        }
+    }
+    
+    // نرسم خطوط متصلة فقط
+    var path = '';
+    var inPath = false;
+    for (var i = 0; i < points.length; i++) {
+        var p = points[i];
+        if (!p || p.sy < pad - 50 || p.sy > H - pad + 50) {
+            inPath = false;
+            continue;
+        }
+        if (!inPath) {
+            path += 'M ' + p.sx.toFixed(2) + ' ' + p.sy.toFixed(2) + ' ';
+            inPath = true;
+        } else {
+            path += 'L ' + p.sx.toFixed(2) + ' ' + p.sy.toFixed(2) + ' ';
+        }
+    }
+    
+    if (path) {
+        svg += '<path d="' + path + '" fill="none" stroke="' + color + '" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>';
+    }
+    
+    // عنوان
+    svg += '<text x="' + (W / 2) + '" y="25" font-family="Times New Roman, serif" font-size="18" fill="#000" text-anchor="middle" font-style="italic">y = ' + expr + '</text>';
+    
+    svg += '</svg>';
+    preview.innerHTML = svg;
+    window._planeSVG = svg;
+}
+
+function planeLoad(expr) {
+    var input = document.getElementById('plane-eq');
+    if (input) {
+        input.value = expr;
+        planeRender();
+    }
+}
+
+function planeInsertToQuestion() {
+    if (!window._planeSVG) {
+        if (typeof showToast === 'function') showToast('❌ لا يوجد رسم', 'error');
+        return;
+    }
+    // نُحوّل لصورة base64 وندرج
+    var b64 = btoa(unescape(encodeURIComponent(window._planeSVG)));
+    var dataUrl = 'data:image/svg+xml;base64,' + b64;
+    var qText = document.getElementById('q-text');
+    if (qText) {
+        qText.value = (qText.value || '') + ' <img src="' + dataUrl + '" style="max-width:100%;height:auto;">';
+        if (typeof showToast === 'function') showToast('✅ تم إدراج الرسم', 'success');
+        closeVisualMaker();
+    }
+}
+
+function planeDownloadPng() {
+    if (!window._planeSVG) {
+        if (typeof showToast === 'function') showToast('❌ لا يوجد رسم', 'error');
+        return;
+    }
+    var blob = new Blob([window._planeSVG], {type:'image/svg+xml'});
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'graph.svg';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+// ════════════════════════════════════════════════════════════
+// π معرض الرموز
+// ════════════════════════════════════════════════════════════
+var _allSymbols = [
+    // أساسية (1-6)
+    {sym:'+', name:'جمع', cat:'basic'},
+    {sym:'−', name:'طرح', cat:'basic'},
+    {sym:'×', name:'ضرب', cat:'basic'},
+    {sym:'÷', name:'قسمة', cat:'basic'},
+    {sym:'=', name:'يساوي', cat:'basic'},
+    {sym:'½', name:'نصف', cat:'basic'},
+    {sym:'⅓', name:'ثلث', cat:'basic'},
+    {sym:'¼', name:'ربع', cat:'basic'},
+    {sym:'¾', name:'ثلاثة أرباع', cat:'basic'},
+    {sym:'⅔', name:'ثلثان', cat:'basic'},
+    {sym:'⅕', name:'خمس', cat:'basic'},
+    {sym:'⅛', name:'ثمن', cat:'basic'},
+    {sym:'%', name:'نسبة مئوية', cat:'basic'},
+    {sym:'‰', name:'بالألف', cat:'basic'},
+    
+    // مقارنة
+    {sym:'<', name:'أصغر من', cat:'compare'},
+    {sym:'>', name:'أكبر من', cat:'compare'},
+    {sym:'≤', name:'أصغر أو يساوي', cat:'compare'},
+    {sym:'≥', name:'أكبر أو يساوي', cat:'compare'},
+    {sym:'≠', name:'لا يساوي', cat:'compare'},
+    {sym:'≈', name:'يقارب', cat:'compare'},
+    {sym:'≡', name:'متطابق', cat:'compare'},
+    {sym:'∝', name:'يتناسب مع', cat:'compare'},
+    {sym:'≪', name:'أصغر بكثير', cat:'compare'},
+    {sym:'≫', name:'أكبر بكثير', cat:'compare'},
+    
+    // هندسة
+    {sym:'°', name:'درجة', cat:'geom'},
+    {sym:'′', name:'دقيقة', cat:'geom'},
+    {sym:'″', name:'ثانية', cat:'geom'},
+    {sym:'∠', name:'زاوية', cat:'geom'},
+    {sym:'∢', name:'زاوية موجهة', cat:'geom'},
+    {sym:'⊥', name:'عمودي على', cat:'geom'},
+    {sym:'∥', name:'يوازي', cat:'geom'},
+    {sym:'≅', name:'متطابق', cat:'geom'},
+    {sym:'△', name:'مثلث', cat:'geom'},
+    {sym:'▱', name:'متوازي أضلاع', cat:'geom'},
+    {sym:'□', name:'مربع', cat:'geom'},
+    {sym:'○', name:'دائرة', cat:'geom'},
+    {sym:'⊙', name:'دائرة بمركز', cat:'geom'},
+    {sym:'⌒', name:'قوس', cat:'geom'},
+    {sym:'⊿', name:'مثلث قائم', cat:'geom'},
+    
+    // مجموعات
+    {sym:'∈', name:'ينتمي إلى', cat:'sets'},
+    {sym:'∉', name:'لا ينتمي', cat:'sets'},
+    {sym:'⊂', name:'مجموعة جزئية', cat:'sets'},
+    {sym:'⊆', name:'جزئية أو مساوية', cat:'sets'},
+    {sym:'⊃', name:'تحتوي', cat:'sets'},
+    {sym:'∪', name:'اتحاد', cat:'sets'},
+    {sym:'∩', name:'تقاطع', cat:'sets'},
+    {sym:'∅', name:'مجموعة خالية', cat:'sets'},
+    {sym:'ℕ', name:'الطبيعية', cat:'sets'},
+    {sym:'ℤ', name:'الصحيحة', cat:'sets'},
+    {sym:'ℚ', name:'النسبية', cat:'sets'},
+    {sym:'ℝ', name:'الحقيقية', cat:'sets'},
+    {sym:'ℂ', name:'العقدية', cat:'sets'},
+    {sym:'|', name:'تقسم', cat:'sets'},
+    
+    // يونانية
+    {sym:'α', name:'ألفا', cat:'greek'},
+    {sym:'β', name:'بيتا', cat:'greek'},
+    {sym:'γ', name:'جاما', cat:'greek'},
+    {sym:'δ', name:'دلتا', cat:'greek'},
+    {sym:'ε', name:'إبسلون', cat:'greek'},
+    {sym:'ζ', name:'زيتا', cat:'greek'},
+    {sym:'η', name:'إيتا', cat:'greek'},
+    {sym:'θ', name:'ثيتا', cat:'greek'},
+    {sym:'λ', name:'لامبدا', cat:'greek'},
+    {sym:'μ', name:'مو', cat:'greek'},
+    {sym:'π', name:'باي', cat:'greek'},
+    {sym:'ρ', name:'رو', cat:'greek'},
+    {sym:'σ', name:'سيجما', cat:'greek'},
+    {sym:'τ', name:'تاو', cat:'greek'},
+    {sym:'φ', name:'فاي', cat:'greek'},
+    {sym:'ψ', name:'بسي', cat:'greek'},
+    {sym:'ω', name:'أوميجا', cat:'greek'},
+    {sym:'Α', name:'ألفا كبيرة', cat:'greek'},
+    {sym:'Δ', name:'دلتا كبيرة', cat:'greek'},
+    {sym:'Θ', name:'ثيتا كبيرة', cat:'greek'},
+    {sym:'Λ', name:'لامبدا كبيرة', cat:'greek'},
+    {sym:'Π', name:'باي كبيرة', cat:'greek'},
+    {sym:'Σ', name:'سيجما كبيرة', cat:'greek'},
+    {sym:'Φ', name:'فاي كبيرة', cat:'greek'},
+    {sym:'Ω', name:'أوميجا كبيرة', cat:'greek'},
+    
+    // تفاضل وتكامل
+    {sym:'∞', name:'لا نهاية', cat:'calc'},
+    {sym:'∫', name:'تكامل', cat:'calc'},
+    {sym:'∬', name:'تكامل ثنائي', cat:'calc'},
+    {sym:'∭', name:'تكامل ثلاثي', cat:'calc'},
+    {sym:'∮', name:'تكامل مغلق', cat:'calc'},
+    {sym:'∑', name:'مجموع', cat:'calc'},
+    {sym:'∏', name:'حاصل ضرب', cat:'calc'},
+    {sym:'∂', name:'مشتقة جزئية', cat:'calc'},
+    {sym:'∇', name:'متجه نابلا', cat:'calc'},
+    {sym:'Δ', name:'فرق', cat:'calc'},
+    {sym:'lim', name:'نهاية', cat:'calc'},
+    {sym:'→', name:'يؤول إلى', cat:'calc'},
+    {sym:'∝', name:'يتناسب', cat:'calc'},
+    {sym:'√', name:'جذر', cat:'calc'},
+    {sym:'∛', name:'جذر تكعيبي', cat:'calc'},
+    {sym:'∜', name:'جذر رابع', cat:'calc'},
+    
+    // منطق
+    {sym:'∀', name:'لكل', cat:'logic'},
+    {sym:'∃', name:'يوجد', cat:'logic'},
+    {sym:'∄', name:'لا يوجد', cat:'logic'},
+    {sym:'∴', name:'إذن', cat:'logic'},
+    {sym:'∵', name:'بما أن', cat:'logic'},
+    {sym:'∧', name:'و منطقي', cat:'logic'},
+    {sym:'∨', name:'أو منطقي', cat:'logic'},
+    {sym:'¬', name:'نفي', cat:'logic'},
+    {sym:'⇒', name:'يستلزم', cat:'logic'},
+    {sym:'⇔', name:'يكافئ', cat:'logic'},
+    {sym:'□', name:'ضرورة', cat:'logic'},
+    {sym:'◊', name:'إمكان', cat:'logic'},
+    
+    // أسهم
+    {sym:'→', name:'سهم يمين', cat:'arrows'},
+    {sym:'←', name:'سهم يسار', cat:'arrows'},
+    {sym:'↑', name:'سهم أعلى', cat:'arrows'},
+    {sym:'↓', name:'سهم أسفل', cat:'arrows'},
+    {sym:'↔', name:'سهم مزدوج', cat:'arrows'},
+    {sym:'⇒', name:'سهم سميك يمين', cat:'arrows'},
+    {sym:'⇐', name:'سهم سميك يسار', cat:'arrows'},
+    {sym:'⇔', name:'سهم سميك مزدوج', cat:'arrows'},
+    {sym:'↦', name:'سهم تطبيق', cat:'arrows'},
+    {sym:'↗', name:'سهم أعلى يمين', cat:'arrows'},
+    {sym:'↘', name:'سهم أسفل يمين', cat:'arrows'},
+    {sym:'↻', name:'دوران', cat:'arrows'},
+    {sym:'↺', name:'دوران عكسي', cat:'arrows'},
+    
+    // أُسس
+    {sym:'⁰', name:'صفر علوي', cat:'super'},
+    {sym:'¹', name:'واحد علوي', cat:'super'},
+    {sym:'²', name:'تربيع', cat:'super'},
+    {sym:'³', name:'تكعيب', cat:'super'},
+    {sym:'⁴', name:'4 علوي', cat:'super'},
+    {sym:'⁵', name:'5 علوي', cat:'super'},
+    {sym:'⁶', name:'6 علوي', cat:'super'},
+    {sym:'⁷', name:'7 علوي', cat:'super'},
+    {sym:'⁸', name:'8 علوي', cat:'super'},
+    {sym:'⁹', name:'9 علوي', cat:'super'},
+    {sym:'ⁿ', name:'n علوي', cat:'super'},
+    {sym:'⁻¹', name:'معكوس', cat:'super'},
+    {sym:'₀', name:'صفر سفلي', cat:'super'},
+    {sym:'₁', name:'واحد سفلي', cat:'super'},
+    {sym:'₂', name:'2 سفلي', cat:'super'},
+    {sym:'₃', name:'3 سفلي', cat:'super'},
+    {sym:'ₙ', name:'n سفلي', cat:'super'}
+];
+
+var _currentCat = 'all';
+
+function symBuildGrid() {
+    symFilter(_currentCat || 'all');
+}
+
+function symFilter(cat) {
+    if (cat) {
+        _currentCat = cat;
+        // تحديث الأزرار
+        document.querySelectorAll('.sym-cat').forEach(function(btn) {
+            var btnCat = btn.getAttribute('data-cat');
+            btn.classList.remove('active');
+            btn.style.background = 'rgba(255,255,255,0.05)';
+            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.border = '1px solid rgba(255,255,255,0.1)';
+            if (btnCat === _currentCat) {
+                btn.classList.add('active');
+                btn.style.background = 'linear-gradient(135deg,#a855f7,#7c3aed)';
+                btn.style.color = '#fff';
+                btn.style.border = 'none';
+            }
+        });
+    }
+    
+    var search = ((document.getElementById('sym-search') || {}).value || '').toLowerCase().trim();
+    var grid = document.getElementById('sym-grid');
+    if (!grid) return;
+    
+    var filtered = _allSymbols.filter(function(s) {
+        if (_currentCat !== 'all' && s.cat !== _currentCat) return false;
+        if (search && s.name.indexOf(search) === -1 && s.sym.indexOf(search) === -1) return false;
+        return true;
+    });
+    
+    grid.innerHTML = filtered.map(function(s) {
+        return '<div class="sym-item" onclick="symCopy(\''+s.sym.replace(/\\/g,'\\\\').replace(/\'/g,'\\\'')+'\')" title="'+s.name+'" style="background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.2s;">' +
+            '<div style="font-size:1.5rem;color:#fff;font-family:\'Times New Roman\',serif;line-height:1.2;">'+s.sym+'</div>' +
+            '<div style="font-size:0.65rem;color:rgba(255,255,255,0.5);margin-top:4px;">'+s.name+'</div>' +
+        '</div>';
+    }).join('');
+    
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:30px;color:rgba(255,255,255,0.4);">🔍 لا توجد نتائج</div>';
+    }
+    
+    // hover effects
+    grid.querySelectorAll('.sym-item').forEach(function(item) {
+        item.addEventListener('mouseenter', function() {
+            this.style.background = 'rgba(168,85,247,0.15)';
+            this.style.borderColor = '#a855f7';
+            this.style.transform = 'scale(1.05)';
+        });
+        item.addEventListener('mouseleave', function() {
+            this.style.background = 'rgba(255,255,255,0.05)';
+            this.style.borderColor = 'rgba(168,85,247,0.2)';
+            this.style.transform = '';
+        });
+    });
+}
+
+function symCopy(sym) {
+    // نُحاول النسخ + إدراج
+    try {
+        navigator.clipboard.writeText(sym);
+    } catch(e) {}
+    
+    // إن كان محرر المعادلات مفتوح، أدرج فيه
+    var eqInput = document.getElementById('eq-input');
+    if (eqInput && document.getElementById('amvm-tab-equations').style.display !== 'none') {
+        eqInsertAtCursor(sym);
+    } else {
+        // أو في السؤال
+        var qText = document.getElementById('q-text');
+        if (qText) {
+            qText.value = (qText.value || '') + sym;
+        }
+    }
+    
+    // إظهار التأكيد
+    var clipboard = document.getElementById('sym-clipboard');
+    var copied = document.getElementById('sym-copied');
+    if (clipboard && copied) {
+        copied.textContent = sym;
+        clipboard.style.display = 'block';
+        clearTimeout(window._symClipTimer);
+        window._symClipTimer = setTimeout(function() {
+            clipboard.style.display = 'none';
+        }, 2000);
+    }
+}
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     🤖 + 📚 + 🖱️ AI + Templates + Drag & Drop JS
+════════════════════════════════════════════════════════════ -->
+<script>
+// 🤖 AI VISUAL GENERATOR
+async function amvmAiGenerate() {
+    var input = document.getElementById('amvm-ai-input');
+    var btn = document.getElementById('amvm-ai-btn');
+    if (!input || !input.value.trim()) {
+        if (typeof showToast === 'function') showToast('⚠️ اكتب وصفاً أولاً', 'warning');
+        return;
+    }
+    var description = input.value.trim();
+    btn.disabled = true;
+    btn.innerHTML = '<span>⏳ جاري التوليد...</span>';
+    btn.style.opacity = '0.7';
+    try {
+        var fd = new FormData();
+        fd.append('description', description);
+        var res = await authFetch('/api/admin/ai/generate_visual', { method: 'POST', body: fd });
+        if (!res || !res.ok) {
+            var errText = 'فشل التوليد';
+            try { var errData = await res.json(); errText = errData.detail || errText; } catch(e){}
+            throw new Error(errText);
+        }
+        var data = await res.json();
+        console.log('[AI]', data);
+        if (!data.tool || !data.settings) throw new Error('استجابة غير صحيحة');
+        amvmSelectTool(data.tool);
+        setTimeout(function() {
+            amvmApplySettings(data.settings);
+            setTimeout(amvmDraw, 100);
+        }, 200);
+        if (typeof showToast === 'function') showToast('✅ تم التوليد بنجاح!', 'success');
+    } catch(e) {
+        console.error('[AI]', e);
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'خطأ'), 'error', 5000);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>✨ توليد</span>';
+        btn.style.opacity = '1';
+    }
+}
+
+function amvmAiQuick(text) {
+    var input = document.getElementById('amvm-ai-input');
+    if (input) {
+        input.value = text;
+        amvmAiGenerate();
+    }
+}
+
+function amvmApplySettings(settings) {
+    Object.keys(settings).forEach(function(key) {
+        var fieldId = 'amvm-' + key.replace(/_/g, '-');
+        var el = document.getElementById(fieldId);
+        if (!el) return;
+        var value = settings[key];
+        if (el.type === 'checkbox') {
+            el.checked = !!value;
+        } else {
+            el.value = value;
+        }
+    });
+}
+
+// 📚 TEMPLATE LIBRARY
+var BUILTIN_TEMPLATES = [
+    {id:'pythagoras', icon:'📐', name:'نظرية فيثاغورس', desc:'مثلث قائم 3-4-5', cat:'builtin', tool:'triangle', settings:{'tri-type':'right','tri-a':3,'tri-b':4,'tri-c':5}},
+    {id:'equilateral', icon:'🔺', name:'مثلث متساوي الأضلاع', desc:'الأضلاع متساوية = 6', cat:'builtin', tool:'triangle', settings:{'tri-type':'equilateral','tri-a':6,'tri-b':6,'tri-c':6}},
+    {id:'unit-circle', icon:'⭕', name:'دائرة الوحدة', desc:'نصف قطر = 1', cat:'builtin', tool:'circle', settings:{'circle-r':1,'circle-color':'#3498db'}},
+    {id:'quarter-sector', icon:'🥧', name:'ربع دائرة', desc:'قطاع 90°', cat:'builtin', tool:'circle-sector', settings:{'sec-angle':90,'sec-r':5,'sec-color':'#e74c3c'}},
+    {id:'rubiks-cube', icon:'🧊', name:'مكعب روبيك', desc:'مكعب 3×3', cat:'builtin', tool:'cube', settings:{'cube-side':3,'cube-color':'#16a085'}},
+    {id:'cereal-box', icon:'📦', name:'متوازي مستطيلات', desc:'علبة 10×6×4', cat:'builtin', tool:'cuboid', settings:{'cb-l':10,'cb-w':6,'cb-h':4,'cb-color':'#e74c3c'}},
+    {id:'egyptian-pyramid', icon:'⛰️', name:'هرم رباعي', desc:'هرم 6×8', cat:'builtin', tool:'pyramid-4', settings:{'py-base':6,'py-height':8,'py-color':'#f59e0b'}},
+    {id:'can', icon:'🥫', name:'علبة عصير', desc:'أسطوانة نق=3 ع=10', cat:'builtin', tool:'cylinder', settings:{'cyl-r':3,'cyl-h':10,'cyl-color':'#16a085'}},
+    {id:'ice-cream', icon:'🍦', name:'بوظة', desc:'مخروط نق=3 ع=8', cat:'builtin', tool:'cone', settings:{'cone-r':3,'cone-h':8,'cone-color':'#f39c12'}},
+    {id:'right-angle', icon:'📐', name:'زاوية قائمة', desc:'زاوية 90°', cat:'builtin', tool:'angle', settings:{'ang-deg':90,'ang-label':'∟','ang-color':'#a855f7'}},
+    {id:'acute-angle', icon:'📐', name:'زاوية حادة', desc:'زاوية 45°', cat:'builtin', tool:'angle', settings:{'ang-deg':45,'ang-label':'α','ang-color':'#a855f7'}},
+    {id:'obtuse-angle', icon:'📐', name:'زاوية منفرجة', desc:'زاوية 120°', cat:'builtin', tool:'angle', settings:{'ang-deg':120,'ang-label':'β','ang-color':'#a855f7'}},
+    {id:'venn-2', icon:'🔀', name:'مجموعتين متقاطعتين', desc:'A ∩ B', cat:'builtin', tool:'venn', settings:{'venn-count':2,'venn-a':'A','venn-b':'B','venn-shade':true}},
+    {id:'class-grades', icon:'📊', name:'درجات الفصل', desc:'رسم بياني نموذجي', cat:'builtin', tool:'bar-chart', settings:{'bar-data':'أحمد:85,سارة:92,محمد:78,فاطمة:88,علي:75','bar-color':'#3498db','bar-title':'درجات الطلاب'}},
+    {id:'fruits-pie', icon:'🥧', name:'دائرة الفواكه', desc:'دائري نموذجي', cat:'builtin', tool:'pie-chart', settings:{'pie-data':'تفاح:35,موز:25,برتقال:20,عنب:20','pie-title':'مبيعات الفواكه'}},
+    {id:'half-fraction', icon:'🟧', name:'كسر النصف', desc:'1/2', cat:'builtin', tool:'fraction-bar', settings:{'frac-denom':2,'frac-num':1,'frac-color':'#e74c3c'}},
+    {id:'three-quarters', icon:'🟧', name:'ثلاثة أرباع', desc:'3/4', cat:'builtin', tool:'fraction-bar', settings:{'frac-denom':4,'frac-num':3,'frac-color':'#9b59b6'}},
+    {id:'number-line-10', icon:'📏', name:'محور ±10', desc:'من -10 إلى 10', cat:'builtin', tool:'number-line', settings:{'nl-min':-10,'nl-max':10,'nl-points':'-5,0,5','nl-color':'#e74c3c'}},
+    {id:'hexagon', icon:'⬡', name:'سداسي منتظم', desc:'6 أضلاع', cat:'builtin', tool:'polygon', settings:{'poly-sides':6,'poly-side':5,'poly-color':'#00bfff'}},
+    {id:'vector-23', icon:'➡️', name:'متجه (2,3)', desc:'متجه على مستوى', cat:'builtin', tool:'vector', settings:{'vec-name':'v','vec-x':2,'vec-y':3,'vec-color':'#e91e63'}}
+];
+
+var _tplCurrentCat = 'all';
+
+function tplGetCustom() {
+    try { return JSON.parse(localStorage.getItem('amvm_templates') || '[]'); } catch(e) { return []; }
+}
+function tplSaveCustom(list) {
+    try { localStorage.setItem('amvm_templates', JSON.stringify(list)); }
+    catch(e) { if (typeof showToast === 'function') showToast('⚠️ التخزين ممتلئ', 'warning'); }
+}
+function tplGetAll() { return BUILTIN_TEMPLATES.concat(tplGetCustom()); }
+
+function tplSaveCurrent() {
+    if (!_amvmTool) {
+        if (typeof showToast === 'function') showToast('⚠️ اختر شكلاً أولاً', 'warning');
+        return;
+    }
+    var name = prompt('اسم القالب:');
+    if (!name || !name.trim()) return;
+    var settings = {};
+    document.querySelectorAll('#amvm-controls input, #amvm-controls select').forEach(function(el) {
+        if (!el.id) return;
+        var key = el.id.replace(/^amvm-/, '');
+        settings[key] = (el.type === 'checkbox') ? el.checked : el.value;
+    });
+    var newTpl = {
+        id: 'custom_' + Date.now(),
+        icon: '⭐', name: name.trim(), desc: 'قالب مخصص',
+        cat: 'custom', tool: _amvmTool, settings: settings,
+        created: new Date().toISOString()
+    };
+    var custom = tplGetCustom();
+    custom.push(newTpl);
+    tplSaveCustom(custom);
+    if (typeof showToast === 'function') showToast('✅ تم حفظ القالب', 'success');
+    if (document.getElementById('amvm-tab-templates').style.display !== 'none') {
+        tplBuildGrid();
+    }
+}
+
+function tplDelete(id) {
+    if (!confirm('حذف هذا القالب؟')) return;
+    var custom = tplGetCustom().filter(function(t) { return t.id !== id; });
+    tplSaveCustom(custom);
+    tplBuildGrid();
+    if (typeof showToast === 'function') showToast('🗑️ تم الحذف', 'info');
+}
+
+function tplLoad(id) {
+    var tpl = tplGetAll().find(function(t) { return t.id === id; });
+    if (!tpl) return;
+    amvmSwitchTab('shapes');
+    amvmSelectTool(tpl.tool);
+    setTimeout(function() {
+        Object.keys(tpl.settings).forEach(function(key) {
+            var el = document.getElementById('amvm-' + key);
+            if (!el) return;
+            var value = tpl.settings[key];
+            if (el.type === 'checkbox') el.checked = !!value;
+            else el.value = value;
+        });
+        setTimeout(amvmDraw, 100);
+    }, 200);
+    if (typeof showToast === 'function') showToast('📚 تم تحميل القالب', 'success');
+}
+
+function tplFilter(cat) {
+    _tplCurrentCat = cat;
+    document.querySelectorAll('.tpl-cat').forEach(function(btn) {
+        var c = btn.getAttribute('data-cat');
+        if (c === cat) {
+            btn.style.background = 'linear-gradient(135deg,#f59e0b,#d97706)';
+            btn.style.color = '#fff';
+            btn.style.border = 'none';
+        } else {
+            btn.style.background = 'rgba(255,255,255,0.05)';
+            btn.style.color = 'rgba(255,255,255,0.7)';
+            btn.style.border = '1px solid rgba(255,255,255,0.1)';
+        }
+    });
+    tplBuildGrid();
+}
+
+function tplBuildGrid() {
+    var grid = document.getElementById('tpl-grid');
+    if (!grid) return;
+    var all = tplGetAll();
+    var filtered = _tplCurrentCat === 'all' ? all : all.filter(function(t) { return t.cat === _tplCurrentCat; });
+    if (filtered.length === 0) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.4);"><div style="font-size:3rem;">📭</div><p>لا توجد قوالب</p></div>';
+        return;
+    }
+    grid.innerHTML = filtered.map(function(t) {
+        var isCustom = t.cat === 'custom';
+        var bgGrad = isCustom ? 'linear-gradient(135deg,rgba(16,185,129,0.1),rgba(16,185,129,0.03))' : 'linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.03))';
+        var borderColor = isCustom ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)';
+        return '<div class="tpl-card" style="background:' + bgGrad + ';border:1px solid ' + borderColor + ';border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;" onclick="tplLoad(\''+t.id+'\')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px;">' +
+                '<div style="font-size:2.2rem;line-height:1;">' + t.icon + '</div>' +
+                (isCustom ? '<button onclick="event.stopPropagation();tplDelete(\''+t.id+'\')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;width:24px;height:24px;border-radius:6px;cursor:pointer;font-size:0.7rem;padding:0;">🗑️</button>' : '') +
+            '</div>' +
+            '<div style="font-weight:bold;color:#fff;font-size:0.95rem;margin-bottom:3px;">' + t.name + '</div>' +
+            '<div style="color:rgba(255,255,255,0.5);font-size:0.75rem;">' + t.desc + '</div>' +
+            '<div style="margin-top:10px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.05);font-size:0.7rem;color:rgba(255,255,255,0.4);">انقر للتحميل</div>' +
+        '</div>';
+    }).join('');
+}
+
+// 🖱️ DRAG & DROP
+var _dndState = { enabled: false, isDown: false, isDragging: false, target: null, startX: 0, startY: 0, origX: 0, origY: 0, attrX: null, attrY: null };
+
+function amvmSetupDragDrop() {
+    var preview = document.getElementById('amvm-preview');
+    if (!preview || preview.dataset.dndReady) return;
+    preview.dataset.dndReady = 'true';
+    preview.addEventListener('mousedown', dndStart);
+    preview.addEventListener('touchstart', dndStart, {passive:false});
+    document.addEventListener('mousemove', dndMove);
+    document.addEventListener('touchmove', dndMove, {passive:false});
+    document.addEventListener('mouseup', dndEnd);
+    document.addEventListener('touchend', dndEnd);
+}
+
+function _getEventPoint(e) {
+    if (e.touches && e.touches.length) return {x: e.touches[0].clientX, y: e.touches[0].clientY};
+    return {x: e.clientX, y: e.clientY};
+}
+
+function dndStart(e) {
+    if (!_dndState.enabled) return;
+    var t = e.target;
+    if (!t || !t.tagName) return;
+    var tag = t.tagName.toLowerCase();
+    if (['text','circle','rect','polygon','ellipse','line','path'].indexOf(tag) === -1) return;
+    e.preventDefault();
+    var p = _getEventPoint(e);
+    _dndState.isDown = true;
+    _dndState.target = t;
+    _dndState.startX = p.x;
+    _dndState.startY = p.y;
+    if (tag === 'text') {
+        _dndState.origX = parseFloat(t.getAttribute('x')) || 0;
+        _dndState.origY = parseFloat(t.getAttribute('y')) || 0;
+        _dndState.attrX = 'x'; _dndState.attrY = 'y';
+    } else if (tag === 'circle' || tag === 'ellipse') {
+        _dndState.origX = parseFloat(t.getAttribute('cx')) || 0;
+        _dndState.origY = parseFloat(t.getAttribute('cy')) || 0;
+        _dndState.attrX = 'cx'; _dndState.attrY = 'cy';
+    } else {
+        var tr = t.getAttribute('transform') || '';
+        var match = tr.match(/translate\(([^,)]+)[,\s]+([^)]+)\)/);
+        _dndState.origX = match ? parseFloat(match[1]) : 0;
+        _dndState.origY = match ? parseFloat(match[2]) : 0;
+        _dndState.attrX = null;
+    }
+    t.style.cursor = 'grabbing';
+    t.style.filter = 'brightness(1.2)';
+}
+
+function dndMove(e) {
+    if (!_dndState.enabled || !_dndState.isDown) return;
+    if (e.touches) e.preventDefault();
+    var p = _getEventPoint(e);
+    var dx = p.x - _dndState.startX;
+    var dy = p.y - _dndState.startY;
+    if (!_dndState.isDragging && (Math.abs(dx) > 3 || Math.abs(dy) > 3)) _dndState.isDragging = true;
+    if (!_dndState.isDragging) return;
+    var t = _dndState.target;
+    if (!t) return;
+    var svg = t.ownerSVGElement;
+    if (!svg) return;
+    var vb = svg.getAttribute('viewBox');
+    var rect = svg.getBoundingClientRect();
+    var scaleX = 1, scaleY = 1;
+    if (vb) {
+        var parts = vb.split(/\s+/).map(parseFloat);
+        scaleX = parts[2] / rect.width;
+        scaleY = parts[3] / rect.height;
+    }
+    var nx = _dndState.origX + dx * scaleX;
+    var ny = _dndState.origY + dy * scaleY;
+    if (_dndState.attrX) {
+        t.setAttribute(_dndState.attrX, nx);
+        t.setAttribute(_dndState.attrY, ny);
+    } else {
+        t.setAttribute('transform', 'translate(' + nx + ',' + ny + ')');
+    }
+}
+
+function dndEnd() {
+    if (_dndState.target) {
+        _dndState.target.style.cursor = '';
+        _dndState.target.style.filter = '';
+    }
+    _dndState.isDown = false;
+    _dndState.isDragging = false;
+    _dndState.target = null;
+}
+
+function amvmToggleDnd() {
+    _dndState.enabled = !_dndState.enabled;
+    var btn = document.getElementById('amvm-dnd-btn');
+    if (btn) {
+        if (_dndState.enabled) {
+            btn.style.background = 'linear-gradient(135deg,#10b981,#059669)';
+            btn.innerHTML = '🖱️ السحب: مُفعّل';
+        } else {
+            btn.style.background = 'rgba(16,185,129,0.15)';
+            btn.innerHTML = '🖱️ السحب: متوقف';
+        }
+    }
+    if (typeof showToast === 'function') showToast(_dndState.enabled ? '🖱️ يمكنك سحب العناصر' : '⏸️ تم إيقاف السحب', 'info', 2000);
+}
+
+// نُبنى grid قوالب عند فتح التبويب
+(function() {
+    var _origSwitch = window.amvmSwitchTab;
+    window.amvmSwitchTab = function(tab) {
+        if (_origSwitch) _origSwitch(tab);
+        if (tab === 'templates') setTimeout(tplBuildGrid, 100);
+    };
+    var _origOpen = window.openVisualMaker;
+    window.openVisualMaker = function() {
+        if (_origOpen) _origOpen();
+        setTimeout(amvmSetupDragDrop, 300);
+    };
 })();
 </script>
 
