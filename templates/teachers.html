@@ -5411,142 +5411,295 @@
     <!-- ══════════════════════════════════════════════════════
          🎨 قسم صانع المسائل البصرية
     ══════════════════════════════════════════════════════ -->
+        <!-- ════════════════════════════════════════════════════════════════════════
+         📝 محرر الاختبارات Word-Style - صانع المسائل البصرية المتكامل
+    ════════════════════════════════════════════════════════════════════════ -->
     <div id="section-visual-maker" class="section">
-        <!-- Header -->
-        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:1px solid rgba(212,175,55,0.3);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
-            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#f39c12;">📐</div>
-            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(243,156,18,0.6));">🎨</div>
-            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#f9c74f,#f39c12,#fdd835,#f39c12,#e67e22);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">صانع المسائل البصرية</h2>
-            <p style="color:rgba(249,199,79,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">📐 رسم أشكال هندسية ومحاور أعداد ورسوم بيانية احترافية في ثوانٍ 📊</p>
-            <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">حفظ كصورة PNG عالية الجودة لاستخدامها في حصصك</p>
+        <!-- شريط الترحيب والأدوات الذكية -->
+        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:1px solid rgba(212,175,55,0.3);border-radius:18px;padding:18px 22px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;">
+            <div>
+                <h2 style="font-family:'Amiri';margin:0 0 4px;font-size:1.4rem;color:#f9c74f;font-weight:700;">📝 محرر الاختبارات الذكي</h2>
+                <p style="color:rgba(255,255,255,0.6);margin:0;font-size:0.85rem;">اكتب اختبارك كأنك في Word — أضف أشكالاً بصرية في أي مكان — احفظ كـ PDF أو Word</p>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="examNewBlank()" style="background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.4);color:#f9c74f;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📄 جديد</button>
+                <button onclick="examOpenLibrary()" style="background:rgba(59,130,246,0.15);border:1px solid rgba(59,130,246,0.4);color:#3b82f6;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📚 اختباراتي</button>
+                <button onclick="examSaveLocal()" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">💾 حفظ</button>
+            </div>
         </div>
 
-        <!-- اختيار النوع -->
-        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
-            <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">🎯 اختر نوع الشكل</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;">
-                <div class="vm-tool" data-tool="triangle" onclick="vmSelectTool('triangle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">📐</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">مثلث</div>
+        <!-- معلومات الاختبار (Header الرسمي) -->
+        <div class="glass-card" style="padding:16px;margin-bottom:14px;">
+            <details>
+                <summary style="cursor:pointer;color:#f9c74f;font-family:Amiri;font-size:1rem;font-weight:bold;padding:6px;display:flex;align-items:center;gap:8px;">⚙️ معلومات الاختبار (الرأس الرسمي)</summary>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px;">
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏫 اسم المدرسة</label>
+                        <input id="exam-school" type="text" value="" placeholder="مدرسة ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📝 عنوان الاختبار</label>
+                        <input id="exam-title" type="text" value="اختبار الفصل الدراسي الأول" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🎓 الصف</label>
+                        <input id="exam-grade" type="text" value="" placeholder="الصف ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📚 المادة</label>
+                        <input id="exam-subject" type="text" value="الرياضيات" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">⏰ الزمن</label>
+                        <input id="exam-time" type="text" value="٤٥ دقيقة" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">💯 الدرجة الكلية</label>
+                        <input id="exam-marks" type="text" value="٤٠ درجة" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">👨‍🏫 المعلم</label>
+                        <input id="exam-teacher" type="text" placeholder="الأستاذ ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📅 التاريخ</label>
+                        <input id="exam-date" type="text" value="" placeholder="../../...." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
                 </div>
-                <div class="vm-tool" data-tool="rectangle" onclick="vmSelectTool('rectangle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">▭</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">مستطيل</div>
+            </details>
+        </div>
+
+        <!-- شريط أدوات Word -->
+        <div class="glass-card" style="padding:10px 14px;margin-bottom:8px;position:sticky;top:0;z-index:30;background:rgba(10,15,30,0.95) !important;backdrop-filter:blur(10px);">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;align-items:center;">
+                <!-- مجموعة 1: تنسيق النص -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <button class="ewbtn" onclick="exec('bold')" title="غامق (Ctrl+B)"><b>B</b></button>
+                    <button class="ewbtn" onclick="exec('italic')" title="مائل (Ctrl+I)"><i>I</i></button>
+                    <button class="ewbtn" onclick="exec('underline')" title="تسطير (Ctrl+U)"><u>U</u></button>
+                    <button class="ewbtn" onclick="exec('strikeThrough')" title="شطب"><s>S</s></button>
                 </div>
-                <div class="vm-tool" data-tool="circle" onclick="vmSelectTool('circle')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">⭕</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">دائرة</div>
+                <!-- مجموعة 2: الحجم واللون -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <select onchange="exec('fontSize',this.value);this.value='';" style="background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:5px 8px;border-radius:6px;font-family:Cairo;font-size:0.8rem;cursor:pointer;">
+                        <option value="">📏 الحجم</option>
+                        <option value="2">صغير</option>
+                        <option value="3">عادي</option>
+                        <option value="4">متوسط</option>
+                        <option value="5">كبير</option>
+                        <option value="6">أكبر</option>
+                        <option value="7">أكبر+</option>
+                    </select>
+                    <select onchange="if(this.value)exec('fontName',this.value);this.value='';" style="background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:5px 8px;border-radius:6px;font-family:Cairo;font-size:0.8rem;cursor:pointer;">
+                        <option value="">🔤 الخط</option>
+                        <option value="Cairo">Cairo</option>
+                        <option value="Amiri">Amiri</option>
+                        <option value="Tajawal">Tajawal</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Arial">Arial</option>
+                        <option value="Times New Roman">Times</option>
+                    </select>
+                    <input type="color" onchange="exec('foreColor',this.value)" title="لون النص" style="width:30px;height:30px;border:1px solid rgba(243,156,18,.3);background:rgba(0,0,0,.4);border-radius:6px;cursor:pointer;padding:2px;">
+                    <input type="color" onchange="exec('hiliteColor',this.value)" value="#ffff00" title="لون التمييز" style="width:30px;height:30px;border:1px solid rgba(243,156,18,.3);background:rgba(0,0,0,.4);border-radius:6px;cursor:pointer;padding:2px;">
                 </div>
-                <div class="vm-tool" data-tool="circle-sector" onclick="vmSelectTool('circle-sector')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🥧</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">قطاع دائري</div>
+                <!-- مجموعة 3: المحاذاة -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <button class="ewbtn" onclick="exec('justifyRight')" title="محاذاة يمين">⫷</button>
+                    <button class="ewbtn" onclick="exec('justifyCenter')" title="توسيط">⫶</button>
+                    <button class="ewbtn" onclick="exec('justifyLeft')" title="محاذاة يسار">⫸</button>
+                    <button class="ewbtn" onclick="exec('justifyFull')" title="ضبط">≡</button>
                 </div>
-                <div class="vm-tool" data-tool="number-line" onclick="vmSelectTool('number-line')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">📏</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">محور أعداد</div>
+                <!-- مجموعة 4: قوائم -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <button class="ewbtn" onclick="exec('insertOrderedList')" title="قائمة مرقمة">١.</button>
+                    <button class="ewbtn" onclick="exec('insertUnorderedList')" title="قائمة نقطية">•</button>
+                    <button class="ewbtn" onclick="exec('indent')" title="إزاحة">→</button>
+                    <button class="ewbtn" onclick="exec('outdent')" title="عكس إزاحة">←</button>
                 </div>
-                <div class="vm-tool" data-tool="bar-chart" onclick="vmSelectTool('bar-chart')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">📊</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">رسم بياني عمودي</div>
+                <!-- مجموعة 5: الإدراج (الأهم!) -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <button onclick="examOpenShapeMaker()" title="إدراج شكل بصري" style="background:linear-gradient(135deg,#f39c12,#e67e22);border:none;color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;display:flex;align-items:center;gap:5px;">
+                        🎨 شكل
+                    </button>
+                    <button onclick="examInsertEquation()" title="إدراج معادلة" style="background:linear-gradient(135deg,#16a085,#0e8174);border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">∫ معادلة</button>
+                    <button onclick="examInsertTable()" title="جدول" class="ewbtn">⊞ جدول</button>
+                    <button onclick="examInsertImage()" title="صورة من جهازك" class="ewbtn">🖼️ صورة</button>
+                    <button onclick="examInsertQuestion()" title="سؤال جديد مرقم تلقائياً" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);border:none;color:#fff;padding:6px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">❓ سؤال</button>
+                    <button onclick="examInsertSeparator()" title="فاصل" class="ewbtn">━━━</button>
+                    <button onclick="examInsertPageBreak()" title="فاصل صفحة" class="ewbtn">📄+</button>
                 </div>
-                <div class="vm-tool" data-tool="pie-chart" onclick="vmSelectTool('pie-chart')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🥧</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">رسم دائري</div>
+                <!-- مجموعة 6: تراجع/إعادة -->
+                <div style="display:flex;gap:3px;padding:0 6px;border-left:1px solid rgba(255,255,255,0.1);">
+                    <button class="ewbtn" onclick="exec('undo')" title="تراجع (Ctrl+Z)">↶</button>
+                    <button class="ewbtn" onclick="exec('redo')" title="إعادة (Ctrl+Y)">↷</button>
                 </div>
-                <div class="vm-tool" data-tool="grid" onclick="vmSelectTool('grid')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">▦</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">شبكة هندسية</div>
-                </div>
-                <div class="vm-tool" data-tool="fraction-bar" onclick="vmSelectTool('fraction-bar')" style="background:rgba(243,156,18,0.06);border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🟧</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#f9c74f;">شريط كسور</div>
-                </div>
-                
-                <!-- 🧊 الأشكال ثلاثية الأبعاد -->
-                <div class="vm-tool" data-tool="cube" onclick="vmSelectTool('cube')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🧊</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">مكعب</div>
-                </div>
-                <div class="vm-tool" data-tool="cuboid" onclick="vmSelectTool('cuboid')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">📦</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">متوازي مستطيلات</div>
-                </div>
-                <div class="vm-tool" data-tool="pyramid-3" onclick="vmSelectTool('pyramid-3')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🔺</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">هرم ثلاثي</div>
-                </div>
-                <div class="vm-tool" data-tool="pyramid-4" onclick="vmSelectTool('pyramid-4')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🔺</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">هرم رباعي</div>
-                </div>
-                <div class="vm-tool" data-tool="pyramid-5" onclick="vmSelectTool('pyramid-5')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">⛰️</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">هرم خماسي</div>
-                </div>
-                <div class="vm-tool" data-tool="pyramid-6" onclick="vmSelectTool('pyramid-6')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">⛰️</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">هرم سداسي</div>
-                </div>
-                <div class="vm-tool" data-tool="pyramid-8" onclick="vmSelectTool('pyramid-8')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">⛰️</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">هرم ثماني</div>
-                </div>
-                <div class="vm-tool" data-tool="cylinder" onclick="vmSelectTool('cylinder')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🥫</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">أسطوانة</div>
-                </div>
-                <div class="vm-tool" data-tool="cone" onclick="vmSelectTool('cone')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">🎉</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">مخروط</div>
-                </div>
-                <div class="vm-tool" data-tool="prism-tri" onclick="vmSelectTool('prism-tri')" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">📐</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#2ecc71;">منشور ثلاثي</div>
-                </div>
-                <div class="vm-tool" data-tool="polygon" onclick="vmSelectTool('polygon')" style="background:rgba(0,191,255,0.06);border:2px solid rgba(0,191,255,0.4);border-radius:12px;padding:14px 8px;cursor:pointer;text-align:center;transition:all 0.3s;">
-                    <div style="font-size:2rem;">⬡</div>
-                    <div style="font-weight:700;font-size:0.85rem;margin-top:4px;color:#5dd5ff;">مضلع منتظم</div>
+                <!-- مجموعة 7: التصدير -->
+                <div style="display:flex;gap:3px;margin-right:auto;padding:0 6px;">
+                    <button onclick="examPrint()" title="طباعة (Ctrl+P)" style="background:linear-gradient(135deg,#7f8c8d,#5d6d6e);border:none;color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">🖨️ طباعة</button>
+                    <button onclick="examExportPdf()" title="حفظ كـ PDF" style="background:linear-gradient(135deg,#e74c3c,#c0392b);border:none;color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📕 PDF</button>
+                    <button onclick="examExportWord()" title="حفظ كـ Word" style="background:linear-gradient(135deg,#2980b9,#1f5f8b);border:none;color:#fff;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📘 Word</button>
                 </div>
             </div>
         </div>
 
-        <!-- لوحة الإعدادات + المعاينة -->
-        <div style="display:grid;grid-template-columns:300px 1fr;gap:18px;align-items:start;" id="vm-main-grid">
-            <!-- الإعدادات -->
-            <div class="glass-card" style="padding:20px;position:sticky;top:20px;">
-                <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 14px;font-size:1.1rem;">⚙️ الإعدادات</h3>
-                <div id="vm-controls">
-                    <p style="color:rgba(255,255,255,0.5);font-size:0.85rem;text-align:center;padding:20px;">🎯 اختر نوع الشكل أولاً</p>
+        <!-- منطقة الكتابة - الصفحة البيضاء -->
+        <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:14px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">
+                    <span id="exam-page-info">📄 صفحة A4</span> · 
+                    <span id="exam-word-count">0 كلمة</span> · 
+                    <span id="exam-save-status" style="color:#888;">●</span>
+                </div>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <button onclick="examZoom('out')" class="ewbtn" style="padding:4px 10px;">🔍−</button>
+                    <span id="exam-zoom-level" style="color:rgba(255,255,255,0.7);font-size:0.82rem;min-width:40px;text-align:center;">100%</span>
+                    <button onclick="examZoom('in')" class="ewbtn" style="padding:4px 10px;">🔍+</button>
                 </div>
             </div>
+            
+            <!-- 📄 صفحة الورد (A4) -->
+            <div id="exam-page-wrap" style="background:#e0e0e0;padding:30px 20px;border-radius:8px;max-height:80vh;overflow-y:auto;display:flex;justify-content:center;">
+                <div id="exam-doc" style="background:#fff;color:#1a1a1a;width:210mm;min-height:297mm;padding:20mm 22mm;box-shadow:0 8px 32px rgba(0,0,0,0.4);direction:rtl;font-family:'Cairo','Tajawal',sans-serif;font-size:14px;line-height:1.85;transform-origin:top center;transition:transform 0.2s;">
+                    
+                    <!-- الرأس الرسمي -->
+                    <div id="exam-header" style="text-align:center;border-bottom:2px solid #1a1a1a;padding-bottom:14px;margin-bottom:18px;">
+                        <!-- يُملأ بـ examUpdateHeader() -->
+                    </div>
+                    
+                    <!-- محتوى الاختبار (المحرر contenteditable) -->
+                    <div id="exam-editor" contenteditable="true" spellcheck="false" oninput="examOnInput()" onkeydown="examOnKeydown(event)" style="min-height:200mm;outline:none;font-family:'Cairo','Tajawal',sans-serif;">
+                        <p style="text-align:center;color:#999;font-style:italic;padding:30px 20px;">
+                            ✨ ابدأ كتابة اختبارك هنا<br>
+                            <span style="font-size:0.85rem;">اضغط "❓ سؤال" لإضافة سؤال جديد مرقم تلقائياً<br>أو اضغط "🎨 شكل" لإدراج مثلث، مكعب، رسم بياني...</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-            <!-- منطقة المعاينة -->
-            <div class="glass-card" style="padding:20px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-                    <h3 style="color:#f9c74f;font-family:'Amiri';margin:0;font-size:1.1rem;">👁️ المعاينة</h3>
-                    <div style="display:flex;gap:8px;">
-                        <button onclick="vmDownload('png')" id="vm-btn-png" disabled style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
-                            📥 PNG
-                        </button>
-                        <button onclick="vmDownload('svg')" id="vm-btn-svg" disabled style="background:linear-gradient(135deg,#00ff88,#00cc66);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
-                            📥 SVG
-                        </button>
-                        <button onclick="vmCopyImage()" id="vm-btn-copy" disabled style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:8px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;opacity:0.5;">
-                            📋 نسخ
-                        </button>
-                    </div>
+        <!-- شريط نصائح سفلي -->
+        <div style="background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.2);border-radius:10px;padding:10px 14px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-size:0.8rem;color:rgba(255,255,255,0.65);">
+            <span style="color:#3b82f6;font-weight:bold;">💡 اختصارات:</span>
+            <span><kbd>Ctrl+S</kbd> حفظ</span>
+            <span><kbd>Ctrl+B</kbd> غامق</span>
+            <span><kbd>Ctrl+I</kbd> مائل</span>
+            <span><kbd>Ctrl+P</kbd> طباعة</span>
+            <span><kbd>Ctrl+Z</kbd> تراجع</span>
+            <span><kbd>Alt+Q</kbd> سؤال جديد</span>
+            <span><kbd>Alt+S</kbd> إدراج شكل</span>
+        </div>
+    </div>
+    
+    <!-- ════════════════════════════════════════════════════════════
+         📦 Modals: صانع الأشكال + المعادلات + الجداول + المكتبة
+    ════════════════════════════════════════════════════════════ -->
+    
+    <!-- Modal: مكتبة الاختبارات المحفوظة -->
+    <div id="exam-library-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#1a1a3e,#0f0f29);border:2px solid #f39c12;border-radius:18px;padding:24px;max-width:700px;width:100%;max-height:85vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <h3 style="color:#f9c74f;margin:0;font-family:Amiri;">📚 اختباراتي المحفوظة</h3>
+                <button onclick="document.getElementById('exam-library-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;">✕</button>
+            </div>
+            <div id="exam-library-list" style="display:grid;gap:10px;"></div>
+        </div>
+    </div>
+    
+    <!-- Modal: إدراج جدول -->
+    <div id="exam-table-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#1a1a3e,#0f0f29);border:2px solid #f39c12;border-radius:18px;padding:24px;max-width:420px;width:100%;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                <h3 style="color:#f9c74f;margin:0;">⊞ إدراج جدول</h3>
+                <button onclick="document.getElementById('exam-table-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            <div style="display:grid;gap:14px;">
+                <div>
+                    <label style="color:rgba(255,255,255,0.7);font-size:0.85rem;display:block;margin-bottom:4px;">عدد الصفوف</label>
+                    <input id="tbl-rows" type="number" value="3" min="1" max="20" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:9px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
                 </div>
-                <div id="vm-preview" style="background:#fff;border:2px solid rgba(243,156,18,0.3);border-radius:12px;padding:30px;min-height:400px;display:flex;align-items:center;justify-content:center;overflow:visible;">
-                    <div style="text-align:center;color:#999;">
-                        <div style="font-size:4rem;margin-bottom:10px;">🎨</div>
-                        <div style="font-weight:600;">اختر شكلاً وابدأ التصميم</div>
-                    </div>
+                <div>
+                    <label style="color:rgba(255,255,255,0.7);font-size:0.85rem;display:block;margin-bottom:4px;">عدد الأعمدة</label>
+                    <input id="tbl-cols" type="number" value="3" min="1" max="10" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:9px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
                 </div>
+                <label style="display:flex;align-items:center;gap:8px;color:#fff;font-size:0.88rem;cursor:pointer;">
+                    <input id="tbl-header" type="checkbox" checked> صف رأس بلون مميز
+                </label>
+                <button onclick="examInsertTableConfirm()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ إدراج الجدول</button>
             </div>
         </div>
     </div>
+    
+    <!-- Modal: إدراج معادلة (Unicode) -->
+    <div id="exam-equation-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#1a1a3e,#0f0f29);border:2px solid #16a085;border-radius:18px;padding:24px;max-width:600px;width:100%;max-height:85vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+                <h3 style="color:#16a085;margin:0;">∫ محرر المعادلات</h3>
+                <button onclick="document.getElementById('exam-equation-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            <textarea id="exam-eq-input" placeholder="اكتب معادلتك... مثال: x² + 3x + 2 = 0" style="width:100%;min-height:80px;background:rgba(0,0,0,.4);border:1px solid rgba(22,160,133,.3);color:#fff;padding:12px;border-radius:10px;font-family:'Times New Roman',serif;font-size:1.2rem;direction:ltr;text-align:center;box-sizing:border-box;margin-bottom:12px;"></textarea>
+            <div style="background:#fff;color:#000;padding:14px;border-radius:8px;min-height:50px;font-family:'Times New Roman',serif;font-size:1.4rem;text-align:center;direction:ltr;margin-bottom:14px;" id="exam-eq-preview">المعاينة...</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(40px,1fr));gap:5px;margin-bottom:14px;">
+                <button onclick="examEqInsertSym('²')" class="eqbtn">x²</button>
+                <button onclick="examEqInsertSym('³')" class="eqbtn">x³</button>
+                <button onclick="examEqInsertSym('ⁿ')" class="eqbtn">xⁿ</button>
+                <button onclick="examEqInsertSym('√')" class="eqbtn">√</button>
+                <button onclick="examEqInsertSym('∛')" class="eqbtn">∛</button>
+                <button onclick="examEqInsertSym('±')" class="eqbtn">±</button>
+                <button onclick="examEqInsertSym('×')" class="eqbtn">×</button>
+                <button onclick="examEqInsertSym('÷')" class="eqbtn">÷</button>
+                <button onclick="examEqInsertSym('≤')" class="eqbtn">≤</button>
+                <button onclick="examEqInsertSym('≥')" class="eqbtn">≥</button>
+                <button onclick="examEqInsertSym('≠')" class="eqbtn">≠</button>
+                <button onclick="examEqInsertSym('≈')" class="eqbtn">≈</button>
+                <button onclick="examEqInsertSym('∞')" class="eqbtn">∞</button>
+                <button onclick="examEqInsertSym('π')" class="eqbtn">π</button>
+                <button onclick="examEqInsertSym('θ')" class="eqbtn">θ</button>
+                <button onclick="examEqInsertSym('α')" class="eqbtn">α</button>
+                <button onclick="examEqInsertSym('β')" class="eqbtn">β</button>
+                <button onclick="examEqInsertSym('Δ')" class="eqbtn">Δ</button>
+                <button onclick="examEqInsertSym('°')" class="eqbtn">°</button>
+                <button onclick="examEqInsertSym('∫')" class="eqbtn">∫</button>
+                <button onclick="examEqInsertSym('∑')" class="eqbtn">∑</button>
+                <button onclick="examEqInsertSym('→')" class="eqbtn">→</button>
+                <button onclick="examEqInsertSym('∈')" class="eqbtn">∈</button>
+                <button onclick="examEqInsertSym('∠')" class="eqbtn">∠</button>
+            </div>
+            <button onclick="examInsertEquationConfirm()" style="width:100%;background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;">✅ إدراج المعادلة في الاختبار</button>
+        </div>
+    </div>
+
+    <style>
+        .ewbtn { background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 11px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;transition:all 0.15s;display:inline-flex;align-items:center;gap:4px;}
+        .ewbtn:hover { background:rgba(243,156,18,0.15);border-color:rgba(243,156,18,0.4);color:#f9c74f;}
+        .ewbtn:active { transform:scale(0.96);}
+        .eqbtn { background:rgba(22,160,133,0.1);border:1px solid rgba(22,160,133,0.3);color:#16a085;padding:8px;border-radius:6px;cursor:pointer;font-family:'Times New Roman',serif;font-size:1.1rem;}
+        .eqbtn:hover { background:rgba(22,160,133,0.25);}
+        kbd { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fbbf24;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:0.75rem;}
+        
+        #exam-editor h1, #exam-editor h2, #exam-editor h3 { font-family:'Amiri',serif;color:#0c447c;margin:14px 0 8px;}
+        #exam-editor .ex-q { background:rgba(243,156,18,0.06);border-right:4px solid #f39c12;padding:10px 14px;border-radius:6px;margin:14px 0;}
+        #exam-editor .ex-q-num { color:#0c447c;font-weight:bold;font-size:1.05rem;font-family:Amiri,serif;}
+        #exam-editor .ex-shape { display:block;text-align:center;margin:14px auto;padding:8px;background:#fafafa;border:1px dashed #999;border-radius:6px;max-width:90%;}
+        #exam-editor .ex-shape img, #exam-editor .ex-shape svg { max-width:100%;height:auto;display:inline-block;}
+        #exam-editor .ex-eq { display:inline-block;font-family:'Times New Roman',serif;font-size:1.3em;padding:4px 10px;background:#f0f8ff;border:1px solid #c0d0e0;border-radius:5px;direction:ltr;color:#000;margin:4px 2px;}
+        #exam-editor table { border-collapse:collapse;width:100%;margin:14px 0;}
+        #exam-editor table td, #exam-editor table th { border:1px solid #1a1a1a;padding:8px;text-align:center;color:#1a1a1a;}
+        #exam-editor table th { background:#1a1a1a;color:#fff;font-weight:bold;}
+        #exam-editor .ex-sep { border:none;border-top:2px dashed #999;margin:18px 0;}
+        #exam-editor .ex-pgbreak { page-break-after:always;border:none;border-top:2px dotted #e74c3c;margin:18px 0;text-align:center;}
+        #exam-editor .ex-pgbreak::before { content:"— فاصل صفحة —";color:#e74c3c;font-size:0.8rem;padding:2px 10px;background:#fff;}
+        
+        @media print {
+            body * { visibility:hidden; }
+            #exam-doc, #exam-doc * { visibility:visible; }
+            #exam-doc { position:absolute;top:0;left:0;box-shadow:none !important;padding:0 !important;margin:0 !important;width:100% !important;}
+        }
+    </style>
 
 
+    <!-- ══════════════════════════════════════════════════════
+         📅 قسم قوالب جداول الحصص
+    ══════════════════════════════════════════════════════ -->
     <!-- ══════════════════════════════════════════════════════
          📅 قسم قوالب جداول الحصص
     ══════════════════════════════════════════════════════ -->
@@ -13170,6 +13323,557 @@ document.addEventListener('click', function(e) {
     drawer.style.display = 'none';
     if (btn) btn.classList.remove('open');
 });
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     📝 EXAM EDITOR - JavaScript الكامل للمحرر
+════════════════════════════════════════════════════════════ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script>
+// ════════════════════════════════════════════════════════════
+// 📝 EXAM EDITOR
+// ════════════════════════════════════════════════════════════
+var _examQuestionCounter = 0;
+var _examZoom = 1.0;
+var _examAutoSaveTimer = null;
+var _examLastSaved = 0;
+
+function exec(cmd, val) {
+    document.execCommand(cmd, false, val || null);
+    var ed = document.getElementById('exam-editor');
+    if (ed) ed.focus();
+}
+
+function examUpdateHeader() {
+    var school = (document.getElementById('exam-school')||{}).value || '';
+    var title = (document.getElementById('exam-title')||{}).value || 'اختبار';
+    var grade = (document.getElementById('exam-grade')||{}).value || '';
+    var subject = (document.getElementById('exam-subject')||{}).value || '';
+    var time = (document.getElementById('exam-time')||{}).value || '';
+    var marks = (document.getElementById('exam-marks')||{}).value || '';
+    var teacher = (document.getElementById('exam-teacher')||{}).value || '';
+    var date = (document.getElementById('exam-date')||{}).value || '';
+    
+    var html = '';
+    if (school) html += '<div style="font-size:14px;color:#555;margin-bottom:4px;">' + escHtml(school) + '</div>';
+    html += '<div style="font-size:22px;font-weight:bold;margin:8px 0;color:#0c447c;font-family:Amiri,serif;">' + escHtml(title) + '</div>';
+    if (subject) html += '<div style="font-size:16px;color:#666;margin-bottom:8px;">' + escHtml(subject) + '</div>';
+    
+    var meta = [];
+    if (grade) meta.push('<span><b>الصف:</b> ' + escHtml(grade) + '</span>');
+    if (time) meta.push('<span><b>الزمن:</b> ' + escHtml(time) + '</span>');
+    if (marks) meta.push('<span><b>الدرجة:</b> ' + escHtml(marks) + '</span>');
+    if (date) meta.push('<span><b>التاريخ:</b> ' + escHtml(date) + '</span>');
+    if (meta.length) html += '<div style="font-size:13px;color:#555;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;">' + meta.join('') + '</div>';
+    
+    if (teacher) html += '<div style="font-size:13px;color:#555;margin-top:6px;">المعلم: ' + escHtml(teacher) + '</div>';
+    
+    html += '<div style="margin-top:12px;font-size:13px;color:#666;text-align:right;">الاسم: <span style="border-bottom:1px solid #999;display:inline-block;min-width:200px;">&nbsp;</span></div>';
+    
+    var headerEl = document.getElementById('exam-header');
+    if (headerEl) headerEl.innerHTML = html;
+}
+
+function escHtml(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function examOnInput() {
+    // عدد الكلمات
+    var ed = document.getElementById('exam-editor');
+    if (ed) {
+        var txt = ed.innerText || '';
+        var words = txt.trim().split(/\s+/).filter(function(w){return w.length;}).length;
+        var wc = document.getElementById('exam-word-count');
+        if (wc) wc.textContent = words + ' كلمة';
+    }
+    
+    // الحفظ التلقائي
+    clearTimeout(_examAutoSaveTimer);
+    document.getElementById('exam-save-status').innerHTML = '<span style="color:#fbbf24;">●</span> غير محفوظ';
+    _examAutoSaveTimer = setTimeout(function() {
+        examAutoSave();
+    }, 2500);
+}
+
+function examOnKeydown(e) {
+    // اختصارات
+    if (e.ctrlKey || e.metaKey) {
+        if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            examSaveLocal();
+        } else if (e.key === 'p' || e.key === 'P') {
+            e.preventDefault();
+            examPrint();
+        }
+    }
+    if (e.altKey) {
+        if (e.key === 'q' || e.key === 'Q') {
+            e.preventDefault();
+            examInsertQuestion();
+        } else if (e.key === 's' || e.key === 'S') {
+            e.preventDefault();
+            examOpenShapeMaker();
+        }
+    }
+}
+
+function examInsertQuestion() {
+    _examQuestionCounter++;
+    var arNum = examToArabicNum(_examQuestionCounter);
+    var html = '<div class="ex-q" contenteditable="true"><span class="ex-q-num">السؤال ' + arNum + ':</span> <span style="font-weight:600;">اكتب نص السؤال هنا...</span></div><p><br></p>';
+    document.execCommand('insertHTML', false, html);
+    examOnInput();
+}
+
+function examToArabicNum(n) {
+    var ar = ['','الأول','الثاني','الثالث','الرابع','الخامس','السادس','السابع','الثامن','التاسع','العاشر','الحادي عشر','الثاني عشر','الثالث عشر','الرابع عشر','الخامس عشر','السادس عشر','السابع عشر','الثامن عشر','التاسع عشر','العشرون'];
+    if (n >= 1 && n < ar.length) return ar[n];
+    return String(n);
+}
+
+function examInsertSeparator() {
+    document.execCommand('insertHTML', false, '<hr class="ex-sep"><p><br></p>');
+}
+
+function examInsertPageBreak() {
+    document.execCommand('insertHTML', false, '<hr class="ex-pgbreak"><p><br></p>');
+}
+
+function examInsertImage() {
+    var inp = document.createElement('input');
+    inp.type = 'file';
+    inp.accept = 'image/*';
+    inp.onchange = function(e) {
+        var file = e.target.files[0];
+        if (!file) return;
+        var reader = new FileReader();
+        reader.onload = function(ev) {
+            var html = '<div style="text-align:center;margin:14px 0;"><img src="' + ev.target.result + '" style="max-width:80%;height:auto;border-radius:6px;"></div><p><br></p>';
+            document.getElementById('exam-editor').focus();
+            document.execCommand('insertHTML', false, html);
+        };
+        reader.readAsDataURL(file);
+    };
+    inp.click();
+}
+
+function examInsertTable() {
+    document.getElementById('exam-table-modal').style.display = 'flex';
+}
+
+function examInsertTableConfirm() {
+    var rows = parseInt(document.getElementById('tbl-rows').value) || 3;
+    var cols = parseInt(document.getElementById('tbl-cols').value) || 3;
+    var hasHeader = document.getElementById('tbl-header').checked;
+    
+    var html = '<table>';
+    for (var r = 0; r < rows; r++) {
+        html += '<tr>';
+        for (var c = 0; c < cols; c++) {
+            if (r === 0 && hasHeader) {
+                html += '<th>عنوان ' + (c+1) + '</th>';
+            } else {
+                html += '<td>&nbsp;</td>';
+            }
+        }
+        html += '</tr>';
+    }
+    html += '</table><p><br></p>';
+    
+    document.getElementById('exam-editor').focus();
+    document.execCommand('insertHTML', false, html);
+    document.getElementById('exam-table-modal').style.display = 'none';
+}
+
+// ════════════════════════════════════════════════════════════
+// ∫ معادلات
+// ════════════════════════════════════════════════════════════
+function examInsertEquation() {
+    document.getElementById('exam-eq-input').value = '';
+    document.getElementById('exam-eq-preview').innerHTML = 'المعاينة...';
+    document.getElementById('exam-equation-modal').style.display = 'flex';
+    setTimeout(function(){ document.getElementById('exam-eq-input').focus(); }, 100);
+}
+
+function examEqInsertSym(sym) {
+    var inp = document.getElementById('exam-eq-input');
+    var start = inp.selectionStart || 0;
+    var end = inp.selectionEnd || 0;
+    var v = inp.value;
+    inp.value = v.substring(0, start) + sym + v.substring(end);
+    inp.focus();
+    inp.setSelectionRange(start + sym.length, start + sym.length);
+    examEqUpdatePreview();
+}
+
+function examEqUpdatePreview() {
+    var v = document.getElementById('exam-eq-input').value;
+    document.getElementById('exam-eq-preview').textContent = v || 'المعاينة...';
+}
+
+function examInsertEquationConfirm() {
+    var v = document.getElementById('exam-eq-input').value.trim();
+    if (!v) {
+        if (typeof showToast === 'function') showToast('⚠️ المعادلة فارغة', 'warning');
+        return;
+    }
+    var html = ' <span class="ex-eq">' + escHtml(v) + '</span> ';
+    document.getElementById('exam-equation-modal').style.display = 'none';
+    document.getElementById('exam-editor').focus();
+    document.execCommand('insertHTML', false, html);
+}
+
+document.addEventListener('input', function(e) {
+    if (e.target.id === 'exam-eq-input') examEqUpdatePreview();
+});
+
+// ════════════════════════════════════════════════════════════
+// 🎨 إدراج أشكال - يستخدم صانع الأشكال الأصلي
+// ════════════════════════════════════════════════════════════
+function examOpenShapeMaker() {
+    // نحفظ مكان المؤشر
+    var sel = window.getSelection();
+    if (sel.rangeCount > 0) {
+        window._examSavedRange = sel.getRangeAt(0).cloneRange();
+    }
+    // نفتح صانع الأشكال الأصلي
+    if (typeof openVmModal === 'function') {
+        openVmModal();
+        // نُعيد توجيه زر "إدراج" ليُدرج في المحرر
+        window._examModeActive = true;
+    } else if (typeof window.openVisualMaker === 'function') {
+        window.openVisualMaker();
+        window._examModeActive = true;
+    } else {
+        // البديل: نستخدم section-visual-maker الأصلي ونعرضه كـ inline
+        if (typeof showToast === 'function') showToast('⚠️ صانع الأشكال غير متاح', 'warning');
+    }
+}
+
+// عند انتهاء الرسم في صانع الأشكال - نُدرجه في المحرر
+function examInsertShapeFromMaker(svgString) {
+    if (!svgString) return;
+    
+    // نحوّل SVG لـ data URL أو نُدرجه مباشرة
+    var html = '<div class="ex-shape" contenteditable="false">' + svgString + '</div><p><br></p>';
+    
+    // نستعيد مكان المؤشر
+    var ed = document.getElementById('exam-editor');
+    ed.focus();
+    
+    if (window._examSavedRange) {
+        var sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(window._examSavedRange);
+    }
+    
+    document.execCommand('insertHTML', false, html);
+    window._examModeActive = false;
+    
+    if (typeof showToast === 'function') showToast('✅ تم إدراج الشكل', 'success');
+}
+
+// ════════════════════════════════════════════════════════════
+// 💾 حفظ محلي + استرجاع
+// ════════════════════════════════════════════════════════════
+function examGetData() {
+    return {
+        school: (document.getElementById('exam-school')||{}).value || '',
+        title: (document.getElementById('exam-title')||{}).value || '',
+        grade: (document.getElementById('exam-grade')||{}).value || '',
+        subject: (document.getElementById('exam-subject')||{}).value || '',
+        time: (document.getElementById('exam-time')||{}).value || '',
+        marks: (document.getElementById('exam-marks')||{}).value || '',
+        teacher: (document.getElementById('exam-teacher')||{}).value || '',
+        date: (document.getElementById('exam-date')||{}).value || '',
+        content: document.getElementById('exam-editor').innerHTML,
+        savedAt: new Date().toISOString()
+    };
+}
+
+function examAutoSave() {
+    try {
+        var data = examGetData();
+        localStorage.setItem('exam_draft', JSON.stringify(data));
+        _examLastSaved = Date.now();
+        document.getElementById('exam-save-status').innerHTML = '<span style="color:#4ade80;">●</span> محفوظ تلقائياً';
+    } catch(e) {
+        console.error('[exam-autosave]', e);
+    }
+}
+
+function examSaveLocal() {
+    try {
+        var data = examGetData();
+        var name = (data.title || 'اختبار') + ' - ' + new Date().toLocaleDateString('ar-EG');
+        data.name = name;
+        data.id = 'exam_' + Date.now();
+        
+        var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
+        saved.push(data);
+        // نُبقي آخر 50 فقط
+        if (saved.length > 50) saved = saved.slice(-50);
+        localStorage.setItem('exam_library', JSON.stringify(saved));
+        
+        if (typeof showToast === 'function') showToast('✅ تم حفظ الاختبار في مكتبتك', 'success');
+        document.getElementById('exam-save-status').innerHTML = '<span style="color:#4ade80;">●</span> محفوظ';
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ خطأ في الحفظ', 'error');
+    }
+}
+
+function examOpenLibrary() {
+    var list = document.getElementById('exam-library-list');
+    var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
+    
+    if (saved.length === 0) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);"><div style="font-size:3rem;">📭</div><p>لم تحفظ أي اختبار بعد</p></div>';
+    } else {
+        list.innerHTML = saved.reverse().map(function(e) {
+            return '<div style="background:rgba(243,156,18,0.05);border:1px solid rgba(243,156,18,0.2);border-radius:10px;padding:14px;">' +
+                '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+                    '<div style="flex:1;min-width:200px;">' +
+                        '<div style="color:#fff;font-weight:bold;margin-bottom:3px;">' + escHtml(e.title || 'اختبار') + '</div>' +
+                        '<div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">' + escHtml(e.subject || '—') + ' • ' + escHtml(e.grade || '—') + ' • ' + new Date(e.savedAt).toLocaleString('ar-EG') + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:6px;">' +
+                        '<button onclick="examLoadFromLibrary(\'' + e.id + '\')" style="background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📂 فتح</button>' +
+                        '<button onclick="examDeleteFromLibrary(\'' + e.id + '\')" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:7px 12px;border-radius:6px;cursor:pointer;">🗑️</button>' +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }
+    document.getElementById('exam-library-modal').style.display = 'flex';
+}
+
+function examLoadFromLibrary(id) {
+    var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
+    var ex = saved.find(function(e){ return e.id === id; });
+    if (!ex) return;
+    
+    document.getElementById('exam-school').value = ex.school || '';
+    document.getElementById('exam-title').value = ex.title || '';
+    document.getElementById('exam-grade').value = ex.grade || '';
+    document.getElementById('exam-subject').value = ex.subject || '';
+    document.getElementById('exam-time').value = ex.time || '';
+    document.getElementById('exam-marks').value = ex.marks || '';
+    document.getElementById('exam-teacher').value = ex.teacher || '';
+    document.getElementById('exam-date').value = ex.date || '';
+    document.getElementById('exam-editor').innerHTML = ex.content || '';
+    
+    examUpdateHeader();
+    examOnInput();
+    document.getElementById('exam-library-modal').style.display = 'none';
+    if (typeof showToast === 'function') showToast('📂 تم فتح الاختبار', 'success');
+}
+
+function examDeleteFromLibrary(id) {
+    if (!confirm('حذف هذا الاختبار؟')) return;
+    var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
+    saved = saved.filter(function(e){ return e.id !== id; });
+    localStorage.setItem('exam_library', JSON.stringify(saved));
+    examOpenLibrary();
+}
+
+function examNewBlank() {
+    if (!confirm('بدء اختبار جديد؟ تأكد من حفظ الحالي.')) return;
+    document.getElementById('exam-editor').innerHTML = '<p style="text-align:center;color:#999;font-style:italic;padding:30px 20px;">✨ ابدأ كتابة اختبارك هنا<br><span style="font-size:0.85rem;">اضغط "❓ سؤال" لإضافة سؤال مرقم</span></p>';
+    _examQuestionCounter = 0;
+    examOnInput();
+}
+
+// استرجاع الـ draft عند فتح الصفحة
+function examRestoreDraft() {
+    try {
+        var draft = JSON.parse(localStorage.getItem('exam_draft') || 'null');
+        if (draft && draft.content && draft.content.length > 100) {
+            if (confirm('وُجد اختبار محفوظ تلقائياً - هل تريد استرجاعه؟')) {
+                document.getElementById('exam-school').value = draft.school || '';
+                document.getElementById('exam-title').value = draft.title || '';
+                document.getElementById('exam-grade').value = draft.grade || '';
+                document.getElementById('exam-subject').value = draft.subject || '';
+                document.getElementById('exam-time').value = draft.time || '';
+                document.getElementById('exam-marks').value = draft.marks || '';
+                document.getElementById('exam-teacher').value = draft.teacher || '';
+                document.getElementById('exam-date').value = draft.date || '';
+                document.getElementById('exam-editor').innerHTML = draft.content;
+                examUpdateHeader();
+                examOnInput();
+            }
+        }
+    } catch(e){}
+}
+
+// ════════════════════════════════════════════════════════════
+// 🔍 Zoom
+// ════════════════════════════════════════════════════════════
+function examZoom(dir) {
+    if (dir === 'in') _examZoom = Math.min(2.0, _examZoom + 0.1);
+    else if (dir === 'out') _examZoom = Math.max(0.5, _examZoom - 0.1);
+    var doc = document.getElementById('exam-doc');
+    if (doc) doc.style.transform = 'scale(' + _examZoom + ')';
+    document.getElementById('exam-zoom-level').textContent = Math.round(_examZoom * 100) + '%';
+}
+
+// ════════════════════════════════════════════════════════════
+// 🖨️ طباعة + تصدير
+// ════════════════════════════════════════════════════════════
+function examPrint() {
+    var doc = document.getElementById('exam-doc');
+    if (!doc) return;
+    var clone = doc.cloneNode(true);
+    var win = window.open('', '_blank');
+    win.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>طباعة اختبار</title><style>body{font-family:"Cairo","Tajawal",sans-serif;margin:0;padding:20mm;direction:rtl;color:#000;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #000;padding:6px;}th{background:#000;color:#fff;}.ex-q{background:#f9f4e6;border-right:4px solid #f39c12;padding:8px 12px;border-radius:5px;margin:12px 0;}.ex-shape{text-align:center;margin:12px 0;}.ex-eq{display:inline-block;font-family:"Times New Roman",serif;font-size:1.3em;padding:3px 8px;background:#eef6ff;border-radius:4px;direction:ltr;}.ex-pgbreak{page-break-after:always;border:0;}@page{size:A4;margin:15mm;}</style></head><body>' + clone.outerHTML + '</body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 500);
+}
+
+function examExportPdf() {
+    var doc = document.getElementById('exam-doc');
+    if (!doc) return;
+    if (typeof html2pdf === 'undefined') {
+        if (typeof showToast === 'function') showToast('⏳ جاري تحميل المكتبة...', 'info');
+        setTimeout(examExportPdf, 1500);
+        return;
+    }
+    if (typeof showToast === 'function') showToast('⏳ جاري إنشاء PDF...', 'info', 3000);
+    
+    var title = (document.getElementById('exam-title')||{}).value || 'اختبار';
+    var opt = {
+        margin: [10, 10, 10, 10],
+        filename: title + '.pdf',
+        image: { type: 'jpeg', quality: 0.95 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    // نُنشئ نسخة منفصلة للطباعة بدون transform
+    var clone = doc.cloneNode(true);
+    clone.style.transform = 'none';
+    clone.style.boxShadow = 'none';
+    clone.style.width = '210mm';
+    var wrap = document.createElement('div');
+    wrap.appendChild(clone);
+    document.body.appendChild(wrap);
+    
+    html2pdf().set(opt).from(clone).save().then(function() {
+        document.body.removeChild(wrap);
+        if (typeof showToast === 'function') showToast('✅ تم تحميل PDF', 'success');
+    }).catch(function(err) {
+        document.body.removeChild(wrap);
+        if (typeof showToast === 'function') showToast('❌ فشل التصدير', 'error');
+        console.error(err);
+    });
+}
+
+function examExportWord() {
+    var doc = document.getElementById('exam-doc');
+    if (!doc) return;
+    if (typeof showToast === 'function') showToast('⏳ جاري إنشاء Word...', 'info');
+    
+    var title = (document.getElementById('exam-title')||{}).value || 'اختبار';
+    var html = '<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><style>body{font-family:"Cairo","Tajawal",Arial,sans-serif;direction:rtl;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #000;padding:6px;}th{background:#1a1a1a;color:#fff;}.ex-q{background:#f9f4e6;border-right:4px solid #f39c12;padding:8px;margin:10px 0;}.ex-eq{font-family:"Times New Roman",serif;font-size:1.2em;direction:ltr;}</style></head><body>';
+    html += doc.outerHTML;
+    html += '</body></html>';
+    
+    var blob = new Blob(['\ufeff', html], { type: 'application/msword' });
+    
+    if (typeof saveAs !== 'undefined') {
+        saveAs(blob, title + '.doc');
+    } else {
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = title + '.doc';
+        a.click();
+    }
+    if (typeof showToast === 'function') showToast('✅ تم تحميل Word', 'success');
+}
+
+// ════════════════════════════════════════════════════════════
+// 🔗 ربط مع صانع الأشكال الأصلي - hook على insertion
+// ════════════════════════════════════════════════════════════
+(function() {
+    // نُحاول الاعتراض على دوال الإدراج الموجودة
+    var checkInterval = setInterval(function() {
+        if (typeof window.vmInsert === 'function' && !window.vmInsert._examHooked) {
+            var origVmInsert = window.vmInsert;
+            window.vmInsert = function() {
+                if (window._examModeActive) {
+                    // نأخذ الـ SVG من المعاينة
+                    var preview = document.getElementById('vm-preview') || document.getElementById('amvm-preview');
+                    if (preview) {
+                        var svg = preview.querySelector('svg');
+                        if (svg) {
+                            examInsertShapeFromMaker(svg.outerHTML);
+                            // نُغلق modal
+                            var modal = document.getElementById('vm-modal') || document.getElementById('visual-maker-modal');
+                            if (modal) modal.style.display = 'none';
+                            return;
+                        }
+                    }
+                }
+                return origVmInsert.apply(this, arguments);
+            };
+            window.vmInsert._examHooked = true;
+        }
+        // كذلك amvmInsertToQuestion (من admin)
+        if (typeof window.amvmInsertToQuestion === 'function' && !window.amvmInsertToQuestion._examHooked) {
+            var origAdmin = window.amvmInsertToQuestion;
+            window.amvmInsertToQuestion = function() {
+                if (window._examModeActive) {
+                    var preview = document.getElementById('amvm-preview');
+                    if (preview) {
+                        var svg = preview.querySelector('svg');
+                        if (svg) {
+                            examInsertShapeFromMaker(svg.outerHTML);
+                            var modal = document.getElementById('visual-maker-modal');
+                            if (modal) modal.style.display = 'none';
+                            return;
+                        }
+                    }
+                }
+                return origAdmin.apply(this, arguments);
+            };
+            window.amvmInsertToQuestion._examHooked = true;
+        }
+    }, 1500);
+    // نوقف الـ check بعد 30 ثانية
+    setTimeout(function(){ clearInterval(checkInterval); }, 30000);
+})();
+
+// ════════════════════════════════════════════════════════════
+// 🚀 التشغيل التلقائي عند فتح القسم
+// ════════════════════════════════════════════════════════════
+(function() {
+    var origShowSection = window.showSection;
+    if (typeof origShowSection === 'function') {
+        window.showSection = function(name, btn) {
+            origShowSection(name, btn);
+            if (name === 'visual-maker') {
+                setTimeout(function() {
+                    examUpdateHeader();
+                    examRestoreDraft();
+                    // نُركّز على المحرر
+                    var ed = document.getElementById('exam-editor');
+                    if (ed) {
+                        ed.focus();
+                    }
+                }, 100);
+            }
+        };
+    } else {
+        // لو لم تكن showSection محدّدة بعد، نُحاول لاحقاً
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(function() {
+                examUpdateHeader();
+            }, 500);
+        });
+    }
+})();
 </script>
 
 </body>

@@ -4508,51 +4508,164 @@ async def ai_generate_visual(
     if not api_key:
         raise HTTPException(status_code=503, detail="الذكاء الاصطناعي غير مفعّل")
     
-    # System prompt - يُعطي قواعد دقيقة لـ Gemini
+    # System prompt - شامل لكل الأشكال المتاحة
     system_prompt = """أنت مساعد ذكي لمعلم رياضيات. مهمتك تحويل وصف عربي لشكل رياضي إلى JSON بإعدادات الشكل.
 
-الأشكال المتاحة (tool): triangle, rectangle, circle, circle-sector, number-line, bar-chart, pie-chart, grid, fraction-bar, cube, cuboid, pyramid-3, pyramid-4, pyramid-5, pyramid-6, pyramid-8, cylinder, cone, prism-tri, polygon, angle, venn, vector, box-plot, scatter
+# الأشكال المتاحة (TOOL):
+## ✏️ أشكال ثنائية الأبعاد (2D):
+- triangle (مثلث)
+- rectangle (مستطيل)
+- circle (دائرة)
+- circle-sector (قطاع دائري)
+- polygon (مضلع منتظم)
+- fraction-bar (شريط كسر)
+- grid (شبكة)
+- number-line (محور أعداد)
+- angle (زاوية)
 
-الحقول لكل شكل:
-- triangle: {tri_type: "right|equilateral|isosceles|scalene", tri_a, tri_b, tri_c}
+## 🧊 أشكال ثلاثية الأبعاد (3D):
+- cube (مكعب)
+- cuboid (متوازي مستطيلات)
+- pyramid-3 (هرم ثلاثي)
+- pyramid-4 (هرم رباعي)
+- pyramid-5 (هرم خماسي)
+- pyramid-6 (هرم سداسي)
+- pyramid-8 (هرم ثماني)
+- cylinder (أسطوانة)
+- cone (مخروط)
+- prism-tri (موشور/منشور ثلاثي)
+- prism-quad (موشور/منشور رباعي)
+- prism-penta (موشور/منشور خماسي)
+- prism-hexa (موشور/منشور سداسي)
+- prism-octa (موشور/منشور ثماني)
+
+## 📊 رسوم بيانية وإحصائية:
+- bar-chart (رسم بياني بالأعمدة)
+- pie-chart (رسم دائري)
+- box-plot (مخطط الصندوق)
+- scatter (مخطط الانتشار)
+
+## 🧮 مفاهيم متقدمة:
+- venn (مخطط فن للمجموعات)
+- vector (متجه)
+
+# الحقول التفصيلية لكل شكل:
+
+## 2D Shapes
+- triangle: {tri_type: "right" أو "equilateral" أو "isosceles" أو "scalene", tri_a, tri_b, tri_c}
 - rectangle: {rect_w, rect_h, rect_color}
 - circle: {circle_r, circle_color}
-- circle-sector: {sec_angle, sec_r, sec_color}
-- number-line: {nl_min, nl_max, nl_points (نص مفصول بفاصلة), nl_color}
-- bar-chart: {bar_data (مثال: "أحمد:25,سارة:30,محمد:18"), bar_color, bar_title}
-- pie-chart: {pie_data (مثال: "تفاح:40,موز:30,برتقال:30"), pie_title}
+- circle-sector: {sec_angle (درجة), sec_r, sec_color}
+- polygon: {poly_sides (3-12), poly_side, poly_color}
+- fraction-bar: {frac_denom (المقام), frac_num (البسط), frac_color}
 - grid: {grid_cols, grid_rows}
-- fraction-bar: {frac_denom, frac_num, frac_color}
+- number-line: {nl_min, nl_max, nl_points (نص مفصول بفاصلة "1,3,5"), nl_color}
+- angle: {ang_deg (الزاوية بالدرجات), ang_label (رمز مثل θ أو α), ang_color}
+
+## 3D Shapes
 - cube: {cube_side, cube_color}
-- cuboid: {cb_l, cb_w, cb_h, cb_color}
-- pyramid-X: {py_base, py_height, py_color}
-- cylinder: {cyl_r, cyl_h, cyl_color}
+- cuboid: {cb_l (طول), cb_w (عرض), cb_h (ارتفاع), cb_color}
+- pyramid-3, pyramid-4, pyramid-5, pyramid-6, pyramid-8: {py_base (طول ضلع القاعدة), py_height, py_color}
+- cylinder: {cyl_r (نصف القطر), cyl_h (الارتفاع), cyl_color}
 - cone: {cone_r, cone_h, cone_color}
-- prism-tri: {pr_base, pr_len, pr_color}
-- polygon: {poly_sides, poly_side, poly_color}
-- angle: {ang_deg, ang_label, ang_color}
+- prism-tri, prism-quad, prism-penta, prism-hexa, prism-octa: {pr_base (طول ضلع القاعدة), pr_len (طول الموشور), pr_color}
+
+## Charts
+- bar-chart: {bar_data ("اسم1:قيمة1,اسم2:قيمة2"), bar_color, bar_title}
+- pie-chart: {pie_data ("اسم1:نسبة1,اسم2:نسبة2"), pie_title}
+- box-plot: {box_data ("3,7,8,12,14"), box_title, box_color}
+- scatter: {sc_data ("1,2; 3,5; 4,4"), sc_title, sc_trend (true/false), sc_color}
+
+## Advanced
 - venn: {venn_count (2 أو 3), venn_a, venn_b, venn_c, venn_shade (true/false)}
-- vector: {vec_name, vec_x, vec_y, vec_color}
-- box-plot: {box_data, box_title, box_color}
-- scatter: {sc_data (مثال: "1,2; 3,5; 4,4"), sc_title, sc_trend (true/false), sc_color}
+- vector: {vec_name (مثل "v"), vec_x, vec_y, vec_color}
 
-الألوان: استخدم hex مثل #3498db (أزرق)، #e74c3c (أحمر)، #2ecc71 (أخضر)، #f39c12 (برتقالي)، #9b59b6 (بنفسجي)
+# الألوان (hex):
+- #3498db (أزرق)، #e74c3c (أحمر)، #2ecc71 (أخضر)، #f39c12 (برتقالي)
+- #9b59b6 (بنفسجي)، #16a085 (تركواز)، #e67e22 (برتقالي داكن)
+- #a855f7 (بنفسجي فاتح)، #ec4899 (وردي)، #00bfff (سماوي)
 
-أرجِع JSON فقط، بدون أي شرح أو نص آخر، بالتنسيق:
-{"tool": "اسم الأداة", "settings": {...الحقول...}}
+# قواعد مهمة:
+1. أرجِع JSON فقط - لا تشرح أو تُضف نص قبل/بعد JSON
+2. التنسيق: {"tool": "TOOL_NAME", "settings": {...}}
+3. لو طلب المستخدم شكلاً غير موجود، اختر الأقرب
+4. الكلمات المرادفة: "موشور" = "منشور" = "prism"، "مثلث قائم" → tri_type="right"
+5. إذا لم يحدد لون، اختر لوناً مناسباً للسياق
+6. إذا لم يحدد أبعاد، استخدم قيم افتراضية معقولة
 
-أمثلة:
+# أمثلة شاملة لكل الأشكال:
+
+الوصف: "موشور خماسي ضلع قاعدته 4 وطوله 8"
+الرد: {"tool":"prism-penta","settings":{"pr_base":4,"pr_len":8,"pr_color":"#2ecc71"}}
+
+الوصف: "منشور سداسي"
+الرد: {"tool":"prism-hexa","settings":{"pr_base":5,"pr_len":10,"pr_color":"#16a085"}}
+
+الوصف: "هرم خماسي قاعدته 6 وارتفاعه 9"
+الرد: {"tool":"pyramid-5","settings":{"py_base":6,"py_height":9,"py_color":"#f59e0b"}}
+
 الوصف: "مكعب طول ضلعه 5"
 الرد: {"tool":"cube","settings":{"cube_side":5,"cube_color":"#3498db"}}
 
 الوصف: "مثلث قائم الأضلاع 3 و 4 و 5"
 الرد: {"tool":"triangle","settings":{"tri_type":"right","tri_a":3,"tri_b":4,"tri_c":5}}
 
-الوصف: "رسم بياني لدرجات أحمد 90 وسارة 85 ومحمد 70"
-الرد: {"tool":"bar-chart","settings":{"bar_data":"أحمد:90,سارة:85,محمد:70","bar_color":"#3498db","bar_title":"الدرجات"}}
+الوصف: "مثلث متساوي الأضلاع"
+الرد: {"tool":"triangle","settings":{"tri_type":"equilateral","tri_a":6,"tri_b":6,"tri_c":6}}
+
+الوصف: "أسطوانة نصف قطرها 4 وارتفاعها 12"
+الرد: {"tool":"cylinder","settings":{"cyl_r":4,"cyl_h":12,"cyl_color":"#16a085"}}
+
+الوصف: "مخروط ارتفاعه 10"
+الرد: {"tool":"cone","settings":{"cone_r":4,"cone_h":10,"cone_color":"#f39c12"}}
+
+الوصف: "متوازي مستطيلات 8×5×3"
+الرد: {"tool":"cuboid","settings":{"cb_l":8,"cb_w":5,"cb_h":3,"cb_color":"#e74c3c"}}
 
 الوصف: "زاوية 45 درجة"
 الرد: {"tool":"angle","settings":{"ang_deg":45,"ang_label":"θ","ang_color":"#a855f7"}}
+
+الوصف: "زاوية قائمة"
+الرد: {"tool":"angle","settings":{"ang_deg":90,"ang_label":"∟","ang_color":"#a855f7"}}
+
+الوصف: "قطاع دائري بزاوية 90 درجة"
+الرد: {"tool":"circle-sector","settings":{"sec_angle":90,"sec_r":5,"sec_color":"#e74c3c"}}
+
+الوصف: "دائرة نصف قطرها 7"
+الرد: {"tool":"circle","settings":{"circle_r":7,"circle_color":"#3498db"}}
+
+الوصف: "كسر 3/4"
+الرد: {"tool":"fraction-bar","settings":{"frac_denom":4,"frac_num":3,"frac_color":"#9b59b6"}}
+
+الوصف: "خط الأعداد من -10 إلى 10 مع علامات عند -5, 0, 5"
+الرد: {"tool":"number-line","settings":{"nl_min":-10,"nl_max":10,"nl_points":"-5,0,5","nl_color":"#e74c3c"}}
+
+الوصف: "سداسي منتظم"
+الرد: {"tool":"polygon","settings":{"poly_sides":6,"poly_side":5,"poly_color":"#00bfff"}}
+
+الوصف: "ثماني منتظم"
+الرد: {"tool":"polygon","settings":{"poly_sides":8,"poly_side":4,"poly_color":"#00bfff"}}
+
+الوصف: "رسم بياني لدرجات أحمد 90 وسارة 85 ومحمد 70"
+الرد: {"tool":"bar-chart","settings":{"bar_data":"أحمد:90,سارة:85,محمد:70","bar_color":"#3498db","bar_title":"الدرجات"}}
+
+الوصف: "رسم دائري للفواكه: تفاح 40%، موز 30%، عنب 30%"
+الرد: {"tool":"pie-chart","settings":{"pie_data":"تفاح:40,موز:30,عنب:30","pie_title":"مبيعات الفواكه"}}
+
+الوصف: "مخطط صندوق للدرجات 3,7,8,12,13,14,18,21,23,27"
+الرد: {"tool":"box-plot","settings":{"box_data":"3,7,8,12,13,14,18,21,23,27","box_title":"الدرجات","box_color":"#ec4899"}}
+
+الوصف: "مخطط انتشار للنقاط (1,2),(3,5),(4,4),(6,7)"
+الرد: {"tool":"scatter","settings":{"sc_data":"1,2; 3,5; 4,4; 6,7","sc_title":"البيانات","sc_trend":true,"sc_color":"#ec4899"}}
+
+الوصف: "مخطط فن لمجموعتين A و B متقاطعتين"
+الرد: {"tool":"venn","settings":{"venn_count":2,"venn_a":"A","venn_b":"B","venn_shade":true}}
+
+الوصف: "مخطط فن لثلاث مجموعات"
+الرد: {"tool":"venn","settings":{"venn_count":3,"venn_a":"A","venn_b":"B","venn_c":"C","venn_shade":false}}
+
+الوصف: "متجه (5, 3)"
+الرد: {"tool":"vector","settings":{"vec_name":"v","vec_x":5,"vec_y":3,"vec_color":"#e91e63"}}
 """
     
     full_prompt = system_prompt + f"\n\nالوصف: \"{description}\"\nالرد:"
@@ -10142,12 +10255,30 @@ async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
 
 @app.get("/api/supervisor/questions")
 async def supervisor_get_questions(
-    limit: int = 50,
+    limit: int = 0,
+    grade: str = "",
+    semester: str = "",
+    unit: str = "",
+    lesson: str = "",
     sup = Depends(get_current_supervisor)
 ):
-    """📚 جلب أسئلة من البنك العام لاستخدامها في الاختبارات"""
+    """📚 جلب أسئلة من البنك مع فلاتر (الصف/الفصل/الوحدة/الدرس)"""
     try:
-        q = supabase.table("questions").select("id,question_text,question_type,options,correct_answer,grade,curriculum,difficulty").limit(min(limit, 500) if limit > 0 else 500).execute()
+        # نختار الأعمدة المتاحة فعلياً
+        query = supabase.table("questions").select("*")
+        if grade:    query = query.eq("grade", grade)
+        if semester: query = query.eq("semester", semester)
+        if unit:     query = query.eq("unit", unit)
+        if lesson:   query = query.eq("lesson", lesson)
+        
+        # limit = 0 يعني كل شيء (max 2000)
+        max_limit = 2000
+        if limit and limit > 0:
+            query = query.limit(min(limit, max_limit))
+        else:
+            query = query.limit(max_limit)
+        
+        q = query.execute()
         return {"questions": q.data or [], "total": len(q.data or [])}
     except Exception as e:
         return {"questions": [], "error": str(e)[:200]}

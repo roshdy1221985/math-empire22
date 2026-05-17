@@ -6142,6 +6142,21 @@ async function cleanupSecurityRecords() {
                     </div>
                 </div>
                 
+                <!-- 💡 بانر توجيهي -->
+                <div style="background:linear-gradient(135deg,rgba(59,130,246,0.15),rgba(168,85,247,0.1));border:1px solid rgba(59,130,246,0.4);border-radius:12px;padding:14px 18px;margin-bottom:18px;display:flex;gap:12px;align-items:start;">
+                    <span style="font-size:1.6rem;line-height:1;">💡</span>
+                    <div style="flex:1;">
+                        <div style="color:#3b82f6;font-weight:bold;font-size:0.92rem;margin-bottom:4px;">كيفية تعيين طلاب لمشرف</div>
+                        <div style="color:rgba(255,255,255,0.75);font-size:0.83rem;line-height:1.7;">
+                            <span style="color:#fbbf24;font-weight:bold;">الخطوة 1:</span> اضغط <span style="background:rgba(59,130,246,0.2);color:#3b82f6;padding:2px 8px;border-radius:5px;font-weight:bold;">👥</span> بجانب اسم المشرف في الجدول أدناه
+                            <br>
+                            <span style="color:#fbbf24;font-weight:bold;">الخطوة 2:</span> سيفتح modal — تختار الطلاب من القائمة اليسرى → اضغط "ربط المُحدّدين"
+                            <br>
+                            <span style="color:#fbbf24;font-weight:bold;">الخطوة 3:</span> بإمكانك أيضاً إزالة الطلاب الموجودين بزر ✕ بجانب كل اسم
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- شريط الأدوات -->
                 <div style="text-align:center;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
                     <button onclick="openSupCreateModal()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:11px 26px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.92rem;">
@@ -6266,7 +6281,7 @@ async function loadSupervisors() {
                 '<td style="padding:11px;text-align:center;"><span style="background:' + statusColor + '22;color:' + statusColor + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;font-weight:bold;">' + statusText + '</span></td>' +
                 '<td style="padding:11px;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;">' + lastLogin + '</td>' +
                 '<td style="padding:11px;text-align:center;white-space:nowrap;">' +
-                    '<button onclick="manageSupStudents(' + s.id + ',\'' + esc(s.full_name).replace(/'/g, "\\'") + '\')" title="إدارة الطلاب" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:#3b82f6;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">👥</button>' +
+                    '<button onclick="manageSupStudents(' + s.id + ',\'' + esc(s.full_name).replace(/'/g, "\\'") + '\')" title="👥 ربط/إزالة طلاب المشرف" style="background:linear-gradient(135deg,#3b82f6,#2563eb);border:none;color:#fff;padding:7px 12px;border-radius:8px;cursor:pointer;font-size:0.78rem;margin:0 2px;font-weight:bold;font-family:Cairo;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 8px rgba(59,130,246,0.4);">👥 ربط طلاب</button>' +
                     '<button onclick="editSupervisor(' + s.id + ')" title="تعديل" style="background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">✏️</button>' +
                     '<button onclick="toggleSupActive(' + s.id + ',' + (!s.is_active) + ')" title="' + (s.is_active ? 'تعطيل' : 'تفعيل') + '" style="background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#a855f7;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">' + (s.is_active ? '⏸️' : '▶️') + '</button>' +
                     '<button onclick="deleteSupervisor(' + s.id + ',\'' + esc(s.full_name).replace(/'/g, "\\'") + '\')" title="حذف" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">🗑️</button>' +
@@ -14783,7 +14798,23 @@ async function unassignStudent(studentId) {
                 </div>
                 <div class="amvm-tool" data-tool="prism-tri" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
                     <div style="font-size:1.6rem;">📐</div>
-                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور ثلاثي</div>
+                </div>
+                <div class="amvm-tool" data-tool="prism-quad" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">▭</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور رباعي</div>
+                </div>
+                <div class="amvm-tool" data-tool="prism-penta" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⬠</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور خماسي</div>
+                </div>
+                <div class="amvm-tool" data-tool="prism-hexa" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⬡</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور سداسي</div>
+                </div>
+                <div class="amvm-tool" data-tool="prism-octa" style="background:rgba(46,204,113,0.06);border:2px solid rgba(46,204,113,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
+                    <div style="font-size:1.6rem;">⬢</div>
+                    <div style="font-weight:700;font-size:0.78rem;color:#2ecc71;margin-top:3px;">منشور ثماني</div>
                 </div>
                 <div class="amvm-tool" data-tool="polygon" style="background:rgba(0,191,255,0.06);border:2px solid rgba(0,191,255,0.4);border-radius:10px;padding:12px 6px;cursor:pointer;text-align:center;transition:all 0.3s;">
                     <div style="font-size:1.6rem;">⬡</div>
@@ -14941,22 +14972,80 @@ async function unassignStudent(studentId) {
                     <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:6px;">
                         <input id="plane-axes" type="checkbox" checked onchange="planeRender()"> إظهار المحاور
                     </label>
-                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:14px;">
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:6px;">
                         <input id="plane-labels" type="checkbox" checked onchange="planeRender()"> إظهار الأعداد
+                    </label>
+                    <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;color:#fff;cursor:pointer;margin-bottom:14px;">
+                        <input id="plane-arabic-nums" type="checkbox" checked onchange="planeRender()"> ٠١٢ أرقام عربية هندية
                     </label>
                     
                     <!-- أمثلة سريعة -->
                     <h4 style="color:#3b82f6;margin:8px 0;font-size:0.85rem;">💡 أمثلة:</h4>
-                    <div style="display:grid;gap:5px;">
-                        <button onclick="planeLoad('x^2')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = x²</button>
-                        <button onclick="planeLoad('sin(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = sin(x)</button>
-                        <button onclick="planeLoad('cos(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = cos(x)</button>
-                        <button onclick="planeLoad('2*x+3')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = 2x + 3</button>
-                        <button onclick="planeLoad('1/x')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = 1/x</button>
-                        <button onclick="planeLoad('sqrt(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = √x</button>
-                        <button onclick="planeLoad('abs(x)')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = |x|</button>
-                        <button onclick="planeLoad('x^3')" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:monospace;font-size:0.82rem;direction:ltr;">y = x³</button>
-                    </div>
+                    
+                    <!-- أمثلة - دوال أساسية -->
+                    <details style="background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;margin-bottom:6px;" open>
+                        <summary style="cursor:pointer;color:#3b82f6;font-size:0.8rem;font-weight:bold;padding:3px 6px;">📐 أساسية</summary>
+                        <div style="display:grid;gap:4px;margin-top:6px;">
+                            <button onclick="planeLoad('x^2')" class="plane-ex">y = x²</button>
+                            <button onclick="planeLoad('x^3')" class="plane-ex">y = x³</button>
+                            <button onclick="planeLoad('2*x+3')" class="plane-ex">y = 2x + 3</button>
+                            <button onclick="planeLoad('x^2-4*x+3')" class="plane-ex">y = x² − 4x + 3</button>
+                            <button onclick="planeLoad('abs(x)')" class="plane-ex">y = |x|</button>
+                            <button onclick="planeLoad('sqrt(x)')" class="plane-ex">y = √x</button>
+                            <button onclick="planeLoad('cbrt(x)')" class="plane-ex">y = ∛x</button>
+                            <button onclick="planeLoad('1/x')" class="plane-ex">y = 1/x</button>
+                            <button onclick="planeLoad('1/(x^2)')" class="plane-ex">y = 1/x²</button>
+                        </div>
+                    </details>
+                    
+                    <!-- مثلثية -->
+                    <details style="background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;margin-bottom:6px;">
+                        <summary style="cursor:pointer;color:#10b981;font-size:0.8rem;font-weight:bold;padding:3px 6px;">📐 مثلثية</summary>
+                        <div style="display:grid;gap:4px;margin-top:6px;">
+                            <button onclick="planeLoad('sin(x)')" class="plane-ex">y = sin(x)</button>
+                            <button onclick="planeLoad('cos(x)')" class="plane-ex">y = cos(x)</button>
+                            <button onclick="planeLoad('tan(x)')" class="plane-ex">y = tan(x)</button>
+                            <button onclick="planeLoad('2*sin(x)')" class="plane-ex">y = 2sin(x)</button>
+                            <button onclick="planeLoad('sin(2*x)')" class="plane-ex">y = sin(2x)</button>
+                            <button onclick="planeLoad('sin(x)+cos(x)')" class="plane-ex">y = sin(x)+cos(x)</button>
+                            <button onclick="planeLoad('arcsin(x)')" class="plane-ex">y = arcsin(x)</button>
+                            <button onclick="planeLoad('arctan(x)')" class="plane-ex">y = arctan(x)</button>
+                        </div>
+                    </details>
+                    
+                    <!-- أُسية ولوغاريتمية -->
+                    <details style="background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;margin-bottom:6px;">
+                        <summary style="cursor:pointer;color:#f59e0b;font-size:0.8rem;font-weight:bold;padding:3px 6px;">📈 أُسية/لوغاريتمية</summary>
+                        <div style="display:grid;gap:4px;margin-top:6px;">
+                            <button onclick="planeLoad('exp(x)')" class="plane-ex">y = eˣ</button>
+                            <button onclick="planeLoad('2^x')" class="plane-ex">y = 2ˣ</button>
+                            <button onclick="planeLoad('ln(x)')" class="plane-ex">y = ln(x)</button>
+                            <button onclick="planeLoad('log(x)')" class="plane-ex">y = log(x)</button>
+                            <button onclick="planeLoad('log2(x)')" class="plane-ex">y = log₂(x)</button>
+                            <button onclick="planeLoad('exp(-x^2)')" class="plane-ex">y = e^(−x²)</button>
+                        </div>
+                    </details>
+                    
+                    <!-- متقدمة -->
+                    <details style="background:rgba(255,255,255,0.03);border-radius:8px;padding:6px;margin-bottom:6px;">
+                        <summary style="cursor:pointer;color:#a855f7;font-size:0.8rem;font-weight:bold;padding:3px 6px;">🌟 متقدمة</summary>
+                        <div style="display:grid;gap:4px;margin-top:6px;">
+                            <button onclick="planeLoad('sinh(x)')" class="plane-ex">y = sinh(x)</button>
+                            <button onclick="planeLoad('cosh(x)')" class="plane-ex">y = cosh(x)</button>
+                            <button onclick="planeLoad('tanh(x)')" class="plane-ex">y = tanh(x)</button>
+                            <button onclick="planeLoad('floor(x)')" class="plane-ex">y = ⌊x⌋</button>
+                            <button onclick="planeLoad('ceil(x)')" class="plane-ex">y = ⌈x⌉</button>
+                            <button onclick="planeLoad('round(x)')" class="plane-ex">y = round(x)</button>
+                            <button onclick="planeLoad('sign(x)')" class="plane-ex">y = sign(x)</button>
+                            <button onclick="planeLoad('x*sin(x)')" class="plane-ex">y = x·sin(x)</button>
+                            <button onclick="planeLoad('sin(x)/x')" class="plane-ex">y = sin(x)/x</button>
+                        </div>
+                    </details>
+                    
+                    <style>
+                    .plane-ex { background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px;border-radius:6px;cursor:pointer;font-family:'Courier New',monospace;font-size:0.82rem;direction:ltr;text-align:center;}
+                    .plane-ex:hover { background:rgba(255,255,255,0.1);border-color:rgba(255,255,255,0.25); }
+                    </style>
                     
                     <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;">
                         <button onclick="planeInsertToQuestion()" style="flex:1;background:linear-gradient(135deg,#3b82f6,#2563eb);color:#fff;border:none;padding:9px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">✅ إدراج</button>
@@ -15127,7 +15216,7 @@ function amvmSelectTool(tool) {
     _amvmTool = tool;
     document.querySelectorAll('.amvm-tool').forEach(function(el) {
         var t = el.getAttribute('data-tool');
-        var c3d = ['cube','cuboid','pyramid-3','pyramid-4','pyramid-5','pyramid-6','pyramid-8','cylinder','cone','prism-tri'].indexOf(t) !== -1;
+        var c3d = ['cube','cuboid','pyramid-3','pyramid-4','pyramid-5','pyramid-6','pyramid-8','cylinder','cone','prism-tri','prism-quad','prism-penta','prism-hexa','prism-octa'].indexOf(t) !== -1;
         var poly = t === 'polygon';
         var col = poly ? '0,191,255' : (c3d ? '46,204,113' : '243,156,18');
         el.style.background = 'rgba(' + col + ',0.06)';
@@ -15223,8 +15312,9 @@ function amvmRenderControls(tool) {
         html += '<label style="' + ls + '">📏 الارتفاع</label><input type="number" id="amvm-cone-h" value="10" oninput="amvmDraw()" style="' + fs + '">';
         html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-cone-color" value="#f39c12" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
     }
-    else if (tool === 'prism-tri') {
-        html += '<label style="' + ls + '">📏 ضلع المثلث</label><input type="number" id="amvm-pr-base" value="6" oninput="amvmDraw()" style="' + fs + '">';
+    else if (tool === 'prism-tri' || tool === 'prism-quad' || tool === 'prism-penta' || tool === 'prism-hexa' || tool === 'prism-octa') {
+        var sidesLabel = tool === 'prism-tri' ? 'المثلث' : tool === 'prism-quad' ? 'الرباعي' : tool === 'prism-penta' ? 'الخماسي' : tool === 'prism-hexa' ? 'السداسي' : 'الثماني';
+        html += '<label style="' + ls + '">📏 ضلع القاعدة (' + sidesLabel + ')</label><input type="number" id="amvm-pr-base" value="5" oninput="amvmDraw()" style="' + fs + '">';
         html += '<label style="' + ls + '">📏 الطول</label><input type="number" id="amvm-pr-len" value="10" oninput="amvmDraw()" style="' + fs + '">';
         html += '<label style="' + ls + '">🎨 اللون</label><input type="color" id="amvm-pr-color" value="#e67e22" oninput="amvmDraw()" style="' + fs + 'height:36px;">';
     }
@@ -15309,7 +15399,11 @@ function amvmDraw() {
     else if (t === 'pyramid-8')     svg = vmDrawPyramid(8);
     else if (t === 'cylinder')      svg = vmDrawCylinder();
     else if (t === 'cone')          svg = vmDrawCone();
-    else if (t === 'prism-tri')     svg = vmDrawTriPrism();
+    else if (t === 'prism-tri')     svg = vmDrawPrism(3);
+    else if (t === 'prism-quad')    svg = vmDrawPrism(4);
+    else if (t === 'prism-penta')   svg = vmDrawPrism(5);
+    else if (t === 'prism-hexa')    svg = vmDrawPrism(6);
+    else if (t === 'prism-octa')    svg = vmDrawPrism(8);
     else if (t === 'polygon')       svg = vmDrawPolygon();
     else if (t === 'angle')         svg = vmDrawAngle();
     else if (t === 'venn')          svg = vmDrawVenn();
@@ -16052,20 +16146,79 @@ function vmDrawCone() {
     return s;
 }
 
-function vmDrawTriPrism() {
-    var base = parseFloat((document.getElementById('vm-pr-base')||{}).value) || 6;
+function vmDrawPrism(nSides) {
+    nSides = nSides || 3;
+    var base = parseFloat((document.getElementById('vm-pr-base')||{}).value) || 5;
     var len = parseFloat((document.getElementById('vm-pr-len')||{}).value) || 10;
     var color = (document.getElementById('vm-pr-color')||{}).value || '#e67e22';
-    var W=700,H=500,scale=25,sb=base*scale,sl=len*scale;
-    if (sl > 350) { var rt=350/sl; sl*=rt; sb*=rt; }
-    var cx=W/2,cy=H/2+30,height=sb*0.866;
-    var fA={x:cx-sl/2-sb/2,y:cy+height/2}, fB={x:cx-sl/2+sb/2,y:cy+height/2}, fC={x:cx-sl/2,y:cy-height/2};
-    var bA={x:fA.x+sl,y:fA.y}, bB={x:fB.x+sl,y:fB.y}, bC={x:fC.x+sl,y:fC.y};
+    var W=700,H=520,scale=20;
+    var sl=len*scale,sb=base*scale;
+    if (sl > 280) { var rt=280/sl; sl*=rt; sb*=rt; }
+    
+    // نحسب نصف قطر المضلع المنتظم من طول الضلع
+    var radius = sb / (2 * Math.sin(Math.PI / nSides));
+    if (radius > 100) { var rt2 = 100/radius; radius *= rt2; sl *= rt2; }
+    
+    // نحسب نقاط القاعدة الأمامية (مضلع منتظم) + الخلفية (إزاحة 3D)
+    var cx=W/2-sl/3, cy=H/2+40;
+    var depth_x = sl * 0.85, depth_y = -sl * 0.3;
+    
+    // نقاط الواجهة الأمامية (نُسطّحها قليلاً للتأثير ثلاثي الأبعاد)
+    var front = [], back = [];
+    var startAngle = nSides % 2 === 0 ? Math.PI/nSides : -Math.PI/2;
+    for (var i = 0; i < nSides; i++) {
+        var ang = startAngle + (i / nSides) * 2 * Math.PI;
+        var x = cx + radius * Math.cos(ang);
+        var y = cy + radius * Math.sin(ang) * 0.6; // squash للتأثير 3D
+        front.push({x: x, y: y});
+        back.push({x: x + depth_x, y: y + depth_y});
+    }
+    
     var s = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:700px;background:#fff;">';
-    s += '<polygon points="'+fA.x+','+fA.y+' '+fB.x+','+fB.y+' '+bB.x+','+bB.y+' '+bA.x+','+bA.y+'" fill="'+color+'30" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+fB.x+','+fB.y+' '+fC.x+','+fC.y+' '+bC.x+','+bC.y+' '+bB.x+','+bB.y+'" fill="'+color+'50" stroke="'+color+'" stroke-width="2"/>';
-    s += '<polygon points="'+fA.x+','+fA.y+' '+fB.x+','+fB.y+' '+fC.x+','+fC.y+'" fill="'+color+'20" stroke="'+color+'" stroke-width="3"/>';
-    s += '<text x="'+cx+'" y="'+(fA.y+70)+'" font-family="Cairo" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">طول='+len+'، قاعدة='+base+'</text>';
+    
+    // 1) الحواف الخلفية المخفية (متقطعة)
+    var backPoly = back.map(function(p){return p.x+','+p.y;}).join(' ');
+    s += '<polygon points="'+backPoly+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.4"/>';
+    // خطوط الربط الخلفية المخفية
+    for (var i = 0; i < nSides; i++) {
+        // الخطوط التي ستغطيها الواجهات الأمامية → نرسمها متقطعة فقط للنقاط الخلفية اليسرى
+        if (front[i].x < cx) {
+            s += '<line x1="'+front[i].x+'" y1="'+front[i].y+'" x2="'+back[i].x+'" y2="'+back[i].y+'" stroke="'+color+'" stroke-width="1.5" stroke-dasharray="5,4" opacity="0.4"/>';
+        }
+    }
+    
+    // 2) الأوجه الجانبية المرئية (نرسمها بترتيب من الأعمق للأمامي)
+    var sideFaces = [];
+    for (var i = 0; i < nSides; i++) {
+        var j = (i + 1) % nSides;
+        var f1 = front[i], f2 = front[j], b2 = back[j], b1 = back[i];
+        // متوسط z للترتيب (z = x + ratio*depth) - نريد رسم الأبعد أولاً
+        var avgZ = (b1.x + b2.x + f1.x + f2.x) / 4;
+        sideFaces.push({i: i, points: [f1, f2, b2, b1], z: avgZ});
+    }
+    sideFaces.sort(function(a, b){ return a.z - b.z; });
+    
+    for (var k = 0; k < sideFaces.length; k++) {
+        var face = sideFaces[k];
+        // الوجه الخلفي للأمامي: opacity أعلى
+        var opacity = (face.i % 2 === 0) ? '40' : '25';
+        var pts = face.points.map(function(p){return p.x+','+p.y;}).join(' ');
+        s += '<polygon points="'+pts+'" fill="'+color+opacity+'" stroke="'+color+'" stroke-width="2"/>';
+    }
+    
+    // 3) الواجهة الأمامية (المضلع)
+    var frontPoly = front.map(function(p){return p.x+','+p.y;}).join(' ');
+    s += '<polygon points="'+frontPoly+'" fill="'+color+'18" stroke="'+color+'" stroke-width="2.5"/>';
+    
+    // 4) الواجهة الخلفية (المضلع - الأجزاء المرئية)
+    s += '<polygon points="'+backPoly+'" fill="none" stroke="'+color+'" stroke-width="2"/>';
+    
+    // 5) قياسات
+    if (_vmShowFlag('measurements')) {
+        var prismNameAr = nSides === 3 ? 'ثلاثي' : nSides === 4 ? 'رباعي' : nSides === 5 ? 'خماسي' : nSides === 6 ? 'سداسي' : nSides === 8 ? 'ثماني' : (nSides + 'الأضلاع');
+        s += '<text x="'+(W/2)+'" y="'+(H-30)+'" font-family="Cairo,sans-serif" font-size="15" fill="'+color+'" text-anchor="middle" font-weight="600">موشور '+prismNameAr+' · ضلع القاعدة = '+base+' · الطول = '+len+'</text>';
+    }
+    
     s += '</svg>';
     return s;
 }
@@ -17512,24 +17665,61 @@ function eqDownloadImage() {
 // 📈 المستوى الإحداثي + رسم الدوال
 // ════════════════════════════════════════════════════════════
 function planeEvalExpression(expr, x) {
-    // نُحوّل ^ إلى ** ونعالج الدوال المعروفة
-    var safe = expr
+    // معالج الدوال الموسّع (20+ دالة)
+    var safe = String(expr || '')
         .replace(/\^/g, '**')
-        .replace(/abs\(/g, 'Math.abs(')
-        .replace(/sin\(/g, 'Math.sin(')
-        .replace(/cos\(/g, 'Math.cos(')
-        .replace(/tan\(/g, 'Math.tan(')
-        .replace(/sqrt\(/g, 'Math.sqrt(')
-        .replace(/log\(/g, 'Math.log10(')
-        .replace(/ln\(/g, 'Math.log(')
-        .replace(/exp\(/g, 'Math.exp(')
-        .replace(/pi/g, 'Math.PI')
-        .replace(/e(?!xp)/g, 'Math.E');
+        // دوال مثلثية
+        .replace(/\bsin\(/g, 'Math.sin(')
+        .replace(/\bcos\(/g, 'Math.cos(')
+        .replace(/\btan\(/g, 'Math.tan(')
+        // دوال مثلثية عكسية
+        .replace(/\barcsin\(/g, 'Math.asin(')
+        .replace(/\barccos\(/g, 'Math.acos(')
+        .replace(/\barctan\(/g, 'Math.atan(')
+        .replace(/\basin\(/g, 'Math.asin(')
+        .replace(/\bacos\(/g, 'Math.acos(')
+        .replace(/\batan\(/g, 'Math.atan(')
+        // زائدية
+        .replace(/\bsinh\(/g, 'Math.sinh(')
+        .replace(/\bcosh\(/g, 'Math.cosh(')
+        .replace(/\btanh\(/g, 'Math.tanh(')
+        // قيمة مطلقة وجذور
+        .replace(/\babs\(/g, 'Math.abs(')
+        .replace(/\bsqrt\(/g, 'Math.sqrt(')
+        .replace(/\bcbrt\(/g, 'Math.cbrt(')
+        // لوغاريتمات
+        .replace(/\blog2\(/g, 'Math.log2(')
+        .replace(/\blog10\(/g, 'Math.log10(')
+        .replace(/\blog\(/g, 'Math.log10(')
+        .replace(/\bln\(/g, 'Math.log(')
+        // أُسس
+        .replace(/\bexp\(/g, 'Math.exp(')
+        .replace(/\bpow\(/g, 'Math.pow(')
+        // عددية
+        .replace(/\bfloor\(/g, 'Math.floor(')
+        .replace(/\bceil\(/g, 'Math.ceil(')
+        .replace(/\bround\(/g, 'Math.round(')
+        .replace(/\bsign\(/g, 'Math.sign(')
+        .replace(/\bmin\(/g, 'Math.min(')
+        .replace(/\bmax\(/g, 'Math.max(')
+        // ثوابت
+        .replace(/\bpi\b/g, 'Math.PI')
+        .replace(/\be\b(?!xp|hex)/g, 'Math.E');
     try {
-        return new Function('x', 'return ' + safe)(x);
+        var fn = new Function('x', 'return ' + safe);
+        var result = fn(x);
+        if (typeof result !== 'number' || !isFinite(result)) return NaN;
+        return result;
     } catch(e) {
         return NaN;
     }
+}
+
+// 🔢 helper - يحوّل الأرقام للعربية الهندية
+function toArabicDigits(n) {
+    var s = String(n);
+    var map = {'0':'٠','1':'١','2':'٢','3':'٣','4':'٤','5':'٥','6':'٦','7':'٧','8':'٨','9':'٩','-':'−','.':'٫'};
+    return s.split('').map(function(c){ return map[c] || c; }).join('');
 }
 
 function planeRender() {
@@ -17583,26 +17773,30 @@ function planeRender() {
         }
     }
     
-    // الأعداد
+    // الأعداد (بالأرقام العربية الهندية ٠-٩)
     if (showLabels) {
         var step2 = Math.max(1, Math.round((xmax - xmin) / 10));
         var y0 = ty(0);
         var x0 = tx(0);
+        // نتحقق هل المستخدم اختار أرقام عربية أم لاتينية
+        var useArabic = ((document.getElementById('plane-arabic-nums') || {}).checked !== false);
+        var fmt = useArabic ? toArabicDigits : function(n){return String(n);};
+        
         for (var x = Math.ceil(xmin / step2) * step2; x <= xmax; x += step2) {
             if (x === 0) continue;
             if (y0 >= pad && y0 <= H - pad) {
-                svg += '<text x="' + tx(x) + '" y="' + (y0 + 18) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="middle">' + x + '</text>';
+                svg += '<text x="' + tx(x) + '" y="' + (y0 + 18) + '" font-family="Cairo,Amiri,Tahoma,sans-serif" font-size="14" fill="#444" text-anchor="middle">' + fmt(x) + '</text>';
             }
         }
         for (var y = Math.ceil(ymin / step2) * step2; y <= ymax; y += step2) {
             if (y === 0) continue;
             if (x0 >= pad && x0 <= W - pad) {
-                svg += '<text x="' + (x0 - 8) + '" y="' + (ty(y) + 4) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="end">' + y + '</text>';
+                svg += '<text x="' + (x0 - 8) + '" y="' + (ty(y) + 4) + '" font-family="Cairo,Amiri,Tahoma,sans-serif" font-size="14" fill="#444" text-anchor="end">' + fmt(y) + '</text>';
             }
         }
         // الأصل
         if (x0 >= pad && y0 <= H - pad) {
-            svg += '<text x="' + (x0 - 8) + '" y="' + (y0 + 18) + '" font-family="Cairo,sans-serif" font-size="13" fill="#444" text-anchor="end">0</text>';
+            svg += '<text x="' + (x0 - 8) + '" y="' + (y0 + 18) + '" font-family="Cairo,Amiri,Tahoma,sans-serif" font-size="14" fill="#444" text-anchor="end">' + fmt(0) + '</text>';
         }
     }
     
