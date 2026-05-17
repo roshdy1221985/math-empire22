@@ -3613,6 +3613,11 @@
             <span class="btn-icon">🛠️</span> <span>أدوات المعلم</span>
         </button>
         
+        <!-- 📊 الهَب الجديد: سجلاتي -->
+        <button class="nav-btn nav-royal btn-records-hub" onclick="showSection('records-hub',this)" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,158,11,0.08));border:1px solid rgba(212,175,55,0.4);">
+            <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
+        </button>
+        
         <!-- 🤖 الهَب 3: الذكاء الاصطناعي -->
         <button class="nav-btn nav-royal" onclick="showSection('ai-hub',this)">
             <span class="btn-icon">🤖</span> <span>الذكاء الاصطناعي</span>
@@ -3896,6 +3901,353 @@
             </div>
         </div>
     </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         📊 الهَب الجديد: سجلاتي
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-records-hub" class="section">
+        <div class="hub-header" style="background:linear-gradient(160deg,rgba(212,175,55,0.1),rgba(0,8,20,0.9));border:2px solid #d4af37;">
+            <div class="hub-icon">📊</div>
+            <h2 class="hub-title" style="background:linear-gradient(135deg,#b38728,#d4af37,#fcf6ba,#d4af37,#b38728);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;">سجلاتي</h2>
+            <p style="color:rgba(212,175,55,0.85);">🏆 إدارة شاملة لرصد الدرجات ومتابعة الضعاف والموهوبين</p>
+        </div>
+
+        <div class="hub-grid">
+            <div class="hub-card" onclick="showSection('gradebook', null); var b = document.querySelector('.btn-records-hub'); if(b) b.classList.add('active'); setTimeout(gbInit, 200);" style="border:1px solid rgba(212,175,55,0.3);">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📊</div>
+                <h3 class="hub-card-title">سجل رصد الدرجات</h3>
+                <p class="hub-card-desc">إدارة درجات الطلاب لـ 5 شعب + حساب تلقائي + طباعة و Excel</p>
+                <span class="hub-card-arrow">←</span>
+                <div class="hub-card-divider"></div>
+            </div>
+
+            <div class="hub-card" onclick="showSection('weak-students', null); var b = document.querySelector('.btn-records-hub'); if(b) b.classList.add('active'); setTimeout(wsInit, 200);" style="border:1px solid rgba(231,76,60,0.3);">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🆘</div>
+                <h3 class="hub-card-title">سجل الضعاف</h3>
+                <p class="hub-card-desc">متابعة الطلاب الضعاف + خطط علاجية + تتبع التحسّن</p>
+                <span class="hub-card-arrow">←</span>
+                <div class="hub-card-divider"></div>
+            </div>
+
+            <div class="hub-card" onclick="showSection('gifted-students', null); var b = document.querySelector('.btn-records-hub'); if(b) b.classList.add('active'); setTimeout(gsInit, 200);" style="border:1px solid rgba(245,158,11,0.3);">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">⭐</div>
+                <h3 class="hub-card-title">سجل الموهوبين</h3>
+                <p class="hub-card-desc">المتفوقون + برامج إثرائية + مشاريع تحدّي + تتبع الإبداع</p>
+                <span class="hub-card-arrow">←</span>
+                <div class="hub-card-divider"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         📊 السجل 1: سجل رصد الدرجات
+    ══════════════════════════════════════════════════════ -->
+    <style>
+        /* Gradebook Styles */
+        #section-gradebook .gb-header{display:flex;justify-content:space-between;align-items:stretch;gap:14px;flex-wrap:wrap;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px 20px;margin-bottom:14px;backdrop-filter:blur(12px);}
+        #section-gradebook .gb-h-col{flex:1;min-width:200px;}
+        #section-gradebook .gb-h-col h1{font-family:'Amiri',serif;color:#d4af37;font-size:1.5rem;text-align:center;margin:0 0 6px;}
+        #section-gradebook .gb-h-col .gb-h-line{color:rgba(255,255,255,.8);font-size:.85rem;margin:3px 0;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+        #section-gradebook .gb-h-input{background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:3px 8px;border-radius:5px;font-family:Cairo;font-size:.82rem;width:auto;min-width:80px;}
+        #section-gradebook .gb-h-input:focus{outline:none;border-color:#d4af37;}
+        #section-gradebook .gb-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;align-items:center;}
+        #section-gradebook .gb-tab{background:rgba(255,255,255,0.05);border:1px solid rgba(212,175,55,0.3);color:rgba(255,255,255,0.7);padding:8px 18px;border-radius:30px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:.85rem;display:flex;align-items:center;gap:6px;transition:all 0.2s;}
+        #section-gradebook .gb-tab:hover{background:rgba(212,175,55,0.1);}
+        #section-gradebook .gb-tab.active{background:linear-gradient(135deg,#b38728,#d4af37);color:#000;border-color:#fcf6ba;box-shadow:0 0 12px rgba(212,175,55,.4);}
+        #section-gradebook .gb-tab-mini-btn{background:transparent;border:none;color:inherit;font-size:.78rem;cursor:pointer;padding:1px 3px;opacity:0.5;}
+        #section-gradebook .gb-tab-mini-btn:hover{opacity:1;}
+        #section-gradebook .gb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+        #section-gradebook .gb-btn{background:linear-gradient(135deg,#b38728,#d4af37);color:#000;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:.82rem;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;}
+        #section-gradebook .gb-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(212,175,55,.4);}
+        #section-gradebook .gb-btn-blue{background:linear-gradient(135deg,#2980b9,#3498db);color:#fff;}
+        #section-gradebook .gb-btn-green{background:linear-gradient(135deg,#16a085,#27ae60);color:#fff;}
+        #section-gradebook .gb-btn-purple{background:linear-gradient(135deg,#8e44ad,#9b59b6);color:#fff;}
+        #section-gradebook .gb-table-wrap{background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:10px;overflow-x:auto;backdrop-filter:blur(12px);}
+        #section-gradebook table.gb-table{border-collapse:collapse;width:100%;min-width:1400px;}
+        #section-gradebook .gb-table th{background:rgba(0,0,0,0.6);color:#d4af37;padding:10px 6px;font-size:.78rem;font-weight:bold;text-align:center;border:1px solid rgba(212,175,55,0.2);position:sticky;top:0;z-index:5;}
+        #section-gradebook .gb-table td{padding:6px 4px;text-align:center;border:1px solid rgba(255,255,255,0.05);font-size:.85rem;}
+        #section-gradebook .gb-table tr:nth-child(odd) td{background:rgba(255,255,255,0.02);}
+        #section-gradebook .gb-table tr:nth-child(even) td{background:rgba(255,255,255,0.04);}
+        #section-gradebook .gb-table tr:hover td{background:rgba(212,175,55,0.06)!important;}
+        #section-gradebook .gb-cell-input{width:55px;background:transparent;border:1px solid rgba(212,175,55,0.2);color:#fff;padding:5px 4px;border-radius:5px;font-family:Cairo;text-align:center;font-size:.85rem;}
+        #section-gradebook .gb-cell-input:focus{outline:none;border-color:#d4af37;background:rgba(212,175,55,0.08);}
+        #section-gradebook .gb-cell-name{min-width:140px;}
+        #section-gradebook .gb-cell-name input{width:100%;background:transparent;border:none;color:#fff;padding:4px 6px;font-family:Cairo;font-size:.88rem;text-align:right;}
+        #section-gradebook .gb-cell-name input:focus{outline:1px solid #d4af37;background:rgba(212,175,55,0.05);}
+        #section-gradebook .gb-level{font-weight:bold;font-size:1rem;font-family:Amiri,serif;width:40px;}
+        #section-gradebook .gb-lvl-a{color:#2ecc71;}
+        #section-gradebook .gb-lvl-b{color:#3498db;}
+        #section-gradebook .gb-lvl-c{color:#f39c12;}
+        #section-gradebook .gb-lvl-d{color:#e67e22;}
+        #section-gradebook .gb-lvl-e{color:#e74c3c;}
+        #section-gradebook .gb-sum{color:#d4af37;font-weight:bold;font-family:Amiri,serif;font-size:.95rem;}
+        #section-gradebook .gb-footer{background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-top:14px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;backdrop-filter:blur(12px);}
+        #section-gradebook .gb-foot-col{flex:1;min-width:200px;text-align:center;font-size:.88rem;color:rgba(255,255,255,0.85);}
+        #section-gradebook .gb-foot-col strong{color:#d4af37;font-family:Amiri,serif;display:block;margin-bottom:4px;font-size:.95rem;}
+        #section-gradebook .gb-foot-line{border-bottom:1px solid rgba(212,175,55,0.4);height:24px;margin:6px auto;width:80%;}
+        #section-gradebook .gb-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:12px;margin-top:14px;}
+        #section-gradebook .gb-stat-card{text-align:center;padding:10px;background:rgba(0,0,0,0.3);border-radius:8px;}
+        #section-gradebook .gb-stat-card .gb-stat-num{font-size:1.6rem;color:#d4af37;font-weight:900;font-family:Amiri,serif;}
+        #section-gradebook .gb-stat-card .gb-stat-lbl{font-size:.72rem;color:rgba(255,255,255,0.6);margin-top:2px;}
+        #section-gradebook .gb-btn-del{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:0.85rem;padding:0;}
+        #section-gradebook .gb-btn-del:hover{background:rgba(231,76,60,0.3);}
+        
+        @media print {
+            body * { visibility: hidden; }
+            #gb-print-area, #gb-print-area * { visibility: visible; }
+            #gb-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; }
+            #gb-print-area * { background: white !important; color: black !important; border-color: #333 !important; }
+        }
+    </style>
+    
+    <div id="section-gradebook" class="section">
+        <!-- 🎯 الدباجة الرسمية -->
+        <div id="gb-print-area">
+            <div class="gb-header">
+                <div class="gb-h-col" style="text-align:right;">
+                    <div class="gb-h-line"><b>وزارة التربية والتعليم</b></div>
+                    <div class="gb-h-line">المديرية العامة بمحافظة 
+                        <input type="text" id="gb-gov" class="gb-h-input" value="مسقط" onchange="gbSaveHeader()">
+                    </div>
+                    <div class="gb-h-line">مدرسة 
+                        <input type="text" id="gb-school" class="gb-h-input" placeholder="..." onchange="gbSaveHeader()" style="min-width:120px;">
+                    </div>
+                </div>
+                <div class="gb-h-col" style="text-align:center;">
+                    <h1>📊 سجل رصد درجات التقويم المستمر</h1>
+                    <div style="height:2px;background:linear-gradient(90deg,transparent,#d4af37,transparent);margin:4px auto;width:80%;"></div>
+                    <div class="gb-h-line" style="justify-content:center;color:rgba(212,175,55,0.8);">العام الدراسي 
+                        <input type="text" id="gb-year" class="gb-h-input" value="2024 / 2025" onchange="gbSaveHeader()" style="min-width:100px;">
+                    </div>
+                </div>
+                <div class="gb-h-col" style="text-align:left;">
+                    <div class="gb-h-line">المادة: 
+                        <input type="text" id="gb-subject" class="gb-h-input" value="الرياضيات" onchange="gbSaveHeader()">
+                    </div>
+                    <div class="gb-h-line">الصف: 
+                        <input type="text" id="gb-grade" class="gb-h-input" placeholder="..." onchange="gbSaveHeader()">
+                    </div>
+                    <div class="gb-h-line">الفصل: 
+                        <select id="gb-term" class="gb-h-input" onchange="gbSaveHeader()">
+                            <option value="الأول">الأول</option>
+                            <option value="الثاني">الثاني</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 📑 تبويبات الشعب -->
+            <div class="gb-tabs" id="gb-tabs"></div>
+            
+            <!-- شريط الأدوات -->
+            <div class="gb-actions">
+                <button class="gb-btn" onclick="gbAddStudent()">➕ إضافة طالب</button>
+                <button class="gb-btn gb-btn-purple" onclick="gbOpenBatchModal()">📋 إضافة دفعة</button>
+                <button class="gb-btn gb-btn-blue" onclick="gbPrint()">🖨️ طباعة</button>
+                <button class="gb-btn gb-btn-green" onclick="gbExportExcel()">📎 تصدير Excel</button>
+            </div>
+            
+            <!-- 📊 الجدول -->
+            <div class="gb-table-wrap">
+                <table class="gb-table" id="gb-table">
+                    <thead>
+                        <tr>
+                            <th rowspan="2">م</th>
+                            <th rowspan="2">اسم الطالب</th>
+                            <th colspan="2">الشفوي</th>
+                            <th colspan="2">الواجبات</th>
+                            <th colspan="2">الأسئلة القصيرة</th>
+                            <th colspan="2">الاختبار القصير 1</th>
+                            <th colspan="2">الاختبار القصير 2</th>
+                            <th rowspan="2">المشروع<br><small>(10)</small></th>
+                            <th rowspan="2">المجموع<br><small>(60)</small></th>
+                            <th rowspan="2">المستوى</th>
+                            <th rowspan="2">اختبار النهاية<br><small>(40)</small></th>
+                            <th rowspan="2">الكلي<br><small>(100)</small></th>
+                            <th rowspan="2">⚙️</th>
+                        </tr>
+                        <tr>
+                            <th><small>ف1 (5)</small></th>
+                            <th><small>ف2 (5)</small></th>
+                            <th><small>و1 (5)</small></th>
+                            <th><small>و2 (5)</small></th>
+                            <th><small>س1 (5)</small></th>
+                            <th><small>س2 (5)</small></th>
+                            <th><small>الدرجة (10)</small></th>
+                            <th><small>المستوى</small></th>
+                            <th><small>الدرجة (10)</small></th>
+                            <th><small>المستوى</small></th>
+                        </tr>
+                    </thead>
+                    <tbody id="gb-tbody"></tbody>
+                </table>
+            </div>
+            
+            <!-- 🎓 التذييل -->
+            <div class="gb-footer">
+                <div class="gb-foot-col">
+                    <strong>👨‍🏫 معلم المادة</strong>
+                    <input type="text" class="gb-h-input" id="gb-teacher-name" placeholder="الاسم..." style="width:90%;margin-top:6px;" onchange="gbSaveHeader()">
+                    <div class="gb-foot-line"></div>
+                    <small style="color:rgba(255,255,255,0.5);">التوقيع</small>
+                </div>
+                <div class="gb-foot-col">
+                    <strong>📋 المعلم الأول</strong>
+                    <input type="text" class="gb-h-input" id="gb-head-teacher" placeholder="الاسم..." style="width:90%;margin-top:6px;" onchange="gbSaveHeader()">
+                    <div class="gb-foot-line"></div>
+                    <small style="color:rgba(255,255,255,0.5);">التوقيع</small>
+                </div>
+                <div class="gb-foot-col">
+                    <strong>🏫 اعتماد مدير المدرسة</strong>
+                    <input type="text" class="gb-h-input" id="gb-principal" placeholder="الاسم..." style="width:90%;margin-top:6px;" onchange="gbSaveHeader()">
+                    <div class="gb-foot-line"></div>
+                    <small style="color:rgba(255,255,255,0.5);">الختم والتوقيع</small>
+                </div>
+            </div>
+            
+            <!-- 📈 إحصاءات سريعة -->
+            <div class="gb-stats" id="gb-stats">
+                <!-- يُملأ ديناميكياً -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal: إضافة دفعة -->
+    <div id="gb-batch-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.9);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #d4af37;border-radius:18px;padding:24px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="color:#d4af37;margin:0;font-family:Amiri,serif;">📋 إضافة دفعة من الطلاب</h3>
+                <button onclick="document.getElementById('gb-batch-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            <p style="color:rgba(255,255,255,0.7);font-size:0.85rem;margin-bottom:10px;">💡 الصق الأسماء (سطر لكل طالب):</p>
+            <textarea id="gb-batch-text" rows="10" style="width:100%;background:rgba(0,0,0,0.5);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;direction:rtl;box-sizing:border-box;font-size:0.92rem;" placeholder="أحمد محمد علي&#10;سارة عبدالله&#10;محمد خالد"></textarea>
+            <label style="display:flex;align-items:center;gap:8px;color:#fff;margin:10px 0;cursor:pointer;font-size:0.85rem;">
+                <input type="checkbox" id="gb-batch-with-grades" style="width:16px;height:16px;cursor:pointer;accent-color:#d4af37;">
+                <span>تضمين الدرجات (الاسم,ف1,ف2,و1,و2,س1,س2,اخ1,اخ2,مشروع,نهاية)</span>
+            </label>
+            <button onclick="gbBatchAdd()" style="width:100%;background:linear-gradient(135deg,#b38728,#d4af37);color:#000;border:none;padding:11px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;">✅ إضافة الكل</button>
+        </div>
+    </div>
+    
+
+    <!-- ══════════════════════════════════════════════════════
+         🆘 السجل 2: سجل الضعاف وخططهم العلاجية
+    ══════════════════════════════════════════════════════ -->
+    <style>
+        #section-weak-students .ws-header{background:linear-gradient(160deg,rgba(231,76,60,0.08),rgba(0,8,20,0.9));border:1px solid rgba(231,76,60,0.4);border-radius:16px;padding:20px;margin-bottom:14px;}
+        #section-weak-students .ws-title{font-family:Amiri,serif;color:#e74c3c;font-size:1.5rem;margin-bottom:4px;}
+        #section-weak-students .ws-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+        #section-weak-students .ws-btn{background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:.85rem;}
+        #section-weak-students .ws-btn-blue{background:linear-gradient(135deg,#2980b9,#3498db);}
+        #section-weak-students .ws-btn-green{background:linear-gradient(135deg,#16a085,#27ae60);}
+        #section-weak-students .ws-card{background:rgba(231,76,60,0.04);border:1px solid rgba(231,76,60,0.2);border-radius:14px;padding:16px;margin-bottom:12px;}
+        #section-weak-students .ws-card.improved{background:rgba(46,204,113,0.04);border-color:rgba(46,204,113,0.3);}
+        #section-weak-students .ws-card-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+        #section-weak-students .ws-name{font-size:1.1rem;font-weight:bold;color:#fff;display:flex;align-items:center;gap:8px;}
+        #section-weak-students .ws-meta{font-size:.78rem;color:rgba(255,255,255,0.55);margin-top:3px;}
+        #section-weak-students .ws-progress-bar{height:8px;background:rgba(0,0,0,0.3);border-radius:4px;overflow:hidden;margin-top:6px;}
+        #section-weak-students .ws-progress-fill{height:100%;background:linear-gradient(90deg,#e74c3c,#f39c12,#2ecc71);border-radius:4px;transition:width 0.4s;}
+        #section-weak-students .ws-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
+        #section-weak-students .ws-field{background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 12px;}
+        #section-weak-students .ws-field label{display:block;font-size:.72rem;color:rgba(255,255,255,0.5);margin-bottom:3px;}
+        #section-weak-students .ws-field input,#section-weak-students .ws-field textarea,#section-weak-students .ws-field select{width:100%;background:transparent;border:1px solid rgba(231,76,60,0.2);color:#fff;padding:6px 8px;border-radius:5px;font-family:Cairo;font-size:.85rem;box-sizing:border-box;}
+        #section-weak-students .ws-field input:focus,#section-weak-students .ws-field textarea:focus{outline:none;border-color:#e74c3c;}
+        #section-weak-students .ws-tasks{margin-top:8px;}
+        #section-weak-students .ws-task{display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px;margin-bottom:4px;}
+        #section-weak-students .ws-task input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:#2ecc71;}
+        #section-weak-students .ws-task.done{opacity:0.6;text-decoration:line-through;}
+        #section-weak-students .ws-task-text{flex:1;background:transparent;border:none;color:#fff;font-family:Cairo;font-size:.85rem;}
+        #section-weak-students .ws-task-del{background:transparent;border:none;color:#e74c3c;cursor:pointer;font-size:.85rem;opacity:0.4;}
+        #section-weak-students .ws-task-del:hover{opacity:1;}
+    </style>
+    
+    <div id="section-weak-students" class="section">
+        <div class="ws-header">
+            <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:14px;">
+                <div>
+                    <h2 class="ws-title">🆘 سجل الطلاب الضعاف وخططهم العلاجية</h2>
+                    <p style="color:rgba(255,255,255,0.7);font-size:.88rem;">متابعة الطلاب الذين يحتاجون دعماً + خطط علاجية مخصصة + تتبع التحسّن</p>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <div style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        🚨 الضعاف: <span id="ws-stat-total">0</span>
+                    </div>
+                    <div style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        ✅ تحسّنوا: <span id="ws-stat-improved">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="ws-actions">
+            <button class="ws-btn" onclick="wsAddStudent()">➕ إضافة طالب ضعيف</button>
+            <button class="ws-btn ws-btn-blue" onclick="wsImportFromGradebook()">📥 استيراد من سجل الدرجات</button>
+            <button class="ws-btn ws-btn-green" onclick="wsExport()">📎 تصدير Excel</button>
+        </div>
+        
+        <div id="ws-list"></div>
+    </div>
+    
+
+    <!-- ══════════════════════════════════════════════════════
+         ⭐ السجل 3: سجل الموهوبين وبرامج دعم الموهوبين
+    ══════════════════════════════════════════════════════ -->
+    <style>
+        #section-gifted-students .gs-header{background:linear-gradient(160deg,rgba(245,158,11,0.08),rgba(0,8,20,0.9));border:1px solid rgba(245,158,11,0.4);border-radius:16px;padding:20px;margin-bottom:14px;}
+        #section-gifted-students .gs-title{font-family:Amiri,serif;color:#f59e0b;font-size:1.5rem;margin-bottom:4px;}
+        #section-gifted-students .gs-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;}
+        #section-gifted-students .gs-btn{background:linear-gradient(135deg,#d97706,#f59e0b);color:#fff;border:none;padding:9px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:.85rem;}
+        #section-gifted-students .gs-btn-blue{background:linear-gradient(135deg,#2980b9,#3498db);}
+        #section-gifted-students .gs-btn-green{background:linear-gradient(135deg,#16a085,#27ae60);}
+        #section-gifted-students .gs-card{background:linear-gradient(135deg,rgba(245,158,11,0.06),rgba(212,175,55,0.03));border:1px solid rgba(245,158,11,0.3);border-radius:14px;padding:16px;margin-bottom:12px;position:relative;overflow:hidden;}
+        #section-gifted-students .gs-card::before{content:'';position:absolute;top:0;left:0;width:5px;height:100%;background:linear-gradient(180deg,#f59e0b,#d97706);}
+        #section-gifted-students .gs-card-head{display:flex;justify-content:space-between;align-items:start;gap:10px;flex-wrap:wrap;margin-bottom:12px;}
+        #section-gifted-students .gs-name{font-size:1.1rem;font-weight:bold;color:#fff;display:flex;align-items:center;gap:8px;}
+        #section-gifted-students .gs-stars{color:#f59e0b;font-size:1.1rem;}
+        #section-gifted-students .gs-meta{font-size:.78rem;color:rgba(255,255,255,0.55);margin-top:3px;}
+        #section-gifted-students .gs-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:10px;}
+        #section-gifted-students .gs-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:10px;}
+        #section-gifted-students .gs-field{background:rgba(0,0,0,0.3);border-radius:8px;padding:8px 12px;}
+        #section-gifted-students .gs-field label{display:block;font-size:.72rem;color:rgba(255,255,255,0.5);margin-bottom:3px;}
+        #section-gifted-students .gs-field input,#section-gifted-students .gs-field textarea,#section-gifted-students .gs-field select{width:100%;background:transparent;border:1px solid rgba(245,158,11,0.2);color:#fff;padding:6px 8px;border-radius:5px;font-family:Cairo;font-size:.85rem;box-sizing:border-box;}
+        #section-gifted-students .gs-field input:focus,#section-gifted-students .gs-field textarea:focus{outline:none;border-color:#f59e0b;}
+        #section-gifted-students .gs-badge{display:inline-block;padding:3px 10px;border-radius:14px;font-size:.72rem;font-weight:bold;}
+        #section-gifted-students .gs-talent{background:rgba(245,158,11,0.15);color:#f59e0b;border:1px solid rgba(245,158,11,0.3);}
+    </style>
+    
+    <div id="section-gifted-students" class="section">
+        <div class="gs-header">
+            <div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:14px;">
+                <div>
+                    <h2 class="gs-title">⭐ سجل الطلاب الموهوبين وبرامج الإثراء</h2>
+                    <p style="color:rgba(255,255,255,0.7);font-size:.88rem;">متابعة المتفوقين + برامج إثرائية + مشاريع تحدّي لتنمية مواهبهم</p>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <div style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        ⭐ الموهوبون: <span id="gs-stat-total">0</span>
+                    </div>
+                    <div style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        🏆 إنجازات: <span id="gs-stat-achievements">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="gs-actions">
+            <button class="gs-btn" onclick="gsAddStudent()">⭐ إضافة طالب موهوب</button>
+            <button class="gs-btn gs-btn-blue" onclick="gsImportFromGradebook()">📥 استيراد المتفوقين</button>
+            <button class="gs-btn gs-btn-green" onclick="gsExport()">📎 تصدير Excel</button>
+        </div>
+        
+        <div id="gs-list"></div>
+    </div>
+    
+
 
     <!-- ══════════════════════════════════════════════════════
          🤖 الهَب 3: الذكاء الاصطناعي
@@ -13874,6 +14226,881 @@ function examExportWord() {
         });
     }
 })();
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     📊 سجل رصد الدرجات - JavaScript
+════════════════════════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════════════════
+// 📊 GRADEBOOK
+// ════════════════════════════════════════════════════════════
+var GB_DATA = {
+    header: {},
+    classes: [],
+    currentClassId: null
+};
+var GB_TEACHER_KEY = 'gradebook_v1';
+
+function gbInit() {
+    gbLoad();
+    if (!GB_DATA.classes.length) {
+        // ننشئ 3 شعب افتراضية
+        GB_DATA.classes = [
+            { id: 'cls1', name: 'الشعبة 1', students: [] },
+            { id: 'cls2', name: 'الشعبة 2', students: [] },
+            { id: 'cls3', name: 'الشعبة 3', students: [] }
+        ];
+        GB_DATA.currentClassId = 'cls1';
+        gbSave();
+    }
+    if (!GB_DATA.currentClassId && GB_DATA.classes.length) {
+        GB_DATA.currentClassId = GB_DATA.classes[0].id;
+    }
+    gbLoadHeader();
+    gbRenderTabs();
+    gbRenderTable();
+    gbUpdateStats();
+}
+
+function gbSave() {
+    try { localStorage.setItem(GB_TEACHER_KEY, JSON.stringify(GB_DATA)); } catch(e){}
+}
+
+function gbLoad() {
+    try {
+        var d = localStorage.getItem(GB_TEACHER_KEY);
+        if (d) GB_DATA = JSON.parse(d);
+    } catch(e){}
+}
+
+function gbSaveHeader() {
+    var ids = ['gb-gov','gb-school','gb-year','gb-subject','gb-grade','gb-term','gb-teacher-name','gb-head-teacher','gb-principal'];
+    ids.forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) GB_DATA.header[id] = el.value;
+    });
+    gbSave();
+}
+
+function gbLoadHeader() {
+    var ids = ['gb-gov','gb-school','gb-year','gb-subject','gb-grade','gb-term','gb-teacher-name','gb-head-teacher','gb-principal'];
+    ids.forEach(function(id){
+        var el = document.getElementById(id);
+        if (el && GB_DATA.header[id] !== undefined) el.value = GB_DATA.header[id];
+    });
+}
+
+function gbRenderTabs() {
+    var wrap = document.getElementById('gb-tabs');
+    if (!wrap) return;
+    var html = '';
+    GB_DATA.classes.forEach(function(cls) {
+        var isActive = cls.id === GB_DATA.currentClassId;
+        html += '<div class="gb-tab' + (isActive ? ' active' : '') + '">';
+        html += '<span onclick="gbSwitchClass(\'' + cls.id + '\')" style="cursor:pointer;">📚 ' + gbEsc(cls.name) + '</span>';
+        html += '<span style="background:rgba(0,0,0,0.2);padding:1px 8px;border-radius:10px;font-size:.7rem;">' + cls.students.length + '</span>';
+        html += '<button class="gb-tab-mini-btn" onclick="gbRenameClass(\'' + cls.id + '\')" title="تعديل">✏️</button>';
+        html += '<button class="gb-tab-mini-btn" onclick="gbDeleteClass(\'' + cls.id + '\')" title="حذف">🗑️</button>';
+        html += '</div>';
+    });
+    if (GB_DATA.classes.length < 5) {
+        html += '<button class="gb-tab" onclick="gbAddClass()" style="background:rgba(46,204,113,0.1);border-color:rgba(46,204,113,0.4);color:#2ecc71;">➕ شعبة جديدة</button>';
+    }
+    wrap.innerHTML = html;
+}
+
+function gbAddClass() {
+    if (GB_DATA.classes.length >= 5) {
+        alert('⚠️ الحد الأقصى 5 شعب');
+        return;
+    }
+    var name = prompt('اسم الشعبة الجديدة:', 'شعبة ' + (GB_DATA.classes.length + 1));
+    if (!name) return;
+    name = name.trim();
+    if (GB_DATA.classes.some(function(c){return c.name === name;})) {
+        alert('⚠️ هذا الاسم موجود مسبقاً');
+        return;
+    }
+    var newCls = { id: 'cls' + Date.now(), name: name, students: [] };
+    GB_DATA.classes.push(newCls);
+    GB_DATA.currentClassId = newCls.id;
+    gbSave();
+    gbRenderTabs();
+    gbRenderTable();
+}
+
+function gbRenameClass(id) {
+    var cls = GB_DATA.classes.find(function(c){return c.id === id;});
+    if (!cls) return;
+    var newName = prompt('الاسم الجديد:', cls.name);
+    if (!newName) return;
+    newName = newName.trim();
+    if (GB_DATA.classes.some(function(c){return c.id !== id && c.name === newName;})) {
+        alert('⚠️ هذا الاسم موجود مسبقاً');
+        return;
+    }
+    cls.name = newName;
+    gbSave();
+    gbRenderTabs();
+}
+
+function gbDeleteClass(id) {
+    if (!confirm('حذف هذه الشعبة وكل طلابها؟')) return;
+    GB_DATA.classes = GB_DATA.classes.filter(function(c){return c.id !== id;});
+    if (GB_DATA.currentClassId === id) {
+        GB_DATA.currentClassId = GB_DATA.classes[0] ? GB_DATA.classes[0].id : null;
+    }
+    gbSave();
+    gbRenderTabs();
+    gbRenderTable();
+    gbUpdateStats();
+}
+
+function gbSwitchClass(id) {
+    GB_DATA.currentClassId = id;
+    gbSave();
+    gbRenderTabs();
+    gbRenderTable();
+    gbUpdateStats();
+}
+
+function gbGetCurrentClass() {
+    return GB_DATA.classes.find(function(c){return c.id === GB_DATA.currentClassId;});
+}
+
+function gbAddStudent() {
+    var cls = gbGetCurrentClass();
+    if (!cls) {
+        alert('⚠️ أضف شعبة أولاً');
+        return;
+    }
+    cls.students.push({
+        id: Date.now(),
+        name: 'طالب جديد',
+        oral1: 0, oral2: 0,
+        hw1: 0, hw2: 0,
+        quiz1: 0, quiz2: 0,
+        shortExam1: 0, shortExam2: 0,
+        project: 10,
+        finalExam: 0
+    });
+    gbSave();
+    gbRenderTable();
+    gbUpdateStats();
+}
+
+function gbDeleteStudent(sid) {
+    if (!confirm('حذف هذا الطالب؟')) return;
+    var cls = gbGetCurrentClass();
+    if (!cls) return;
+    cls.students = cls.students.filter(function(s){return s.id !== sid;});
+    gbSave();
+    gbRenderTable();
+    gbUpdateStats();
+    gbRenderTabs();
+}
+
+function gbCalcLevel(score, max) {
+    if (max === 10) {
+        if (score >= 9) return 'أ';
+        if (score >= 8) return 'ب';
+        if (score >= 6.5) return 'ج';
+        if (score >= 5) return 'د';
+        return 'هـ';
+    } else if (max === 60) {
+        if (score >= 54) return 'أ';
+        if (score >= 48) return 'ب';
+        if (score >= 39) return 'ج';
+        if (score >= 30) return 'د';
+        return 'هـ';
+    } else if (max === 100) {
+        if (score >= 90) return 'أ';
+        if (score >= 80) return 'ب';
+        if (score >= 65) return 'ج';
+        if (score >= 50) return 'د';
+        return 'هـ';
+    }
+    return '-';
+}
+
+function gbLevelClass(lvl) {
+    return 'gb-level gb-lvl-' + ({'أ':'a','ب':'b','ج':'c','د':'d','هـ':'e'}[lvl] || 'e');
+}
+
+function gbCompute(s) {
+    var n = function(v){return parseFloat(v)||0;};
+    var sum60 = n(s.oral1)+n(s.oral2)+n(s.hw1)+n(s.hw2)+n(s.quiz1)+n(s.quiz2)+n(s.shortExam1)+n(s.shortExam2)+n(s.project);
+    var level1 = gbCalcLevel(n(s.shortExam1), 10);
+    var level2 = gbCalcLevel(n(s.shortExam2), 10);
+    var overall = gbCalcLevel(sum60, 60);
+    var total100 = sum60 + n(s.finalExam);
+    var totalLvl = gbCalcLevel(total100, 100);
+    return { sum60: sum60, level1: level1, level2: level2, overall: overall, total100: total100, totalLvl: totalLvl };
+}
+
+function gbRenderTable() {
+    var tbody = document.getElementById('gb-tbody');
+    if (!tbody) return;
+    var cls = gbGetCurrentClass();
+    if (!cls) {
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">لا توجد شعب — أضف شعبة لبدء الرصد</td></tr>';
+        return;
+    }
+    if (!cls.students.length) {
+        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">📝 لا يوجد طلاب — اضغط "إضافة طالب" أو "إضافة دفعة"</td></tr>';
+        return;
+    }
+    
+    tbody.innerHTML = cls.students.map(function(s, i) {
+        var c = gbCompute(s);
+        return '<tr data-sid="' + s.id + '">' +
+            '<td>' + (i+1) + '</td>' +
+            '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.oral1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'oral1\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.oral2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'oral2\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.hw1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'hw1\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.hw2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'hw2\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.quiz1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'quiz1\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.quiz2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'quiz2\',this.value)"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.shortExam1 + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'shortExam1\',this.value)"></td>' +
+            '<td><span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.shortExam2 + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'shortExam2\',this.value)"></td>' +
+            '<td><span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.project + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'project\',this.value)"></td>' +
+            '<td><span class="gb-sum">' + c.sum60.toFixed(1) + '</span></td>' +
+            '<td><span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.finalExam + '" min="0" max="40" step="0.5" onchange="gbUpdateField(' + s.id + ',\'finalExam\',this.value)" style="width:60px;"></td>' +
+            '<td><span class="gb-sum" style="font-size:1.05rem;">' + c.total100.toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + c.totalLvl + '</span></td>' +
+            '<td><button class="gb-btn-del" onclick="gbDeleteStudent(' + s.id + ')">🗑️</button></td>' +
+        '</tr>';
+    }).join('');
+}
+
+function gbUpdateField(sid, field, val) {
+    var cls = gbGetCurrentClass();
+    if (!cls) return;
+    var s = cls.students.find(function(st){return st.id === sid;});
+    if (!s) return;
+    if (field === 'name') s.name = val;
+    else s[field] = parseFloat(val) || 0;
+    gbSave();
+    // نُحدّث الصف فقط (للسرعة)
+    var row = document.querySelector('[data-sid="' + sid + '"]');
+    if (row && field !== 'name') {
+        var c = gbCompute(s);
+        var cells = row.querySelectorAll('td');
+        // المستوى 1 (index 9)
+        cells[9].innerHTML = '<span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span>';
+        cells[11].innerHTML = '<span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span>';
+        cells[13].innerHTML = '<span class="gb-sum">' + c.sum60.toFixed(1) + '</span>';
+        cells[14].innerHTML = '<span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span>';
+        cells[16].innerHTML = '<span class="gb-sum" style="font-size:1.05rem;">' + c.total100.toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + c.totalLvl + '</span>';
+    }
+    gbUpdateStats();
+}
+
+function gbOpenBatchModal() {
+    if (!gbGetCurrentClass()) {
+        alert('⚠️ أضف شعبة أولاً');
+        return;
+    }
+    document.getElementById('gb-batch-text').value = '';
+    document.getElementById('gb-batch-with-grades').checked = false;
+    document.getElementById('gb-batch-modal').style.display = 'flex';
+}
+
+function gbBatchAdd() {
+    var cls = gbGetCurrentClass();
+    if (!cls) return;
+    var text = document.getElementById('gb-batch-text').value.trim();
+    if (!text) return;
+    var withGrades = document.getElementById('gb-batch-with-grades').checked;
+    
+    var lines = text.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length;});
+    var added = 0;
+    
+    lines.forEach(function(line, idx) {
+        if (withGrades) {
+            var parts = line.split(',').map(function(p){return p.trim();});
+            var name = parts[0];
+            if (!name) return;
+            cls.students.push({
+                id: Date.now() + idx,
+                name: name,
+                oral1: parseFloat(parts[1])||0,
+                oral2: parseFloat(parts[2])||0,
+                hw1: parseFloat(parts[3])||0,
+                hw2: parseFloat(parts[4])||0,
+                quiz1: parseFloat(parts[5])||0,
+                quiz2: parseFloat(parts[6])||0,
+                shortExam1: parseFloat(parts[7])||0,
+                shortExam2: parseFloat(parts[8])||0,
+                project: parseFloat(parts[9])||10,
+                finalExam: parseFloat(parts[10])||0
+            });
+        } else {
+            cls.students.push({
+                id: Date.now() + idx,
+                name: line,
+                oral1: 0, oral2: 0, hw1: 0, hw2: 0,
+                quiz1: 0, quiz2: 0, shortExam1: 0, shortExam2: 0,
+                project: 10, finalExam: 0
+            });
+        }
+        added++;
+    });
+    
+    gbSave();
+    gbRenderTable();
+    gbUpdateStats();
+    gbRenderTabs();
+    document.getElementById('gb-batch-modal').style.display = 'none';
+    if (typeof showToast === 'function') showToast('✅ أُضيف ' + added + ' طالب', 'success');
+    else alert('✅ أُضيف ' + added + ' طالب');
+}
+
+function gbUpdateStats() {
+    var wrap = document.getElementById('gb-stats');
+    if (!wrap) return;
+    var cls = gbGetCurrentClass();
+    if (!cls || !cls.students.length) {
+        wrap.innerHTML = '<div class="gb-stat-card"><div class="gb-stat-num">—</div><div class="gb-stat-lbl">لا توجد بيانات</div></div>';
+        return;
+    }
+    var totals = cls.students.map(function(s){return gbCompute(s).total100;});
+    var avg = totals.reduce(function(a,b){return a+b;},0) / totals.length;
+    var levels = { 'أ':0, 'ب':0, 'ج':0, 'د':0, 'هـ':0 };
+    cls.students.forEach(function(s){
+        var lvl = gbCompute(s).totalLvl;
+        levels[lvl] = (levels[lvl] || 0) + 1;
+    });
+    
+    wrap.innerHTML = 
+        '<div class="gb-stat-card"><div class="gb-stat-num">' + cls.students.length + '</div><div class="gb-stat-lbl">👥 إجمالي الطلاب</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num">' + avg.toFixed(1) + '</div><div class="gb-stat-lbl">📊 المتوسط</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num gb-lvl-a">' + levels['أ'] + '</div><div class="gb-stat-lbl">أ (90+)</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num gb-lvl-b">' + levels['ب'] + '</div><div class="gb-stat-lbl">ب (80-89)</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num gb-lvl-c">' + levels['ج'] + '</div><div class="gb-stat-lbl">ج (65-79)</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num gb-lvl-d">' + levels['د'] + '</div><div class="gb-stat-lbl">د (50-64)</div></div>' +
+        '<div class="gb-stat-card"><div class="gb-stat-num gb-lvl-e">' + levels['هـ'] + '</div><div class="gb-stat-lbl">هـ (<50)</div></div>';
+}
+
+function gbPrint() {
+    window.print();
+}
+
+function gbExportExcel() {
+    var cls = gbGetCurrentClass();
+    if (!cls || !cls.students.length) {
+        alert('⚠️ لا يوجد بيانات للتصدير');
+        return;
+    }
+    
+    // BOM للعربية + CSV
+    var BOM = '\uFEFF';
+    var headers = ['م','اسم الطالب','شفوي1','شفوي2','واجب1','واجب2','سؤال1','سؤال2','اختبار1','مستوى1','اختبار2','مستوى2','مشروع','المجموع (60)','المستوى','نهاية الفصل','الكلي (100)','المستوى الكلي'];
+    var rows = [headers.join(',')];
+    
+    cls.students.forEach(function(s, i) {
+        var c = gbCompute(s);
+        rows.push([
+            i+1,
+            '"' + (s.name||'').replace(/"/g,'""') + '"',
+            s.oral1, s.oral2,
+            s.hw1, s.hw2,
+            s.quiz1, s.quiz2,
+            s.shortExam1, c.level1,
+            s.shortExam2, c.level2,
+            s.project,
+            c.sum60.toFixed(1), c.overall,
+            s.finalExam,
+            c.total100.toFixed(1), c.totalLvl
+        ].join(','));
+    });
+    
+    var csv = BOM + rows.join('\n');
+    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'سجل_درجات_' + cls.name + '.xls';
+    a.click();
+    URL.revokeObjectURL(url);
+}
+
+function gbEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+
+// ════════════════════════════════════════════════════════════
+// 🆘 سجل الضعاف
+// ════════════════════════════════════════════════════════════
+var WS_DATA = { students: [] };
+var WS_KEY = 'weak_students_v1';
+
+function wsInit() {
+    wsLoad();
+    wsRender();
+    wsUpdateStats();
+}
+
+function wsSave(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(WS_DATA)); }catch(e){} }
+function wsLoad(){
+    try { var d = localStorage.getItem(WS_KEY); if (d) WS_DATA = JSON.parse(d); } catch(e){}
+}
+
+function wsAddStudent() {
+    var name = prompt('اسم الطالب:');
+    if (!name) return;
+    WS_DATA.students.push({
+        id: Date.now(),
+        name: name.trim(),
+        class: '',
+        weakSubjects: '',
+        initialScore: 0,
+        currentScore: 0,
+        targetScore: 60,
+        diagnosis: '',
+        plan: '',
+        tasks: [],
+        weeklyMeetingDay: '',
+        parentContact: '',
+        notes: '',
+        startDate: new Date().toISOString().slice(0,10),
+        improved: false
+    });
+    wsSave();
+    wsRender();
+    wsUpdateStats();
+}
+
+function wsImportFromGradebook() {
+    if (!GB_DATA.classes || !GB_DATA.classes.length) {
+        alert('⚠️ لا توجد بيانات في سجل الدرجات');
+        return;
+    }
+    var threshold = parseFloat(prompt('استيراد الطلاب الذين مجموعهم الكلي أقل من (افتراضياً 50):', '50'));
+    if (isNaN(threshold)) return;
+    
+    var imported = 0;
+    GB_DATA.classes.forEach(function(cls){
+        cls.students.forEach(function(s){
+            var c = gbCompute(s);
+            if (c.total100 < threshold) {
+                // نتجنب التكرار
+                if (!WS_DATA.students.some(function(w){return w.name === s.name && w.class === cls.name;})) {
+                    WS_DATA.students.push({
+                        id: Date.now() + Math.random()*1000 | 0,
+                        name: s.name,
+                        class: cls.name,
+                        weakSubjects: 'الرياضيات',
+                        initialScore: c.total100,
+                        currentScore: c.total100,
+                        targetScore: 60,
+                        diagnosis: '',
+                        plan: '',
+                        tasks: [],
+                        weeklyMeetingDay: '',
+                        parentContact: '',
+                        notes: '',
+                        startDate: new Date().toISOString().slice(0,10),
+                        improved: false
+                    });
+                    imported++;
+                }
+            }
+        });
+    });
+    wsSave();
+    wsRender();
+    wsUpdateStats();
+    alert('✅ تم استيراد ' + imported + ' طالب');
+}
+
+function wsRender() {
+    var list = document.getElementById('ws-list');
+    if (!list) return;
+    if (!WS_DATA.students.length) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);"><div style="font-size:3rem;">📭</div><p>لا يوجد طلاب في السجل بعد</p><p style="font-size:.85rem;">اضغط "إضافة" أو "استيراد من سجل الدرجات"</p></div>';
+        return;
+    }
+    
+    list.innerHTML = WS_DATA.students.map(function(s) {
+        var progress = s.targetScore > s.initialScore ? 
+            Math.max(0, Math.min(100, ((s.currentScore - s.initialScore) / (s.targetScore - s.initialScore)) * 100)) : 0;
+        var isImproved = s.currentScore >= s.targetScore || s.improved;
+        var tasksHtml = (s.tasks || []).map(function(t, ti) {
+            return '<div class="ws-task' + (t.done ? ' done' : '') + '">' +
+                '<input type="checkbox" ' + (t.done ? 'checked' : '') + ' onchange="wsToggleTask(' + s.id + ',' + ti + ',this.checked)">' +
+                '<input type="text" class="ws-task-text" value="' + gbEsc(t.text) + '" onchange="wsUpdateTaskText(' + s.id + ',' + ti + ',this.value)">' +
+                '<button class="ws-task-del" onclick="wsDeleteTask(' + s.id + ',' + ti + ')">✕</button>' +
+            '</div>';
+        }).join('');
+        
+        return '<div class="ws-card' + (isImproved ? ' improved' : '') + '">' +
+            '<div class="ws-card-head">' +
+                '<div>' +
+                    '<div class="ws-name">' + (isImproved ? '✅' : '🆘') + ' ' + gbEsc(s.name) + '</div>' +
+                    '<div class="ws-meta">📚 ' + gbEsc(s.class||'-') + ' · 📅 منذ ' + gbEsc(s.startDate) + '</div>' +
+                    '<div class="ws-progress-bar"><div class="ws-progress-fill" style="width:' + progress + '%"></div></div>' +
+                    '<div style="font-size:.78rem;color:rgba(255,255,255,0.6);margin-top:4px;">' +
+                        'البداية: ' + s.initialScore + ' → الحالي: <b style="color:#fbbf24;">' + s.currentScore + '</b> → الهدف: <b style="color:#2ecc71;">' + s.targetScore + '</b>' +
+                    '</div>' +
+                '</div>' +
+                '<button onclick="wsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+            '</div>' +
+            
+            '<div class="ws-row">' +
+                '<div class="ws-field"><label>📚 الصف/الشعبة</label><input type="text" value="' + gbEsc(s.class) + '" onchange="wsUpdate(' + s.id + ',\'class\',this.value)"></div>' +
+                '<div class="ws-field"><label>📖 المواضيع الضعيفة</label><input type="text" value="' + gbEsc(s.weakSubjects) + '" onchange="wsUpdate(' + s.id + ',\'weakSubjects\',this.value)" placeholder="الكسور، الهندسة..."></div>' +
+                '<div class="ws-field"><label>📞 جهة اتصال ولي الأمر</label><input type="text" value="' + gbEsc(s.parentContact) + '" onchange="wsUpdate(' + s.id + ',\'parentContact\',this.value)" placeholder="رقم/اسم"></div>' +
+            '</div>' +
+            
+            '<div class="ws-row">' +
+                '<div class="ws-field"><label>📉 الدرجة البداية</label><input type="number" value="' + s.initialScore + '" min="0" max="100" onchange="wsUpdate(' + s.id + ',\'initialScore\',parseFloat(this.value)||0)"></div>' +
+                '<div class="ws-field"><label>📊 الدرجة الحالية</label><input type="number" value="' + s.currentScore + '" min="0" max="100" onchange="wsUpdate(' + s.id + ',\'currentScore\',parseFloat(this.value)||0)"></div>' +
+                '<div class="ws-field"><label>🎯 الدرجة الهدف</label><input type="number" value="' + s.targetScore + '" min="0" max="100" onchange="wsUpdate(' + s.id + ',\'targetScore\',parseFloat(this.value)||60)"></div>' +
+            '</div>' +
+            
+            '<div class="ws-field" style="margin-bottom:10px;">' +
+                '<label>🔍 التشخيص (نقاط الضعف الرئيسية)</label>' +
+                '<textarea rows="2" onchange="wsUpdate(' + s.id + ',\'diagnosis\',this.value)" placeholder="مثال: ضعف في فهم الكسور، صعوبة في الجمع، مشاكل في القراءة...">' + gbEsc(s.diagnosis) + '</textarea>' +
+            '</div>' +
+            
+            '<div class="ws-field" style="margin-bottom:10px;">' +
+                '<label>💡 الخطة العلاجية</label>' +
+                '<textarea rows="3" onchange="wsUpdate(' + s.id + ',\'plan\',this.value)" placeholder="استراتيجيات الدعم، أساليب التدريس، حصص إضافية...">' + gbEsc(s.plan) + '</textarea>' +
+            '</div>' +
+            
+            '<div style="margin-bottom:10px;">' +
+                '<label style="display:block;font-size:.82rem;color:#fbbf24;margin-bottom:6px;font-weight:bold;">📋 المهام والتدخلات</label>' +
+                '<div class="ws-tasks">' + tasksHtml + '</div>' +
+                '<button onclick="wsAddTask(' + s.id + ')" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;margin-top:4px;">➕ إضافة مهمة</button>' +
+            '</div>' +
+            
+            '<div class="ws-field" style="margin-bottom:10px;">' +
+                '<label>📝 ملاحظات</label>' +
+                '<textarea rows="2" onchange="wsUpdate(' + s.id + ',\'notes\',this.value)">' + gbEsc(s.notes) + '</textarea>' +
+            '</div>' +
+            
+            '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;background:rgba(46,204,113,0.05);padding:8px 12px;border-radius:6px;font-size:.85rem;color:#2ecc71;">' +
+                '<input type="checkbox" ' + (s.improved ? 'checked' : '') + ' onchange="wsUpdate(' + s.id + ',\'improved\',this.checked); wsRender(); wsUpdateStats();" style="width:18px;height:18px;cursor:pointer;accent-color:#2ecc71;">' +
+                '<span><b>تحسّن وحقق الهدف!</b> 🎉</span>' +
+            '</label>' +
+        '</div>';
+    }).join('');
+}
+
+function wsUpdate(sid, field, val) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    s[field] = val;
+    wsSave();
+    wsUpdateStats();
+}
+
+function wsAddTask(sid) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    if (!s.tasks) s.tasks = [];
+    s.tasks.push({ text: 'مهمة جديدة', done: false });
+    wsSave();
+    wsRender();
+}
+
+function wsToggleTask(sid, ti, done) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s || !s.tasks || !s.tasks[ti]) return;
+    s.tasks[ti].done = done;
+    wsSave();
+    wsRender();
+}
+
+function wsUpdateTaskText(sid, ti, txt) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s || !s.tasks || !s.tasks[ti]) return;
+    s.tasks[ti].text = txt;
+    wsSave();
+}
+
+function wsDeleteTask(sid, ti) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s || !s.tasks) return;
+    s.tasks.splice(ti, 1);
+    wsSave();
+    wsRender();
+}
+
+function wsDeleteStudent(sid) {
+    if (!confirm('حذف هذا الطالب من السجل؟')) return;
+    WS_DATA.students = WS_DATA.students.filter(function(s){return s.id !== sid;});
+    wsSave();
+    wsRender();
+    wsUpdateStats();
+}
+
+function wsUpdateStats() {
+    document.getElementById('ws-stat-total').textContent = WS_DATA.students.length;
+    document.getElementById('ws-stat-improved').textContent = WS_DATA.students.filter(function(s){return s.improved || s.currentScore >= s.targetScore;}).length;
+}
+
+function wsExport() {
+    if (!WS_DATA.students.length) { alert('⚠️ لا توجد بيانات'); return; }
+    var BOM = '\uFEFF';
+    var headers = ['الاسم','الصف','المواضيع الضعيفة','البداية','الحالي','الهدف','التشخيص','الخطة','تاريخ البدء','تحسّن','ولي الأمر','ملاحظات'];
+    var rows = [headers.join(',')];
+    WS_DATA.students.forEach(function(s){
+        rows.push([
+            '"' + (s.name||'').replace(/"/g,'""') + '"',
+            '"' + (s.class||'').replace(/"/g,'""') + '"',
+            '"' + (s.weakSubjects||'').replace(/"/g,'""') + '"',
+            s.initialScore, s.currentScore, s.targetScore,
+            '"' + (s.diagnosis||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            '"' + (s.plan||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            s.startDate || '',
+            s.improved ? 'نعم' : 'لا',
+            '"' + (s.parentContact||'').replace(/"/g,'""') + '"',
+            '"' + (s.notes||'').replace(/"/g,'""').replace(/\n/g,' ') + '"'
+        ].join(','));
+    });
+    var csv = BOM + rows.join('\n');
+    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'سجل_الضعاف.xls';
+    a.click();
+}
+
+
+// ════════════════════════════════════════════════════════════
+// ⭐ سجل الموهوبين
+// ════════════════════════════════════════════════════════════
+var GS_DATA = { students: [] };
+var GS_KEY = 'gifted_students_v1';
+
+function gsInit() {
+    gsLoad();
+    gsRender();
+    gsUpdateStats();
+}
+
+function gsSave(){ try{ localStorage.setItem(GS_KEY, JSON.stringify(GS_DATA)); }catch(e){} }
+function gsLoad(){
+    try { var d = localStorage.getItem(GS_KEY); if (d) GS_DATA = JSON.parse(d); } catch(e){}
+}
+
+function gsAddStudent() {
+    var name = prompt('اسم الطالب الموهوب:');
+    if (!name) return;
+    GS_DATA.students.push({
+        id: Date.now(),
+        name: name.trim(),
+        class: '',
+        avgScore: 90,
+        talentArea: 'الرياضيات',
+        talentLevel: 4,  // 1-5 stars
+        strengths: '',
+        enrichmentProgram: '',
+        challengeProjects: '',
+        competitions: '',
+        achievements: [],
+        mentor: '',
+        notes: '',
+        startDate: new Date().toISOString().slice(0,10)
+    });
+    gsSave();
+    gsRender();
+    gsUpdateStats();
+}
+
+function gsImportFromGradebook() {
+    if (!GB_DATA.classes || !GB_DATA.classes.length) {
+        alert('⚠️ لا توجد بيانات في سجل الدرجات');
+        return;
+    }
+    var threshold = parseFloat(prompt('استيراد الطلاب الذين مجموعهم الكلي أعلى من (افتراضياً 90):', '90'));
+    if (isNaN(threshold)) return;
+    
+    var imported = 0;
+    GB_DATA.classes.forEach(function(cls){
+        cls.students.forEach(function(s){
+            var c = gbCompute(s);
+            if (c.total100 >= threshold) {
+                if (!GS_DATA.students.some(function(g){return g.name === s.name && g.class === cls.name;})) {
+                    GS_DATA.students.push({
+                        id: Date.now() + Math.random()*1000 | 0,
+                        name: s.name,
+                        class: cls.name,
+                        avgScore: c.total100,
+                        talentArea: 'الرياضيات',
+                        talentLevel: c.total100 >= 95 ? 5 : 4,
+                        strengths: '',
+                        enrichmentProgram: '',
+                        challengeProjects: '',
+                        competitions: '',
+                        achievements: [],
+                        mentor: '',
+                        notes: '',
+                        startDate: new Date().toISOString().slice(0,10)
+                    });
+                    imported++;
+                }
+            }
+        });
+    });
+    gsSave();
+    gsRender();
+    gsUpdateStats();
+    alert('⭐ تم استيراد ' + imported + ' طالب موهوب');
+}
+
+function gsRender() {
+    var list = document.getElementById('gs-list');
+    if (!list) return;
+    if (!GS_DATA.students.length) {
+        list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);"><div style="font-size:3rem;">⭐</div><p>لا يوجد طلاب موهوبون بعد</p><p style="font-size:.85rem;">اضغط "إضافة" أو "استيراد المتفوقين"</p></div>';
+        return;
+    }
+    
+    list.innerHTML = GS_DATA.students.map(function(s) {
+        var stars = '';
+        for (var i = 0; i < 5; i++) stars += (i < (s.talentLevel||0) ? '⭐' : '☆');
+        var achievCount = (s.achievements || []).length;
+        var achievHtml = (s.achievements || []).map(function(a, ai) {
+            return '<div style="display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(245,158,11,0.06);border-radius:6px;margin-bottom:4px;">' +
+                '<span style="font-size:1rem;">🏆</span>' +
+                '<input type="text" value="' + gbEsc(a) + '" onchange="gsUpdateAchievement(' + s.id + ',' + ai + ',this.value)" style="flex:1;background:transparent;border:none;color:#fff;font-family:Cairo;font-size:.85rem;">' +
+                '<button onclick="gsDeleteAchievement(' + s.id + ',' + ai + ')" style="background:transparent;border:none;color:#e74c3c;cursor:pointer;opacity:0.5;">✕</button>' +
+            '</div>';
+        }).join('');
+        
+        return '<div class="gs-card">' +
+            '<div class="gs-card-head">' +
+                '<div>' +
+                    '<div class="gs-name">⭐ ' + gbEsc(s.name) + ' <span class="gs-stars">' + stars + '</span></div>' +
+                    '<div class="gs-meta">📚 ' + gbEsc(s.class||'-') + ' · 📊 المتوسط: <b style="color:#fbbf24;">' + s.avgScore + '%</b> · 🏆 ' + achievCount + ' إنجاز</div>' +
+                    '<div style="margin-top:6px;"><span class="gs-badge gs-talent">' + gbEsc(s.talentArea||'الموهبة') + '</span></div>' +
+                '</div>' +
+                '<button onclick="gsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+            '</div>' +
+            
+            '<div class="gs-row-3">' +
+                '<div class="gs-field"><label>📚 الصف</label><input type="text" value="' + gbEsc(s.class) + '" onchange="gsUpdate(' + s.id + ',\'class\',this.value)"></div>' +
+                '<div class="gs-field"><label>📊 المتوسط %</label><input type="number" value="' + s.avgScore + '" min="0" max="100" onchange="gsUpdate(' + s.id + ',\'avgScore\',parseFloat(this.value)||0)"></div>' +
+                '<div class="gs-field"><label>⭐ مستوى الموهبة (1-5)</label><input type="number" value="' + s.talentLevel + '" min="1" max="5" onchange="gsUpdate(' + s.id + ',\'talentLevel\',parseInt(this.value)||3); gsRender();"></div>' +
+            '</div>' +
+            
+            '<div class="gs-row">' +
+                '<div class="gs-field"><label>🎯 مجال الموهبة</label><input type="text" value="' + gbEsc(s.talentArea) + '" onchange="gsUpdate(' + s.id + ',\'talentArea\',this.value)" placeholder="رياضيات، إبداع، تحليل..."></div>' +
+                '<div class="gs-field"><label>👨‍🏫 المرشد المسؤول</label><input type="text" value="' + gbEsc(s.mentor) + '" onchange="gsUpdate(' + s.id + ',\'mentor\',this.value)" placeholder="اسم المرشد"></div>' +
+            '</div>' +
+            
+            '<div class="gs-field" style="margin-bottom:10px;">' +
+                '<label>💎 نقاط القوة الإبداعية</label>' +
+                '<textarea rows="2" onchange="gsUpdate(' + s.id + ',\'strengths\',this.value)" placeholder="حل المسائل المعقدة، التفكير الإبداعي، الاستنتاج السريع...">' + gbEsc(s.strengths) + '</textarea>' +
+            '</div>' +
+            
+            '<div class="gs-field" style="margin-bottom:10px;">' +
+                '<label>🌟 البرنامج الإثرائي</label>' +
+                '<textarea rows="3" onchange="gsUpdate(' + s.id + ',\'enrichmentProgram\',this.value)" placeholder="مسائل تحدّي، دروس متقدمة، أنشطة إثرائية أسبوعية...">' + gbEsc(s.enrichmentProgram) + '</textarea>' +
+            '</div>' +
+            
+            '<div class="gs-row">' +
+                '<div class="gs-field"><label>🚀 مشاريع التحدّي</label><textarea rows="2" onchange="gsUpdate(' + s.id + ',\'challengeProjects\',this.value)" placeholder="بحث، ابتكار...">' + gbEsc(s.challengeProjects) + '</textarea></div>' +
+                '<div class="gs-field"><label>🏅 المسابقات المرشّح لها</label><textarea rows="2" onchange="gsUpdate(' + s.id + ',\'competitions\',this.value)" placeholder="أولمبياد، مسابقة محلية...">' + gbEsc(s.competitions) + '</textarea></div>' +
+            '</div>' +
+            
+            '<div style="margin-bottom:10px;">' +
+                '<label style="display:block;font-size:.82rem;color:#f59e0b;margin-bottom:6px;font-weight:bold;">🏆 الإنجازات والجوائز</label>' +
+                '<div>' + achievHtml + '</div>' +
+                '<button onclick="gsAddAchievement(' + s.id + ')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;padding:6px 12px;border-radius:6px;cursor:pointer;font-size:.78rem;margin-top:4px;">➕ إضافة إنجاز</button>' +
+            '</div>' +
+            
+            '<div class="gs-field">' +
+                '<label>📝 ملاحظات</label>' +
+                '<textarea rows="2" onchange="gsUpdate(' + s.id + ',\'notes\',this.value)">' + gbEsc(s.notes) + '</textarea>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function gsUpdate(sid, field, val) {
+    var s = GS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    s[field] = val;
+    gsSave();
+    gsUpdateStats();
+}
+
+function gsAddAchievement(sid) {
+    var s = GS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    if (!s.achievements) s.achievements = [];
+    s.achievements.push('إنجاز جديد');
+    gsSave();
+    gsRender();
+    gsUpdateStats();
+}
+
+function gsUpdateAchievement(sid, ai, val) {
+    var s = GS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s || !s.achievements) return;
+    s.achievements[ai] = val;
+    gsSave();
+}
+
+function gsDeleteAchievement(sid, ai) {
+    var s = GS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s || !s.achievements) return;
+    s.achievements.splice(ai, 1);
+    gsSave();
+    gsRender();
+    gsUpdateStats();
+}
+
+function gsDeleteStudent(sid) {
+    if (!confirm('حذف هذا الطالب من سجل الموهوبين؟')) return;
+    GS_DATA.students = GS_DATA.students.filter(function(s){return s.id !== sid;});
+    gsSave();
+    gsRender();
+    gsUpdateStats();
+}
+
+function gsUpdateStats() {
+    document.getElementById('gs-stat-total').textContent = GS_DATA.students.length;
+    var totalAchievements = GS_DATA.students.reduce(function(sum, s){return sum + ((s.achievements||[]).length);}, 0);
+    document.getElementById('gs-stat-achievements').textContent = totalAchievements;
+}
+
+function gsExport() {
+    if (!GS_DATA.students.length) { alert('⚠️ لا توجد بيانات'); return; }
+    var BOM = '\uFEFF';
+    var headers = ['الاسم','الصف','المتوسط','مجال الموهبة','المستوى','نقاط القوة','البرنامج الإثرائي','مشاريع التحدي','المسابقات','المرشد','عدد الإنجازات','تاريخ البدء'];
+    var rows = [headers.join(',')];
+    GS_DATA.students.forEach(function(s){
+        rows.push([
+            '"' + (s.name||'').replace(/"/g,'""') + '"',
+            '"' + (s.class||'').replace(/"/g,'""') + '"',
+            s.avgScore,
+            '"' + (s.talentArea||'').replace(/"/g,'""') + '"',
+            s.talentLevel,
+            '"' + (s.strengths||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            '"' + (s.enrichmentProgram||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            '"' + (s.challengeProjects||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            '"' + (s.competitions||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
+            '"' + (s.mentor||'').replace(/"/g,'""') + '"',
+            (s.achievements||[]).length,
+            s.startDate || ''
+        ].join(','));
+    });
+    var csv = BOM + rows.join('\n');
+    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'سجل_الموهوبين.xls';
+    a.click();
+}
 </script>
 
 </body>

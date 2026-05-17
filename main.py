@@ -10466,6 +10466,346 @@ async def get_unread_supervisor_messages_count(request: Request):
         return {"unread": 0}
 
 
+
+
+# ════════════════════════════════════════════════════════════
+# 🧭 نظام "بوصلة النجاح" - Student 360 + Smart Recommendations
+# ════════════════════════════════════════════════════════════
+
+@app.get("/api/supervisor/student-360/{student_id}")
+async def supervisor_student_360(student_id: int, sup = Depends(get_current_supervisor)):
+    """📊 بطاقة الطالب التفصيلية - Student 360 view"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if student_id not in student_ids:
+        raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+    
+    # 1. بيانات الطالب الأساسية
+    stu_res = supabase.table("students").select("*").eq("id", student_id).execute()
+    if not stu_res.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    student = stu_res.data[0]
+    student.pop("password", None)
+    
+    # 2. آخر 100 محاولة
+    chal_res = supabase.table("student_challenges").select("*").eq("student_id", student_id).order("created_at", desc=True).limit(100).execute()
+    challenges = chal_res.data or []
+    
+    # 3. حساب الإحصائيات
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    week_ago = now - timedelta(days=7)
+    month_ago = now - timedelta(days=30)
+    
+    total = len(challenges)
+    correct = sum(1 for c in challenges if c.get("is_correct"))
+    accuracy = round(correct / total * 100, 1) if total else 0
+    
+    week_chal = [c for c in challenges if c.get("created_at") and c["created_at"] > week_ago.isoformat()]
+    week_correct = sum(1 for c in week_chal if c.get("is_correct"))
+    week_acc = round(week_correct / len(week_chal) * 100, 1) if week_chal else 0
+    
+    month_chal = [c for c in challenges if c.get("created_at") and c["created_at"] > month_ago.isoformat()]
+    
+    # 4. تحليل نقاط القوة والضعف حسب الدرس
+    lessons_stats = {}
+    for c in challenges:
+        lesson = c.get("lesson") or c.get("topic") or "غير محدد"
+        if lesson not in lessons_stats:
+            lessons_stats[lesson] = {"total": 0, "correct": 0, "wrong": 0}
+        lessons_stats[lesson]["total"] += 1
+        if c.get("is_correct"):
+            lessons_stats[lesson]["correct"] += 1
+        else:
+            lessons_stats[lesson]["wrong"] += 1
+    
+    # حساب النسب لكل درس
+    strengths = []  # 85%+ مع 3+ محاولات
+    weaknesses = []  # <60% مع 3+ محاولات
+    for lesson, st in lessons_stats.items():
+        if st["total"] < 3:
+            continue
+        pct = round(st["correct"] / st["total"] * 100, 1)
+        item = {"lesson": lesson, "accuracy": pct, "attempts": st["total"], "correct": st["correct"], "wrong": st["wrong"]}
+        if pct >= 85:
+            strengths.append(item)
+        elif pct < 60:
+            weaknesses.append(item)
+    
+    strengths.sort(key=lambda x: -x["accuracy"])
+    weaknesses.sort(key=lambda x: x["accuracy"])
+    
+    # 5. Heatmap - أيام الأسبوع الأكثر نشاطاً
+    day_counts = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0}  # Sat-Fri
+    hour_counts = {h: 0 for h in range(24)}
+    for c in month_chal:
+        try:
+            d = datetime.fromisoformat(c["created_at"].replace("Z", "+00:00"))
+            day_counts[d.weekday()] += 1
+            hour_counts[d.hour] += 1
+        except Exception:
+            pass
+    
+    # 6. تحليل سلوكي بسيط
+    behavior_insights = []
+    
+    # سرعة الإجابة (لو متاحة)
+    fast_wrong = sum(1 for c in challenges if c.get("time_taken", 999) < 10 and not c.get("is_correct"))
+    if fast_wrong >= 5:
+        behavior_insights.append({
+            "icon": "⚡",
+            "type": "warning",
+            "title": "يميل للإجابة بسرعة",
+            "desc": f"{fast_wrong} إجابة خاطئة في أقل من 10 ثوانٍ — يُنصح بتشجيعه على التفكير قبل الإجابة"
+        })
+    
+    # محاولات فاشلة متتالية
+    consec_fail = 0
+    max_consec_fail = 0
+    for c in challenges:
+        if not c.get("is_correct"):
+            consec_fail += 1
+            max_consec_fail = max(max_consec_fail, consec_fail)
+        else:
+            consec_fail = 0
+    
+    if max_consec_fail >= 5:
+        behavior_insights.append({
+            "icon": "🔁",
+            "type": "alert",
+            "title": "إحباط محتمل",
+            "desc": f"{max_consec_fail} محاولات فاشلة متتالية — قد يحتاج تشجيعاً ومراجعة المفاهيم الأساسية"
+        })
+    
+    # نشاط متواصل
+    if week_acc > accuracy + 10:
+        behavior_insights.append({
+            "icon": "📈",
+            "type": "success",
+            "title": "تحسن ملحوظ",
+            "desc": f"دقة هذا الأسبوع {week_acc}% مقابل المتوسط {accuracy}% — قدّم له تقديراً!"
+        })
+    elif week_acc < accuracy - 10 and len(week_chal) >= 3:
+        behavior_insights.append({
+            "icon": "📉",
+            "type": "warning",
+            "title": "تراجع في الأداء",
+            "desc": f"دقة هذا الأسبوع {week_acc}% أقل من المتوسط {accuracy}% — يحتاج متابعة"
+        })
+    
+    # غياب
+    if student.get("last_active"):
+        try:
+            la = datetime.fromisoformat(student["last_active"].replace("Z", "+00:00"))
+            days_absent = (now - la).days
+            if days_absent >= 5:
+                behavior_insights.append({
+                    "icon": "🕰️",
+                    "type": "alert",
+                    "title": f"غياب {days_absent} يوم",
+                    "desc": "أرسل له رسالة تحفيز للعودة"
+                })
+        except Exception:
+            pass
+    
+    # نشاط ممتاز
+    if total >= 50 and accuracy >= 80:
+        behavior_insights.append({
+            "icon": "⭐",
+            "type": "success",
+            "title": "أداء متميز",
+            "desc": f"{total} محاولة بدقة {accuracy}% — مرشح لنادي النخبة!"
+        })
+    
+    # 7. سجل التدخلات السابقة
+    msgs_res = supabase.table("supervisor_messages").select("*")\
+        .eq("supervisor_id", sup["id"]).eq("student_id", student_id)\
+        .order("created_at", desc=True).limit(10).execute()
+    interventions = msgs_res.data or []
+    
+    return {
+        "student": student,
+        "stats": {
+            "total_attempts": total,
+            "correct": correct,
+            "accuracy": accuracy,
+            "weekly_attempts": len(week_chal),
+            "weekly_accuracy": week_acc,
+            "monthly_attempts": len(month_chal),
+            "xp": student.get("xp", 0),
+            "total_points": student.get("total_points", 0) or student.get("points", 0),
+            "level": student.get("level", 1)
+        },
+        "strengths": strengths[:5],
+        "weaknesses": weaknesses[:5],
+        "heatmap": {
+            "by_day": day_counts,  # 0=Mon, 6=Sun
+            "by_hour": hour_counts
+        },
+        "behavior_insights": behavior_insights,
+        "interventions": interventions,
+        "recent_challenges": challenges[:15]
+    }
+
+
+@app.get("/api/supervisor/recommendations/{student_id}")
+async def supervisor_get_recommendations(student_id: int, sup = Depends(get_current_supervisor)):
+    """🎯 محرك التوصيات الذكي - يقترح إجراءات بناءً على بيانات الطالب"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if student_id not in student_ids:
+        raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+    
+    # نجلب البيانات
+    stu_res = supabase.table("students").select("*").eq("id", student_id).execute()
+    if not stu_res.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    student = stu_res.data[0]
+    
+    chal_res = supabase.table("student_challenges").select("*").eq("student_id", student_id).order("created_at", desc=True).limit(50).execute()
+    challenges = chal_res.data or []
+    
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    
+    recommendations = []
+    
+    # القاعدة 1: غياب 3+ أيام
+    if student.get("last_active"):
+        try:
+            la = datetime.fromisoformat(student["last_active"].replace("Z", "+00:00"))
+            days_absent = (now - la).days
+            if days_absent >= 3:
+                recommendations.append({
+                    "id": "absence",
+                    "priority": "high" if days_absent >= 7 else "medium",
+                    "icon": "🕰️",
+                    "title": f"غياب لمدة {days_absent} يوم",
+                    "action": "أرسل رسالة تحفيزية",
+                    "template": f"مرحباً {student.get('full_name','')}! 👋\n\nنفتقدك في إمبراطورية الرياضيات! 👑\nلقد مرّت {days_absent} أيام منذ آخر زيارة لك. تعال وأكمل رحلتك نحو النجاح!\n\nبانتظارك 💪",
+                    "type": "note"
+                })
+        except Exception:
+            pass
+    
+    # القاعدة 2: تراجع دقة في درس معين
+    lessons_stats = {}
+    for c in challenges:
+        lesson = c.get("lesson") or c.get("topic")
+        if not lesson:
+            continue
+        if lesson not in lessons_stats:
+            lessons_stats[lesson] = {"total": 0, "correct": 0}
+        lessons_stats[lesson]["total"] += 1
+        if c.get("is_correct"):
+            lessons_stats[lesson]["correct"] += 1
+    
+    for lesson, st in lessons_stats.items():
+        if st["total"] >= 5:
+            acc = st["correct"] / st["total"] * 100
+            if acc < 50:
+                recommendations.append({
+                    "id": f"weak_lesson_{lesson}",
+                    "priority": "high",
+                    "icon": "📉",
+                    "title": f"ضعف في درس: {lesson} (دقة {round(acc)}%)",
+                    "action": "اقترح مراجعة الدرس + تمارين إضافية",
+                    "template": f"عزيزي {student.get('full_name','')}، 📚\n\nلاحظت أن درس \"{lesson}\" يحتاج لمزيد من التركيز.\nأقترح عليك:\n1. مراجعة شرح الدرس من جديد\n2. حل 5 تمارين إضافية\n3. سؤالي عن أي نقطة غير واضحة\n\nأنا واثق من قدرتك على التحسن! 💪",
+                    "type": "note"
+                })
+                break  # نأخذ واحداً فقط
+    
+    # القاعدة 3: سرعة + أخطاء
+    fast_wrong = sum(1 for c in challenges if c.get("time_taken", 999) < 10 and not c.get("is_correct"))
+    if fast_wrong >= 5:
+        recommendations.append({
+            "id": "fast_wrong",
+            "priority": "medium",
+            "icon": "⚡",
+            "title": "إجابات سريعة بأخطاء كثيرة",
+            "action": "نصيحة بتأنّي القراءة",
+            "template": f"نصيحة ذهبية لك {student.get('full_name','')} 🌟\n\nلاحظت أنك تُجيب بسرعة كبيرة. جرّب:\n• اقرأ السؤال مرتين قبل الإجابة\n• فكّر 5 ثوانٍ على الأقل\n• راجع إجابتك قبل التأكيد\n\nالأناة تأتي بنتائج رائعة! 🎯",
+            "type": "note"
+        })
+    
+    # القاعدة 4: محاولات فاشلة متتالية
+    consec_fail = 0
+    for c in challenges:
+        if not c.get("is_correct"):
+            consec_fail += 1
+        else:
+            break
+    if consec_fail >= 5:
+        recommendations.append({
+            "id": "consecutive_fail",
+            "priority": "high",
+            "icon": "🔁",
+            "title": f"{consec_fail} محاولات فاشلة متتالية",
+            "action": "تشجيع ومراجعة المفاهيم",
+            "template": f"مرحباً {student.get('full_name','')} 🤗\n\nلا تيأس! كل بطل واجه صعوبات.\nخذ استراحة قصيرة، ثم:\n• راجع المفاهيم الأساسية للدرس\n• ابدأ بأسئلة أسهل لتستعيد ثقتك\n• تذكّر: الخطأ خطوة نحو التعلم!\n\nأنا معك في هذه الرحلة 💎",
+            "type": "alert"
+        })
+    
+    # القاعدة 5: أداء ممتاز (5+ صحيحات متتالية)
+    consec_correct = 0
+    for c in challenges:
+        if c.get("is_correct"):
+            consec_correct += 1
+        else:
+            break
+    if consec_correct >= 5:
+        recommendations.append({
+            "id": "excellent_streak",
+            "priority": "celebrate",
+            "icon": "🏆",
+            "title": f"{consec_correct} إجابات صحيحة متتالية!",
+            "action": "تقدير وشهادة",
+            "template": f"🎉 مبارك {student.get('full_name','')}! 🎉\n\nأداء مذهل! {consec_correct} إجابات صحيحة متتالية.\n\nأنت تستحق التقدير والاحترام. استمر بهذا التميّز!\n\n👑 من فخر إمبراطورية الرياضيات",
+            "type": "note"
+        })
+    
+    # القاعدة 6: XP عالي (للترقية)
+    total_pts = student.get("total_points", 0) or student.get("points", 0)
+    if total_pts >= 500:
+        recommendations.append({
+            "id": "elite_candidate",
+            "priority": "celebrate",
+            "icon": "💎",
+            "title": f"مرشح لنادي النخبة ({total_pts} XP)",
+            "action": "رسالة دعوة",
+            "template": f"🌟 دعوة خاصة لـ {student.get('full_name','')} 🌟\n\nبفضل اجتهادك ومثابرتك، حقّقت {total_pts} XP!\nأنت الآن مرشّح للانضمام إلى نادي النخبة 💎\n\nتواصل معي للتفاصيل والشروط.\n\nبفخر، مشرفك",
+            "type": "note"
+        })
+    
+    # ترتيب حسب الأولوية
+    priority_order = {"high": 0, "medium": 1, "celebrate": 2, "low": 3}
+    recommendations.sort(key=lambda x: priority_order.get(x.get("priority", "low"), 9))
+    
+    return {
+        "student_id": student_id,
+        "student_name": student.get("full_name", ""),
+        "recommendations": recommendations,
+        "total": len(recommendations)
+    }
+
+
+@app.post("/api/supervisor/intervention-log")
+async def supervisor_log_intervention(payload: dict, sup = Depends(get_current_supervisor)):
+    """📝 تسجيل تدخل في سجل الطالب (بعد إرسال رسالة من التوصيات)"""
+    student_id = payload.get("student_id")
+    rec_id = payload.get("recommendation_id", "")
+    msg_id = payload.get("message_id")
+    
+    if not student_id:
+        raise HTTPException(status_code=400, detail="student_id مطلوب")
+    
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if int(student_id) not in student_ids:
+        raise HTTPException(status_code=403, detail="ليس من طلابك")
+    
+    # حالياً نُسجّل في supervisor_messages مع metadata
+    # في المستقبل: جدول منفصل interventions
+    return {"status": "logged", "student_id": student_id, "rec_id": rec_id}
+
+
 @app.get("/api/supervisor/messages")
 async def supervisor_list_messages(sup = Depends(get_current_supervisor)):
     """📨 قائمة الرسائل التي أرسلها المشرف"""

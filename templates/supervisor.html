@@ -201,6 +201,8 @@ tr:hover td{background:rgba(212,175,55,.04);}
     <button class="nav-link" onclick="showSec('warning')"><i class="fas fa-exclamation-triangle"></i> الإنذار المبكر</button>
     <button class="nav-link" onclick="showSec('progress')"><i class="fas fa-chart-area"></i> التقدم الأسبوعي</button>
     <button class="nav-link" onclick="showSec('pride')"><i class="fas fa-trophy"></i> معرض الإنجازات</button>
+    <div class="nav-group-title">🧭 الإرشاد والتوجيه</div>
+    <button class="nav-link" onclick="showSec('compass')" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,158,11,0.1));border-right:3px solid rgba(212,175,55,0.5);"><i class="fas fa-compass" style="color:#fbbf24;"></i> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">بوصلة النجاح</span></button>
     <div class="nav-group-title">🧪 الاختبارات</div>
     <button class="nav-link" onclick="showSec('exams')"><i class="fas fa-file-alt"></i> مركز الاختبارات</button>
     <div class="nav-group-title">💬 التواصل</div>
@@ -301,6 +303,130 @@ tr:hover td{background:rgba(212,175,55,.04);}
       </div>
     </div>
 
+    <!-- ══ 🧭 بوصلة النجاح - Student 360 + Smart Recommendations ══ -->
+    <style>
+        .compass-card{background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(245,158,11,0.04));border:1px solid rgba(212,175,55,0.3);border-radius:16px;padding:18px;margin-bottom:14px;}
+        .compass-card-title{color:#fbbf24;font-size:1rem;font-weight:900;margin-bottom:12px;display:flex;align-items:center;gap:8px;}
+        .stu-mini-card{background:rgba(255,255,255,0.03);border:1px solid rgba(212,175,55,0.15);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;}
+        .stu-mini-card:hover{border-color:rgba(212,175,55,0.5);background:rgba(212,175,55,0.05);transform:translateY(-2px);}
+        .stu-mini-card.has-alerts{border-color:rgba(231,76,60,0.4);background:rgba(231,76,60,0.04);}
+        .stu-mini-card.has-celebrations{border-color:rgba(46,204,113,0.4);background:rgba(46,204,113,0.04);}
+        .alert-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#e74c3c;animation:dotpulse 1.5s infinite;}
+        @keyframes dotpulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.7)}}
+        
+        /* Drawer */
+        .drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:8500;backdrop-filter:blur(6px);}
+        .drawer-overlay.open{display:block;}
+        .drawer-panel{position:fixed;top:0;left:0;bottom:0;width:680px;max-width:95vw;background:linear-gradient(135deg,#0a1228,#050a1a);border-left:2px solid var(--gold);z-index:8600;overflow-y:auto;transform:translateX(-100%);transition:transform .35s cubic-bezier(.34,1.4,.64,1);box-shadow:8px 0 40px rgba(0,0,0,0.6);}
+        .drawer-overlay.open .drawer-panel{transform:translateX(0);}
+        .drawer-hdr{position:sticky;top:0;background:linear-gradient(135deg,#0a1228,#050a1a);padding:18px 22px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;z-index:10;}
+        .drawer-body{padding:20px 22px;}
+        
+        /* Heatmap */
+        .heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+        .heat-cell{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.7rem;font-weight:bold;}
+        
+        /* Strength/Weakness */
+        .ls-row{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;}
+        .ls-strength{border-right:3px solid #2ecc71;}
+        .ls-weak{border-right:3px solid #e74c3c;}
+        
+        /* Behavior insight */
+        .bi-card{display:flex;gap:10px;padding:11px 14px;border-radius:10px;margin-bottom:8px;border:1px solid;}
+        .bi-success{background:rgba(46,204,113,0.06);border-color:rgba(46,204,113,0.3);}
+        .bi-warning{background:rgba(243,156,18,0.06);border-color:rgba(243,156,18,0.3);}
+        .bi-alert{background:rgba(231,76,60,0.06);border-color:rgba(231,76,60,0.3);}
+        .bi-icon{font-size:1.6rem;flex-shrink:0;}
+        
+        /* Recommendation cards */
+        .rec-card{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-left:4px solid;border-radius:10px;padding:14px;margin-bottom:10px;transition:all .2s;}
+        .rec-card:hover{background:rgba(255,255,255,0.07);}
+        .rec-high{border-left-color:#e74c3c;}
+        .rec-medium{border-left-color:#f39c12;}
+        .rec-celebrate{border-left-color:#fbbf24;background:linear-gradient(135deg,rgba(251,191,36,0.08),rgba(212,175,55,0.04));}
+        .rec-low{border-left-color:#3498db;}
+    </style>
+    
+    <div id="sec-compass" class="section">
+        <!-- Header -->
+        <div class="compass-card" style="background:linear-gradient(135deg,rgba(212,175,55,0.18),rgba(245,158,11,0.08));border-color:rgba(212,175,55,0.5);">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <h2 style="color:#fbbf24;font-family:Amiri,serif;font-size:1.5rem;margin-bottom:4px;display:flex;align-items:center;gap:10px;">
+                        <i class="fas fa-compass" style="animation:rotate 8s linear infinite;display:inline-block;"></i>
+                        بوصلة النجاح
+                    </h2>
+                    <p style="color:rgba(255,255,255,.6);font-size:.85rem;">تحليل تفصيلي لكل طالب + توصيات ذكية للتدخل</p>
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    <div style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        🚨 يحتاجون تدخل: <span id="compass-need-help">—</span>
+                    </div>
+                    <div style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:8px 14px;border-radius:8px;font-size:.85rem;font-weight:bold;">
+                        🏆 يستحقون تقدير: <span id="compass-deserve-praise">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <style>@keyframes rotate{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}</style>
+        
+        <!-- بحث + فلتر -->
+        <div class="compass-card">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                <input type="text" id="compass-search" placeholder="🔍 ابحث عن طالب..." oninput="renderCompassGrid()" style="flex:1;min-width:200px;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:9px 14px;border-radius:10px;font-family:Cairo;">
+                <select id="compass-filter" onchange="renderCompassGrid()" style="background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:9px 14px;border-radius:10px;font-family:Cairo;">
+                    <option value="all">📊 جميع الطلاب</option>
+                    <option value="alerts">🚨 يحتاجون تدخل</option>
+                    <option value="celebrate">🏆 يستحقون تقدير</option>
+                    <option value="active">🔥 الأكثر نشاطاً</option>
+                    <option value="inactive">😴 الأقل نشاطاً</option>
+                </select>
+                <button class="btn btn-blue btn-sm" onclick="loadCompass()" style="padding:9px 16px;"><i class="fas fa-sync"></i> تحديث</button>
+            </div>
+        </div>
+        
+        <!-- شبكة الطلاب -->
+        <div class="compass-card">
+            <div class="compass-card-title"><i class="fas fa-users"></i> طلابك (انقر على أي طالب لعرض بطاقته التفصيلية)</div>
+            <div id="compass-grid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;">
+                <p style="grid-column:1/-1;color:rgba(255,255,255,.4);text-align:center;padding:30px;">⏳ جاري التحميل...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 📊 Student 360 Drawer -->
+    <div class="drawer-overlay" id="s360-drawer" onclick="if(event.target===this)closeS360()">
+        <div class="drawer-panel">
+            <div class="drawer-hdr">
+                <h3 id="s360-title" style="color:var(--gold);font-family:Amiri,serif;margin:0;font-size:1.2rem;">👤 بطاقة الطالب</h3>
+                <button onclick="closeS360()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:34px;height:34px;border-radius:50%;cursor:pointer;font-weight:bold;font-size:1rem;">✕</button>
+            </div>
+            <div class="drawer-body" id="s360-body">
+                <p style="text-align:center;color:rgba(255,255,255,.4);padding:40px;">⏳ جاري التحميل...</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- ✉️ Smart Message Composer -->
+    <div class="modal-ov" id="modal-smart-msg">
+        <div class="modal-box">
+            <div class="modal-hdr"><h3>✉️ منشئ الرسائل الذكي</h3><button class="modal-cls" onclick="closeMod('modal-smart-msg')">✕</button></div>
+            <div id="smart-msg-context" style="background:rgba(212,175,55,0.06);border-right:3px solid #fbbf24;padding:10px 14px;border-radius:8px;margin-bottom:14px;font-size:.88rem;color:rgba(255,255,255,.8);"></div>
+            <div class="fg"><label>📝 الرسالة (مقترحة - يمكنك التعديل)</label><textarea id="smart-msg-text" rows="8" style="font-family:Cairo;line-height:1.8;"></textarea></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                <div class="fg"><label>📊 نوع الرسالة</label><select id="smart-msg-type"><option value="note">📝 ملاحظة</option><option value="alert">⚠️ تنبيه</option><option value="link">🔗 رابط</option></select></div>
+                <div class="fg"><label>🔗 رابط (اختياري)</label><input type="url" id="smart-msg-link" placeholder="https://..."></div>
+            </div>
+            <input type="hidden" id="smart-msg-sid">
+            <input type="hidden" id="smart-msg-rec-id">
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:14px;">
+                <button class="btn btn-blue" onclick="closeMod('modal-smart-msg')"><i class="fas fa-times"></i> إلغاء</button>
+                <button class="btn btn-gold" onclick="sendSmartMsg()"><i class="fas fa-paper-plane"></i> إرسال الآن</button>
+            </div>
+        </div>
+    </div>
+    
     <!-- ══ Exams ══ -->
     <div id="sec-exams" class="section">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
@@ -1066,6 +1192,407 @@ window.addEventListener('load',async()=>{
         if(t){TOKEN=t;const test=await req('/api/supervisor/me');if(test&&test.id){await init();return;}TOKEN=null;}
     }catch(e){TOKEN=null;}
 });
+
+
+/* ════════════════════════════════════════════════════════════
+   🧭 بوصلة النجاح - Student 360 + Smart Recommendations
+════════════════════════════════════════════════════════════ */
+let COMPASS_DATA = {}; // student_id -> {recommendations: [...], lastFetch: ts}
+
+async function loadCompass() {
+    if (!STUDENTS.length) {
+        document.getElementById('compass-grid').innerHTML = '<p style="grid-column:1/-1;color:rgba(255,255,255,.4);text-align:center;padding:30px;">لا يوجد طلاب</p>';
+        return;
+    }
+    
+    // نجلب توصيات لكل طالب (parallel)
+    const grid = document.getElementById('compass-grid');
+    grid.innerHTML = '<p style="grid-column:1/-1;color:rgba(255,255,255,.4);text-align:center;padding:30px;">⏳ جاري تحليل البيانات...</p>';
+    
+    const promises = STUDENTS.map(async s => {
+        try {
+            const r = await req('/api/supervisor/recommendations/' + s.id);
+            COMPASS_DATA[s.id] = {
+                recommendations: r.recommendations || [],
+                lastFetch: Date.now()
+            };
+        } catch(e) {
+            COMPASS_DATA[s.id] = { recommendations: [], lastFetch: Date.now() };
+        }
+    });
+    
+    await Promise.all(promises);
+    
+    // إحصاءات
+    let needHelp = 0, deserve = 0;
+    Object.values(COMPASS_DATA).forEach(d => {
+        const hasAlerts = d.recommendations.some(r => r.priority === 'high');
+        const hasCelebrate = d.recommendations.some(r => r.priority === 'celebrate');
+        if (hasAlerts) needHelp++;
+        if (hasCelebrate) deserve++;
+    });
+    document.getElementById('compass-need-help').textContent = needHelp;
+    document.getElementById('compass-deserve-praise').textContent = deserve;
+    
+    renderCompassGrid();
+}
+
+function renderCompassGrid() {
+    const grid = document.getElementById('compass-grid');
+    const q = (document.getElementById('compass-search')||{}).value?.toLowerCase().trim() || '';
+    const filter = (document.getElementById('compass-filter')||{}).value || 'all';
+    
+    let list = STUDENTS.slice();
+    
+    // فلتر بحث
+    if (q) {
+        list = list.filter(s => (s.full_name||'').toLowerCase().includes(q) || (s.grade||'').includes(q));
+    }
+    
+    // فلتر نوع
+    if (filter === 'alerts') {
+        list = list.filter(s => (COMPASS_DATA[s.id]?.recommendations||[]).some(r => r.priority === 'high'));
+    } else if (filter === 'celebrate') {
+        list = list.filter(s => (COMPASS_DATA[s.id]?.recommendations||[]).some(r => r.priority === 'celebrate'));
+    } else if (filter === 'active') {
+        list.sort((a,b) => (b.challenges_count||0) - (a.challenges_count||0));
+        list = list.slice(0, 10);
+    } else if (filter === 'inactive') {
+        list.sort((a,b) => (a.challenges_count||0) - (b.challenges_count||0));
+        list = list.slice(0, 10);
+    }
+    
+    if (!list.length) {
+        grid.innerHTML = '<p style="grid-column:1/-1;color:rgba(255,255,255,.4);text-align:center;padding:30px;">🔍 لا توجد نتائج</p>';
+        return;
+    }
+    
+    grid.innerHTML = list.map(s => {
+        const data = COMPASS_DATA[s.id] || { recommendations: [] };
+        const recs = data.recommendations;
+        const highCount = recs.filter(r => r.priority === 'high').length;
+        const celebCount = recs.filter(r => r.priority === 'celebrate').length;
+        
+        let cardClass = 'stu-mini-card';
+        if (highCount > 0) cardClass += ' has-alerts';
+        else if (celebCount > 0) cardClass += ' has-celebrations';
+        
+        const acc = s.accuracy || 0;
+        const accColor = acc >= 70 ? '#2ecc71' : acc >= 50 ? '#f39c12' : '#e74c3c';
+        const xp = s.total_points || s.xp || 0;
+        
+        let badges = '';
+        if (highCount > 0) badges += '<span class="alert-dot" title="' + highCount + ' تنبيه عاجل"></span>';
+        if (celebCount > 0) badges += '<span style="font-size:1rem;" title="إنجاز يستحق التقدير">🏆</span>';
+        
+        return '<div class="' + cardClass + '" onclick="openS360(' + s.id + ')">' +
+            '<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px;gap:8px;">' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="font-weight:bold;font-size:.92rem;color:#fff;margin-bottom:3px;display:flex;align-items:center;gap:6px;">👤 ' + escHtmlC(s.full_name||'—') + ' ' + badges + '</div>' +
+                    '<div style="font-size:.72rem;color:rgba(255,255,255,.5);">' + escHtmlC(s.grade||'') + '</div>' +
+                '</div>' +
+                '<div style="background:' + accColor + '22;color:' + accColor + ';padding:4px 10px;border-radius:8px;font-weight:bold;font-size:.78rem;white-space:nowrap;">' + acc + '%</div>' +
+            '</div>' +
+            '<div style="display:flex;justify-content:space-between;font-size:.74rem;color:rgba(255,255,255,.5);border-top:1px solid rgba(255,255,255,.05);padding-top:8px;">' +
+                '<span>💎 ' + xp + ' XP</span>' +
+                '<span>⚡ ' + (s.challenges_count||0) + ' محاولة</span>' +
+                (recs.length ? '<span style="color:#fbbf24;font-weight:bold;">🎯 ' + recs.length + ' توصية</span>' : '<span style="color:#2ecc71;">✓ بخير</span>') +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+function escHtmlC(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+/* ── Student 360 Drawer ── */
+let S360_CURRENT_ID = null;
+
+async function openS360(studentId) {
+    S360_CURRENT_ID = studentId;
+    const drawer = document.getElementById('s360-drawer');
+    drawer.classList.add('open');
+    document.getElementById('s360-body').innerHTML = '<p style="text-align:center;color:rgba(255,255,255,.4);padding:40px;">⏳ جاري تحميل البطاقة...</p>';
+    
+    try {
+        // Parallel fetch
+        const [s360, recs] = await Promise.all([
+            req('/api/supervisor/student-360/' + studentId),
+            req('/api/supervisor/recommendations/' + studentId)
+        ]);
+        
+        renderS360(s360, recs);
+    } catch(e) {
+        console.error('[s360]', e);
+        document.getElementById('s360-body').innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ تعذر التحميل</p>';
+    }
+}
+
+function closeS360() {
+    document.getElementById('s360-drawer').classList.remove('open');
+    S360_CURRENT_ID = null;
+}
+
+function renderS360(data, recsData) {
+    const s = data.student || {};
+    const stats = data.stats || {};
+    const strengths = data.strengths || [];
+    const weaknesses = data.weaknesses || [];
+    const heatmap = data.heatmap || {};
+    const insights = data.behavior_insights || [];
+    const interventions = data.interventions || [];
+    const recs = recsData.recommendations || [];
+    
+    document.getElementById('s360-title').textContent = '👤 ' + (s.full_name || 'الطالب');
+    
+    let html = '';
+    
+    // 1. ملخص سريع
+    const accColor = stats.accuracy >= 70 ? '#2ecc71' : stats.accuracy >= 50 ? '#f39c12' : '#e74c3c';
+    html += '<div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(245,158,11,0.04));border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;margin-bottom:16px;">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:start;flex-wrap:wrap;gap:12px;">';
+    html += '<div><h3 style="color:#fbbf24;font-family:Amiri,serif;font-size:1.3rem;margin-bottom:4px;">' + escHtmlC(s.full_name||'—') + '</h3>';
+    html += '<div style="color:rgba(255,255,255,.6);font-size:.82rem;">' + escHtmlC(s.grade||'—') + ' · @' + escHtmlC(s.username||'') + '</div></div>';
+    html += '<div style="background:' + accColor + '22;color:' + accColor + ';padding:8px 16px;border-radius:10px;font-weight:bold;font-size:1.2rem;">' + stats.accuracy + '%</div>';
+    html += '</div>';
+    
+    // إحصاءات مصغرة
+    html += '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:14px;">';
+    html += s360Stat('💎', stats.total_points || 0, 'XP');
+    html += s360Stat('⚡', stats.total_attempts, 'محاولة');
+    html += s360Stat('🎯', stats.correct, 'صحيحة');
+    html += s360Stat('📅', stats.weekly_attempts, 'هذا الأسبوع');
+    html += '</div>';
+    html += '</div>';
+    
+    // 2. تحليل سلوكي
+    if (insights.length) {
+        html += '<div style="margin-bottom:16px;">';
+        html += '<h4 style="color:#a78bfa;font-size:.95rem;margin-bottom:10px;display:flex;align-items:center;gap:6px;">🧠 تحليل سلوكي</h4>';
+        insights.forEach(i => {
+            html += '<div class="bi-card bi-' + (i.type||'warning') + '">';
+            html += '<div class="bi-icon">' + i.icon + '</div>';
+            html += '<div style="flex:1;"><div style="font-weight:bold;color:#fff;font-size:.88rem;margin-bottom:2px;">' + escHtmlC(i.title) + '</div>';
+            html += '<div style="font-size:.78rem;color:rgba(255,255,255,.65);line-height:1.5;">' + escHtmlC(i.desc) + '</div></div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+    
+    // 3. توصيات ذكية
+    if (recs.length) {
+        html += '<div style="margin-bottom:16px;">';
+        html += '<h4 style="color:#fbbf24;font-size:.95rem;margin-bottom:10px;display:flex;align-items:center;gap:6px;">🎯 توصيات ذكية للتدخل</h4>';
+        recs.forEach(r => {
+            const cls = 'rec-' + (r.priority || 'low');
+            html += '<div class="rec-card ' + cls + '">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:6px;">';
+            html += '<div style="flex:1;">';
+            html += '<div style="font-weight:bold;color:#fff;font-size:.92rem;display:flex;align-items:center;gap:6px;">' + r.icon + ' ' + escHtmlC(r.title) + '</div>';
+            html += '<div style="font-size:.78rem;color:rgba(255,255,255,.55);margin-top:4px;">💡 ' + escHtmlC(r.action) + '</div>';
+            html += '</div>';
+            html += '<button class="btn btn-gold btn-sm" onclick="openSmartMsg(' + S360_CURRENT_ID + ',\'' + r.id + '\')" style="white-space:nowrap;"><i class="fas fa-paper-plane"></i> أرسل</button>';
+            html += '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    } else {
+        html += '<div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.3);border-radius:10px;padding:14px;text-align:center;margin-bottom:16px;">';
+        html += '<div style="font-size:2rem;">✅</div>';
+        html += '<div style="color:#2ecc71;font-weight:bold;margin-top:6px;">الطالب بحالة جيدة - لا توصيات حالياً</div>';
+        html += '</div>';
+    }
+    
+    // 4. نقاط القوة والضعف
+    if (strengths.length || weaknesses.length) {
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">';
+        
+        html += '<div>';
+        html += '<h4 style="color:#2ecc71;font-size:.88rem;margin-bottom:8px;">💪 نقاط القوة</h4>';
+        if (strengths.length) {
+            strengths.forEach(l => {
+                html += '<div class="ls-row ls-strength">';
+                html += '<div style="font-size:.82rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtmlC(l.lesson) + '</div>';
+                html += '<div style="color:#2ecc71;font-weight:bold;font-size:.85rem;white-space:nowrap;">' + l.accuracy + '%</div>';
+                html += '</div>';
+            });
+        } else {
+            html += '<p style="color:rgba(255,255,255,.4);font-size:.78rem;padding:8px;">لا بيانات كافية</p>';
+        }
+        html += '</div>';
+        
+        html += '<div>';
+        html += '<h4 style="color:#e74c3c;font-size:.88rem;margin-bottom:8px;">📚 يحتاج تركيز</h4>';
+        if (weaknesses.length) {
+            weaknesses.forEach(l => {
+                html += '<div class="ls-row ls-weak">';
+                html += '<div style="font-size:.82rem;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtmlC(l.lesson) + '</div>';
+                html += '<div style="color:#e74c3c;font-weight:bold;font-size:.85rem;white-space:nowrap;">' + l.accuracy + '%</div>';
+                html += '</div>';
+            });
+        } else {
+            html += '<p style="color:rgba(255,255,255,.4);font-size:.78rem;padding:8px;">لا توجد نقاط ضعف</p>';
+        }
+        html += '</div>';
+        html += '</div>';
+    }
+    
+    // 5. Heatmap - أيام الأسبوع
+    if (heatmap.by_day) {
+        const dayNames = ['الإثنين','الثلاثاء','الأربعاء','الخميس','الجمعة','السبت','الأحد'];
+        const maxDay = Math.max(...Object.values(heatmap.by_day), 1);
+        html += '<div style="margin-bottom:16px;">';
+        html += '<h4 style="color:#60a5fa;font-size:.95rem;margin-bottom:10px;">📅 خريطة النشاط الأسبوعي (آخر 30 يوم)</h4>';
+        html += '<div class="heat-grid">';
+        for (let d = 0; d < 7; d++) {
+            const val = heatmap.by_day[d] || 0;
+            const intensity = val / maxDay;
+            const bg = 'rgba(96,165,250,' + Math.max(0.08, intensity * 0.6) + ')';
+            const border = intensity > 0.3 ? 'rgba(96,165,250,0.5)' : 'rgba(255,255,255,0.05)';
+            html += '<div class="heat-cell" style="background:' + bg + ';border:1px solid ' + border + ';flex-direction:column;padding:8px 4px;">';
+            html += '<div style="font-size:.7rem;color:rgba(255,255,255,.7);">' + dayNames[d] + '</div>';
+            html += '<div style="color:' + (val > 0 ? '#fff' : 'rgba(255,255,255,.3)') + ';font-size:.9rem;margin-top:2px;">' + val + '</div>';
+            html += '</div>';
+        }
+        html += '</div></div>';
+    }
+    
+    // 6. سجل التدخلات
+    if (interventions.length) {
+        html += '<div style="margin-bottom:16px;">';
+        html += '<h4 style="color:#a78bfa;font-size:.95rem;margin-bottom:10px;">📝 سجل التدخلات السابقة (' + interventions.length + ')</h4>';
+        interventions.slice(0,5).forEach(m => {
+            const icon = m.type === 'alert' ? '⚠️' : m.type === 'link' ? '🔗' : '💬';
+            const date = m.created_at ? new Date(m.created_at).toLocaleDateString('ar-EG',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+            html += '<div style="background:rgba(168,85,247,0.06);border:1px solid rgba(168,85,247,0.2);border-radius:8px;padding:10px 14px;margin-bottom:6px;">';
+            html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:.78rem;color:rgba(255,255,255,.6);margin-bottom:4px;">';
+            html += '<span>' + icon + ' ' + (m.type === 'alert' ? 'تنبيه' : m.type === 'link' ? 'رابط' : 'ملاحظة') + (m.is_read ? ' ✓' : '') + '</span>';
+            html += '<span>' + date + '</span>';
+            html += '</div>';
+            html += '<div style="font-size:.82rem;color:rgba(255,255,255,.85);">' + escHtmlC(m.message||'').substring(0,120) + ((m.message||'').length > 120 ? '...' : '') + '</div>';
+            html += '</div>';
+        });
+        html += '</div>';
+    }
+    
+    // 7. أزرار سريعة
+    html += '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);">';
+    html += '<button class="btn btn-gold" onclick="openSmartMsg(' + S360_CURRENT_ID + ',\'custom\')"><i class="fas fa-paper-plane"></i> رسالة مخصصة</button>';
+    html += '</div>';
+    
+    document.getElementById('s360-body').innerHTML = html;
+}
+
+function s360Stat(icon, val, lbl) {
+    return '<div style="background:rgba(0,0,0,0.25);border-radius:8px;padding:10px;text-align:center;">' +
+        '<div style="font-size:1.3rem;">' + icon + '</div>' +
+        '<div style="color:#fbbf24;font-weight:bold;font-size:1.1rem;font-family:Amiri,serif;">' + val + '</div>' +
+        '<div style="font-size:.7rem;color:rgba(255,255,255,.5);">' + lbl + '</div>' +
+    '</div>';
+}
+
+/* ── Smart Message Composer ── */
+function openSmartMsg(studentId, recId) {
+    const student = STUDENTS.find(s => s.id === studentId);
+    if (!student) return;
+    
+    let template = '', context = '', msgType = 'note';
+    
+    if (recId === 'custom') {
+        template = 'مرحباً ' + (student.full_name || '') + ',\n\n';
+        context = '📨 رسالة مخصصة إلى: <b style="color:#fbbf24;">' + escHtmlC(student.full_name) + '</b>';
+    } else {
+        // نأخذ من التوصيات
+        const recs = (COMPASS_DATA[studentId] || {}).recommendations || [];
+        const rec = recs.find(r => r.id === recId);
+        if (rec) {
+            template = rec.template || '';
+            msgType = rec.type || 'note';
+            context = '🎯 توصية: <b style="color:#fbbf24;">' + escHtmlC(rec.title) + '</b><br>👤 الطالب: ' + escHtmlC(student.full_name);
+        }
+    }
+    
+    document.getElementById('smart-msg-context').innerHTML = context;
+    document.getElementById('smart-msg-text').value = template;
+    document.getElementById('smart-msg-type').value = msgType;
+    document.getElementById('smart-msg-link').value = '';
+    document.getElementById('smart-msg-sid').value = studentId;
+    document.getElementById('smart-msg-rec-id').value = recId;
+    
+    openMod('modal-smart-msg');
+}
+
+async function sendSmartMsg() {
+    const sid = +document.getElementById('smart-msg-sid').value;
+    const msg = document.getElementById('smart-msg-text').value.trim();
+    const type = document.getElementById('smart-msg-type').value;
+    const link = document.getElementById('smart-msg-link').value.trim();
+    const recId = document.getElementById('smart-msg-rec-id').value;
+    
+    if (!msg) {
+        toast('❌ الرسالة فارغة', 'error');
+        return;
+    }
+    
+    try {
+        const r = await req('/api/supervisor/messages/send', {
+            method: 'POST',
+            body: JSON.stringify({
+                message: msg,
+                type: type,
+                link: link || null,
+                student_id: sid
+            })
+        });
+        
+        if (r.status === 'success') {
+            toast('✅ تم الإرسال للطالب', 'success');
+            closeMod('modal-smart-msg');
+            
+            // تسجيل التدخل
+            try {
+                await req('/api/supervisor/intervention-log', {
+                    method: 'POST',
+                    body: JSON.stringify({ student_id: sid, recommendation_id: recId })
+                });
+            } catch(e){}
+            
+            // إعادة تحديث البوصلة
+            try {
+                const rec = await req('/api/supervisor/recommendations/' + sid);
+                COMPASS_DATA[sid] = { recommendations: rec.recommendations || [], lastFetch: Date.now() };
+                renderCompassGrid();
+                // لو الـ drawer مفتوح، نعيد تحميله
+                if (S360_CURRENT_ID === sid) {
+                    setTimeout(() => openS360(sid), 500);
+                }
+            } catch(e){}
+        } else {
+            toast('❌ ' + (r.detail || 'فشل الإرسال'), 'error');
+        }
+    } catch(e) {
+        toast('❌ خطأ في الاتصال', 'error');
+    }
+}
+
+/* ── Hook إلى showSec الموجودة ── */
+(function() {
+    const _origShowSec = window.showSec;
+    if (typeof _origShowSec === 'function') {
+        window.showSec = async function(name) {
+            const r = await _origShowSec.apply(this, arguments);
+            if (name === 'compass') {
+                setTimeout(loadCompass, 200);
+            }
+            return r;
+        };
+    }
+})();
+
+// أضف 'compass' لقائمة العناوين
+if (typeof SEC_TITLES !== 'undefined') {
+    SEC_TITLES['compass'] = '🧭 بوصلة النجاح';
+}
+
 </script>
 </body>
 </html>
