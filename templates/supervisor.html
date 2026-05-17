@@ -421,18 +421,26 @@ tr:hover td{background:rgba(212,175,55,.04);}
     <div style="background:rgba(212,175,55,.06);border:1px solid rgba(212,175,55,.2);border-radius:12px;padding:14px;margin:12px 0;">
       <h4 style="color:var(--gold);font-size:.88rem;margin-bottom:10px;">🔍 فلتر بنك الأسئلة</h4>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
-        <div class="fg" style="margin:0;"><label>الصف</label><select id="f-grade" onchange="loadBank()"><option value="">— الكل —</option></select></div>
-        <div class="fg" style="margin:0;"><label>الفصل</label><select id="f-sem" onchange="loadBank()"><option value="">— الكل —</option></select></div>
-        <div class="fg" style="margin:0;"><label>الوحدة</label><select id="f-unit" onchange="loadBank()"><option value="">— الكل —</option></select></div>
-        <div class="fg" style="margin:0;"><label>الدرس</label><select id="f-lesson" onchange="loadBank()"><option value="">— الكل —</option></select></div>
+        <div class="fg" style="margin:0;"><label>الصف</label><select id="f-grade" onchange="onGradeChange()"><option value="">— اختر الصف —</option></select></div>
+        <div class="fg" style="margin:0;"><label>الفصل</label><select id="f-sem" onchange="onSemChange()"><option value="">— اختر الفصل —</option></select></div>
+        <div class="fg" style="margin:0;"><label>الوحدة</label><select id="f-unit" onchange="onUnitChange()"><option value="">— اختر الوحدة —</option></select></div>
+        <div class="fg" style="margin:0;"><label>الدرس</label><select id="f-lesson" onchange="loadBank()"><option value="">— اختر الدرس —</option></select></div>
       </div>
     </div>
     <!-- Questions List -->
-    <div style="border:1px solid var(--border);border-radius:12px;padding:12px;max-height:260px;overflow-y:auto;margin-bottom:14px;">
-      <div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.78rem;color:rgba(255,255,255,.5);">
-        <span id="bank-cnt">—</span><span id="sel-cnt" style="color:var(--gold);">0 محددة</span>
+    <div style="border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px;align-items:center;">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span id="bank-cnt" style="font-size:.85rem;color:rgba(255,255,255,.7);font-weight:bold;">—</span>
+          <span style="color:rgba(255,255,255,.3);">•</span>
+          <span id="sel-cnt" style="color:var(--gold);font-size:.85rem;font-weight:bold;">0 محددة</span>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button type="button" onclick="bankSelectAll()" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;font-weight:bold;">✓ تحديد الكل</button>
+          <button type="button" onclick="bankClearAll()" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;font-weight:bold;">✕ إلغاء التحديد</button>
+        </div>
       </div>
-      <div id="bank-list"><p style="color:rgba(255,255,255,.4);text-align:center;padding:16px;">اختر فلتراً لعرض الأسئلة</p></div>
+      <div id="bank-list" style="max-height:300px;overflow-y:auto;padding:4px;"><p style="color:rgba(255,255,255,.4);text-align:center;padding:16px;">اختر الصف لعرض الأسئلة</p></div>
     </div>
     <!-- Target -->
     <div class="fg"><label>الطلاب المستهدفون <small style="color:rgba(255,255,255,.4);">(Ctrl+Click لأكثر من طالب)</small></label>
@@ -701,47 +709,211 @@ function renderExams(){
         </td></tr>`).join('');
 }
 
+// ════════════════════════════════════════════════════════════
+// 📚 CURRICULUM STRUCTURE - cascade دقيق مطابق للمنهج
+// ════════════════════════════════════════════════════════════
+var CURRICULUM_STRUCTURE = null; // cached structure
+
+async function loadCurriculumStructure() {
+    if (CURRICULUM_STRUCTURE) return CURRICULUM_STRUCTURE;
+    try {
+        const r = await fetch('/api/curriculum/structure');
+        const data = await r.json();
+        // البنية: [{id, name, semesters: [{id, name, units: [{id, name, lessons: [{id, name}]}]}]}]
+        CURRICULUM_STRUCTURE = Array.isArray(data) ? data : (data.grades || data);
+        return CURRICULUM_STRUCTURE;
+    } catch(e) {
+        console.error('[curriculum]', e);
+        return [];
+    }
+}
+
+function fillSel(id, vals, placeholder) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    placeholder = placeholder || '— اختر —';
+    el.innerHTML = '<option value="">' + placeholder + '</option>';
+    (vals || []).forEach(v => {
+        if (typeof v === 'string') {
+            el.appendChild(new Option(v, v));
+        } else {
+            el.appendChild(new Option(v.name, v.name));
+        }
+    });
+}
+
+function onGradeChange() {
+    const grade = document.getElementById('f-grade').value;
+    fillSel('f-sem', [], '— اختر الفصل —');
+    fillSel('f-unit', [], '— اختر الوحدة —');
+    fillSel('f-lesson', [], '— اختر الدرس —');
+    if (!grade || !CURRICULUM_STRUCTURE) { loadBank(); return; }
+    const g = CURRICULUM_STRUCTURE.find(x => x.name === grade);
+    if (g && g.semesters) fillSel('f-sem', g.semesters, '— اختر الفصل —');
+    loadBank();
+}
+
+function onSemChange() {
+    const grade = document.getElementById('f-grade').value;
+    const sem = document.getElementById('f-sem').value;
+    fillSel('f-unit', [], '— اختر الوحدة —');
+    fillSel('f-lesson', [], '— اختر الدرس —');
+    if (!grade || !sem || !CURRICULUM_STRUCTURE) { loadBank(); return; }
+    const g = CURRICULUM_STRUCTURE.find(x => x.name === grade);
+    if (!g || !g.semesters) { loadBank(); return; }
+    const s = g.semesters.find(x => x.name === sem);
+    if (s && s.units) fillSel('f-unit', s.units, '— اختر الوحدة —');
+    loadBank();
+}
+
+function onUnitChange() {
+    const grade = document.getElementById('f-grade').value;
+    const sem = document.getElementById('f-sem').value;
+    const unit = document.getElementById('f-unit').value;
+    fillSel('f-lesson', [], '— اختر الدرس —');
+    if (!grade || !sem || !unit || !CURRICULUM_STRUCTURE) { loadBank(); return; }
+    const g = CURRICULUM_STRUCTURE.find(x => x.name === grade);
+    if (!g || !g.semesters) { loadBank(); return; }
+    const s = g.semesters.find(x => x.name === sem);
+    if (!s || !s.units) { loadBank(); return; }
+    const u = s.units.find(x => x.name === unit);
+    if (u && u.lessons) fillSel('f-lesson', u.lessons, '— اختر الدرس —');
+    loadBank();
+}
+
 async function openExamModal(){
-    ['ex-title','ex-desc'].forEach(id=>document.getElementById(id).value='');
+    ['ex-title','ex-desc'].forEach(id=>{var e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('ex-marks').value=20;document.getElementById('ex-dur').value=30;
     SEL_Q.clear();document.getElementById('sel-cnt').textContent='0 محددة';
-    document.getElementById('bank-list').innerHTML='<p style="color:rgba(255,255,255,.4);text-align:center;padding:16px;">اختر فلتراً</p>';
-    // Load grade options
-    try{
-        const r=await req('/api/supervisor/questions?limit=0');
-        const qs=r.questions||r||[];
-        const grades=[...new Set(qs.map(q=>q.grade).filter(Boolean))];
-        const sems=[...new Set(qs.map(q=>q.semester).filter(Boolean))];
-        const units=[...new Set(qs.map(q=>q.unit).filter(Boolean))];
-        const lessons=[...new Set(qs.map(q=>q.lesson).filter(Boolean))];
-        fillSel('f-grade',grades);fillSel('f-sem',sems);fillSel('f-unit',units);fillSel('f-lesson',lessons);
-    }catch(e){}
+    document.getElementById('bank-list').innerHTML='<p style="color:rgba(255,255,255,.4);text-align:center;padding:16px;">اختر فلتراً لعرض الأسئلة</p>';
+    
+    // نُحمّل بنية المنهج الكاملة
+    await loadCurriculumStructure();
+    if (CURRICULUM_STRUCTURE && CURRICULUM_STRUCTURE.length) {
+        fillSel('f-grade', CURRICULUM_STRUCTURE, '— اختر الصف —');
+    }
+    // نُفرّغ بقية الفلاتر
+    fillSel('f-sem', [], '— اختر الفصل —');
+    fillSel('f-unit', [], '— اختر الوحدة —');
+    fillSel('f-lesson', [], '— اختر الدرس —');
+    
+    // نُحمّل أيضاً قائمة الطلاب للحقل target
+    try {
+        const sR = await req('/api/supervisor/students');
+        const sList = sR.students || sR || [];
+        const targetEl = document.getElementById('ex-target');
+        if (targetEl) {
+            targetEl.innerHTML = '<option value="all" selected>📢 جميع طلابي</option>';
+            sList.forEach(s => {
+                targetEl.appendChild(new Option(s.full_name || s.username, s.id));
+            });
+        }
+    } catch(e){}
+    
     openMod('modal-exam');
-}
-function fillSel(id,vals){
-    const el=document.getElementById(id);
-    el.innerHTML='<option value="">— الكل —</option>';
-    vals.forEach(v=>el.appendChild(new Option(v,v)));
 }
 async function loadBank(){
     const g=document.getElementById('f-grade').value,se=document.getElementById('f-sem').value,u=document.getElementById('f-unit').value,l=document.getElementById('f-lesson').value;
+    
+    // إذا لم يختر الصف، لا نعرض شيئاً
+    if (!g) {
+        document.getElementById('bank-list').innerHTML='<div style="text-align:center;padding:30px 16px;color:rgba(255,255,255,.4);"><div style="font-size:2.5rem;margin-bottom:8px;">📚</div><p>اختر الصف لعرض الأسئلة</p></div>';
+        document.getElementById('bank-cnt').textContent='—';
+        return;
+    }
+    
     let url='/api/supervisor/questions?';
-    if(g)url+='grade='+encodeURIComponent(g)+'&';if(se)url+='semester='+encodeURIComponent(se)+'&';
-    if(u)url+='unit='+encodeURIComponent(u)+'&';if(l)url+='lesson='+encodeURIComponent(l)+'&';
+    if(g)url+='grade='+encodeURIComponent(g)+'&';
+    if(se)url+='semester='+encodeURIComponent(se)+'&';
+    if(u)url+='unit='+encodeURIComponent(u)+'&';
+    if(l)url+='lesson='+encodeURIComponent(l)+'&';
+    
     const el=document.getElementById('bank-list');
-    el.innerHTML='<p style="color:rgba(255,255,255,.5);text-align:center;padding:16px;">⏳ تحميل...</p>';
+    el.innerHTML='<p style="color:rgba(255,255,255,.5);text-align:center;padding:16px;">⏳ جاري تحميل الأسئلة...</p>';
+    
     try{
-        const r=await req(url);BANK=r.questions||r||[];
+        const r=await req(url);
+        BANK=r.questions||r||[];
         document.getElementById('bank-cnt').textContent=BANK.length+' سؤال';
-        el.innerHTML=BANK.map(q=>`
-            <div class="qp-row">
-                <input type="checkbox" id="qc-${q.id}" onchange="togQ(${q.id})" ${SEL_Q.has(q.id)?'checked':''}>
-                <label for="qc-${q.id}" class="qt" style="cursor:pointer;">${q.question}</label>
-                <span class="qm">${q.grade||''} | ${q.lesson||''}</span>
-            </div>`).join('')||'<p style="color:rgba(255,255,255,.4);text-align:center;padding:16px;">لا توجد أسئلة</p>';
-    }catch(e){el.innerHTML='<p style="color:#e74c3c;text-align:center;padding:16px;">تعذر التحميل</p>';}
+        
+        if (!BANK.length) {
+            el.innerHTML='<div style="text-align:center;padding:30px 16px;color:rgba(255,255,255,.4);"><div style="font-size:2.5rem;margin-bottom:8px;">🔍</div><p>لا توجد أسئلة بهذه الفلاتر</p><p style="font-size:.78rem;margin-top:6px;">جرّب تغيير الفصل أو الوحدة أو الدرس</p></div>';
+            return;
+        }
+        
+        // 🎨 تصميم جديد - cards احترافية مثل لوحة المعلمين
+        el.innerHTML = BANK.map(function(q) {
+            var qText = q.question || q.question_text || '';
+            var isSel = SEL_Q.has(q.id);
+            var qType = q.question_type || q.type || 'choice';
+            var typeIcon = qType === 'choice' ? '☑️' : qType === 'fill' ? '✍️' : qType === 'truefalse' ? '✓✗' : '❓';
+            var diff = q.difficulty || '';
+            var diffColor = diff === 'easy' ? '#4ade80' : diff === 'medium' ? '#fbbf24' : diff === 'hard' ? '#e74c3c' : '#888';
+            var diffText = diff === 'easy' ? 'سهل' : diff === 'medium' ? 'متوسط' : diff === 'hard' ? 'صعب' : '';
+            
+            return '<div class="q-card" data-qid="' + q.id + '" onclick="togQ(' + q.id + ')" style="background:' + (isSel ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)') + ';border:1px solid ' + (isSel ? 'rgba(212,175,55,0.5)' : 'rgba(255,255,255,0.08)') + ';border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;transition:all 0.2s;display:flex;gap:10px;align-items:start;">' +
+                '<input type="checkbox" id="qc-' + q.id + '" ' + (isSel ? 'checked' : '') + ' onclick="event.stopPropagation();togQ(' + q.id + ')" style="margin-top:3px;width:18px;height:18px;cursor:pointer;accent-color:#d4af37;flex-shrink:0;">' +
+                '<div style="flex:1;min-width:0;">' +
+                    '<div style="color:#fff;font-size:.88rem;line-height:1.5;margin-bottom:6px;">' +
+                        '<span style="margin-left:6px;">' + typeIcon + '</span>' + escHtml(qText) +
+                    '</div>' +
+                    '<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:.72rem;">' +
+                        (q.grade ? '<span style="background:rgba(59,130,246,0.15);color:#3b82f6;padding:2px 8px;border-radius:10px;">🎓 ' + escHtml(q.grade) + '</span>' : '') +
+                        (q.semester ? '<span style="background:rgba(168,85,247,0.15);color:#a855f7;padding:2px 8px;border-radius:10px;">📖 ' + escHtml(q.semester) + '</span>' : '') +
+                        (q.unit ? '<span style="background:rgba(16,185,129,0.15);color:#10b981;padding:2px 8px;border-radius:10px;">📚 ' + escHtml(q.unit) + '</span>' : '') +
+                        (q.lesson ? '<span style="background:rgba(245,158,11,0.15);color:#fbbf24;padding:2px 8px;border-radius:10px;">📝 ' + escHtml(q.lesson) + '</span>' : '') +
+                        (diffText ? '<span style="background:' + diffColor + '22;color:' + diffColor + ';padding:2px 8px;border-radius:10px;font-weight:bold;">' + diffText + '</span>' : '') +
+                    '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    }catch(e){
+        console.error('[loadBank]', e);
+        el.innerHTML='<p style="color:#e74c3c;text-align:center;padding:16px;">❌ تعذر التحميل</p>';
+    }
 }
-function togQ(id){SEL_Q.has(id)?SEL_Q.delete(id):SEL_Q.add(id);document.getElementById('sel-cnt').textContent=SEL_Q.size+' محددة';}
+
+function escHtml(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function bankSelectAll(){
+    BANK.forEach(function(q){ SEL_Q.add(q.id); });
+    document.getElementById('sel-cnt').textContent = SEL_Q.size + ' محددة';
+    document.querySelectorAll('.q-card').forEach(function(card){
+        card.style.background = 'rgba(212,175,55,0.12)';
+        card.style.borderColor = 'rgba(212,175,55,0.5)';
+        var cb = card.querySelector('input[type=checkbox]');
+        if (cb) cb.checked = true;
+    });
+    if (typeof toast === 'function') toast('✅ تم تحديد ' + BANK.length + ' سؤال', 'success');
+}
+
+function bankClearAll(){
+    SEL_Q.clear();
+    document.getElementById('sel-cnt').textContent = '0 محددة';
+    document.querySelectorAll('.q-card').forEach(function(card){
+        card.style.background = 'rgba(255,255,255,0.03)';
+        card.style.borderColor = 'rgba(255,255,255,0.08)';
+        var cb = card.querySelector('input[type=checkbox]');
+        if (cb) cb.checked = false;
+    });
+}
+
+function togQ(id){
+    if (SEL_Q.has(id)) {
+        SEL_Q.delete(id);
+    } else {
+        SEL_Q.add(id);
+    }
+    document.getElementById('sel-cnt').textContent=SEL_Q.size+' محددة';
+    // نُحدّث visual للـ card
+    var card = document.querySelector('.q-card[data-qid="' + id + '"]');
+    var cb = document.getElementById('qc-' + id);
+    if (card) {
+        var isSel = SEL_Q.has(id);
+        card.style.background = isSel ? 'rgba(212,175,55,0.12)' : 'rgba(255,255,255,0.03)';
+        card.style.borderColor = isSel ? 'rgba(212,175,55,0.5)' : 'rgba(255,255,255,0.08)';
+        if (cb) cb.checked = isSel;
+    }
+}
 
 async function saveExam(pub){
     const title=document.getElementById('ex-title').value.trim();

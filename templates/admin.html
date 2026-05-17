@@ -6413,9 +6413,10 @@ async function manageSupStudents(id, name) {
         
         // كل الطلاب
         if (!_allStudentsCache) {
-            const r2 = await authFetch('/api/students');
+            const r2 = await authFetch('/api/admin/students');
             const data2 = await r2.json();
             _allStudentsCache = data2.students || data2 || [];
+            console.log('[supervisors] loaded students:', _allStudentsCache.length);
         }
         const currentIds = new Set(current.map(s => s.id));
         const available = _allStudentsCache.filter(s => !currentIds.has(s.id));

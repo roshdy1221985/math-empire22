@@ -10144,7 +10144,7 @@ async def supervisor_students(sup = Depends(get_current_supervisor)):
     if not student_ids:
         return {"students": [], "total": 0}
     
-    res = supabase.table("students").select("id,full_name,username,grade,xp,points,last_active,avatar,curriculum").in_("id", student_ids).execute()
+    res = supabase.table("students").select("id,full_name,username,grade,xp,total_points,points,level,last_active,avatar,curriculum").in_("id", student_ids).execute()
     students = res.data or []
     
     # نُضيف إحصائيات بسيطة (الدقة، عدد التحديات)
@@ -10214,7 +10214,7 @@ async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
     
     student_ids = _get_supervisor_student_ids(sup["id"])
     if not student_ids:
-        return {"struggling": [], "total": 0}
+        return {"students": [], "total": 0}
     
     students = supabase.table("students").select("id,full_name,username,grade,xp,last_active").in_("id", student_ids).execute()
     
@@ -10250,7 +10250,7 @@ async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
             s["reasons"] = reasons
             struggling.append(s)
     
-    return {"struggling": struggling, "total": len(struggling)}
+    return {"students": struggling, "total": len(struggling)}
 
 
 @app.get("/api/supervisor/questions")
@@ -10366,6 +10366,104 @@ async def supervisor_exam_results(exam_id: int, sup = Depends(get_current_superv
         for r in results.data:
             r["student"] = stu_map.get(r["student_id"], {})
     return {"exam": exam, "results": results.data or []}
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# 📨 رسائل المشرف للطالب
+# ════════════════════════════════════════════════════════════
+@app.get("/api/student/supervisor-messages")
+async def get_supervisor_messages_for_student(request: Request):
+    """📨 الطالب يجلب رسائل المشرفين الموجّهة له"""
+    # نتحقق من توكن الطالب
+    auth_header = request.headers.get("Authorization") or ""
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="غير مصرح")
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "student":
+            raise HTTPException(status_code=403, detail="هذا الـ endpoint للطلاب فقط")
+        student_id = int(payload.get("sub", 0))
+        if not student_id:
+            raise HTTPException(status_code=401, detail="توكن غير صالح")
+    except HTTPException:
+        raise
+    except Exception:
+        raise HTTPException(status_code=401, detail="توكن غير صالح")
+    
+    try:
+        # نجلب الرسائل + اسم المشرف
+        res = supabase.table("supervisor_messages")\
+            .select("*")\
+            .eq("student_id", student_id)\
+            .order("created_at", desc=True)\
+            .limit(50).execute()
+        msgs = res.data or []
+        
+        # نُضيف اسم المشرف لكل رسالة
+        sup_ids = list(set(m["supervisor_id"] for m in msgs if m.get("supervisor_id")))
+        if sup_ids:
+            sups = supabase.table("supervisors").select("id,full_name").in_("id", sup_ids).execute()
+            sup_map = {s["id"]: s["full_name"] for s in (sups.data or [])}
+            for m in msgs:
+                m["supervisor_name"] = sup_map.get(m.get("supervisor_id"), "المشرف")
+        
+        # عداد غير المقروء
+        unread_count = sum(1 for m in msgs if not m.get("is_read"))
+        return {"messages": msgs, "total": len(msgs), "unread": unread_count}
+    except Exception as e:
+        return {"messages": [], "total": 0, "unread": 0, "error": str(e)[:200]}
+
+
+@app.put("/api/student/supervisor-messages/{msg_id}/read")
+async def mark_supervisor_message_read(msg_id: int, request: Request):
+    """✅ الطالب يُحدّد رسالة كمقروءة"""
+    auth_header = request.headers.get("Authorization") or ""
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="غير مصرح")
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "student":
+            raise HTTPException(status_code=403, detail="ليس للطلاب")
+        student_id = int(payload.get("sub", 0))
+    except Exception:
+        raise HTTPException(status_code=401, detail="توكن غير صالح")
+    
+    try:
+        # نتحقق من ملكية الرسالة قبل التحديث
+        check = supabase.table("supervisor_messages").select("id,student_id").eq("id", msg_id).execute()
+        if not check.data or check.data[0].get("student_id") != student_id:
+            raise HTTPException(status_code=404, detail="الرسالة غير موجودة")
+        supabase.table("supervisor_messages").update({"is_read": True}).eq("id", msg_id).execute()
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+@app.get("/api/student/supervisor-messages/unread-count")
+async def get_unread_supervisor_messages_count(request: Request):
+    """🔔 عدد الرسائل غير المقروءة (للجرس)"""
+    auth_header = request.headers.get("Authorization") or ""
+    if not auth_header.startswith("Bearer "):
+        return {"unread": 0}
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "student":
+            return {"unread": 0}
+        student_id = int(payload.get("sub", 0))
+        if not student_id:
+            return {"unread": 0}
+        res = supabase.table("supervisor_messages").select("id", count="exact")\
+            .eq("student_id", student_id).eq("is_read", False).execute()
+        return {"unread": res.count or 0}
+    except Exception:
+        return {"unread": 0}
 
 
 @app.get("/api/supervisor/messages")

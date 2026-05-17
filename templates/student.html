@@ -1644,6 +1644,28 @@
                 <div id="exam-notification-text" style="font-size:1.2rem; font-weight:bold; line-height:1.6; margin-bottom:20px;"></div>
                 <button id="start-exam-btn" class="nav-btn active shiny-btn" style="font-size:1.3rem; padding:15px; margin:0 auto; max-width:300px; display:none;" onclick="startScheduledExam()">⏳ ابدأ الاختبار في وضع ملء الشاشة!</button>
             </div>
+            
+            <!-- 📨 رسائل المشرف الطلابي -->
+            <div id="supervisor-messages-banner" style="display:none;margin-bottom:20px;">
+                <div style="background:linear-gradient(135deg,rgba(168,85,247,0.18),rgba(139,92,246,0.12));border:2px solid rgba(168,85,247,0.5);border-radius:18px;padding:18px 22px;box-shadow:0 8px 24px rgba(168,85,247,0.2);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:10px;">
+                        <h3 style="color:#c084fc;margin:0;font-family:'Amiri';font-size:1.5rem;display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:2rem;animation:bell-ring 2s ease-in-out infinite;">🔔</span>
+                            رسائل من مشرفك
+                            <span id="sup-msg-badge" style="background:#e74c3c;color:#fff;padding:2px 12px;border-radius:14px;font-size:0.82rem;font-weight:bold;display:none;">0</span>
+                        </h3>
+                        <button onclick="toggleSupMessages()" id="sup-msg-toggle" style="background:rgba(168,85,247,0.15);border:1px solid rgba(168,85,247,0.4);color:#c084fc;padding:7px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.85rem;">📂 عرض</button>
+                    </div>
+                    <div id="sup-msg-list" style="display:none;max-height:400px;overflow-y:auto;padding:4px;"></div>
+                </div>
+            </div>
+            <style>
+                @keyframes bell-ring {
+                    0%, 50%, 100% { transform: rotate(0); }
+                    10%, 30% { transform: rotate(-12deg); }
+                    20%, 40% { transform: rotate(12deg); }
+                }
+            </style>
 
             <!-- ═══ 4 بطاقات مربعة في شبكة متجاورة ═══ -->
             <div id="dashboard-insights-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:14px; margin-bottom:24px;">
@@ -11131,6 +11153,153 @@ console.log('في حال مشاكل صوت، اكتب: testAllSounds()');
         }
     };
 })();
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     📨 رسائل المشرف للطالب
+════════════════════════════════════════════════════════════ -->
+<script>
+var _supMessages = [];
+var _supMsgPolling = null;
+
+async function fetchSupervisorMessages() {
+    try {
+        var token = localStorage.getItem('token');
+        if (!token) return;
+        var res = await fetch(`${API_URL}/api/student/supervisor-messages`, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (!res.ok) return;
+        var data = await res.json();
+        _supMessages = data.messages || [];
+        var unread = data.unread || 0;
+        
+        var banner = document.getElementById('supervisor-messages-banner');
+        if (!banner) return;
+        
+        if (_supMessages.length === 0) {
+            banner.style.display = 'none';
+            return;
+        }
+        
+        banner.style.display = 'block';
+        
+        // عداد غير المقروء
+        var badge = document.getElementById('sup-msg-badge');
+        if (badge) {
+            if (unread > 0) {
+                badge.textContent = unread;
+                badge.style.display = 'inline-block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+        
+        // نُعيد بناء القائمة
+        renderSupMessagesList();
+    } catch(e) {
+        console.error('[sup-msgs]', e);
+    }
+}
+
+function renderSupMessagesList() {
+    var list = document.getElementById('sup-msg-list');
+    if (!list) return;
+    
+    list.innerHTML = _supMessages.map(function(m) {
+        var typeIcon = m.type === 'alert' ? '⚠️' : m.type === 'link' ? '🔗' : '💬';
+        var typeColor = m.type === 'alert' ? '#e74c3c' : m.type === 'link' ? '#3b82f6' : '#a855f7';
+        var typeLabel = m.type === 'alert' ? 'تنبيه' : m.type === 'link' ? 'رابط' : 'رسالة';
+        var bgUnread = !m.is_read ? 'rgba(168,85,247,0.08)' : 'rgba(255,255,255,0.03)';
+        var borderUnread = !m.is_read ? 'rgba(168,85,247,0.4)' : 'rgba(255,255,255,0.08)';
+        var dateStr = m.created_at ? new Date(m.created_at).toLocaleString('ar-EG', {year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'}) : '';
+        
+        var html = '<div onclick="if(!' + (m.is_read ? 'true' : 'false') + ')markSupMsgRead(' + m.id + ')" style="background:' + bgUnread + ';border:1px solid ' + borderUnread + ';border-radius:10px;padding:12px 14px;margin-bottom:8px;' + (!m.is_read ? 'cursor:pointer;' : '') + '">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap;margin-bottom:6px;">';
+        html += '<div style="display:flex;align-items:center;gap:8px;">';
+        html += '<span style="font-size:1.2rem;">' + typeIcon + '</span>';
+        html += '<span style="background:' + typeColor + '22;color:' + typeColor + ';padding:2px 10px;border-radius:10px;font-size:0.72rem;font-weight:bold;">' + typeLabel + '</span>';
+        if (m.supervisor_name) {
+            html += '<span style="color:rgba(255,255,255,0.6);font-size:0.78rem;">من: ' + escHtmlS(m.supervisor_name) + '</span>';
+        }
+        if (!m.is_read) {
+            html += '<span style="background:#e74c3c;color:#fff;width:10px;height:10px;border-radius:50%;display:inline-block;"></span>';
+        }
+        html += '</div>';
+        html += '<span style="color:rgba(255,255,255,0.4);font-size:0.72rem;">' + dateStr + '</span>';
+        html += '</div>';
+        html += '<div style="color:#fff;font-size:0.92rem;line-height:1.7;margin-top:4px;">' + escHtmlS(m.message || '') + '</div>';
+        if (m.link) {
+            html += '<a href="' + escHtmlS(m.link) + '" target="_blank" style="display:inline-block;margin-top:8px;color:#3b82f6;font-size:0.82rem;text-decoration:none;background:rgba(59,130,246,0.1);padding:4px 12px;border-radius:6px;">🔗 افتح الرابط</a>';
+        }
+        html += '</div>';
+        return html;
+    }).join('');
+}
+
+function escHtmlS(s) {
+    return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function toggleSupMessages() {
+    var list = document.getElementById('sup-msg-list');
+    var btn = document.getElementById('sup-msg-toggle');
+    if (!list || !btn) return;
+    if (list.style.display === 'none' || !list.style.display) {
+        list.style.display = 'block';
+        btn.textContent = '📁 إخفاء';
+    } else {
+        list.style.display = 'none';
+        btn.textContent = '📂 عرض';
+    }
+}
+
+async function markSupMsgRead(msgId) {
+    try {
+        var token = localStorage.getItem('token');
+        if (!token) return;
+        var res = await fetch(`${API_URL}/api/student/supervisor-messages/` + msgId + '/read', {
+            method: 'PUT',
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        if (res.ok) {
+            // نحدّث القائمة محلياً
+            var m = _supMessages.find(function(x){ return x.id === msgId; });
+            if (m) m.is_read = true;
+            // نُعيد البناء
+            renderSupMessagesList();
+            // نُحدّث العداد
+            var unread = _supMessages.filter(function(x){return !x.is_read;}).length;
+            var badge = document.getElementById('sup-msg-badge');
+            if (badge) {
+                if (unread > 0) {
+                    badge.textContent = unread;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            }
+        }
+    } catch(e) {
+        console.error('[mark-read]', e);
+    }
+}
+
+// تشغيل تلقائي عند الدخول + تحديث كل دقيقتين
+function startSupMsgPolling() {
+    if (_supMsgPolling) return;
+    fetchSupervisorMessages();
+    _supMsgPolling = setInterval(fetchSupervisorMessages, 120000); // كل دقيقتين
+}
+
+// نُشغّل بعد تسجيل الدخول
+document.addEventListener('DOMContentLoaded', function() {
+    setTimeout(function() {
+        var token = localStorage.getItem('token');
+        if (token) startSupMsgPolling();
+    }, 2000);
+});
 </script>
 
 </body>
