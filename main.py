@@ -526,6 +526,42 @@ async def get_current_admin(request: Request):
     except:
         raise HTTPException(status_code=401, detail="جلسة العمل غير صالحة")
 
+
+# ════════════════════════════════════════════════════════════
+# 🛡️ SUPERVISOR AUTH HELPER
+# ════════════════════════════════════════════════════════════
+async def get_current_supervisor(request: Request):
+    """يتحقق من JWT المشرف ويُرجع supervisor record كاملاً"""
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="يرجى تسجيل دخول المشرف")
+    token = auth_header.split(" ")[1]
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        if payload.get("role") != "supervisor":
+            raise HTTPException(status_code=401, detail="ليس لديك صلاحية مشرف")
+        sup_id = payload.get("sub")
+        if not sup_id:
+            raise HTTPException(status_code=401, detail="توكن غير صالح")
+        # نجلب المشرف من DB
+        res = supabase.table("supervisors").select("*").eq("id", sup_id).eq("is_active", True).execute()
+        if not res.data:
+            raise HTTPException(status_code=401, detail="الحساب غير موجود أو معطّل")
+        return res.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=401, detail="جلسة العمل غير صالحة")
+
+
+def _get_supervisor_student_ids(supervisor_id: int) -> list:
+    """يُرجع قائمة IDs الطلاب التابعين لمشرف معيّن"""
+    try:
+        res = supabase.table("supervisor_students").select("student_id").eq("supervisor_id", supervisor_id).execute()
+        return [r["student_id"] for r in (res.data or [])]
+    except Exception:
+        return []
+
 # ==========================================
 # --- 3. مسارات العرض (HTML) والملفات التقنية ---
 # ==========================================
@@ -543,6 +579,9 @@ async def read_parent(request: Request): return templates.TemplateResponse(reque
 
 @app.get("/teachers")
 async def read_teachers(request: Request): return templates.TemplateResponse(request=request, name="teachers.html")
+
+@app.get("/supervisor")
+async def read_supervisor(request: Request): return templates.TemplateResponse(request=request, name="supervisor.html")
 
 @app.get("/manifest.json")
 async def get_manifest(): return FileResponse(os.path.join(BASE_DIR, "manifest.json"))
@@ -9916,6 +9955,397 @@ async def export_results_csv(
 
 
 
+
+
+# ════════════════════════════════════════════════════════════
+# 🛡️ SUPERVISOR ENDPOINTS — لوحة المشرف
+# ════════════════════════════════════════════════════════════
+
+@app.post("/api/supervisor/login")
+async def supervisor_login(
+    request: Request,
+    email: str = Form(...),
+    password: str = Form(...)
+):
+    """🔐 تسجيل دخول المشرف مع حماية متدرجة"""
+    email = (email or "").strip().lower()
+    password = password or ""
+    client_ip = request.client.host if request.client else "unknown"
+    lockout_key = f"supervisor:{email}:{client_ip}"
+    
+    is_locked, seconds_left = check_progressive_lockout(lockout_key)
+    if is_locked:
+        minutes = max(1, seconds_left // 60)
+        security_log("supervisor_login_blocked", client_ip, {"email": email})
+        raise HTTPException(status_code=429, detail=f"🔒 الحساب مقفول مؤقتاً — حاول بعد {minutes} دقيقة")
+    
+    if _is_rate_limited(client_ip, max_calls=10, window_seconds=60):
+        raise HTTPException(status_code=429, detail="⏳ تجاوزت عدد المحاولات")
+    
+    if not email or not password:
+        raise HTTPException(status_code=400, detail="البريد وكلمة المرور مطلوبان")
+    
+    res = supabase.table("supervisors").select("*").eq("email", email).execute()
+    if not res.data:
+        record_login_failure(lockout_key)
+        security_log("supervisor_login_failed", client_ip, {"email": email, "reason": "not_found"})
+        raise HTTPException(status_code=401, detail="❌ بيانات خاطئة")
+    
+    sup = res.data[0]
+    if not sup.get("is_active", True):
+        raise HTTPException(status_code=403, detail="🚫 حسابك معطّل — تواصل مع الإدارة")
+    
+    if not verify_password(password, sup["password"]):
+        count, duration = record_login_failure(lockout_key)
+        security_log("supervisor_login_failed", client_ip, {"email": email, "attempts": count})
+        if duration > 0:
+            mins = max(1, duration // 60)
+            raise HTTPException(status_code=401, detail=f"❌ بيانات خاطئة — قفل {mins} دقيقة")
+        raise HTTPException(status_code=401, detail="❌ بيانات خاطئة")
+    
+    # نجاح
+    record_login_success(lockout_key)
+    # تحديث last_login
+    try:
+        from datetime import datetime, timezone
+        supabase.table("supervisors").update({"last_login": datetime.now(timezone.utc).isoformat()}).eq("id", sup["id"]).execute()
+    except Exception:
+        pass
+    token = create_access_token({"sub": str(sup["id"]), "role": "supervisor"})
+    security_log("supervisor_login_success", client_ip, {"sup_id": sup["id"]})
+    return {"access_token": token, "token_type": "bearer"}
+
+
+@app.get("/api/supervisor/me")
+async def supervisor_me(sup = Depends(get_current_supervisor)):
+    """👤 معلومات المشرف الحالي"""
+    sup_copy = dict(sup)
+    sup_copy.pop("password", None)
+    return sup_copy
+
+
+@app.get("/api/supervisor/students")
+async def supervisor_students(sup = Depends(get_current_supervisor)):
+    """👥 طلاب المشرف مع إحصائيات مبسطة"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if not student_ids:
+        return {"students": [], "total": 0}
+    
+    res = supabase.table("students").select("id,full_name,username,grade,xp,points,last_active,avatar,curriculum").in_("id", student_ids).execute()
+    students = res.data or []
+    
+    # نُضيف إحصائيات بسيطة (الدقة، عدد التحديات)
+    for s in students:
+        try:
+            chal = supabase.table("student_challenges").select("is_correct").eq("student_id", s["id"]).execute()
+            attempts = chal.data or []
+            s["challenges_count"] = len(attempts)
+            if attempts:
+                correct = sum(1 for a in attempts if a.get("is_correct"))
+                s["accuracy"] = round(correct / len(attempts) * 100, 1)
+            else:
+                s["accuracy"] = 0
+        except Exception:
+            s["challenges_count"] = 0
+            s["accuracy"] = 0
+    
+    return {"students": students, "total": len(students)}
+
+
+@app.get("/api/supervisor/students/{student_id}/stats")
+async def supervisor_student_stats(student_id: int, sup = Depends(get_current_supervisor)):
+    """📊 إحصائيات تفصيلية لطالب من طلاب المشرف"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if student_id not in student_ids:
+        raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+    
+    stu = supabase.table("students").select("*").eq("id", student_id).execute()
+    if not stu.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    student = stu.data[0]
+    student.pop("password", None)
+    
+    # التحديات
+    chal = supabase.table("student_challenges").select("*").eq("student_id", student_id).order("created_at", desc=True).limit(50).execute()
+    challenges = chal.data or []
+    
+    # حساب الإحصائيات
+    total_attempts = len(challenges)
+    correct = sum(1 for c in challenges if c.get("is_correct"))
+    accuracy = round(correct / total_attempts * 100, 1) if total_attempts else 0
+    
+    # آخر 7 أيام
+    from datetime import datetime, timezone, timedelta
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    week_attempts = [c for c in challenges if c.get("created_at") and c["created_at"] > week_ago.isoformat()]
+    
+    return {
+        "student": student,
+        "stats": {
+            "total_attempts": total_attempts,
+            "correct": correct,
+            "accuracy": accuracy,
+            "weekly_attempts": len(week_attempts),
+            "recent_challenges": challenges[:10]
+        }
+    }
+
+
+@app.get("/api/supervisor/students/struggling")
+async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
+    """⚠️ الطلاب المتعثرون حسب معايير المشرف"""
+    settings = sup.get("alert_settings") or {}
+    min_accuracy = settings.get("min_accuracy", 50)
+    lookback = settings.get("challenges_lookback", 3)
+    absent_days = settings.get("absent_days", 3)
+    
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if not student_ids:
+        return {"struggling": [], "total": 0}
+    
+    students = supabase.table("students").select("id,full_name,username,grade,xp,last_active").in_("id", student_ids).execute()
+    
+    from datetime import datetime, timezone, timedelta
+    threshold_date = datetime.now(timezone.utc) - timedelta(days=absent_days)
+    
+    struggling = []
+    for s in (students.data or []):
+        reasons = []
+        # 1. دقة منخفضة في آخر N تحديات
+        try:
+            chal = supabase.table("student_challenges").select("is_correct").eq("student_id", s["id"]).order("created_at", desc=True).limit(lookback).execute()
+            attempts = chal.data or []
+            if len(attempts) >= lookback:
+                correct = sum(1 for a in attempts if a.get("is_correct"))
+                acc = correct / len(attempts) * 100
+                if acc < min_accuracy:
+                    reasons.append(f"دقة {round(acc)}% < {min_accuracy}%")
+                    s["recent_accuracy"] = round(acc, 1)
+        except Exception:
+            pass
+        
+        # 2. غياب
+        last_active = s.get("last_active")
+        if last_active and last_active < threshold_date.isoformat():
+            days = (datetime.now(timezone.utc) - datetime.fromisoformat(last_active.replace("Z", "+00:00"))).days
+            reasons.append(f"غاب {days} يوم")
+            s["days_absent"] = days
+        elif not last_active:
+            reasons.append("لم يبدأ بعد")
+        
+        if reasons:
+            s["reasons"] = reasons
+            struggling.append(s)
+    
+    return {"struggling": struggling, "total": len(struggling)}
+
+
+@app.get("/api/supervisor/questions")
+async def supervisor_get_questions(
+    limit: int = 50,
+    sup = Depends(get_current_supervisor)
+):
+    """📚 جلب أسئلة من البنك العام لاستخدامها في الاختبارات"""
+    try:
+        q = supabase.table("questions").select("id,question_text,question_type,options,correct_answer,grade,curriculum,difficulty").limit(min(limit, 500) if limit > 0 else 500).execute()
+        return {"questions": q.data or [], "total": len(q.data or [])}
+    except Exception as e:
+        return {"questions": [], "error": str(e)[:200]}
+
+
+@app.post("/api/supervisor/exams")
+async def supervisor_create_exam(
+    payload: dict,
+    sup = Depends(get_current_supervisor)
+):
+    """➕ إنشاء اختبار جديد"""
+    title = (payload.get("title") or "").strip()
+    questions = payload.get("questions_json") or payload.get("questions") or []
+    if not title or not questions:
+        raise HTTPException(status_code=400, detail="العنوان والأسئلة مطلوبة")
+    new_exam = {
+        "supervisor_id": sup["id"],
+        "title": title,
+        "description": payload.get("description", ""),
+        "questions_json": questions,
+        "total_marks": int(payload.get("total_marks", 20)),
+        "duration_min": int(payload.get("duration_min", 30)),
+        "is_published": bool(payload.get("is_published", False)),
+        "target_student_ids": payload.get("target_student_ids", [])
+    }
+    res = supabase.table("supervisor_exams").insert(new_exam).execute()
+    if not res.data:
+        raise HTTPException(status_code=500, detail="فشل الإنشاء")
+    return {"status": "success", "id": res.data[0]["id"], "exam": res.data[0]}
+
+
+@app.get("/api/supervisor/exams")
+async def supervisor_list_exams(sup = Depends(get_current_supervisor)):
+    """📋 قائمة اختبارات المشرف"""
+    res = supabase.table("supervisor_exams").select("*").eq("supervisor_id", sup["id"]).order("created_at", desc=True).execute()
+    return {"exams": res.data or []}
+
+
+@app.put("/api/supervisor/exams/{exam_id}")
+async def supervisor_update_exam(
+    exam_id: int,
+    payload: dict,
+    sup = Depends(get_current_supervisor)
+):
+    """✏️ تعديل اختبار"""
+    # نتحقق من الملكية
+    check = supabase.table("supervisor_exams").select("id").eq("id", exam_id).eq("supervisor_id", sup["id"]).execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+    update_data = {}
+    for k in ["title", "description", "total_marks", "duration_min", "is_published", "questions_json", "target_student_ids"]:
+        if k in payload:
+            update_data[k] = payload[k]
+    if not update_data:
+        raise HTTPException(status_code=400, detail="لا توجد بيانات للتحديث")
+    from datetime import datetime, timezone
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    res = supabase.table("supervisor_exams").update(update_data).eq("id", exam_id).execute()
+    return {"status": "success", "exam": res.data[0] if res.data else None}
+
+
+@app.delete("/api/supervisor/exams/{exam_id}")
+async def supervisor_delete_exam(exam_id: int, sup = Depends(get_current_supervisor)):
+    """🗑️ حذف اختبار"""
+    check = supabase.table("supervisor_exams").select("id").eq("id", exam_id).eq("supervisor_id", sup["id"]).execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+    supabase.table("supervisor_exams").delete().eq("id", exam_id).execute()
+    return {"status": "success"}
+
+
+@app.get("/api/supervisor/exams/{exam_id}/results")
+async def supervisor_exam_results(exam_id: int, sup = Depends(get_current_supervisor)):
+    """📊 نتائج اختبار"""
+    check = supabase.table("supervisor_exams").select("id,title,total_marks").eq("id", exam_id).eq("supervisor_id", sup["id"]).execute()
+    if not check.data:
+        raise HTTPException(status_code=404, detail="الاختبار غير موجود")
+    exam = check.data[0]
+    results = supabase.table("supervisor_exam_results").select("*").eq("exam_id", exam_id).execute()
+    # نُضيف أسماء الطلاب
+    if results.data:
+        student_ids = list(set(r["student_id"] for r in results.data))
+        stus = supabase.table("students").select("id,full_name,username").in_("id", student_ids).execute()
+        stu_map = {s["id"]: s for s in (stus.data or [])}
+        for r in results.data:
+            r["student"] = stu_map.get(r["student_id"], {})
+    return {"exam": exam, "results": results.data or []}
+
+
+@app.get("/api/supervisor/messages")
+async def supervisor_list_messages(sup = Depends(get_current_supervisor)):
+    """📨 قائمة الرسائل التي أرسلها المشرف"""
+    res = supabase.table("supervisor_messages").select("*").eq("supervisor_id", sup["id"]).order("created_at", desc=True).limit(100).execute()
+    msgs = res.data or []
+    # نُضيف أسماء الطلاب
+    student_ids = list(set(m["student_id"] for m in msgs if m.get("student_id")))
+    if student_ids:
+        stus = supabase.table("students").select("id,full_name").in_("id", student_ids).execute()
+        stu_map = {s["id"]: s["full_name"] for s in (stus.data or [])}
+        for m in msgs:
+            if m.get("student_id"):
+                m["student_name"] = stu_map.get(m["student_id"], "—")
+    return {"messages": msgs}
+
+
+@app.post("/api/supervisor/messages/send")
+async def supervisor_send_message(
+    payload: dict,
+    sup = Depends(get_current_supervisor)
+):
+    """📤 إرسال رسالة لطالب واحد أو لكل الطلاب"""
+    message = (payload.get("message") or "").strip()
+    if not message:
+        raise HTTPException(status_code=400, detail="الرسالة فارغة")
+    msg_type = payload.get("type", "note")
+    link = payload.get("link")
+    student_id = payload.get("student_id")
+    
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if not student_ids:
+        raise HTTPException(status_code=400, detail="لا يوجد طلاب لإرسال الرسالة")
+    
+    rows = []
+    if student_id is None:
+        # رسالة جماعية لكل الطلاب
+        for sid in student_ids:
+            rows.append({
+                "supervisor_id": sup["id"],
+                "student_id": sid,
+                "message": message,
+                "type": msg_type,
+                "link": link,
+                "is_broadcast": True
+            })
+    else:
+        sid = int(student_id)
+        if sid not in student_ids:
+            raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+        rows.append({
+            "supervisor_id": sup["id"],
+            "student_id": sid,
+            "message": message,
+            "type": msg_type,
+            "link": link,
+            "is_broadcast": False
+        })
+    res = supabase.table("supervisor_messages").insert(rows).execute()
+    return {"status": "success", "sent": len(rows)}
+
+
+@app.put("/api/supervisor/settings/alerts")
+async def supervisor_update_alerts(
+    payload: dict,
+    sup = Depends(get_current_supervisor)
+):
+    """⚙️ تحديث معايير الإنذار"""
+    allowed = ["min_accuracy", "challenges_lookback", "absent_days", "xp_drop_percent"]
+    new_settings = {k: payload[k] for k in allowed if k in payload}
+    if not new_settings:
+        raise HTTPException(status_code=400, detail="لا توجد بيانات")
+    # ندمج مع الإعدادات الحالية
+    current = sup.get("alert_settings") or {}
+    current.update(new_settings)
+    supabase.table("supervisors").update({"alert_settings": current}).eq("id", sup["id"]).execute()
+    return {"status": "success", "alert_settings": current}
+
+
+@app.put("/api/supervisor/settings/password")
+async def supervisor_change_password(
+    payload: dict,
+    sup = Depends(get_current_supervisor)
+):
+    """🔑 تغيير كلمة المرور"""
+    current_pw = payload.get("current_password", "")
+    new_pw = payload.get("new_password", "")
+    if not verify_password(current_pw, sup["password"]):
+        raise HTTPException(status_code=401, detail="كلمة المرور الحالية خاطئة")
+    if len(new_pw) < 6:
+        raise HTTPException(status_code=400, detail="الكلمة الجديدة قصيرة جداً (6+ أحرف)")
+    supabase.table("supervisors").update({"password": hash_password(new_pw)}).eq("id", sup["id"]).execute()
+    security_log("supervisor_password_changed", "self", {"sup_id": sup["id"]})
+    return {"status": "success"}
+
+
+@app.put("/api/supervisor/settings/theme")
+async def supervisor_update_theme(
+    theme: str = Form(...),
+    sup = Depends(get_current_supervisor)
+):
+    """🎨 تحديث الثيم"""
+    allowed = ["royal-gold", "ocean-blue", "emerald-forest", "rose-modern", "cosmic-purple", "sunset-warm", "turquoise-crystal", "luxury-black", "bright-day"]
+    if theme not in allowed:
+        raise HTTPException(status_code=400, detail="ثيم غير صالح")
+    supabase.table("supervisors").update({"theme": theme}).eq("id", sup["id"]).execute()
+    return {"status": "success", "theme": theme}
+
+
+
 # ════════════════════════════════════════════════════════════
 # 🛡️ ADMIN SECURITY ENDPOINTS
 # ════════════════════════════════════════════════════════════
@@ -10005,6 +10435,213 @@ async def security_status(admin=Depends(get_current_admin)):
         "by_type": by_type,
         "https_enforced": os.getenv("ENV", "production").lower() == "production",
         "trusted_hosts": _TRUSTED_HOSTS
+    }
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# 👑 ADMIN: إدارة المشرفين
+# ════════════════════════════════════════════════════════════
+
+@app.post("/api/admin/supervisors")
+async def admin_create_supervisor(
+    full_name: str = Form(...),
+    email: str = Form(...),
+    password: str = Form(...),
+    phone: str = Form(""),
+    admin = Depends(get_current_admin)
+):
+    """➕ إنشاء حساب مشرف جديد"""
+    full_name = (full_name or "").strip()
+    email = (email or "").strip().lower()
+    password = password or ""
+    if not full_name or not email or len(password) < 6:
+        raise HTTPException(status_code=400, detail="الاسم والبريد مطلوبان + كلمة مرور 6 أحرف+")
+    # نتحقق من البريد فريد
+    existing = supabase.table("supervisors").select("id").eq("email", email).execute()
+    if existing.data:
+        raise HTTPException(status_code=400, detail="البريد مستخدم مسبقاً")
+    # نُنشئ
+    new_sup = {
+        "full_name": full_name,
+        "email": email,
+        "phone": (phone or "").strip(),
+        "password": hash_password(password),
+        "is_active": True
+    }
+    res = supabase.table("supervisors").insert(new_sup).execute()
+    if not res.data:
+        raise HTTPException(status_code=500, detail="فشل الإنشاء")
+    sup = res.data[0]
+    sup.pop("password", None)
+    security_log("supervisor_created", "admin", {"sup_id": sup["id"], "email": email})
+    return {"status": "success", "supervisor": sup}
+
+
+@app.get("/api/admin/supervisors")
+async def admin_list_supervisors(admin = Depends(get_current_admin)):
+    """📋 قائمة كل المشرفين مع عدد الطلاب لكل واحد"""
+    try:
+        sups = supabase.table("supervisors").select("id,full_name,email,phone,is_active,created_at,last_login").order("created_at", desc=True).execute()
+        result = []
+        for s in (sups.data or []):
+            # نعدّ الطلاب
+            cnt = supabase.table("supervisor_students").select("id", count="exact").eq("supervisor_id", s["id"]).execute()
+            s["students_count"] = cnt.count or 0
+            # نعدّ الاختبارات
+            ex = supabase.table("supervisor_exams").select("id", count="exact").eq("supervisor_id", s["id"]).execute()
+            s["exams_count"] = ex.count or 0
+            result.append(s)
+        return {"supervisors": result, "total": len(result)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.put("/api/admin/supervisors/{sup_id}")
+async def admin_update_supervisor(
+    sup_id: int,
+    full_name: str = Form(None),
+    email: str = Form(None),
+    phone: str = Form(None),
+    password: str = Form(None),
+    is_active: str = Form(None),
+    admin = Depends(get_current_admin)
+):
+    """✏️ تحديث بيانات مشرف"""
+    update_data = {}
+    if full_name and full_name.strip():
+        update_data["full_name"] = full_name.strip()
+    if email and email.strip():
+        update_data["email"] = email.strip().lower()
+    if phone is not None:
+        update_data["phone"] = phone.strip()
+    if password and len(password) >= 6:
+        update_data["password"] = hash_password(password)
+    if is_active is not None:
+        update_data["is_active"] = str(is_active).lower() in ("true", "1", "yes", "نعم")
+    if not update_data:
+        raise HTTPException(status_code=400, detail="لا توجد بيانات للتحديث")
+    res = supabase.table("supervisors").update(update_data).eq("id", sup_id).execute()
+    if not res.data:
+        raise HTTPException(status_code=404, detail="المشرف غير موجود")
+    sup = res.data[0]
+    sup.pop("password", None)
+    security_log("supervisor_updated", "admin", {"sup_id": sup_id, "fields": list(update_data.keys())})
+    return {"status": "success", "supervisor": sup}
+
+
+@app.delete("/api/admin/supervisors/{sup_id}")
+async def admin_delete_supervisor(sup_id: int, admin = Depends(get_current_admin)):
+    """🗑️ حذف مشرف نهائياً"""
+    res = supabase.table("supervisors").delete().eq("id", sup_id).execute()
+    security_log("supervisor_deleted", "admin", {"sup_id": sup_id})
+    return {"status": "success", "deleted": sup_id}
+
+
+@app.get("/api/admin/supervisors/{sup_id}/students")
+async def admin_get_supervisor_students(sup_id: int, admin = Depends(get_current_admin)):
+    """👥 طلاب مشرف معيّن"""
+    links = supabase.table("supervisor_students").select("student_id,assigned_at,notes").eq("supervisor_id", sup_id).execute()
+    student_ids = [l["student_id"] for l in (links.data or [])]
+    if not student_ids:
+        return {"students": []}
+    students = supabase.table("students").select("id,full_name,username,grade,xp,points,last_active").in_("id", student_ids).execute()
+    return {"students": students.data or []}
+
+
+@app.post("/api/admin/supervisors/{sup_id}/assign-student")
+async def admin_assign_student(
+    sup_id: int,
+    student_id: int = Form(...),
+    admin = Depends(get_current_admin)
+):
+    """🔗 ربط طالب بمشرف"""
+    # نتحقق من وجود المشرف والطالب
+    sup_check = supabase.table("supervisors").select("id").eq("id", sup_id).execute()
+    if not sup_check.data:
+        raise HTTPException(status_code=404, detail="المشرف غير موجود")
+    stu_check = supabase.table("students").select("id").eq("id", student_id).execute()
+    if not stu_check.data:
+        raise HTTPException(status_code=404, detail="الطالب غير موجود")
+    # نتحقق من عدم التكرار
+    existing = supabase.table("supervisor_students").select("id").eq("supervisor_id", sup_id).eq("student_id", student_id).execute()
+    if existing.data:
+        return {"status": "exists", "message": "الطالب مرتبط مسبقاً"}
+    res = supabase.table("supervisor_students").insert({
+        "supervisor_id": sup_id,
+        "student_id": student_id
+    }).execute()
+    return {"status": "success", "link": res.data[0] if res.data else None}
+
+
+@app.delete("/api/admin/supervisors/{sup_id}/unassign-student/{student_id}")
+async def admin_unassign_student(
+    sup_id: int,
+    student_id: int,
+    admin = Depends(get_current_admin)
+):
+    """🔓 فك ربط طالب من مشرف"""
+    supabase.table("supervisor_students").delete().eq("supervisor_id", sup_id).eq("student_id", student_id).execute()
+    return {"status": "success"}
+
+
+@app.post("/api/admin/supervisors/{sup_id}/assign-bulk")
+async def admin_assign_bulk(
+    sup_id: int,
+    student_ids: str = Form(...),
+    admin = Depends(get_current_admin)
+):
+    """🔗 ربط مجموعة طلاب دفعة واحدة. student_ids: '1,2,3' أو JSON array"""
+    import json as _json
+    try:
+        ids = _json.loads(student_ids) if student_ids.startswith("[") else [int(x.strip()) for x in student_ids.split(",") if x.strip()]
+    except Exception:
+        raise HTTPException(status_code=400, detail="صيغة IDs خاطئة")
+    if not ids:
+        return {"status": "success", "added": 0}
+    # نحذف الموجودين سابقاً لتجنب duplicates
+    existing = supabase.table("supervisor_students").select("student_id").eq("supervisor_id", sup_id).execute()
+    existing_ids = set(r["student_id"] for r in (existing.data or []))
+    new_ids = [i for i in ids if i not in existing_ids]
+    if not new_ids:
+        return {"status": "success", "added": 0, "message": "كلهم مرتبطون مسبقاً"}
+    rows = [{"supervisor_id": sup_id, "student_id": sid} for sid in new_ids]
+    res = supabase.table("supervisor_students").insert(rows).execute()
+    return {"status": "success", "added": len(new_ids)}
+
+
+@app.get("/api/admin/supervisors/{sup_id}/report")
+async def admin_supervisor_report(sup_id: int, admin = Depends(get_current_admin)):
+    """📊 تقرير أداء مشرف"""
+    sup = supabase.table("supervisors").select("*").eq("id", sup_id).execute()
+    if not sup.data:
+        raise HTTPException(status_code=404, detail="المشرف غير موجود")
+    sup_data = sup.data[0]
+    sup_data.pop("password", None)
+    # عدد الطلاب
+    students = supabase.table("supervisor_students").select("student_id").eq("supervisor_id", sup_id).execute()
+    student_ids = [r["student_id"] for r in (students.data or [])]
+    # الاختبارات
+    exams = supabase.table("supervisor_exams").select("id,title,is_published,created_at").eq("supervisor_id", sup_id).execute()
+    # متوسط نتائج الاختبارات
+    exam_ids = [e["id"] for e in (exams.data or [])]
+    avg_score = 0
+    if exam_ids:
+        results = supabase.table("supervisor_exam_results").select("score,max_score").in_("exam_id", exam_ids).execute()
+        if results.data:
+            scores = [(float(r["score"]) / float(r["max_score"]) * 100) for r in results.data if r.get("max_score")]
+            if scores:
+                avg_score = round(sum(scores) / len(scores), 1)
+    # عدد الرسائل
+    msgs = supabase.table("supervisor_messages").select("id", count="exact").eq("supervisor_id", sup_id).execute()
+    return {
+        "supervisor": sup_data,
+        "students_count": len(student_ids),
+        "exams_count": len(exams.data or []),
+        "exams_published": sum(1 for e in (exams.data or []) if e.get("is_published")),
+        "avg_score_percent": avg_score,
+        "messages_sent": msgs.count or 0
     }
 
 

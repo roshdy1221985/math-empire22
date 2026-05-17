@@ -2596,6 +2596,7 @@ html, body {
                 <div class="nav-group">
                     <div class="nav-group-title">⚙️ الإعدادات والإدارة</div>
                     <div class="nav-link nl-red" onclick="showSection('security');setTimeout(loadSecurityDashboard, 200);"><i class="fas fa-shield-alt"></i> 🛡️ مركز الأمان</div>
+                    <div class="nav-link nl-red" onclick="showSection('supervisors');setTimeout(loadSupervisors, 200);"><i class="fas fa-user-tie"></i> 🎓 إدارة المشرفين</div>
                     <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
                     <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
                     <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> النسخ الاحتياطي</div>
@@ -6108,6 +6109,389 @@ async function cleanupSecurityRecords() {
         }
     } catch(e) {
         if (typeof showToast === 'function') showToast('❌ فشل التنظيف', 'error');
+    }
+}
+</script>
+
+
+            <!-- ════════════════════════════════════════════════════════
+                 🎓 إدارة المشرفين الطلابيين
+            ════════════════════════════════════════════════════════ -->
+            <section id="supervisors" class="section">
+                <div class="card glass-pro" style="margin-bottom:20px;">
+                    <h2 style="color:#a855f7;"><i class="fas fa-user-tie"></i> 🎓 إدارة المشرفين الطلابيين</h2>
+                    <p style="color:rgba(255,255,255,0.6);margin:8px 0 0;">أنشئ مشرفين لمتابعة مجموعات من الطلاب (أولياء أمور، مرشدين، مدربين)</p>
+                </div>
+                
+                <!-- الإحصاءات -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:24px;">
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(168,85,247,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">🎓</div>
+                        <div id="sup-stat-total" style="font-size:1.8rem;color:#a855f7;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">إجمالي المشرفين</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(74,222,128,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">✅</div>
+                        <div id="sup-stat-active" style="font-size:1.8rem;color:#4ade80;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">نشطون</div>
+                    </div>
+                    <div class="glass-pro" style="padding:18px;text-align:center;border-color:rgba(59,130,246,0.3);">
+                        <div style="font-size:2.5rem;line-height:1;">👥</div>
+                        <div id="sup-stat-students" style="font-size:1.8rem;color:#3b82f6;font-weight:900;margin-top:6px;">—</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);margin-top:4px;">إجمالي الطلاب المُتابعين</div>
+                    </div>
+                </div>
+                
+                <!-- شريط الأدوات -->
+                <div style="text-align:center;margin-bottom:18px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">
+                    <button onclick="openSupCreateModal()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:11px 26px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.92rem;">
+                        ➕ إضافة مشرف جديد
+                    </button>
+                    <button onclick="loadSupervisors()" style="background:linear-gradient(135deg,#3498db,#2c80b4);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
+                        🔄 تحديث
+                    </button>
+                </div>
+                
+                <!-- جدول المشرفين -->
+                <div class="card glass-pro">
+                    <h3 style="color:#a855f7;margin-bottom:14px;"><i class="fas fa-list"></i> قائمة المشرفين</h3>
+                    <div id="supervisors-list">
+                        <p style="opacity:0.5;text-align:center;padding:30px;">⏳ جاري التحميل...</p>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- ════════════════════════════════════════════════════════
+                 📦 Modal: إنشاء مشرف
+            ════════════════════════════════════════════════════════ -->
+            <div id="sup-create-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;">
+                <div style="background:linear-gradient(135deg,#1a1a3e,#0f0f29);border:2px solid #a855f7;border-radius:18px;padding:28px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                        <h3 style="color:#a855f7;margin:0;font-family:Amiri,serif;">➕ إضافة مشرف جديد</h3>
+                        <button onclick="closeSupCreateModal()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;">✕</button>
+                    </div>
+                    <div style="display:grid;gap:12px;">
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.82rem;margin-bottom:5px;display:block;font-weight:600;">👤 الاسم الكامل *</label>
+                            <input type="text" id="sup-new-name" placeholder="مثال: أحمد محمد" style="width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;box-sizing:border-box;">
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.82rem;margin-bottom:5px;display:block;font-weight:600;">📧 البريد الإلكتروني *</label>
+                            <input type="email" id="sup-new-email" placeholder="example@gmail.com" style="width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;box-sizing:border-box;direction:ltr;">
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.82rem;margin-bottom:5px;display:block;font-weight:600;">📱 رقم الهاتف (اختياري)</label>
+                            <input type="text" id="sup-new-phone" placeholder="+968XXXXXXXX" style="width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;box-sizing:border-box;direction:ltr;">
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.82rem;margin-bottom:5px;display:block;font-weight:600;">🔑 كلمة المرور * (6 أحرف+)</label>
+                            <input type="text" id="sup-new-pass" placeholder="كلمة مرور قوية" style="width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:10px 14px;border-radius:10px;font-family:Cairo;box-sizing:border-box;">
+                            <small style="color:rgba(255,255,255,0.4);font-size:0.72rem;">💡 سيراها المشرف عند تسجيل الدخول الأول</small>
+                        </div>
+                        <button onclick="submitNewSupervisor()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-top:8px;">
+                            ✅ إنشاء الحساب
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Modal: إدارة الطلاب لمشرف -->
+            <div id="sup-students-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;">
+                <div style="background:linear-gradient(135deg,#1a1a3e,#0f0f29);border:2px solid #a855f7;border-radius:18px;padding:24px;max-width:900px;width:100%;max-height:90vh;overflow-y:auto;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+                        <h3 style="color:#a855f7;margin:0;font-family:Amiri,serif;">👥 إدارة طلاب: <span id="sup-mod-name" style="color:#fbbf24;"></span></h3>
+                        <button onclick="closeSupStudentsModal()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;font-weight:bold;">✕</button>
+                    </div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+                        <div>
+                            <h4 style="color:#4ade80;margin-bottom:10px;font-size:0.95rem;">✅ الطلاب الحاليون</h4>
+                            <div id="sup-current-students" style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;max-height:400px;overflow-y:auto;">
+                                <p style="opacity:0.5;text-align:center;padding:15px;">جاري التحميل...</p>
+                            </div>
+                        </div>
+                        <div>
+                            <h4 style="color:#3b82f6;margin-bottom:10px;font-size:0.95rem;">➕ إضافة طلاب</h4>
+                            <input type="text" id="sup-add-search" placeholder="🔍 بحث..." oninput="filterAvailableStudents()" style="width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(59,130,246,0.3);color:#fff;padding:8px 12px;border-radius:8px;font-family:Cairo;margin-bottom:8px;box-sizing:border-box;">
+                            <div id="sup-available-students" style="background:rgba(0,0,0,0.3);border-radius:10px;padding:10px;max-height:360px;overflow-y:auto;">
+                                <p style="opacity:0.5;text-align:center;padding:15px;">جاري التحميل...</p>
+                            </div>
+                            <button onclick="assignSelectedStudents()" style="background:linear-gradient(135deg,#3498db,#2c80b4);color:#fff;border:none;padding:10px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;width:100%;margin-top:8px;">
+                                ✅ ربط المُحدّدين
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 🎓 SUPERVISORS MANAGEMENT JS
+// ════════════════════════════════════════════════════════════
+let _allSupervisors = [];
+let _currentSupId = null;
+let _allStudentsCache = null;
+
+async function loadSupervisors() {
+    const list = document.getElementById('supervisors-list');
+    if (list) list.innerHTML = '<p style="opacity:0.5;text-align:center;padding:30px;">⏳ جاري التحميل...</p>';
+    
+    try {
+        const res = await authFetch('/api/admin/supervisors');
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        _allSupervisors = data.supervisors || [];
+        
+        // الإحصاءات
+        const total = _allSupervisors.length;
+        const active = _allSupervisors.filter(s => s.is_active).length;
+        const totalStudents = _allSupervisors.reduce((sum, s) => sum + (s.students_count || 0), 0);
+        document.getElementById('sup-stat-total').textContent = total.toLocaleString('ar-EG');
+        document.getElementById('sup-stat-active').textContent = active.toLocaleString('ar-EG');
+        document.getElementById('sup-stat-students').textContent = totalStudents.toLocaleString('ar-EG');
+        
+        if (total === 0) {
+            list.innerHTML = '<div style="text-align:center;padding:40px;color:rgba(255,255,255,0.4);"><div style="font-size:3rem;">🎓</div><p>لا يوجد مشرفون بعد. اضغط "إضافة مشرف جديد" للبدء.</p></div>';
+            return;
+        }
+        
+        let rowsHtml = _allSupervisors.map(function(s) {
+            const statusColor = s.is_active ? '#4ade80' : '#888';
+            const statusText = s.is_active ? 'نشط' : 'معطّل';
+            const lastLogin = s.last_login ? new Date(s.last_login).toLocaleDateString('ar-EG', {year:'numeric',month:'short',day:'numeric'}) : 'لم يدخل بعد';
+            return '<tr style="border-bottom:1px solid rgba(255,255,255,0.05);">' +
+                '<td style="padding:11px;color:#fff;font-weight:600;">' + esc(s.full_name) + '</td>' +
+                '<td style="padding:11px;color:rgba(255,255,255,0.7);font-size:0.83rem;direction:ltr;text-align:right;">' + esc(s.email) + '</td>' +
+                '<td style="padding:11px;text-align:center;color:#3b82f6;font-weight:bold;">' + (s.students_count || 0) + '</td>' +
+                '<td style="padding:11px;text-align:center;color:#fbbf24;font-weight:bold;">' + (s.exams_count || 0) + '</td>' +
+                '<td style="padding:11px;text-align:center;"><span style="background:' + statusColor + '22;color:' + statusColor + ';padding:3px 10px;border-radius:6px;font-size:0.78rem;font-weight:bold;">' + statusText + '</span></td>' +
+                '<td style="padding:11px;text-align:center;color:rgba(255,255,255,0.5);font-size:0.8rem;">' + lastLogin + '</td>' +
+                '<td style="padding:11px;text-align:center;white-space:nowrap;">' +
+                    '<button onclick="manageSupStudents(' + s.id + ',\'' + esc(s.full_name).replace(/'/g, "\\'") + '\')" title="إدارة الطلاب" style="background:rgba(59,130,246,0.2);border:1px solid rgba(59,130,246,0.4);color:#3b82f6;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">👥</button>' +
+                    '<button onclick="editSupervisor(' + s.id + ')" title="تعديل" style="background:rgba(251,191,36,0.2);border:1px solid rgba(251,191,36,0.4);color:#fbbf24;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">✏️</button>' +
+                    '<button onclick="toggleSupActive(' + s.id + ',' + (!s.is_active) + ')" title="' + (s.is_active ? 'تعطيل' : 'تفعيل') + '" style="background:rgba(168,85,247,0.2);border:1px solid rgba(168,85,247,0.4);color:#a855f7;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">' + (s.is_active ? '⏸️' : '▶️') + '</button>' +
+                    '<button onclick="deleteSupervisor(' + s.id + ',\'' + esc(s.full_name).replace(/'/g, "\\'") + '\')" title="حذف" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:32px;height:32px;border-radius:6px;cursor:pointer;font-size:0.85rem;margin:0 2px;">🗑️</button>' +
+                '</td>' +
+            '</tr>';
+        }).join('');
+        
+        list.innerHTML = '<div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.88rem;min-width:800px;">' +
+            '<thead><tr style="background:rgba(168,85,247,0.1);">' +
+                '<th style="padding:11px;text-align:right;color:rgba(255,255,255,0.6);font-weight:bold;">👤 الاسم</th>' +
+                '<th style="padding:11px;text-align:right;color:rgba(255,255,255,0.6);font-weight:bold;">📧 البريد</th>' +
+                '<th style="padding:11px;text-align:center;color:rgba(255,255,255,0.6);font-weight:bold;">👥 الطلاب</th>' +
+                '<th style="padding:11px;text-align:center;color:rgba(255,255,255,0.6);font-weight:bold;">📝 الاختبارات</th>' +
+                '<th style="padding:11px;text-align:center;color:rgba(255,255,255,0.6);font-weight:bold;">الحالة</th>' +
+                '<th style="padding:11px;text-align:center;color:rgba(255,255,255,0.6);font-weight:bold;">آخر دخول</th>' +
+                '<th style="padding:11px;text-align:center;color:rgba(255,255,255,0.6);font-weight:bold;">الإجراءات</th>' +
+            '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
+    } catch(e) {
+        console.error('[supervisors]', e);
+        if (list) list.innerHTML = '<p style="color:#e74c3c;text-align:center;padding:30px;">❌ فشل التحميل</p>';
+    }
+}
+
+function openSupCreateModal() {
+    document.getElementById('sup-new-name').value = '';
+    document.getElementById('sup-new-email').value = '';
+    document.getElementById('sup-new-phone').value = '';
+    document.getElementById('sup-new-pass').value = '';
+    document.getElementById('sup-create-modal').style.display = 'flex';
+}
+function closeSupCreateModal() {
+    document.getElementById('sup-create-modal').style.display = 'none';
+}
+
+async function submitNewSupervisor() {
+    const name = document.getElementById('sup-new-name').value.trim();
+    const email = document.getElementById('sup-new-email').value.trim();
+    const phone = document.getElementById('sup-new-phone').value.trim();
+    const pass = document.getElementById('sup-new-pass').value;
+    
+    if (!name) return showToast('⚠️ الاسم مطلوب', 'warning');
+    if (!email || !email.includes('@')) return showToast('⚠️ بريد إلكتروني صالح مطلوب', 'warning');
+    if (!pass || pass.length < 6) return showToast('⚠️ كلمة مرور 6 أحرف+', 'warning');
+    
+    try {
+        const fd = new FormData();
+        fd.append('full_name', name);
+        fd.append('email', email);
+        fd.append('phone', phone);
+        fd.append('password', pass);
+        const res = await authFetch('/api/admin/supervisors', { method: 'POST', body: fd });
+        if (!res || !res.ok) {
+            const err = await res.json().catch(()=>({detail:'فشل الإنشاء'}));
+            throw new Error(err.detail || 'فشل');
+        }
+        showToast('✅ تم إنشاء المشرف', 'success');
+        closeSupCreateModal();
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ ' + e.message, 'error', 4000);
+    }
+}
+
+async function editSupervisor(id) {
+    const sup = _allSupervisors.find(s => s.id === id);
+    if (!sup) return;
+    const newName = prompt('الاسم الكامل:', sup.full_name);
+    if (!newName) return;
+    const newEmail = prompt('البريد الإلكتروني:', sup.email);
+    if (!newEmail) return;
+    const newPhone = prompt('الهاتف:', sup.phone || '');
+    const newPass = prompt('كلمة مرور جديدة (اتركها فارغة لعدم التغيير):', '');
+    
+    try {
+        const fd = new FormData();
+        fd.append('full_name', newName);
+        fd.append('email', newEmail);
+        fd.append('phone', newPhone || '');
+        if (newPass && newPass.length >= 6) fd.append('password', newPass);
+        const res = await authFetch('/api/admin/supervisors/' + id, { method: 'PUT', body: fd });
+        if (!res || !res.ok) throw new Error('failed');
+        showToast('✅ تم التحديث', 'success');
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ فشل التحديث', 'error');
+    }
+}
+
+async function toggleSupActive(id, makeActive) {
+    try {
+        const fd = new FormData();
+        fd.append('is_active', makeActive ? 'true' : 'false');
+        const res = await authFetch('/api/admin/supervisors/' + id, { method: 'PUT', body: fd });
+        if (!res || !res.ok) throw new Error('failed');
+        showToast(makeActive ? '✅ تم التفعيل' : '⏸️ تم التعطيل', 'success');
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ فشل', 'error');
+    }
+}
+
+async function deleteSupervisor(id, name) {
+    if (!confirm('⚠️ حذف "' + name + '" نهائياً؟\nسيُحذف كل اختباراته ورسائله.')) return;
+    try {
+        const res = await authFetch('/api/admin/supervisors/' + id, { method: 'DELETE' });
+        if (!res || !res.ok) throw new Error('failed');
+        showToast('🗑️ تم الحذف', 'success');
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ فشل', 'error');
+    }
+}
+
+async function manageSupStudents(id, name) {
+    _currentSupId = id;
+    document.getElementById('sup-mod-name').textContent = name;
+    document.getElementById('sup-students-modal').style.display = 'flex';
+    
+    // نحمّل الطلاب الحاليون والمتاحون
+    document.getElementById('sup-current-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳</p>';
+    document.getElementById('sup-available-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳</p>';
+    
+    try {
+        // الطلاب الحاليون لهذا المشرف
+        const r1 = await authFetch('/api/admin/supervisors/' + id + '/students');
+        const data1 = await r1.json();
+        const current = data1.students || [];
+        renderCurrentStudents(current);
+        
+        // كل الطلاب
+        if (!_allStudentsCache) {
+            const r2 = await authFetch('/api/students');
+            const data2 = await r2.json();
+            _allStudentsCache = data2.students || data2 || [];
+        }
+        const currentIds = new Set(current.map(s => s.id));
+        const available = _allStudentsCache.filter(s => !currentIds.has(s.id));
+        renderAvailableStudents(available);
+    } catch(e) {
+        console.error('[sup-students]', e);
+    }
+}
+
+function closeSupStudentsModal() {
+    document.getElementById('sup-students-modal').style.display = 'none';
+    _currentSupId = null;
+}
+
+function renderCurrentStudents(students) {
+    const cont = document.getElementById('sup-current-students');
+    if (students.length === 0) {
+        cont.innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">لا يوجد طلاب</p>';
+        return;
+    }
+    cont.innerHTML = students.map(function(s) {
+        return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:rgba(74,222,128,0.06);border:1px solid rgba(74,222,128,0.15);border-radius:8px;margin-bottom:6px;">' +
+            '<div><div style="color:#fff;font-weight:600;font-size:0.88rem;">' + esc(s.full_name || s.username) + '</div><div style="color:rgba(255,255,255,0.5);font-size:0.75rem;">' + esc(s.grade || '—') + ' • ' + (s.xp || 0) + ' XP</div></div>' +
+            '<button onclick="unassignStudent(' + s.id + ')" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:28px;height:28px;border-radius:6px;cursor:pointer;font-size:0.8rem;">✕</button>' +
+        '</div>';
+    }).join('');
+}
+
+let _availableFiltered = [];
+let _selectedToAssign = new Set();
+
+function renderAvailableStudents(students) {
+    _availableFiltered = students;
+    const cont = document.getElementById('sup-available-students');
+    if (students.length === 0) {
+        cont.innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">لا يوجد طلاب متاحون</p>';
+        return;
+    }
+    cont.innerHTML = students.map(function(s) {
+        const isSel = _selectedToAssign.has(s.id);
+        return '<label style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:rgba(59,130,246,0.05);border:1px solid rgba(59,130,246,0.15);border-radius:8px;margin-bottom:6px;cursor:pointer;">' +
+            '<input type="checkbox" onchange="toggleAssignSelect(' + s.id + ', this.checked)"' + (isSel ? ' checked' : '') + ' style="width:16px;height:16px;cursor:pointer;accent-color:#3b82f6;">' +
+            '<div style="flex:1;"><div style="color:#fff;font-weight:600;font-size:0.85rem;">' + esc(s.full_name || s.username) + '</div><div style="color:rgba(255,255,255,0.5);font-size:0.72rem;">' + esc(s.grade || '—') + '</div></div>' +
+        '</label>';
+    }).join('');
+}
+
+function filterAvailableStudents() {
+    const q = document.getElementById('sup-add-search').value.toLowerCase().trim();
+    if (!_allStudentsCache) return;
+    const currentIds = new Set(_availableFiltered.map(s=>s.id));
+    let filtered = _allStudentsCache.filter(function(s) {
+        if (!q) return true;
+        const name = (s.full_name || '').toLowerCase();
+        const user = (s.username || '').toLowerCase();
+        return name.includes(q) || user.includes(q);
+    });
+    renderAvailableStudents(filtered);
+}
+
+function toggleAssignSelect(id, checked) {
+    if (checked) _selectedToAssign.add(id);
+    else _selectedToAssign.delete(id);
+}
+
+async function assignSelectedStudents() {
+    if (_selectedToAssign.size === 0) return showToast('⚠️ اختر طلاباً أولاً', 'warning');
+    try {
+        const fd = new FormData();
+        fd.append('student_ids', Array.from(_selectedToAssign).join(','));
+        const res = await authFetch('/api/admin/supervisors/' + _currentSupId + '/assign-bulk', { method: 'POST', body: fd });
+        if (!res || !res.ok) throw new Error('failed');
+        const data = await res.json();
+        showToast('✅ تم ربط ' + (data.added || 0) + ' طالب', 'success');
+        _selectedToAssign.clear();
+        manageSupStudents(_currentSupId, document.getElementById('sup-mod-name').textContent);
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ فشل', 'error');
+    }
+}
+
+async function unassignStudent(studentId) {
+    try {
+        const res = await authFetch('/api/admin/supervisors/' + _currentSupId + '/unassign-student/' + studentId, { method: 'DELETE' });
+        if (!res || !res.ok) throw new Error('failed');
+        showToast('✅ تم فك الربط', 'success');
+        manageSupStudents(_currentSupId, document.getElementById('sup-mod-name').textContent);
+        loadSupervisors();
+    } catch(e) {
+        showToast('❌ فشل', 'error');
     }
 }
 </script>

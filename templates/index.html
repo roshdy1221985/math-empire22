@@ -364,6 +364,7 @@
         .gate-card:nth-child(2) { animation-delay: 1.0s; }
         .gate-card:nth-child(3) { animation-delay: 1.1s; }
         .gate-card:nth-child(4) { animation-delay: 1.2s; }
+        .gate-card:nth-child(5) { animation-delay: 1.3s; }
 
         @keyframes cardAppear {
             to { opacity: 1; transform: translateY(0) scale(1); }
@@ -479,6 +480,7 @@
         .gate-card.card-student   { --card-color: var(--emerald);  --card-bg: rgba(46,204,113,0.1);  --card-glow: rgba(46,204,113,0.4); }
         .gate-card.card-parent    { --card-color: var(--sapphire); --card-bg: rgba(52,152,219,0.1); --card-glow: rgba(52,152,219,0.4); }
         .gate-card.card-teacher   { --card-color: var(--amethyst); --card-bg: rgba(155,89,182,0.1); --card-glow: rgba(155,89,182,0.4); }
+        .gate-card.card-supervisor{ --card-color: var(--ruby);     --card-bg: rgba(231,76,60,0.1);  --card-glow: rgba(231,76,60,0.4); }
         .gate-card.card-admin     { --card-color: var(--gold);     --card-bg: rgba(212,175,55,0.12);--card-glow: rgba(212,175,55,0.5); }
 
         /* الفوتر */
@@ -709,7 +711,6 @@
             </a>
 
             <a href="/parent" class="gate-card card-parent" onclick="playRoyalSound(event, 'door')">
-                <span class="badge-new">جديد ✨</span>
                 <div class="gate-icon-wrap">
                     <span class="gate-icon">🛡️</span>
                 </div>
@@ -717,6 +718,18 @@
                 <p>متابعة تقارير الأبطال ومراقبة الإنجازات</p>
                 <span class="gate-action">
                     ادخل الديوان <i class="fas fa-arrow-left"></i>
+                </span>
+            </a>
+
+            <a href="/supervisor" class="gate-card card-supervisor" onclick="playRoyalSound(event, 'door')">
+                <span class="badge-new">جديد ✨</span>
+                <div class="gate-icon-wrap">
+                    <span class="gate-icon">🎓</span>
+                </div>
+                <h2>ساحة المشرفين</h2>
+                <p>متابعة الطلاب وإصدار الاختبارات والتقارير</p>
+                <span class="gate-action">
+                    ادخل الساحة <i class="fas fa-arrow-left"></i>
                 </span>
             </a>
 
