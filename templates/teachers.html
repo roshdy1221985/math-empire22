@@ -3615,7 +3615,7 @@
         
         <!-- 📊 الهَب الجديد: سجلاتي -->
         <button class="nav-btn nav-royal btn-records-hub" onclick="showSection('records-hub',this)" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,158,11,0.08));border:1px solid rgba(212,175,55,0.4);">
-            <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
+            <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
         </button>
         
         <!-- 🤖 الهَب 3: الذكاء الاصطناعي -->
@@ -3997,11 +3997,234 @@
         #section-gradebook .gb-btn-del{background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:30px;height:30px;border-radius:6px;cursor:pointer;font-size:0.85rem;padding:0;}
         #section-gradebook .gb-btn-del:hover{background:rgba(231,76,60,0.3);}
         
+        /* 🎨 الدباجة - تنسيق جمالي على الشاشة */
+        #section-gradebook .gb-header{
+            background: linear-gradient(160deg,rgba(212,175,55,0.08),rgba(0,8,20,0.92)) !important;
+            border: 2px solid rgba(212,175,55,0.5) !important;
+            border-radius: 18px !important;
+            padding: 22px 26px !important;
+            margin-bottom: 18px !important;
+            position: relative !important;
+            box-shadow: 0 8px 24px rgba(212,175,55,0.15) !important;
+        }
+        #section-gradebook .gb-header::before{
+            content: '';
+            position: absolute;
+            top: 0; left: 8%; right: 8%;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, #d4af37, #fcf6ba, #d4af37, transparent);
+            border-radius: 3px;
+        }
+        #section-gradebook .gb-h-col h1{
+            font-family: 'Amiri', serif !important;
+            background: linear-gradient(135deg, #b38728, #d4af37, #fcf6ba, #d4af37, #b38728);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-size: 1.7rem !important;
+            font-weight: 900 !important;
+            text-shadow: 0 2px 10px rgba(212,175,55,0.3);
+            letter-spacing: 1px;
+        }
+        #section-gradebook .gb-h-col .gb-h-line{
+            font-size: 0.92rem !important;
+            font-weight: 600 !important;
+            color: rgba(255,255,255,0.85) !important;
+        }
+        #section-gradebook .gb-h-col .gb-h-line b{ color: #d4af37; }
+        
+        /* 🖨️ تنسيق طباعة احترافي A4 */
         @media print {
+            @page {
+                size: A4 landscape;
+                margin: 8mm 6mm;
+            }
+            
+            html, body {
+                margin: 0 !important;
+                padding: 0 !important;
+                background: white !important;
+                color: #000 !important;
+                font-family: 'Cairo','Tajawal',Arial,sans-serif !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            
+            /* نُخفي كل شيء عدا منطقة الطباعة */
             body * { visibility: hidden; }
             #gb-print-area, #gb-print-area * { visibility: visible; }
-            #gb-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; }
-            #gb-print-area * { background: white !important; color: black !important; border-color: #333 !important; }
+            
+            /* نُخفي الأزرار والأدوات */
+            .gb-actions, .gb-tabs, .gb-btn-del, #gb-batch-modal,
+            .sidebar, .topbar, .nav-btn,
+            .gb-stats { display: none !important; }
+            
+            #gb-print-area {
+                position: absolute !important;
+                left: 0; top: 0;
+                width: 100% !important;
+                background: white !important;
+                color: #000 !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            
+            /* الدباجة في الطباعة - أبيض/أسود رسمي */
+            #section-gradebook .gb-header {
+                background: white !important;
+                border: 2px solid #1a1a1a !important;
+                border-radius: 0 !important;
+                box-shadow: none !important;
+                padding: 14px 20px !important;
+                margin-bottom: 8mm !important;
+            }
+            #section-gradebook .gb-header::before {
+                background: linear-gradient(90deg, transparent, #b8860b, transparent) !important;
+                height: 2px !important;
+            }
+            #section-gradebook .gb-h-col h1 {
+                color: #1a1a1a !important;
+                background: none !important;
+                -webkit-text-fill-color: #1a1a1a !important;
+                font-size: 22px !important;
+                text-shadow: none !important;
+                margin-bottom: 4px !important;
+            }
+            #section-gradebook .gb-h-col .gb-h-line {
+                color: #1a1a1a !important;
+                font-size: 13px !important;
+                margin: 2px 0 !important;
+            }
+            #section-gradebook .gb-h-col .gb-h-line b { color: #1a1a1a !important; }
+            
+            /* حقول الدباجة - تحويل لنص في الطباعة */
+            #section-gradebook .gb-h-input {
+                background: transparent !important;
+                border: none !important;
+                border-bottom: 1px solid #666 !important;
+                color: #1a1a1a !important;
+                padding: 0 4px !important;
+                font-size: 13px !important;
+                border-radius: 0 !important;
+                display: inline-block !important;
+            }
+            
+            /* الجدول - تنسيق احترافي */
+            #section-gradebook .gb-table-wrap {
+                background: white !important;
+                border: none !important;
+                padding: 0 !important;
+                overflow: visible !important;
+            }
+            #section-gradebook .gb-table {
+                width: 100% !important;
+                min-width: 0 !important;
+                border-collapse: collapse !important;
+                font-size: 10px !important;
+                page-break-inside: auto !important;
+            }
+            #section-gradebook .gb-table th {
+                background: #1a1a1a !important;
+                color: white !important;
+                padding: 5px 3px !important;
+                font-size: 10px !important;
+                border: 1px solid #000 !important;
+                font-weight: bold !important;
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            #section-gradebook .gb-table td {
+                padding: 4px 2px !important;
+                color: #1a1a1a !important;
+                background: white !important;
+                border: 1px solid #555 !important;
+                font-size: 10px !important;
+                page-break-inside: avoid !important;
+            }
+            #section-gradebook .gb-table tr {
+                page-break-inside: avoid !important;
+                page-break-after: auto !important;
+            }
+            #section-gradebook .gb-table tr:nth-child(even) td {
+                background: #f5f5f5 !important;
+                -webkit-print-color-adjust: exact !important;
+            }
+            
+            /* حقول الإدخال داخل الجدول - تحويل لنص */
+            #section-gradebook .gb-cell-input,
+            #section-gradebook .gb-cell-name input {
+                background: transparent !important;
+                border: none !important;
+                color: #1a1a1a !important;
+                font-size: 10px !important;
+                padding: 0 !important;
+                font-weight: 600 !important;
+                width: auto !important;
+                text-align: center !important;
+            }
+            #section-gradebook .gb-cell-name input {
+                text-align: right !important;
+                font-size: 11px !important;
+            }
+            
+            /* المستويات والمجاميع - بارزة */
+            #section-gradebook .gb-level {
+                font-weight: bold !important;
+                font-size: 12px !important;
+            }
+            #section-gradebook .gb-lvl-a { color: #006400 !important; }
+            #section-gradebook .gb-lvl-b { color: #0044aa !important; }
+            #section-gradebook .gb-lvl-c { color: #aa6600 !important; }
+            #section-gradebook .gb-lvl-d { color: #cc4400 !important; }
+            #section-gradebook .gb-lvl-e { color: #aa0000 !important; }
+            #section-gradebook .gb-sum {
+                color: #1a1a1a !important;
+                font-weight: bold !important;
+            }
+            
+            /* التذييل - 3 توقيعات احترافية */
+            #section-gradebook .gb-footer {
+                background: white !important;
+                border: 1px solid #1a1a1a !important;
+                border-radius: 0 !important;
+                margin-top: 8mm !important;
+                padding: 10px 14px !important;
+                page-break-inside: avoid !important;
+            }
+            #section-gradebook .gb-foot-col strong {
+                color: #1a1a1a !important;
+                font-size: 12px !important;
+            }
+            #section-gradebook .gb-foot-col {
+                color: #1a1a1a !important;
+                font-size: 11px !important;
+            }
+            #section-gradebook .gb-foot-line {
+                border-bottom: 1px solid #1a1a1a !important;
+                margin-top: 14px !important;
+            }
+            #section-gradebook .gb-foot-col input {
+                background: transparent !important;
+                border: none !important;
+                color: #1a1a1a !important;
+                font-size: 11px !important;
+                text-align: center !important;
+            }
+            
+            /* إخفاء العمود الأخير "إجراءات" */
+            #section-gradebook .gb-table th:last-child,
+            #section-gradebook .gb-table td:last-child { display: none !important; }
+            
+            /* خطوط زخرفية */
+            #gb-print-area::before {
+                content: '';
+                display: block;
+                width: 100%;
+                height: 3px;
+                background: linear-gradient(90deg, transparent, #b8860b, #d4af37, #b8860b, transparent);
+                margin-bottom: 4mm;
+            }
         }
     </style>
     
@@ -4187,6 +4410,7 @@
         <div class="ws-actions">
             <button class="ws-btn" onclick="wsAddStudent()">➕ إضافة طالب ضعيف</button>
             <button class="ws-btn ws-btn-blue" onclick="wsImportFromGradebook()">📥 استيراد من سجل الدرجات</button>
+            <button class="ws-btn" style="background:linear-gradient(135deg,#7f8c8d,#95a5a6);" onclick="wsPrintAll()">🖨️ طباعة السجل كاملاً</button>
             <button class="ws-btn ws-btn-green" onclick="wsExport()">📎 تصدير Excel</button>
         </div>
         
@@ -4241,6 +4465,7 @@
         <div class="gs-actions">
             <button class="gs-btn" onclick="gsAddStudent()">⭐ إضافة طالب موهوب</button>
             <button class="gs-btn gs-btn-blue" onclick="gsImportFromGradebook()">📥 استيراد المتفوقين</button>
+            <button class="gs-btn" style="background:linear-gradient(135deg,#7f8c8d,#95a5a6);" onclick="gsPrintAll()">🖨️ طباعة السجل كاملاً</button>
             <button class="gs-btn gs-btn-green" onclick="gsExport()">📎 تصدير Excel</button>
         </div>
         
@@ -14748,7 +14973,10 @@ function wsRender() {
                         'البداية: ' + s.initialScore + ' → الحالي: <b style="color:#fbbf24;">' + s.currentScore + '</b> → الهدف: <b style="color:#2ecc71;">' + s.targetScore + '</b>' +
                     '</div>' +
                 '</div>' +
-                '<button onclick="wsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+                '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+                    '<button onclick="wsPrintOne(' + s.id + ')" style="background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.4);color:#3498db;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🖨️ طباعة</button>' +
+                    '<button onclick="wsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+                '</div>' +
             '</div>' +
             
             '<div class="ws-row">' +
@@ -14982,7 +15210,10 @@ function gsRender() {
                     '<div class="gs-meta">📚 ' + gbEsc(s.class||'-') + ' · 📊 المتوسط: <b style="color:#fbbf24;">' + s.avgScore + '%</b> · 🏆 ' + achievCount + ' إنجاز</div>' +
                     '<div style="margin-top:6px;"><span class="gs-badge gs-talent">' + gbEsc(s.talentArea||'الموهبة') + '</span></div>' +
                 '</div>' +
-                '<button onclick="gsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+                '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+                    '<button onclick="gsPrintOne(' + s.id + ')" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:#f59e0b;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🖨️ طباعة</button>' +
+                    '<button onclick="gsDeleteStudent(' + s.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-size:.78rem;">🗑️ حذف</button>' +
+                '</div>' +
             '</div>' +
             
             '<div class="gs-row-3">' +
@@ -15065,6 +15296,251 @@ function gsDeleteStudent(sid) {
     gsSave();
     gsRender();
     gsUpdateStats();
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🖨️ دوال طباعة احترافية - الضعاف
+// ════════════════════════════════════════════════════════════
+function wsPrintOne(sid) {
+    var s = WS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    var progress = s.targetScore > s.initialScore ? 
+        Math.max(0, Math.min(100, ((s.currentScore - s.initialScore) / (s.targetScore - s.initialScore)) * 100)) : 0;
+    var isImproved = s.currentScore >= s.targetScore || s.improved;
+    var tasksHtml = (s.tasks || []).map(function(t) {
+        return '<li style="padding:4px 0;' + (t.done ? 'text-decoration:line-through;color:#666;' : '') + '">' + 
+            (t.done ? '☑ ' : '☐ ') + gbEsc(t.text) + '</li>';
+    }).join('') || '<li style="color:#999;">— لا توجد مهام —</li>';
+    
+    var html = wsBuildPrintHTML('🆘 بطاقة متابعة طالب ضعيف', 
+        wsStudentToPrintCard(s, progress, isImproved, tasksHtml));
+    wsOpenPrintWindow(html, 'بطاقة_' + s.name);
+}
+
+function wsPrintAll() {
+    if (!WS_DATA.students.length) { alert('⚠️ لا توجد بيانات للطباعة'); return; }
+    
+    var cards = WS_DATA.students.map(function(s) {
+        var progress = s.targetScore > s.initialScore ? 
+            Math.max(0, Math.min(100, ((s.currentScore - s.initialScore) / (s.targetScore - s.initialScore)) * 100)) : 0;
+        var isImproved = s.currentScore >= s.targetScore || s.improved;
+        var tasksHtml = (s.tasks || []).map(function(t) {
+            return '<li style="padding:3px 0;' + (t.done ? 'text-decoration:line-through;color:#666;' : '') + '">' + 
+                (t.done ? '☑ ' : '☐ ') + gbEsc(t.text) + '</li>';
+        }).join('') || '<li style="color:#999;">— لا توجد مهام —</li>';
+        return wsStudentToPrintCard(s, progress, isImproved, tasksHtml);
+    }).join('<div style="page-break-after:always;"></div>');
+    
+    var improved = WS_DATA.students.filter(function(s){return s.improved || s.currentScore >= s.targetScore;}).length;
+    var title = '🆘 سجل الطلاب الضعاف وخططهم العلاجية';
+    var summary = '<div style="background:#f9f4e6;border:2px solid #b8860b;padding:14px;margin-bottom:20px;border-radius:8px;text-align:center;">' +
+        '<div style="font-size:14px;color:#1a1a1a;"><b>إجمالي الطلاب:</b> ' + WS_DATA.students.length + ' &nbsp;|&nbsp; <b>تحسّنوا:</b> ' + improved + ' &nbsp;|&nbsp; <b>قيد المتابعة:</b> ' + (WS_DATA.students.length - improved) + '</div>' +
+        '</div>';
+    
+    wsOpenPrintWindow(wsBuildPrintHTML(title, summary + cards), 'سجل_الضعاف_الكامل');
+}
+
+function wsStudentToPrintCard(s, progress, isImproved, tasksHtml) {
+    var bgColor = isImproved ? '#e8f5e9' : '#fff4f4';
+    var borderColor = isImproved ? '#2e7d32' : '#c62828';
+    var status = isImproved ? '✅ تحسّن وحقق الهدف' : '🔴 قيد المتابعة';
+    
+    return '<div class="print-card" style="border:2px solid ' + borderColor + ';background:' + bgColor + ';border-radius:10px;padding:18px;margin-bottom:16px;page-break-inside:avoid;">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;border-bottom:2px solid ' + borderColor + ';padding-bottom:10px;margin-bottom:12px;">' +
+            '<div>' +
+                '<h2 style="margin:0 0 4px;color:#1a1a1a;font-family:Amiri,serif;font-size:20px;">👤 ' + gbEsc(s.name) + '</h2>' +
+                '<div style="font-size:12px;color:#444;">📚 ' + gbEsc(s.class||'-') + ' &nbsp;·&nbsp; 📅 بداية المتابعة: ' + gbEsc(s.startDate||'-') + '</div>' +
+            '</div>' +
+            '<div style="background:' + borderColor + ';color:white;padding:6px 14px;border-radius:6px;font-weight:bold;font-size:12px;">' + status + '</div>' +
+        '</div>' +
+        
+        '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-size:12px;">' +
+            '<tr>' +
+                '<td style="padding:6px;border:1px solid #999;background:#f0f0f0;width:25%;"><b>📉 البداية</b></td>' +
+                '<td style="padding:6px;border:1px solid #999;text-align:center;font-size:16px;color:#c62828;font-weight:bold;">' + s.initialScore + '</td>' +
+                '<td style="padding:6px;border:1px solid #999;background:#f0f0f0;width:25%;"><b>📊 الحالي</b></td>' +
+                '<td style="padding:6px;border:1px solid #999;text-align:center;font-size:16px;color:#b8860b;font-weight:bold;">' + s.currentScore + '</td>' +
+            '</tr>' +
+            '<tr>' +
+                '<td style="padding:6px;border:1px solid #999;background:#f0f0f0;"><b>🎯 الهدف</b></td>' +
+                '<td style="padding:6px;border:1px solid #999;text-align:center;font-size:16px;color:#2e7d32;font-weight:bold;">' + s.targetScore + '</td>' +
+                '<td style="padding:6px;border:1px solid #999;background:#f0f0f0;"><b>📞 ولي الأمر</b></td>' +
+                '<td style="padding:6px;border:1px solid #999;font-size:12px;">' + gbEsc(s.parentContact||'-') + '</td>' +
+            '</tr>' +
+        '</table>' +
+        
+        '<div style="margin-bottom:8px;">' +
+            '<div style="font-size:11px;color:#444;margin-bottom:3px;">📊 نسبة التقدّم نحو الهدف: ' + progress.toFixed(0) + '%</div>' +
+            '<div style="height:14px;background:#ddd;border-radius:7px;overflow:hidden;border:1px solid #999;">' +
+                '<div style="height:100%;width:' + progress + '%;background:linear-gradient(90deg,#c62828,#f57f17,#2e7d32);"></div>' +
+            '</div>' +
+        '</div>' +
+        
+        '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">📖 المواضيع الضعيفة:</div>' +
+            '<div style="font-size:12px;color:#333;">' + (gbEsc(s.weakSubjects) || '<i style="color:#999;">— لم يُحدّد —</i>') + '</div>' +
+        '</div>' +
+        
+        '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">🔍 التشخيص:</div>' +
+            '<div style="font-size:12px;color:#333;white-space:pre-wrap;">' + (gbEsc(s.diagnosis) || '<i style="color:#999;">— لم يُحدّد —</i>') + '</div>' +
+        '</div>' +
+        
+        '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">💡 الخطة العلاجية:</div>' +
+            '<div style="font-size:12px;color:#333;white-space:pre-wrap;">' + (gbEsc(s.plan) || '<i style="color:#999;">— لم تُحدّد —</i>') + '</div>' +
+        '</div>' +
+        
+        '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:6px;">📋 المهام والتدخلات:</div>' +
+            '<ul style="margin:0;padding-right:20px;font-size:12px;color:#333;">' + tasksHtml + '</ul>' +
+        '</div>' +
+        
+        (s.notes ? '<div style="background:#fff8e1;border:1px solid #f57f17;padding:8px 10px;border-radius:5px;font-size:11px;color:#555;"><b>📝 ملاحظات:</b> ' + gbEsc(s.notes) + '</div>' : '') +
+    '</div>';
+}
+
+function wsBuildPrintHTML(title, content) {
+    var school = (GB_DATA.header && GB_DATA.header['gb-school']) || '';
+    var year = (GB_DATA.header && GB_DATA.header['gb-year']) || '';
+    var teacher = (GB_DATA.header && GB_DATA.header['gb-teacher-name']) || '';
+    var dateStr = new Date().toLocaleDateString('ar-EG', {year:'numeric',month:'long',day:'numeric'});
+    
+    return '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>' + title + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+            '@page { size: A4; margin: 12mm; }' +
+            'body { font-family: "Cairo","Tajawal",Arial,sans-serif; color:#1a1a1a; margin:0; padding:0; direction:rtl; }' +
+            '.print-header { text-align:center; border-bottom:3px double #b8860b; padding-bottom:14px; margin-bottom:20px; }' +
+            '.print-header h1 { font-family:Amiri,serif; color:#b8860b; font-size:24px; margin:0 0 6px; }' +
+            '.print-header .school-info { font-size:13px; color:#555; margin:4px 0; }' +
+            '.print-footer { margin-top:30px; padding-top:14px; border-top:1px solid #999; display:flex; justify-content:space-between; font-size:11px; color:#666; }' +
+            '@media print { .no-print { display: none !important; } body { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; } }' +
+        '</style></head><body>' +
+        
+        '<div class="print-header">' +
+            '<h1>' + title + '</h1>' +
+            (school ? '<div class="school-info">🏫 ' + gbEsc(school) + '</div>' : '') +
+            (year ? '<div class="school-info">📅 العام الدراسي: ' + gbEsc(year) + '</div>' : '') +
+            (teacher ? '<div class="school-info">👨‍🏫 المعلم: ' + gbEsc(teacher) + '</div>' : '') +
+            '<div class="school-info">🗓️ تاريخ الطباعة: ' + dateStr + '</div>' +
+        '</div>' +
+        
+        '<div style="text-align:center;margin-bottom:14px;" class="no-print">' +
+            '<button onclick="window.print()" style="background:#b8860b;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:14px;">🖨️ طباعة الآن</button>' +
+            '<button onclick="window.close()" style="background:#666;color:white;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:14px;margin-right:8px;">✕ إغلاق</button>' +
+        '</div>' +
+        
+        content +
+        
+        '<div class="print-footer">' +
+            '<div>إمبراطورية الرياضيات 👑</div>' +
+            '<div>صفحة 1</div>' +
+        '</div>' +
+    '</body></html>';
+}
+
+function wsOpenPrintWindow(htmlContent, filename) {
+    var win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) {
+        alert('⚠️ المتصفح منع فتح النافذة - يرجى السماح بالنوافذ المنبثقة');
+        return;
+    }
+    win.document.open();
+    win.document.write(htmlContent);
+    win.document.close();
+    // نفتح طباعة بعد التحميل
+    setTimeout(function() {
+        try { win.focus(); } catch(e){}
+    }, 300);
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🖨️ دوال طباعة احترافية - الموهوبين
+// ════════════════════════════════════════════════════════════
+function gsPrintOne(sid) {
+    var s = GS_DATA.students.find(function(x){return x.id === sid;});
+    if (!s) return;
+    var stars = '';
+    for (var i = 0; i < 5; i++) stars += (i < (s.talentLevel||0) ? '★' : '☆');
+    var achievHtml = (s.achievements || []).map(function(a) {
+        return '<li style="padding:4px 0;">🏆 ' + gbEsc(a) + '</li>';
+    }).join('') || '<li style="color:#999;">— لا توجد إنجازات مسجلة —</li>';
+    
+    var html = wsBuildPrintHTML('⭐ بطاقة طالب موهوب', 
+        gsStudentToPrintCard(s, stars, achievHtml));
+    wsOpenPrintWindow(html, 'بطاقة_موهوب_' + s.name);
+}
+
+function gsPrintAll() {
+    if (!GS_DATA.students.length) { alert('⚠️ لا توجد بيانات للطباعة'); return; }
+    
+    var cards = GS_DATA.students.map(function(s) {
+        var stars = '';
+        for (var i = 0; i < 5; i++) stars += (i < (s.talentLevel||0) ? '★' : '☆');
+        var achievHtml = (s.achievements || []).map(function(a) {
+            return '<li style="padding:3px 0;">🏆 ' + gbEsc(a) + '</li>';
+        }).join('') || '<li style="color:#999;">— لا توجد إنجازات —</li>';
+        return gsStudentToPrintCard(s, stars, achievHtml);
+    }).join('<div style="page-break-after:always;"></div>');
+    
+    var totalAchievements = GS_DATA.students.reduce(function(sum, s){return sum + ((s.achievements||[]).length);}, 0);
+    var title = '⭐ سجل الطلاب الموهوبين وبرامج الإثراء';
+    var summary = '<div style="background:#fff8e1;border:2px solid #b8860b;padding:14px;margin-bottom:20px;border-radius:8px;text-align:center;">' +
+        '<div style="font-size:14px;color:#1a1a1a;"><b>إجمالي الموهوبين:</b> ' + GS_DATA.students.length + ' &nbsp;|&nbsp; <b>إجمالي الإنجازات:</b> ' + totalAchievements + '</div>' +
+        '</div>';
+    
+    wsOpenPrintWindow(wsBuildPrintHTML(title, summary + cards), 'سجل_الموهوبين_الكامل');
+}
+
+function gsStudentToPrintCard(s, stars, achievHtml) {
+    return '<div class="print-card" style="border:2px solid #b8860b;background:#fffef5;border-radius:10px;padding:18px;margin-bottom:16px;page-break-inside:avoid;position:relative;">' +
+        '<div style="position:absolute;top:0;right:0;background:#b8860b;color:white;padding:6px 16px;border-radius:0 8px 0 14px;font-weight:bold;font-size:14px;">⭐ موهوب</div>' +
+        
+        '<div style="display:flex;justify-content:space-between;align-items:start;border-bottom:2px solid #b8860b;padding-bottom:10px;margin-bottom:12px;margin-top:14px;">' +
+            '<div>' +
+                '<h2 style="margin:0 0 4px;color:#1a1a1a;font-family:Amiri,serif;font-size:20px;">⭐ ' + gbEsc(s.name) + '</h2>' +
+                '<div style="font-size:14px;color:#b8860b;margin:4px 0;">' + stars + ' <span style="color:#666;font-size:11px;margin-right:8px;">(مستوى ' + s.talentLevel + '/5)</span></div>' +
+                '<div style="font-size:12px;color:#444;">📚 ' + gbEsc(s.class||'-') + ' &nbsp;·&nbsp; 📊 المتوسط: <b style="color:#b8860b;">' + s.avgScore + '%</b></div>' +
+            '</div>' +
+            '<div style="text-align:center;">' +
+                '<div style="background:#fff4d4;border:1px solid #b8860b;padding:6px 12px;border-radius:6px;font-size:11px;color:#555;margin-bottom:4px;">🎯 مجال الموهبة</div>' +
+                '<div style="font-weight:bold;font-size:13px;color:#1a1a1a;">' + gbEsc(s.talentArea||'-') + '</div>' +
+            '</div>' +
+        '</div>' +
+        
+        (s.mentor ? '<div style="background:white;border:1px solid #b8860b;padding:8px 12px;margin-bottom:10px;border-radius:5px;font-size:12px;color:#555;"><b>👨‍🏫 المرشد:</b> ' + gbEsc(s.mentor) + '</div>' : '') +
+        
+        (s.strengths ? '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">💎 نقاط القوة الإبداعية:</div>' +
+            '<div style="font-size:12px;color:#333;white-space:pre-wrap;">' + gbEsc(s.strengths) + '</div>' +
+        '</div>' : '') +
+        
+        (s.enrichmentProgram ? '<div style="background:white;border:1px solid #999;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">🌟 البرنامج الإثرائي:</div>' +
+            '<div style="font-size:12px;color:#333;white-space:pre-wrap;">' + gbEsc(s.enrichmentProgram) + '</div>' +
+        '</div>' : '') +
+        
+        '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:8px;">' +
+            (s.challengeProjects ? '<div style="background:white;border:1px solid #999;padding:10px;border-radius:5px;">' +
+                '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">🚀 مشاريع التحدّي:</div>' +
+                '<div style="font-size:11px;color:#333;white-space:pre-wrap;">' + gbEsc(s.challengeProjects) + '</div>' +
+            '</div>' : '') +
+            (s.competitions ? '<div style="background:white;border:1px solid #999;padding:10px;border-radius:5px;">' +
+                '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:4px;">🏅 المسابقات:</div>' +
+                '<div style="font-size:11px;color:#333;white-space:pre-wrap;">' + gbEsc(s.competitions) + '</div>' +
+            '</div>' : '') +
+        '</div>' +
+        
+        '<div style="background:#fff4d4;border:2px solid #b8860b;padding:10px;margin-bottom:8px;border-radius:5px;">' +
+            '<div style="font-weight:bold;color:#1a1a1a;font-size:12px;margin-bottom:6px;">🏆 الإنجازات والجوائز (' + ((s.achievements||[]).length) + '):</div>' +
+            '<ul style="margin:0;padding-right:20px;font-size:12px;color:#333;">' + achievHtml + '</ul>' +
+        '</div>' +
+        
+        (s.notes ? '<div style="background:#fff8e1;border:1px solid #f57f17;padding:8px 10px;border-radius:5px;font-size:11px;color:#555;"><b>📝 ملاحظات:</b> ' + gbEsc(s.notes) + '</div>' : '') +
+    '</div>';
 }
 
 function gsUpdateStats() {
