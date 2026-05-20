@@ -616,7 +616,7 @@
             font-size: 2rem;
             font-weight: 700;
             background: linear-gradient(135deg, #f5d04a 0%, #d4af37 50%, #b8860b 100%);
-            -webkit-background-clip: text;
+            -webkit-background-clip:text;background-clip:text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin: 0 0 4px;
@@ -774,7 +774,7 @@
             font-weight: 900;
             line-height: 1;
             background: linear-gradient(135deg, #f5d04a 0%, #d4af37 100%);
-            -webkit-background-clip: text;
+            -webkit-background-clip:text;background-clip:text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 6px;
@@ -3615,7 +3615,7 @@
         
         <!-- 📊 الهَب الجديد: سجلاتي -->
         <button class="nav-btn nav-royal btn-records-hub" onclick="showSection('records-hub',this)" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,158,11,0.08));border:1px solid rgba(212,175,55,0.4);">
-            <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
+            <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
         </button>
         
         <!-- 🤖 الهَب 3: الذكاء الاصطناعي -->
@@ -4034,8 +4034,8 @@
         }
         #section-gradebook .gb-h-col .gb-h-line b{ color: #d4af37; }
         
-        /* 🖨️ تنسيق طباعة احترافي A4 */
-        @media print {
+        /* 🖨️ تنسيق طباعة احترافي A4 - حل نهائي (visibility approach) */
+@media print {
             @page {
                 size: A4 landscape;
                 margin: 8mm 6mm;
@@ -4049,26 +4049,26 @@
                 font-family: 'Cairo','Tajawal',Arial,sans-serif !important;
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
-            }
-            
-            /* نُخفي كل شيء عدا منطقة الطباعة */
-            body * { visibility: hidden; }
-            #gb-print-area, #gb-print-area * { visibility: visible; }
-            
-            /* نُخفي الأزرار والأدوات */
-            .gb-actions, .gb-tabs, .gb-btn-del, #gb-batch-modal,
-            .sidebar, .topbar, .nav-btn,
-            .gb-stats { display: none !important; }
-            
-            #gb-print-area {
-                position: absolute !important;
-                left: 0; top: 0;
                 width: 100% !important;
-                background: white !important;
-                color: #000 !important;
-                padding: 0 !important;
-                margin: 0 !important;
+                min-height: 0 !important;
+                height: auto !important;
+                overflow: visible !important;
             }
+            
+            /* 🚫 إخفاء فعلي للأزرار والتبويبات (لا تأخذ مساحة) */
+            .gb-actions, .gb-tabs, #gb-batch-modal,
+            #gb-template-modal, #gb-columns-modal,
+            .modal-ov, #toast, .toast-msg,
+            .gb-btn-del, .gb-stats {
+                display: none !important;
+            }
+            
+            /* إخفاء عمود الإجراءات في الجدول */
+            #section-gradebook .gb-table th:last-child,
+            #section-gradebook .gb-table td:last-child {
+                display: none !important;
+            }
+            
             
             /* الدباجة في الطباعة - أبيض/أسود رسمي */
             #section-gradebook .gb-header {
@@ -4149,6 +4149,7 @@
             #section-gradebook .gb-table tr:nth-child(even) td {
                 background: #f5f5f5 !important;
                 -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
             }
             
             /* حقول الإدخال داخل الجدول - تحويل لنص */
@@ -4212,10 +4213,6 @@
                 text-align: center !important;
             }
             
-            /* إخفاء العمود الأخير "إجراءات" */
-            #section-gradebook .gb-table th:last-child,
-            #section-gradebook .gb-table td:last-child { display: none !important; }
-            
             /* خطوط زخرفية */
             #gb-print-area::before {
                 content: '';
@@ -4271,6 +4268,8 @@
             <div class="gb-actions">
                 <button class="gb-btn" onclick="gbAddStudent()">➕ إضافة طالب</button>
                 <button class="gb-btn gb-btn-purple" onclick="gbOpenBatchModal()">📋 إضافة دفعة</button>
+                <button class="gb-btn" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;" onclick="gbOpenColumnsEditor()">⚙️ تخصيص الأعمدة</button>
+                <button class="gb-btn" style="background:linear-gradient(135deg,#ec4899,#f43f5e);color:#fff;" onclick="gbOpenTemplateModal()">🎨 تغيير القالب</button>
                 <button class="gb-btn gb-btn-blue" onclick="gbPrint()">🖨️ طباعة</button>
                 <button class="gb-btn gb-btn-green" onclick="gbExportExcel()">📎 تصدير Excel</button>
             </div>
@@ -4337,6 +4336,73 @@
             <div class="gb-stats" id="gb-stats">
                 <!-- يُملأ ديناميكياً -->
             </div>
+        </div>
+    </div>
+    
+    
+    <!-- Modal: اختيار القالب -->
+    <div id="gb-template-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #d4af37;border-radius:20px;padding:28px;max-width:780px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+                <h3 style="color:#d4af37;margin:0;font-family:Amiri,serif;font-size:1.4rem;">🎨 اختر قالب السجل</h3>
+                <button onclick="document.getElementById('gb-template-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            <p style="color:rgba(255,255,255,0.6);font-size:0.88rem;margin-bottom:18px;text-align:center;">⚠️ تغيير القالب يحذف بيانات الشعبة الحالية</p>
+            
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+                <!-- قالب رسمي -->
+                <div onclick="gbApplyTemplate('official')" style="background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(184,134,11,0.05));border:2px solid rgba(212,175,55,0.4);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='#d4af37';" onmouseout="this.style.transform='';this.style.borderColor='rgba(212,175,55,0.4)';">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📊</div>
+                    <h4 style="color:#d4af37;font-family:Amiri,serif;margin-bottom:6px;">القالب الرسمي</h4>
+                    <p style="color:rgba(255,255,255,0.65);font-size:0.78rem;line-height:1.6;">وزارة التربية - 17 عمود<br><b>شفوي، واجبات، اختبارات، مشروع، نهائي + مستويات تلقائية</b></p>
+                    <div style="background:rgba(212,175,55,0.15);color:#d4af37;padding:4px 10px;border-radius:6px;font-size:0.7rem;margin-top:8px;display:inline-block;">🔒 محمي المعادلات</div>
+                </div>
+                
+                <!-- قالب مبسّط -->
+                <div onclick="gbApplyTemplate('simple')" style="background:linear-gradient(135deg,rgba(59,130,246,0.1),rgba(37,99,235,0.05));border:2px solid rgba(59,130,246,0.4);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='#3b82f6';" onmouseout="this.style.transform='';this.style.borderColor='rgba(59,130,246,0.4)';">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">📝</div>
+                    <h4 style="color:#3b82f6;font-family:Amiri,serif;margin-bottom:6px;">القالب المبسّط</h4>
+                    <p style="color:rgba(255,255,255,0.65);font-size:0.78rem;line-height:1.6;">6 أعمدة فقط<br><b>حضور، مشاركة، واجبات، اختبار 1، اختبار 2، نهائي</b></p>
+                    <div style="background:rgba(59,130,246,0.15);color:#3b82f6;padding:4px 10px;border-radius:6px;font-size:0.7rem;margin-top:8px;display:inline-block;">✏️ قابل للتعديل بالكامل</div>
+                </div>
+                
+                <!-- جدول فارغ -->
+                <div onclick="gbApplyTemplate('blank')" style="background:linear-gradient(135deg,rgba(46,204,113,0.1),rgba(22,160,133,0.05));border:2px solid rgba(46,204,113,0.4);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='#2ecc71';" onmouseout="this.style.transform='';this.style.borderColor='rgba(46,204,113,0.4)';">
+                    <div style="font-size:2.5rem;margin-bottom:8px;">🆕</div>
+                    <h4 style="color:#2ecc71;font-family:Amiri,serif;margin-bottom:6px;">جدول فارغ</h4>
+                    <p style="color:rgba(255,255,255,0.65);font-size:0.78rem;line-height:1.6;">ابدأ من الصفر<br><b>عمود الاسم فقط - أضف ما تشاء</b></p>
+                    <div style="background:rgba(46,204,113,0.15);color:#2ecc71;padding:4px 10px;border-radius:6px;font-size:0.7rem;margin-top:8px;display:inline-block;">🎨 حرية كاملة</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal: محرر الأعمدة -->
+    <div id="gb-columns-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.9);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:20px;">
+        <div style="background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #a855f7;border-radius:20px;padding:24px;max-width:700px;width:100%;max-height:90vh;overflow-y:auto;">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+                <h3 style="color:#a855f7;margin:0;font-family:Amiri,serif;font-size:1.3rem;">⚙️ محرر الأعمدة</h3>
+                <button onclick="document.getElementById('gb-columns-modal').style.display='none'" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;width:32px;height:32px;border-radius:50%;cursor:pointer;">✕</button>
+            </div>
+            
+            <p style="color:rgba(255,255,255,0.6);font-size:0.82rem;margin-bottom:14px;background:rgba(168,85,247,0.06);padding:10px 14px;border-radius:8px;border-right:3px solid #a855f7;">
+                💡 <b>تلميحات:</b><br>
+                • 🔒 الأعمدة الحسابية محمية (المستويات والمجاميع)<br>
+                • ✏️ يمكن تغيير اسم أي عمود<br>
+                • ➕ يمكن إضافة أعمدة جديدة في النهاية<br>
+                • 🗑️ يمكن حذف الأعمدة المخصصة فقط<br>
+                • 👁️ يمكن إخفاء أعمدة لتبسيط العرض
+            </p>
+            
+            <div id="gb-cols-list" style="margin-bottom:14px;"></div>
+            
+            <button onclick="gbAddCustomColumn()" style="width:100%;background:linear-gradient(135deg,#16a085,#27ae60);color:#fff;border:none;padding:11px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-bottom:10px;">
+                ➕ إضافة عمود جديد
+            </button>
+            
+            <button onclick="gbSaveColumns()" style="width:100%;background:linear-gradient(135deg,#b38728,#d4af37);color:#000;border:none;padding:12px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;">
+                ✅ تطبيق وحفظ
+            </button>
         </div>
     </div>
     
@@ -5029,7 +5095,7 @@
     <div id="section-themes" class="section">
         <div style="background:linear-gradient(160deg,rgba(155,89,182,0.08),rgba(0,8,20,0.9));border:1px solid rgba(212,175,55,0.3);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;">
             <div style="font-size:3.4rem;margin-bottom:12px;">🎨</div>
-            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">التخصيص والثيمات</h2>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#bb86fc,#9b59b6,#d4a5ff);background-clip:text;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">التخصيص والثيمات</h2>
             <p style="color:rgba(255,255,255,0.75);margin:0;font-size:1rem;">🎨 اختر ثيماً يناسب ذوقك · ضع شعار مدرستك على كل المخرجات</p>
         </div>
 
@@ -14813,7 +14879,145 @@ function gbUpdateStats() {
 }
 
 function gbPrint() {
-    window.print();
+    gbEnsureTemplate();
+    var cls = gbGetCurrentClass();
+    if (!cls) { alert('⚠️ لا توجد شعبة'); return; }
+    
+    var hdr = GB_DATA.header || {};
+    var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+    
+    // 1️⃣ بناء الدباجة
+    var headerHTML = '<div class="print-header"><div class="ph-right">' +
+        '<div><b>وزارة التربية والتعليم</b></div>' +
+        '<div>المديرية العامة بمحافظة <u>' + gbEsc(hdr['gb-gov']||'') + '</u></div>' +
+        '<div>مدرسة <u>' + gbEsc(hdr['gb-school']||'') + '</u></div>' +
+        '</div>' +
+        
+        '<div class="ph-center">' +
+        '<h1>📊 سجل رصد درجات التقويم المستمر</h1>' +
+        '<div class="ph-divider"></div>' +
+        '<div>العام الدراسي <u>' + gbEsc(hdr['gb-year']||'') + '</u></div>' +
+        '</div>' +
+        
+        '<div class="ph-left">' +
+        '<div>المادة: <u>' + gbEsc(hdr['gb-subject']||'') + '</u></div>' +
+        '<div>الصف: <u>' + gbEsc(hdr['gb-grade']||'') + '</u> | الشعبة: <u>' + gbEsc(cls.name||'') + '</u></div>' +
+        '<div>الفصل: <u>' + gbEsc(hdr['gb-term']||'') + '</u></div>' +
+        '</div></div>';
+    
+    // 2️⃣ بناء الجدول
+    var tableHTML = '<table class="print-table"><thead><tr><th>م</th>';
+    visibleCols.forEach(function(col) {
+        var max = col.max > 0 ? ' (' + col.max + ')' : '';
+        tableHTML += '<th>' + gbEsc(col.label) + max + '</th>';
+    });
+    tableHTML += '</tr></thead><tbody>';
+    
+    cls.students.forEach(function(s, i) {
+        var c = gbComputeV2(s);
+        tableHTML += '<tr><td>' + (i+1) + '</td>';
+        visibleCols.forEach(function(col) {
+            var val = '';
+            if (col.type === 'name') {
+                val = gbEsc(s.name || '');
+            } else if (col.type === 'input') {
+                val = (s[col.id] !== undefined ? s[col.id] : 0);
+            } else if (col.type === 'computed') {
+                var cv = c[col.computeFrom];
+                if (cv === undefined || cv === null) val = '-';
+                else if (typeof cv === 'number') val = cv.toFixed(1);
+                else val = cv;
+            }
+            
+            // تلوين المستويات
+            var cls2 = '';
+            if (col.type === 'computed' && typeof val === 'string' && ['أ','ب','ج','د','هـ'].indexOf(val) >= 0) {
+                var colorMap = {'أ':'#006400','ب':'#0044aa','ج':'#aa6600','د':'#cc4400','هـ':'#aa0000'};
+                cls2 = ' style="color:' + (colorMap[val]||'#000') + ';font-weight:bold;"';
+            }
+            tableHTML += '<td' + cls2 + '>' + val + '</td>';
+        });
+        tableHTML += '</tr>';
+    });
+    tableHTML += '</tbody></table>';
+    
+    // 3️⃣ التذييل
+    var footerHTML = '<div class="print-footer">' +
+        '<div class="pf-col"><b>معلم المادة</b><br><div style="margin-top:6px;">' + gbEsc(hdr['gb-teacher-name']||'.................') + '</div><div class="pf-line"></div><small>التوقيع</small></div>' +
+        '<div class="pf-col"><b>المعلم الأول</b><br><div style="margin-top:6px;">' + gbEsc(hdr['gb-head-teacher']||'.................') + '</div><div class="pf-line"></div><small>التوقيع</small></div>' +
+        '<div class="pf-col"><b>اعتماد مدير المدرسة</b><br><div style="margin-top:6px;">' + gbEsc(hdr['gb-principal']||'.................') + '</div><div class="pf-line"></div><small>الختم والتوقيع</small></div>' +
+        '</div>';
+    
+    // 4️⃣ بناء الـ HTML الكامل
+    var fullHTML = '<!DOCTYPE html><html dir="rtl" lang="ar"><head><meta charset="UTF-8">' +
+        '<title>سجل درجات - ' + gbEsc(cls.name) + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+            '@page { size: A4 landscape; margin: 10mm 8mm; }' +
+            '* { box-sizing: border-box; margin: 0; padding: 0; }' +
+            'body { font-family: "Cairo","Tajawal",Arial,sans-serif; color: #1a1a1a; direction: rtl; padding: 0; }' +
+            
+            /* الدباجة */
+            '.print-header { display:flex; justify-content:space-between; align-items:stretch; gap:10px; border:2px solid #1a1a1a; border-radius:6px; padding:12px 16px; margin-bottom:10px; background:white; position:relative; }' +
+            '.print-header::before { content:""; position:absolute; top:0; left:8%; right:8%; height:2px; background:linear-gradient(90deg,transparent,#b8860b,#d4af37,#b8860b,transparent); }' +
+            '.ph-right, .ph-left { flex:1; font-size:11px; line-height:1.7; }' +
+            '.ph-right { text-align:right; }' +
+            '.ph-left { text-align:left; }' +
+            '.ph-center { flex:1.4; text-align:center; }' +
+            '.ph-center h1 { font-family:Amiri,serif; color:#1a1a1a; font-size:18px; margin-bottom:4px; }' +
+            '.ph-divider { height:1px; background:linear-gradient(90deg,transparent,#b8860b,transparent); margin:4px auto; width:80%; }' +
+            '.ph-center > div:last-child { font-size:11px; }' +
+            '.ph-right u, .ph-left u, .ph-center u { text-decoration:none; border-bottom:1px solid #666; padding:0 4px; display:inline-block; min-width:40px; }' +
+            
+            /* الجدول */
+            '.print-table { width:100%; border-collapse:collapse; font-size:9px; margin-bottom:10px; table-layout:auto; }' +
+            '.print-table td:nth-child(2), .print-table th:nth-child(2) { white-space:nowrap; text-align:right; padding-right:6px; padding-left:6px; font-size:9.5px; min-width:140px; max-width:180px; overflow:hidden; text-overflow:ellipsis; }' +
+            '.print-table th { background:#1a1a1a !important; color:white !important; padding:4px 2px; border:1px solid #000; font-weight:bold; font-size:8.5px; line-height:1.3; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+            '.print-table td { padding:3px 2px; text-align:center; border:1px solid #666; color:#1a1a1a; background:white; vertical-align:middle; line-height:1.3; }' +
+            '.print-table tr:nth-child(even) td { background:#f5f5f5 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }' +
+            
+            /* التذييل */
+            '.print-footer { display:flex; justify-content:space-between; gap:14px; border:1px solid #1a1a1a; padding:10px 14px; margin-top:8px; page-break-inside:avoid; }' +
+            '.pf-col { flex:1; text-align:center; font-size:11px; }' +
+            '.pf-col b { color:#1a1a1a; font-size:12px; }' +
+            '.pf-line { border-bottom:1px solid #1a1a1a; height:18px; margin:6px auto; width:80%; }' +
+            '.pf-col small { color:#666; font-size:10px; }' +
+            
+            /* أزرار التحكم - تختفي عند الطباعة */
+            '.print-controls { position:fixed; top:10px; left:10px; background:white; padding:10px; border:2px solid #b8860b; border-radius:8px; display:flex; gap:8px; z-index:1000; box-shadow:0 4px 12px rgba(0,0,0,0.2); }' +
+            '.print-controls button { background:#b8860b; color:white; border:none; padding:8px 16px; border-radius:6px; cursor:pointer; font-family:Cairo; font-weight:bold; font-size:13px; }' +
+            '.print-controls button.close-btn { background:#666; }' +
+            
+            '@media print {' +
+                '.print-controls { display: none !important; }' +
+                'body { -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; }' +
+            '}' +
+        '</style>' +
+        '</head><body>' +
+        
+        '<div class="print-controls">' +
+            '<button onclick="window.print()">🖨️ طباعة</button>' +
+            '<button class="close-btn" onclick="window.close()">✕ إغلاق</button>' +
+        '</div>' +
+        
+        headerHTML + tableHTML + footerHTML +
+        
+        '</body></html>';
+    
+    // 5️⃣ نفتح النافذة
+    var win = window.open('', '_blank', 'width=1200,height=800');
+    if (!win) {
+        alert('⚠️ المتصفح منع فتح النافذة - يرجى السماح بالنوافذ المنبثقة');
+        return;
+    }
+    win.document.open();
+    win.document.write(fullHTML);
+    win.document.close();
+    
+    // نفتح حوار الطباعة تلقائياً بعد التحميل
+    setTimeout(function() {
+        try { win.focus(); } catch(e){}
+    }, 500);
 }
 
 function gbExportExcel() {
@@ -15577,6 +15781,535 @@ function gsExport() {
     a.download = 'سجل_الموهوبين.xls';
     a.click();
 }
+</script>
+
+
+<!-- ════════════════════════════════════════════════════════════
+     🎨 نظام القوالب المتعددة + محرر الأعمدة
+════════════════════════════════════════════════════════════ -->
+<script>
+// ════════════════════════════════════════════════════════════
+// تعريف القوالب الثلاثة
+// ════════════════════════════════════════════════════════════
+var GB_TEMPLATES = {
+    'official': {
+        name: 'القالب الرسمي (وزارة التربية)',
+        columns: [
+            // type: input=قابل للإدخال | computed=محسوب | name=الاسم
+            // protected: لا يمكن حذف هذا العمود
+            { id: 'name',       type: 'name',     label: 'اسم الطالب',       max: 0,  protected: true,  visible: true },
+            { id: 'oral1',      type: 'input',    label: 'شفوي ف1',         max: 5,  protected: true,  visible: true },
+            { id: 'oral2',      type: 'input',    label: 'شفوي ف2',         max: 5,  protected: true,  visible: true },
+            { id: 'hw1',        type: 'input',    label: 'واجب 1',          max: 5,  protected: true,  visible: true },
+            { id: 'hw2',        type: 'input',    label: 'واجب 2',          max: 5,  protected: true,  visible: true },
+            { id: 'quiz1',      type: 'input',    label: 'سؤال قصير 1',     max: 5,  protected: true,  visible: true },
+            { id: 'quiz2',      type: 'input',    label: 'سؤال قصير 2',     max: 5,  protected: true,  visible: true },
+            { id: 'shortExam1', type: 'input',    label: 'اختبار قصير 1',   max: 10, protected: true,  visible: true },
+            { id: 'level1',     type: 'computed', label: 'مستوى 1',         max: 10, protected: true,  visible: true,  computeFrom: 'level1' },
+            { id: 'shortExam2', type: 'input',    label: 'اختبار قصير 2',   max: 10, protected: true,  visible: true },
+            { id: 'level2',     type: 'computed', label: 'مستوى 2',         max: 10, protected: true,  visible: true,  computeFrom: 'level2' },
+            { id: 'project',    type: 'input',    label: 'المشروع',         max: 10, protected: true,  visible: true },
+            { id: 'sum60',      type: 'computed', label: 'المجموع (60)',    max: 60, protected: true,  visible: true,  computeFrom: 'sum60' },
+            { id: 'overall',    type: 'computed', label: 'المستوى الإجمالي', max: 60, protected: true,  visible: true,  computeFrom: 'overall' },
+            { id: 'finalExam',  type: 'input',    label: 'اختبار النهاية',  max: 40, protected: true,  visible: true },
+            { id: 'total100',   type: 'computed', label: 'الكلي (100)',     max: 100,protected: true,  visible: true,  computeFrom: 'total100' }
+        ],
+        useComputedLogic: true  // يستخدم منطق الحساب الأصلي
+    },
+    
+    'simple': {
+        name: 'القالب المبسّط',
+        columns: [
+            { id: 'name',       type: 'name',  label: 'اسم الطالب',  max: 0,  protected: true,  visible: true },
+            { id: 'attendance', type: 'input', label: 'حضور',        max: 10, protected: false, visible: true },
+            { id: 'participation', type: 'input', label: 'مشاركة',   max: 10, protected: false, visible: true },
+            { id: 'homework',   type: 'input', label: 'واجبات',      max: 15, protected: false, visible: true },
+            { id: 'exam1',      type: 'input', label: 'اختبار 1',    max: 20, protected: false, visible: true },
+            { id: 'exam2',      type: 'input', label: 'اختبار 2',    max: 20, protected: false, visible: true },
+            { id: 'finalExam',  type: 'input', label: 'الاختبار النهائي', max: 25, protected: false, visible: true },
+            { id: 'sumTotal',   type: 'computed', label: 'المجموع', max: 100,protected: false, visible: true,  computeFrom: 'sum_all' }
+        ],
+        useComputedLogic: false
+    },
+    
+    'blank': {
+        name: 'جدول فارغ',
+        columns: [
+            { id: 'name', type: 'name', label: 'اسم الطالب', max: 0, protected: true, visible: true }
+        ],
+        useComputedLogic: false
+    }
+};
+
+// نُضيف للـ GB_DATA حقل templateType + customColumns
+function gbEnsureTemplate() {
+    if (!GB_DATA.template) {
+        GB_DATA.template = 'official';
+    }
+    if (!GB_DATA.columns) {
+        // ننسخ من القالب
+        GB_DATA.columns = JSON.parse(JSON.stringify(GB_TEMPLATES[GB_DATA.template].columns));
+    }
+    // 🔄 Migration: نُصلح computeFrom للنسخ القديمة
+    var migrations = {
+        'level1': 'level1',
+        'level2': 'level2',
+        'sum60': 'sum60',
+        'overall': 'overall',
+        'total100': 'total100',
+        'sumTotal': 'sumTotal'
+    };
+    var needsMigrate = false;
+    GB_DATA.columns.forEach(function(col) {
+        if (col.type === 'computed' && col.computeFrom) {
+            // الـ computeFrom القديم كان أحياناً اسم العمود المصدر بدلاً من النتيجة
+            if (col.id === 'level1' && col.computeFrom === 'shortExam1') { col.computeFrom = 'level1'; needsMigrate = true; }
+            if (col.id === 'level2' && col.computeFrom === 'shortExam2') { col.computeFrom = 'level2'; needsMigrate = true; }
+            // التأكد من تطابق id مع computeFrom للأعمدة المحسوبة الأساسية
+            if (migrations[col.id] && col.computeFrom !== migrations[col.id]) {
+                col.computeFrom = migrations[col.id];
+                needsMigrate = true;
+            }
+        }
+    });
+    if (needsMigrate) {
+        gbSave();
+        console.log('[gb] migration applied');
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎨 Modal اختيار القالب
+// ════════════════════════════════════════════════════════════
+function gbOpenTemplateModal() {
+    document.getElementById('gb-template-modal').style.display = 'flex';
+}
+
+function gbApplyTemplate(templateId) {
+    if (!GB_TEMPLATES[templateId]) return;
+    
+    var hasData = GB_DATA.classes.some(function(c){return c.students.length > 0;});
+    if (hasData) {
+        if (!confirm('⚠️ تغيير القالب سيحذف درجات الطلاب الموجودة. هل أنت متأكد؟')) {
+            return;
+        }
+    }
+    
+    GB_DATA.template = templateId;
+    GB_DATA.columns = JSON.parse(JSON.stringify(GB_TEMPLATES[templateId].columns));
+    
+    // نُفرّغ بيانات الدرجات (لكن نُبقي الأسماء)
+    GB_DATA.classes.forEach(function(cls) {
+        cls.students.forEach(function(s) {
+            var name = s.name;
+            var id = s.id;
+            // نمسح كل الحقول عدا الاسم
+            for (var key in s) {
+                if (key !== 'id' && key !== 'name') {
+                    delete s[key];
+                }
+            }
+            // نُضيف الحقول الجديدة
+            GB_DATA.columns.forEach(function(col) {
+                if (col.type === 'input') s[col.id] = 0;
+            });
+        });
+    });
+    
+    gbSave();
+    document.getElementById('gb-template-modal').style.display = 'none';
+    gbRenderTable();
+    gbRebuildTableHeader();
+    gbUpdateStats();
+    
+    if (typeof showToast === 'function') showToast('✅ تم تطبيق القالب', 'success');
+    else alert('✅ تم تطبيق القالب: ' + GB_TEMPLATES[templateId].name);
+}
+
+// ════════════════════════════════════════════════════════════
+// ⚙️ محرر الأعمدة
+// ════════════════════════════════════════════════════════════
+function gbOpenColumnsEditor() {
+    gbEnsureTemplate();
+    gbRenderColumnsEditor();
+    document.getElementById('gb-columns-modal').style.display = 'flex';
+}
+
+function gbRenderColumnsEditor() {
+    var wrap = document.getElementById('gb-cols-list');
+    if (!wrap) return;
+    
+    wrap.innerHTML = GB_DATA.columns.map(function(col, idx) {
+        var isComputed = col.type === 'computed';
+        var isName = col.type === 'name';
+        var isProtected = col.protected;
+        var lockIcon = isProtected ? '🔒' : '🔓';
+        var typeIcon = isName ? '📝' : isComputed ? '🧮' : '✏️';
+        var typeLabel = isName ? 'اسم' : isComputed ? 'محسوب' : 'إدخال';
+        var bgColor = isComputed ? 'rgba(168,85,247,0.06)' : isName ? 'rgba(212,175,55,0.06)' : 'rgba(255,255,255,0.03)';
+        var borderColor = isComputed ? 'rgba(168,85,247,0.25)' : isName ? 'rgba(212,175,55,0.3)' : 'rgba(255,255,255,0.1)';
+        
+        var html = '<div style="display:flex;gap:8px;align-items:center;background:' + bgColor + ';border:1px solid ' + borderColor + ';border-radius:10px;padding:10px 12px;margin-bottom:6px;flex-wrap:wrap;">' +
+            '<span style="font-size:1.1rem;">' + typeIcon + '</span>' +
+            '<input type="text" value="' + gbEsc(col.label) + '" onchange="gbUpdateColumn(' + idx + ',\'label\',this.value)" ' + (isName ? 'disabled' : '') + ' style="flex:1;min-width:140px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:6px 10px;border-radius:6px;font-family:Cairo;font-size:0.85rem;' + (isName ? 'opacity:0.6;' : '') + '">' +
+            
+            (!isName ? '<input type="number" value="' + (col.max||0) + '" onchange="gbUpdateColumn(' + idx + ',\'max\',parseFloat(this.value)||0)" min="0" max="200" ' + (isComputed ? 'disabled' : '') + ' style="width:70px;background:rgba(0,0,0,0.4);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:6px 8px;border-radius:6px;font-family:Cairo;font-size:0.85rem;text-align:center;' + (isComputed ? 'opacity:0.6;' : '') + '" title="أقصى درجة">' : '<span style="width:70px;"></span>') +
+            
+            '<span style="font-size:0.7rem;background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.7);padding:3px 9px;border-radius:10px;white-space:nowrap;">' + lockIcon + ' ' + typeLabel + '</span>' +
+            
+            '<label style="display:flex;align-items:center;gap:4px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:0.78rem;">' +
+                '<input type="checkbox" ' + (col.visible !== false ? 'checked' : '') + ' onchange="gbUpdateColumn(' + idx + ',\'visible\',this.checked)" style="accent-color:#a855f7;cursor:pointer;">' +
+                '👁️' +
+            '</label>' +
+            
+            // أزرار حركة
+            '<button onclick="gbMoveColumn(' + idx + ',-1)" ' + (idx === 0 || isName ? 'disabled style="opacity:0.3;"' : '') + ' style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;width:26px;height:26px;border-radius:5px;cursor:pointer;padding:0;">▲</button>' +
+            '<button onclick="gbMoveColumn(' + idx + ',1)" ' + (idx >= GB_DATA.columns.length - 1 || isName ? 'disabled style="opacity:0.3;"' : '') + ' style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:#fff;width:26px;height:26px;border-radius:5px;cursor:pointer;padding:0;">▼</button>' +
+            
+            // زر الحذف
+            (isProtected ? 
+                '<span style="width:32px;height:32px;display:inline-flex;align-items:center;justify-content:center;opacity:0.3;" title="عمود محمي">🔒</span>' :
+                '<button onclick="gbDeleteColumn(' + idx + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:32px;height:32px;border-radius:5px;cursor:pointer;padding:0;font-size:0.8rem;">🗑️</button>'
+            ) +
+        '</div>';
+        
+        return html;
+    }).join('');
+}
+
+function gbUpdateColumn(idx, field, val) {
+    if (!GB_DATA.columns[idx]) return;
+    GB_DATA.columns[idx][field] = val;
+}
+
+function gbMoveColumn(idx, dir) {
+    var newIdx = idx + dir;
+    if (newIdx < 1 || newIdx >= GB_DATA.columns.length) return; // 0 = اسم محمي
+    if (GB_DATA.columns[idx].type === 'name') return;
+    if (GB_DATA.columns[newIdx].type === 'name') return;
+    
+    var tmp = GB_DATA.columns[idx];
+    GB_DATA.columns[idx] = GB_DATA.columns[newIdx];
+    GB_DATA.columns[newIdx] = tmp;
+    gbRenderColumnsEditor();
+}
+
+function gbDeleteColumn(idx) {
+    if (!GB_DATA.columns[idx]) return;
+    if (GB_DATA.columns[idx].protected) return;
+    if (!confirm('حذف العمود "' + GB_DATA.columns[idx].label + '" وكل بياناته؟')) return;
+    
+    var colId = GB_DATA.columns[idx].id;
+    GB_DATA.columns.splice(idx, 1);
+    
+    // نمسح البيانات من جميع الطلاب
+    GB_DATA.classes.forEach(function(cls) {
+        cls.students.forEach(function(s) {
+            delete s[colId];
+        });
+    });
+    
+    gbRenderColumnsEditor();
+}
+
+function gbAddCustomColumn() {
+    var name = prompt('اسم العمود الجديد:', 'عمود جديد');
+    if (!name) return;
+    name = name.trim();
+    
+    var max = parseFloat(prompt('أقصى درجة للعمود:', '10'));
+    if (isNaN(max) || max <= 0) max = 10;
+    
+    var newCol = {
+        id: 'custom_' + Date.now(),
+        type: 'input',
+        label: name,
+        max: max,
+        protected: false,
+        visible: true,
+        custom: true
+    };
+    
+    // نُضيف قبل المحسوبات (للقالب الرسمي) أو في النهاية
+    var insertIdx = GB_DATA.columns.length;
+    if (GB_DATA.template === 'official') {
+        // نُضيف قبل sum60
+        var sumIdx = GB_DATA.columns.findIndex(function(c){return c.id === 'sum60';});
+        if (sumIdx > 0) insertIdx = sumIdx;
+    }
+    
+    GB_DATA.columns.splice(insertIdx, 0, newCol);
+    
+    // نُضيف القيمة الافتراضية لكل طالب
+    GB_DATA.classes.forEach(function(cls) {
+        cls.students.forEach(function(s) {
+            s[newCol.id] = 0;
+        });
+    });
+    
+    gbRenderColumnsEditor();
+}
+
+function gbSaveColumns() {
+    gbSave();
+    gbRebuildTableHeader();
+    gbRenderTable();
+    gbUpdateStats();
+    document.getElementById('gb-columns-modal').style.display = 'none';
+    if (typeof showToast === 'function') showToast('✅ تم حفظ التغييرات', 'success');
+    else alert('✅ تم حفظ التغييرات');
+}
+
+// ════════════════════════════════════════════════════════════
+// 🏗️ إعادة بناء رأس الجدول حسب الأعمدة
+// ════════════════════════════════════════════════════════════
+function gbRebuildTableHeader() {
+    gbEnsureTemplate();
+    var table = document.getElementById('gb-table');
+    if (!table) return;
+    
+    var thead = table.querySelector('thead');
+    if (!thead) return;
+    
+    var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+    
+    // نبني الـ thead ديناميكياً
+    var html = '<tr>';
+    html += '<th>م</th>';
+    
+    visibleCols.forEach(function(col) {
+        var max = col.max > 0 ? '<br><small>(' + col.max + ')</small>' : '';
+        var icon = col.type === 'computed' ? '🧮 ' : col.type === 'name' ? '' : '';
+        html += '<th>' + icon + gbEsc(col.label) + max + '</th>';
+    });
+    
+    html += '<th>⚙️</th></tr>';
+    thead.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════
+// 🧮 منطق الحساب المُحدّث (يدعم القوالب)
+// ════════════════════════════════════════════════════════════
+function gbComputeV2(s) {
+    var template = GB_TEMPLATES[GB_DATA.template || 'official'];
+    var n = function(v){return parseFloat(v)||0;};
+    var result = {};
+    
+    if (GB_DATA.template === 'official') {
+        // المنطق الأصلي للقالب الرسمي
+        var sum60 = n(s.oral1)+n(s.oral2)+n(s.hw1)+n(s.hw2)+n(s.quiz1)+n(s.quiz2)+n(s.shortExam1)+n(s.shortExam2)+n(s.project);
+        
+        // نضيف الأعمدة المخصصة للمجموع (إذا كانت قبل sum60)
+        GB_DATA.columns.forEach(function(col) {
+            if (col.custom && col.type === 'input') {
+                sum60 += n(s[col.id]);
+            }
+        });
+        
+        result.level1 = gbCalcLevel(n(s.shortExam1), 10);
+        result.level2 = gbCalcLevel(n(s.shortExam2), 10);
+        result.sum60 = sum60;
+        result.overall = gbCalcLevel(sum60, 60);
+        result.total100 = sum60 + n(s.finalExam);
+        result.totalLvl = gbCalcLevel(result.total100, 100);
+    } else if (GB_DATA.template === 'simple') {
+        // مجموع كل الأعمدة input
+        var total = 0;
+        var maxTotal = 0;
+        GB_DATA.columns.forEach(function(col) {
+            if (col.type === 'input') {
+                total += n(s[col.id]);
+                maxTotal += (col.max || 0);
+            }
+        });
+        result.sumTotal = total;
+        result.maxTotal = maxTotal;
+    }
+    // blank: لا حسابات
+    
+    return result;
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎨 إعادة رسم الجدول الديناميكي
+// ════════════════════════════════════════════════════════════
+function gbRenderTableV2() {
+    gbEnsureTemplate();
+    var tbody = document.getElementById('gb-tbody');
+    if (!tbody) return;
+    var cls = gbGetCurrentClass();
+    if (!cls) {
+        tbody.innerHTML = '<tr><td colspan="50" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">لا توجد شعب — أضف شعبة لبدء الرصد</td></tr>';
+        return;
+    }
+    if (!cls.students.length) {
+        tbody.innerHTML = '<tr><td colspan="50" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">📝 لا يوجد طلاب — اضغط "إضافة طالب" أو "إضافة دفعة"</td></tr>';
+        return;
+    }
+    
+    var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+    
+    tbody.innerHTML = cls.students.map(function(s, i) {
+        var c = gbComputeV2(s);
+        var html = '<tr data-sid="' + s.id + '">';
+        html += '<td>' + (i+1) + '</td>';
+        
+        visibleCols.forEach(function(col) {
+            if (col.type === 'name') {
+                html += '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>';
+            } else if (col.type === 'input') {
+                var val = s[col.id] !== undefined ? s[col.id] : 0;
+                var max = col.max || 100;
+                html += '<td><input type="number" class="gb-cell-input" value="' + val + '" min="0" max="' + max + '" step="0.5" onchange="gbUpdateField(' + s.id + ',\'' + col.id + '\',this.value)"></td>';
+            } else if (col.type === 'computed') {
+                // حسب نوع الحساب
+                var cv = c[col.computeFrom];
+                if (cv === undefined) cv = '-';
+                
+                if (col.id === 'level1' || col.id === 'level2' || col.id === 'overall' || col.id === 'totalLvl') {
+                    html += '<td><span class="' + gbLevelClass(cv) + '">' + cv + '</span></td>';
+                } else if (col.id === 'total100') {
+                    html += '<td><span class="gb-sum" style="font-size:1.05rem;">' + (c.total100 || 0).toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + (c.totalLvl||'-') + '</span></td>';
+                } else if (col.id === 'sum60' || col.id === 'sumTotal') {
+                    var sumVal = c.sum60 !== undefined ? c.sum60 : (c.sumTotal !== undefined ? c.sumTotal : 0);
+                    html += '<td><span class="gb-sum">' + sumVal.toFixed(1) + '</span></td>';
+                } else {
+                    html += '<td><span class="gb-sum">' + cv + '</span></td>';
+                }
+            }
+        });
+        
+        html += '<td><button class="gb-btn-del" onclick="gbDeleteStudent(' + s.id + ')">🗑️</button></td>';
+        html += '</tr>';
+        return html;
+    }).join('');
+}
+
+// نستبدل دالة gbRenderTable الأصلية
+var _gbRenderTableOriginal = window.gbRenderTable;
+window.gbRenderTable = function() {
+    gbRebuildTableHeader();
+    gbRenderTableV2();
+};
+
+// تحديث الحقل ذكي - يحدّث الصف فقط
+var _gbUpdateFieldOriginal = window.gbUpdateField;
+window.gbUpdateField = function(sid, field, val) {
+    var cls = gbGetCurrentClass();
+    if (!cls) return;
+    var s = cls.students.find(function(st){return st.id === sid;});
+    if (!s) return;
+    if (field === 'name') s.name = val;
+    else s[field] = parseFloat(val) || 0;
+    gbSave();
+    // نُعيد رسم الجدول كاملاً (لتحديث الحسابات)
+    gbRenderTableV2();
+    gbUpdateStats();
+};
+
+// تحديث gbAddStudent للأعمدة الديناميكية
+var _gbAddStudentOriginal = window.gbAddStudent;
+window.gbAddStudent = function() {
+    gbEnsureTemplate();
+    var cls = gbGetCurrentClass();
+    if (!cls) { alert('⚠️ أضف شعبة أولاً'); return; }
+    
+    var newStudent = { id: Date.now(), name: 'طالب جديد' };
+    GB_DATA.columns.forEach(function(col) {
+        if (col.type === 'input') {
+            newStudent[col.id] = (col.id === 'project') ? 10 : 0;
+        }
+    });
+    
+    cls.students.push(newStudent);
+    gbSave();
+    gbRenderTable();
+    gbUpdateStats();
+};
+
+// تحديث gbExportExcel للأعمدة الديناميكية
+var _gbExportExcelOriginal = window.gbExportExcel;
+window.gbExportExcel = function() {
+    gbEnsureTemplate();
+    var cls = gbGetCurrentClass();
+    if (!cls || !cls.students.length) { alert('⚠️ لا يوجد بيانات للتصدير'); return; }
+    
+    var BOM = '\uFEFF';
+    var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+    
+    var headers = ['م'].concat(visibleCols.map(function(c){return c.label;}));
+    var rows = [headers.join(',')];
+    
+    cls.students.forEach(function(s, i) {
+        var computed = gbComputeV2(s);
+        var row = [i+1];
+        
+        visibleCols.forEach(function(col) {
+            if (col.type === 'name') {
+                row.push('"' + (s.name||'').replace(/"/g,'""') + '"');
+            } else if (col.type === 'input') {
+                row.push(s[col.id] !== undefined ? s[col.id] : 0);
+            } else if (col.type === 'computed') {
+                var v = computed[col.computeFrom];
+                if (typeof v === 'number') row.push(v.toFixed(1));
+                else row.push(v || '-');
+            }
+        });
+        
+        rows.push(row.join(','));
+    });
+    
+    var csv = BOM + rows.join('\n');
+    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'سجل_درجات_' + cls.name + '.xls';
+    a.click();
+    URL.revokeObjectURL(url);
+};
+
+// تحديث gbInit للتأكد من تحميل القالب
+var _gbInitOriginal = window.gbInit;
+window.gbInit = function() {
+    _gbInitOriginal();
+    gbEnsureTemplate();
+    gbRebuildTableHeader();
+    gbRenderTableV2();
+};
+
+// تحديث gbUpdateStats للقوالب
+var _gbUpdateStatsOriginal = window.gbUpdateStats;
+window.gbUpdateStats = function() {
+    gbEnsureTemplate();
+    var wrap = document.getElementById('gb-stats');
+    if (!wrap) return;
+    var cls = gbGetCurrentClass();
+    if (!cls || !cls.students.length) {
+        wrap.innerHTML = '<div class="gb-stat-card"><div class="gb-stat-num">—</div><div class="gb-stat-lbl">لا توجد بيانات</div></div>';
+        return;
+    }
+    
+    if (GB_DATA.template === 'official') {
+        // الإحصاء الأصلي
+        _gbUpdateStatsOriginal();
+    } else if (GB_DATA.template === 'simple') {
+        var totals = cls.students.map(function(s){return gbComputeV2(s).sumTotal || 0;});
+        var max = cls.students[0] ? (gbComputeV2(cls.students[0]).maxTotal || 100) : 100;
+        var avg = totals.reduce(function(a,b){return a+b;},0) / totals.length;
+        var avgPct = max > 0 ? (avg / max * 100) : 0;
+        wrap.innerHTML = 
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + cls.students.length + '</div><div class="gb-stat-lbl">👥 إجمالي الطلاب</div></div>' +
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + avg.toFixed(1) + '</div><div class="gb-stat-lbl">📊 المتوسط</div></div>' +
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + avgPct.toFixed(0) + '%</div><div class="gb-stat-lbl">📈 النسبة</div></div>' +
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + max + '</div><div class="gb-stat-lbl">💯 من</div></div>';
+    } else {
+        // blank
+        wrap.innerHTML = 
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + cls.students.length + '</div><div class="gb-stat-lbl">👥 إجمالي الطلاب</div></div>' +
+            '<div class="gb-stat-card"><div class="gb-stat-num">' + GB_DATA.columns.length + '</div><div class="gb-stat-lbl">📋 عدد الأعمدة</div></div>';
+    }
+};
 </script>
 
 </body>
