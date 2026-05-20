@@ -10472,6 +10472,81 @@ async def get_unread_supervisor_messages_count(request: Request):
 # 🧭 نظام "بوصلة النجاح" - Student 360 + Smart Recommendations
 # ════════════════════════════════════════════════════════════
 
+
+
+@app.get("/api/supervisor/live-pulse")
+async def supervisor_live_pulse(sup = Depends(get_current_supervisor)):
+    """⚡ نبض اللحظة - بيانات لحظية عن نشاط الطلاب"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if not student_ids:
+        return {"active_now": 0, "today_attempts": 0, "today_accuracy": 0, "recent": []}
+    
+    from datetime import datetime, timezone, timedelta
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
+    fifteen_min_ago = now - timedelta(minutes=15)
+    
+    try:
+        # الطلاب الذين أجابوا في آخر 15 دقيقة
+        active_res = supabase.table("student_challenges").select(
+            "student_id"
+        ).in_("student_id", student_ids).gte("created_at", fifteen_min_ago.isoformat()).execute()
+        
+        active_ids = set([c["student_id"] for c in (active_res.data or [])])
+        active_now = len(active_ids)
+        
+        # محاولات اليوم
+        today_res = supabase.table("student_challenges").select(
+            "is_correct, student_id, created_at"
+        ).in_("student_id", student_ids).gte("created_at", today_start.isoformat()).order(
+            "created_at", desc=True
+        ).limit(500).execute()
+        
+        today_data = today_res.data or []
+        today_attempts = len(today_data)
+        today_correct = sum(1 for c in today_data if c.get("is_correct"))
+        today_accuracy = round((today_correct / today_attempts * 100) if today_attempts else 0, 1)
+        
+        # آخر 5 نشاطات
+        recent = []
+        if today_data:
+            # نجلب أسماء الطلاب
+            recent_ids = list(set([c["student_id"] for c in today_data[:10]]))
+            names_res = supabase.table("students").select("id, full_name").in_("id", recent_ids).execute()
+            names_map = {s["id"]: s.get("full_name", "—") for s in (names_res.data or [])}
+            
+            for c in today_data[:5]:
+                try:
+                    t = datetime.fromisoformat(c["created_at"].replace("Z", "+00:00"))
+                    diff = (now - t).total_seconds()
+                    if diff < 60:
+                        ago = "الآن"
+                    elif diff < 3600:
+                        ago = f"منذ {int(diff//60)} د"
+                    elif diff < 86400:
+                        ago = f"منذ {int(diff//3600)} س"
+                    else:
+                        ago = "اليوم"
+                    
+                    recent.append({
+                        "student_name": names_map.get(c["student_id"], "—"),
+                        "correct": c.get("is_correct", False),
+                        "time_ago": ago
+                    })
+                except Exception:
+                    pass
+        
+        return {
+            "active_now": active_now,
+            "today_attempts": today_attempts,
+            "today_accuracy": today_accuracy,
+            "recent": recent,
+            "total_students": len(student_ids)
+        }
+    except Exception as e:
+        print(f"[live-pulse] error: {e}")
+        return {"active_now": 0, "today_attempts": 0, "today_accuracy": 0, "recent": [], "error": str(e)[:100]}
+
 @app.get("/api/supervisor/student-360/{student_id}")
 async def supervisor_student_360(student_id: int, sup = Depends(get_current_supervisor)):
     """📊 بطاقة الطالب التفصيلية - Student 360 view"""

@@ -6400,29 +6400,86 @@ async function manageSupStudents(id, name) {
     document.getElementById('sup-mod-name').textContent = name;
     document.getElementById('sup-students-modal').style.display = 'flex';
     
-    // نحمّل الطلاب الحاليون والمتاحون
-    document.getElementById('sup-current-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳</p>';
-    document.getElementById('sup-available-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳</p>';
+    document.getElementById('sup-current-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳ جاري التحميل...</p>';
+    document.getElementById('sup-available-students').innerHTML = '<p style="opacity:0.5;text-align:center;padding:15px;">⏳ جاري تحميل الطلاب...</p>';
     
     try {
-        // الطلاب الحاليون لهذا المشرف
+        // 1️⃣ الطلاب الحاليون لهذا المشرف
         const r1 = await authFetch('/api/admin/supervisors/' + id + '/students');
         const data1 = await r1.json();
-        const current = data1.students || [];
+        const current = Array.isArray(data1) ? data1 : (data1.students || data1.items || []);
+        console.log('[sup-students] current:', current.length);
         renderCurrentStudents(current);
         
-        // كل الطلاب
-        if (!_allStudentsCache) {
-            const r2 = await authFetch('/api/admin/students');
-            const data2 = await r2.json();
-            _allStudentsCache = data2.students || data2 || [];
-            console.log('[supervisors] loaded students:', _allStudentsCache.length);
+        // 2️⃣ كل الطلاب - 3 محاولات
+        if (!_allStudentsCache || _allStudentsCache.length === 0) {
+            _allStudentsCache = null;
+            
+            // محاولة 1: paginated
+            try {
+                const r2 = await authFetch('/api/admin/students?page=1&page_size=500');
+                if (r2.ok) {
+                    const d = await r2.json();
+                    const list = Array.isArray(d) ? d : (d.items || d.students || d.data || []);
+                    if (list.length) {
+                        _allStudentsCache = list;
+                        console.log('[sup-students] try1 paginated:', list.length);
+                    }
+                }
+            } catch(e1) { console.warn('[try1]', e1); }
+            
+            // محاولة 2: legacy (يرجع array)
+            if (!_allStudentsCache || _allStudentsCache.length === 0) {
+                try {
+                    const r3 = await authFetch('/api/admin/students');
+                    if (r3.ok) {
+                        const d = await r3.json();
+                        const list = Array.isArray(d) ? d : (d.students || d.items || d.data || []);
+                        if (list.length) {
+                            _allStudentsCache = list;
+                            console.log('[sup-students] try2 legacy:', list.length);
+                        }
+                    }
+                } catch(e2) { console.warn('[try2]', e2); }
+            }
+            
+            // محاولة 3: بدون header
+            if (!_allStudentsCache || _allStudentsCache.length === 0) {
+                try {
+                    const tok = localStorage.getItem('admin_token') || sessionStorage.getItem('admin_token');
+                    const r4 = await fetch('/api/admin/students', {
+                        headers: { 'Authorization': 'Bearer ' + tok }
+                    });
+                    if (r4.ok) {
+                        const d = await r4.json();
+                        const list = Array.isArray(d) ? d : (d.students || []);
+                        if (list.length) {
+                            _allStudentsCache = list;
+                            console.log('[sup-students] try3 direct:', list.length);
+                        }
+                    }
+                } catch(e3) { console.warn('[try3]', e3); }
+            }
         }
+        
+        if (!_allStudentsCache || _allStudentsCache.length === 0) {
+            document.getElementById('sup-available-students').innerHTML = 
+                '<div style="text-align:center;padding:20px;">' +
+                '<p style="color:#e74c3c;font-weight:bold;margin-bottom:10px;">⚠️ تعذر تحميل قائمة الطلاب</p>' +
+                '<p style="color:rgba(255,255,255,0.6);font-size:0.85rem;">تأكد من وجود طلاب في النظام</p>' +
+                '<button onclick="_allStudentsCache=null;manageSupStudents(' + id + ',\'' + (name||'').replace(/\'/g,"\\'") + '\')" style="margin-top:10px;background:#3498db;color:white;border:none;padding:8px 16px;border-radius:6px;cursor:pointer;">🔄 إعادة المحاولة</button>' +
+                '</div>';
+            return;
+        }
+        
         const currentIds = new Set(current.map(s => s.id));
         const available = _allStudentsCache.filter(s => !currentIds.has(s.id));
+        console.log('[sup-students] available:', available.length, '/ total:', _allStudentsCache.length);
         renderAvailableStudents(available);
     } catch(e) {
-        console.error('[sup-students]', e);
+        console.error('[sup-students] FATAL:', e);
+        document.getElementById('sup-available-students').innerHTML = 
+            '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ ' + (e.message||'خطأ') + '</p>';
     }
 }
 

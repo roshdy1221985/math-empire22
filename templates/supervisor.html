@@ -169,6 +169,548 @@ tr:hover td{background:rgba(212,175,55,.04);}
 /* ══ Responsive ══ */
 @media(max-width:768px){.sidebar{width:100%;height:auto;position:relative;}.main-content{margin-right:0;padding:16px;}.layout{flex-direction:column;}}
 </style>
+
+<style>
+/* ════════════════════════════════════════════════════════════
+   ✨ تنسيقات احترافية لامعة - لوحة المشرف
+════════════════════════════════════════════════════════════ */
+
+/* 🌌 خلفية متحركة بأضواء طافية */
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: 
+        radial-gradient(circle at 15% 25%, rgba(212,175,55,0.10) 0%, transparent 50%),
+        radial-gradient(circle at 85% 75%, rgba(168,85,247,0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, rgba(59,130,246,0.05) 0%, transparent 60%);
+    animation: bgGlow 14s ease-in-out infinite;
+}
+@keyframes bgGlow {
+    0%, 100% { opacity: 0.6; }
+    50% { opacity: 1; }
+}
+
+/* 💎 جسيمات ذهبية طافية */
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image:
+        radial-gradient(circle, rgba(255,215,0,0.4) 1px, transparent 1px),
+        radial-gradient(circle, rgba(255,215,0,0.25) 1px, transparent 1px);
+    background-size: 80px 80px, 50px 50px;
+    background-position: 0 0, 30px 40px;
+    animation: starsFloat 25s linear infinite;
+    opacity: 0.3;
+}
+@keyframes starsFloat {
+    0% { background-position: 0 0, 30px 40px; }
+    100% { background-position: 0 80px, 30px 120px; }
+}
+
+/* 🪟 السايدبار - زجاجي إبداعي */
+.sidebar {
+    background: linear-gradient(180deg, 
+        rgba(10,15,35,0.88) 0%, 
+        rgba(4,13,33,0.95) 50%, 
+        rgba(10,15,35,0.88) 100%) !important;
+    backdrop-filter: blur(24px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+    box-shadow: -4px 0 24px rgba(0,0,0,0.4), inset 1px 0 0 rgba(212,175,55,0.15) !important;
+    z-index: 100 !important;
+}
+
+/* خط ذهبي متوهج على السايدبار */
+.sidebar::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    width: 2px;
+    background: linear-gradient(180deg, transparent 0%, #d4af37 25%, #fcf6ba 50%, #d4af37 75%, transparent 100%);
+    opacity: 0.7;
+    animation: sidebarGlow 3.5s ease-in-out infinite;
+}
+@keyframes sidebarGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 1; }
+}
+
+/* 👑 رأس السايدبار - تأثير ضوء */
+.sidebar-header {
+    position: relative !important;
+    overflow: hidden !important;
+    background: linear-gradient(180deg, 
+        rgba(212,175,55,0.10) 0%, 
+        rgba(212,175,55,0.02) 100%) !important;
+}
+.sidebar-header::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(ellipse at center, rgba(212,175,55,0.18) 0%, transparent 60%);
+    animation: headerPulse 4s ease-in-out infinite;
+    pointer-events: none;
+}
+@keyframes headerPulse {
+    0%, 100% { transform: scale(1); opacity: 0.4; }
+    50% { transform: scale(1.15); opacity: 0.8; }
+}
+.logo {
+    text-shadow: 0 0 24px rgba(212,175,55,0.6), 0 0 48px rgba(212,175,55,0.3) !important;
+    animation: logoFloat 3s ease-in-out infinite !important;
+    display: inline-block !important;
+}
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-5px) rotate(2deg); }
+}
+
+/* 🔥 nav-link محسّن - تأثيرات سحرية */
+.nav-link {
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.nav-link::before {
+    content: '';
+    position: absolute;
+    top: 0; right: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.15), transparent);
+    transition: right 0.6s;
+}
+.nav-link:hover::before {
+    right: 100%;
+}
+.nav-link:hover {
+    transform: translateX(-5px) !important;
+    box-shadow: -5px 0 16px rgba(212,175,55,0.25) !important;
+}
+.nav-link.active {
+    background: linear-gradient(90deg, 
+        rgba(212,175,55,0.22) 0%, 
+        rgba(212,175,55,0.08) 100%) !important;
+    box-shadow: inset 4px 0 0 #d4af37, 0 6px 16px rgba(212,175,55,0.2) !important;
+    border-right: none !important;
+}
+.nav-link.active i {
+    color: #fcf6ba !important;
+    filter: drop-shadow(0 0 8px rgba(212,175,55,0.8));
+}
+
+/* 🎯 nav-group-title - زخرفة جانبية */
+.nav-group-title {
+    background: linear-gradient(90deg, transparent, rgba(212,175,55,0.10), transparent) !important;
+    margin: 16px 0 6px !important;
+    position: relative !important;
+    padding: 6px 16px !important;
+}
+.nav-group-title::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    right: 8px;
+    width: 5px;
+    height: 5px;
+    background: #d4af37;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(212,175,55,0.8);
+    transform: translateY(-50%);
+    animation: dotPulse 2s ease-in-out infinite;
+}
+@keyframes dotPulse {
+    0%, 100% { opacity: 1; transform: translateY(-50%) scale(1); }
+    50% { opacity: 0.6; transform: translateY(-50%) scale(1.3); }
+}
+
+/* 💎 المحتوى الرئيسي */
+.main-content {
+    position: relative !important;
+    z-index: 1 !important;
+}
+
+/* 🌟 Top Bar محسّن */
+.top-bar {
+    background: linear-gradient(135deg, 
+        rgba(10,15,35,0.6), 
+        rgba(4,13,33,0.7)) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border-bottom: 1px solid rgba(212,175,55,0.2) !important;
+}
+.top-bar h1 {
+    background: linear-gradient(135deg, #b38728, #d4af37, #fcf6ba, #d4af37, #b38728);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: titleShine 3s linear infinite;
+    font-weight: 900 !important;
+}
+@keyframes titleShine {
+    to { background-position: 200% center; }
+}
+
+/* ✨ stat-card احترافي زجاجي */
+.stat-card {
+    background: linear-gradient(135deg,
+        rgba(255,255,255,0.08) 0%,
+        rgba(255,255,255,0.03) 100%) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+    border: 1px solid rgba(212,175,55,0.3) !important;
+    box-shadow: 
+        0 8px 32px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    transition: all 0.4s cubic-bezier(0.34, 1.4, 0.64, 1) !important;
+    position: relative !important;
+    overflow: hidden !important;
+}
+.stat-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, 
+        rgba(212,175,55,0.05) 0%, 
+        transparent 50%, 
+        rgba(212,175,55,0.05) 100%);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+}
+.stat-card:hover {
+    transform: translateY(-7px) scale(1.02) !important;
+    border-color: rgba(212,175,55,0.6) !important;
+    box-shadow: 
+        0 16px 48px rgba(0,0,0,0.4),
+        0 0 32px rgba(212,175,55,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.2) !important;
+}
+.stat-card:hover::before { opacity: 1; }
+
+.stat-card .num {
+    text-shadow: 0 0 24px rgba(212,175,55,0.6);
+}
+
+/* 🎨 panel محسّن - زجاج لامع */
+.panel {
+    background: linear-gradient(135deg,
+        rgba(255,255,255,0.06) 0%,
+        rgba(255,255,255,0.02) 100%) !important;
+    backdrop-filter: blur(16px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+    border: 1px solid rgba(212,175,55,0.22) !important;
+    box-shadow: 
+        0 10px 40px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.05) !important;
+    position: relative !important;
+    transition: all 0.3s !important;
+}
+.panel:hover {
+    border-color: rgba(212,175,55,0.4) !important;
+    box-shadow: 
+        0 14px 48px rgba(0,0,0,0.4),
+        0 0 24px rgba(212,175,55,0.12) !important;
+}
+.panel-title {
+    text-shadow: 0 2px 8px rgba(212,175,55,0.3);
+}
+
+/* خط ذهبي في أعلى الـ panel */
+.panel.glow-top::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 5%; right: 5%;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, #fcf6ba, #d4af37, transparent);
+    box-shadow: 0 0 12px rgba(212,175,55,0.6);
+    animation: panelGlow 3s ease-in-out infinite;
+    border-radius: 2px;
+}
+@keyframes panelGlow {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 1; }
+}
+
+/* 🌟 الأزرار - لمعان احترافي */
+.btn {
+    position: relative !important;
+    overflow: hidden !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.2) !important;
+}
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: left 0.6s;
+}
+.btn:hover::before {
+    left: 100%;
+}
+.btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3) !important;
+}
+.btn-gold {
+    box-shadow: 0 6px 20px rgba(212,175,55,0.3), inset 0 1px 0 rgba(255,255,255,0.3) !important;
+}
+.btn-gold:hover {
+    box-shadow: 0 10px 32px rgba(212,175,55,0.5), inset 0 1px 0 rgba(255,255,255,0.4) !important;
+}
+
+/* 🎭 modal محسّن */
+.modal-box {
+    background: linear-gradient(135deg, 
+        rgba(10,18,40,0.98), 
+        rgba(5,10,26,0.99)) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    -webkit-backdrop-filter: blur(30px) saturate(180%) !important;
+    box-shadow: 
+        0 25px 80px rgba(0,0,0,0.6),
+        0 0 80px rgba(212,175,55,0.18),
+        inset 0 1px 0 rgba(255,255,255,0.1) !important;
+}
+
+/* 💫 toast محسّن */
+.toast-msg {
+    box-shadow: 
+        0 10px 40px rgba(0,0,0,0.4),
+        0 0 30px rgba(212,175,55,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.1) !important;
+    backdrop-filter: blur(20px) saturate(180%) !important;
+}
+
+/* ✨ login-box - حدود سحرية */
+.login-box {
+    position: relative !important;
+    box-shadow: 
+        0 30px 80px rgba(0,0,0,0.6),
+        0 0 60px rgba(212,175,55,0.25),
+        inset 0 1px 0 rgba(255,255,255,0.1) !important;
+}
+.login-box::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: 32px;
+    background: linear-gradient(135deg, #b38728, #d4af37, #fcf6ba, #d4af37, #b38728);
+    background-size: 200% 200%;
+    z-index: -1;
+    animation: borderShine 4s linear infinite;
+    opacity: 0.6;
+}
+@keyframes borderShine {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+}
+.crown {
+    animation: crownBounce 2.5s ease-in-out infinite !important;
+    text-shadow: 0 0 30px rgba(212,175,55,0.7), 0 0 60px rgba(212,175,55,0.4) !important;
+    display: inline-block !important;
+}
+@keyframes crownBounce {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-8px) rotate(3deg); }
+}
+
+/* 🚨 warn-card مع تأثير */
+.warn-card {
+    background: linear-gradient(135deg, 
+        rgba(231,76,60,0.1) 0%, 
+        rgba(231,76,60,0.03) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    transition: all 0.3s !important;
+}
+.warn-card:hover {
+    transform: translateX(-5px);
+    border-color: rgba(231,76,60,0.5) !important;
+    box-shadow: -5px 0 20px rgba(231,76,60,0.25) !important;
+}
+
+/* 🏆 pride-card مع زخارف */
+.pride-card {
+    background: linear-gradient(135deg, 
+        rgba(212,175,55,0.08) 0%, 
+        rgba(212,175,55,0.02) 100%) !important;
+    backdrop-filter: blur(12px) !important;
+    transition: all 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) !important;
+    position: relative;
+    overflow: hidden;
+}
+.pride-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #b38728, #d4af37, #fcf6ba, #d4af37, #b38728);
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+.pride-card:hover {
+    transform: translateY(-8px) scale(1.03);
+    border-color: rgba(212,175,55,0.6) !important;
+    box-shadow: 0 14px 40px rgba(212,175,55,0.25) !important;
+}
+.pride-card:hover::before { opacity: 1; }
+
+/* 📜 stu-row محسّن */
+.stu-row {
+    background: linear-gradient(135deg, 
+        rgba(255,255,255,0.04) 0%, 
+        rgba(255,255,255,0.01) 100%);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+.stu-row:hover {
+    transform: translateX(-4px);
+    background: linear-gradient(135deg, 
+        rgba(212,175,55,0.10) 0%, 
+        rgba(212,175,55,0.03) 100%) !important;
+    box-shadow: -4px 0 16px rgba(212,175,55,0.2);
+}
+
+/* 🎭 palette button & drawer */
+.palette-btn {
+    background: linear-gradient(135deg, 
+        rgba(212,175,55,0.18), 
+        rgba(212,175,55,0.05)) !important;
+    backdrop-filter: blur(12px) !important;
+    box-shadow: 0 6px 20px rgba(212,175,55,0.18) !important;
+    transition: all 0.3s !important;
+}
+.palette-btn:hover {
+    background: linear-gradient(135deg, 
+        rgba(212,175,55,0.28), 
+        rgba(212,175,55,0.1)) !important;
+    box-shadow: 0 10px 28px rgba(212,175,55,0.3) !important;
+    transform: scale(1.05);
+}
+.palette-drawer {
+    background: linear-gradient(135deg, 
+        rgba(10,18,40,0.98), 
+        rgba(5,10,26,0.99)) !important;
+    backdrop-filter: blur(30px) saturate(180%) !important;
+    box-shadow: 
+        0 20px 60px rgba(0,0,0,0.6),
+        0 0 40px rgba(212,175,55,0.2) !important;
+}
+.mini-theme {
+    transition: all 0.3s cubic-bezier(0.34, 1.4, 0.64, 1) !important;
+}
+.mini-theme:hover {
+    transform: scale(1.12) translateY(-4px) !important;
+    box-shadow: 0 10px 28px rgba(212,175,55,0.35) !important;
+}
+
+/* 🎬 الانتقالات بين الـ sections */
+.section.active {
+    animation: sectionEnter 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+@keyframes sectionEnter {
+    from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* 💫 شريط التمرير ذهبي */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+::-webkit-scrollbar-track {
+    background: rgba(0,0,0,0.3);
+}
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #b38728, #d4af37);
+    border-radius: 5px;
+    border: 2px solid rgba(0,0,0,0.3);
+}
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #d4af37, #fcf6ba);
+}
+
+/* ✨ logout-btn */
+.logout-btn {
+    background: linear-gradient(135deg, 
+        rgba(231,76,60,0.18), 
+        rgba(231,76,60,0.05)) !important;
+    backdrop-filter: blur(12px) !important;
+    transition: all 0.3s !important;
+}
+.logout-btn:hover {
+    background: linear-gradient(135deg, 
+        rgba(231,76,60,0.32), 
+        rgba(231,76,60,0.15)) !important;
+    box-shadow: 0 6px 20px rgba(231,76,60,0.35) !important;
+    transform: translateY(-2px);
+}
+
+/* 🔮 hero card gradient */
+.hero-card-gradient {
+    background: 
+        linear-gradient(135deg, 
+            rgba(212,175,55,0.18) 0%, 
+            rgba(168,85,247,0.10) 50%,
+            rgba(59,130,246,0.12) 100%) !important;
+    border: 1px solid rgba(212,175,55,0.5) !important;
+    position: relative;
+    overflow: hidden;
+}
+.hero-card-gradient::after {
+    content: '';
+    position: absolute;
+    top: -100%; left: -100%;
+    width: 300%; height: 300%;
+    background: linear-gradient(135deg, 
+        transparent 40%, 
+        rgba(255,255,255,0.06) 50%, 
+        transparent 60%);
+    animation: heroShine 6s linear infinite;
+    pointer-events: none;
+}
+@keyframes heroShine {
+    0% { transform: translate(-50%, -50%); }
+    100% { transform: translate(50%, 50%); }
+}
+
+/* 📊 الجداول */
+table {
+    border-radius: 12px;
+    overflow: hidden;
+}
+th {
+    backdrop-filter: blur(10px);
+    border-bottom: 2px solid rgba(212,175,55,0.4) !important;
+}
+
+/* 🎯 الحقول */
+.fg input:focus, .fg select:focus, .fg textarea:focus,
+input:focus, select:focus, textarea:focus {
+    box-shadow: 0 0 0 3px rgba(212,175,55,0.15), 0 0 20px rgba(212,175,55,0.2) !important;
+}
+
+/* 📱 mobile */
+@media (max-width: 768px) {
+    body::after { opacity: 0.15; }
+}
+</style>
+
 </head>
 <body data-theme="royal-gold">
 
@@ -241,7 +783,7 @@ tr:hover td{background:rgba(212,175,55,.04);}
 
     <!-- ══ Dashboard ══ -->
     <div id="sec-dashboard" class="section active">
-      <div class="panel" style="background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.02));border-color:rgba(212,175,55,.4);">
+      <div class="panel hero-card-gradient glow-top" style="background:linear-gradient(135deg,rgba(212,175,55,.08),rgba(212,175,55,.02));border-color:rgba(212,175,55,.4);">
         <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
           <div>
             <div style="font-size:3rem;">👨‍🏫</div>
@@ -261,10 +803,60 @@ tr:hover td{background:rgba(212,175,55,.04);}
         <div id="dash-warn"></div>
         <button class="btn btn-red btn-sm" style="margin-top:10px;" onclick="showSec('warning')"><i class="fas fa-arrow-left"></i> عرض الكل</button>
       </div>
-      <div class="panel">
+      <div class="panel glow-top">
         <div class="panel-title"><i class="fas fa-chart-line" style="color:#3498db;"></i> التقدم الأسبوعي (ملخص)</div>
         <canvas id="mini-chart" height="120"></canvas>
       </div>
+      
+      <!-- ⚡ نبض اللحظة - مراقبة فورية -->
+      <div class="panel glow-top" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(59,130,246,0.04))!important;border-color:rgba(168,85,247,0.35)!important;">
+        <div class="panel-title">
+          <i class="fas fa-bolt" style="color:#a855f7;animation:bltPulse 1.5s infinite;"></i>
+          نبض اللحظة - مراقبة فورية
+          <span style="display:inline-block;width:8px;height:8px;background:#2ecc71;border-radius:50%;animation:livePulse 1.5s infinite;margin-right:8px;box-shadow:0 0 12px #2ecc71;"></span>
+          <small style="color:rgba(46,204,113,.8);font-size:.7rem;margin-right:4px;font-weight:bold;">مباشر</small>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;">
+          <div class="live-stat live-online" style="background:linear-gradient(135deg,rgba(46,204,113,0.12),rgba(46,204,113,0.04));border:1px solid rgba(46,204,113,0.35);border-radius:14px;padding:16px;text-align:center;backdrop-filter:blur(12px);transition:all .35s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;">
+            <div style="font-size:2rem;margin-bottom:4px;">🟢</div>
+            <div id="live-online" style="font-size:1.9rem;color:#2ecc71;font-weight:900;font-family:Amiri,serif;text-shadow:0 0 14px rgba(46,204,113,0.5);">—</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,0.65);">متصلون الآن</div>
+          </div>
+          <div class="live-stat live-active" style="background:linear-gradient(135deg,rgba(59,130,246,0.12),rgba(59,130,246,0.04));border:1px solid rgba(59,130,246,0.35);border-radius:14px;padding:16px;text-align:center;backdrop-filter:blur(12px);transition:all .35s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;">
+            <div style="font-size:2rem;margin-bottom:4px;">📝</div>
+            <div id="live-active" style="font-size:1.9rem;color:#3b82f6;font-weight:900;font-family:Amiri,serif;text-shadow:0 0 14px rgba(59,130,246,0.5);">—</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,0.65);">يحلون الآن</div>
+          </div>
+          <div class="live-stat live-today" style="background:linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.04));border:1px solid rgba(245,158,11,0.35);border-radius:14px;padding:16px;text-align:center;backdrop-filter:blur(12px);transition:all .35s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;">
+            <div style="font-size:2rem;margin-bottom:4px;">⚡</div>
+            <div id="live-today" style="font-size:1.9rem;color:#f59e0b;font-weight:900;font-family:Amiri,serif;text-shadow:0 0 14px rgba(245,158,11,0.5);">—</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,0.65);">محاولات اليوم</div>
+          </div>
+          <div class="live-stat live-acc" style="background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(168,85,247,0.04));border:1px solid rgba(168,85,247,0.35);border-radius:14px;padding:16px;text-align:center;backdrop-filter:blur(12px);transition:all .35s cubic-bezier(0.34,1.4,0.64,1);position:relative;overflow:hidden;">
+            <div style="font-size:2rem;margin-bottom:4px;">🎯</div>
+            <div id="live-acc" style="font-size:1.9rem;color:#a855f7;font-weight:900;font-family:Amiri,serif;text-shadow:0 0 14px rgba(168,85,247,0.5);">—</div>
+            <div style="font-size:.78rem;color:rgba(255,255,255,0.65);">دقة اليوم %</div>
+          </div>
+        </div>
+        <div id="live-recent" style="margin-top:14px;display:none;">
+          <div style="font-size:.85rem;color:#a855f7;font-weight:bold;margin-bottom:8px;">⚡ آخر النشاطات</div>
+          <div id="live-recent-list" style="display:flex;flex-direction:column;gap:6px;"></div>
+        </div>
+        <div style="margin-top:12px;font-size:.72rem;color:rgba(255,255,255,0.4);text-align:center;">
+          <i class="fas fa-sync" style="animation:bltPulse 2s infinite;"></i>
+          يتحدث كل 30 ثانية
+        </div>
+      </div>
+      
+      <style>
+        @keyframes bltPulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+        @keyframes livePulse { 0%,100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.5); opacity: 0.5; } }
+        .live-stat:hover { transform: translateY(-4px) scale(1.03); }
+        .live-online:hover { box-shadow: 0 10px 28px rgba(46,204,113,0.25); }
+        .live-active:hover { box-shadow: 0 10px 28px rgba(59,130,246,0.25); }
+        .live-today:hover { box-shadow: 0 10px 28px rgba(245,158,11,0.25); }
+        .live-acc:hover { box-shadow: 0 10px 28px rgba(168,85,247,0.25); }
+      </style>
     </div>
 
     <!-- ══ Warning ══ -->
@@ -1592,6 +2184,111 @@ async function sendSmartMsg() {
 if (typeof SEC_TITLES !== 'undefined') {
     SEC_TITLES['compass'] = '🧭 بوصلة النجاح';
 }
+
+
+
+// ════════════════════════════════════════════════════════════
+// ⚡ نبض اللحظة - Live Pulse System
+// ════════════════════════════════════════════════════════════
+var _livePulseTimer = null;
+
+async function updateLivePulse() {
+    if (!STUDENTS || !STUDENTS.length) return;
+    
+    var now = Date.now();
+    var fiveMinAgo = now - 5*60*1000;
+    var fifteenMinAgo = now - 15*60*1000;
+    
+    // 1. متصلون الآن (آخر 5 دقائق)
+    var onlineCount = 0;
+    var activeCount = 0;
+    STUDENTS.forEach(function(s) {
+        if (s.last_active) {
+            try {
+                var t = new Date(s.last_active).getTime();
+                if (t > fiveMinAgo) onlineCount++;
+                if (t > fifteenMinAgo) activeCount++;
+            } catch(e){}
+        }
+    });
+    
+    animateNumber('live-online', onlineCount);
+    
+    // 2. جلب البيانات من الـ endpoint
+    try {
+        var r = await req('/api/supervisor/live-pulse');
+        if (r && !r.error) {
+            animateNumber('live-active', r.active_now || activeCount);
+            animateNumber('live-today', r.today_attempts || 0);
+            animateNumber('live-acc', Math.round(r.today_accuracy || 0));
+            
+            // آخر النشاطات
+            if (r.recent && r.recent.length) {
+                var list = document.getElementById('live-recent-list');
+                document.getElementById('live-recent').style.display = 'block';
+                list.innerHTML = r.recent.slice(0,3).map(function(act) {
+                    var icon = act.correct ? '✅' : '❌';
+                    var color = act.correct ? '#2ecc71' : '#e74c3c';
+                    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:8px;border-right:3px solid '+color+';font-size:.82rem;">' +
+                        '<span style="font-size:1rem;">'+icon+'</span>' +
+                        '<span style="color:#fff;flex:1;">'+(act.student_name||'-')+'</span>' +
+                        '<span style="color:rgba(255,255,255,0.5);font-size:.72rem;">'+(act.time_ago||'الآن')+'</span>' +
+                    '</div>';
+                }).join('');
+            }
+            return;
+        }
+    } catch(e) {
+        // fallback local
+    }
+    
+    // 3. fallback: نُحسب من البيانات المحلية
+    animateNumber('live-active', activeCount);
+}
+
+function animateNumber(elId, target) {
+    var el = document.getElementById(elId);
+    if (!el) return;
+    var current = parseInt(el.textContent) || 0;
+    if (current === target) return;
+    var step = (target - current) / 15;
+    var i = 0;
+    var anim = setInterval(function() {
+        i++;
+        if (i >= 15) {
+            el.textContent = target;
+            clearInterval(anim);
+        } else {
+            el.textContent = Math.round(current + step * i);
+        }
+    }, 50);
+}
+
+function startLivePulse() {
+    if (_livePulseTimer) return;
+    setTimeout(updateLivePulse, 500);
+    _livePulseTimer = setInterval(updateLivePulse, 30000);
+}
+
+function stopLivePulse() {
+    if (_livePulseTimer) {
+        clearInterval(_livePulseTimer);
+        _livePulseTimer = null;
+    }
+}
+
+// Hook into init
+(function(){
+    var _origInit = window.init;
+    if (typeof _origInit === 'function') {
+        window.init = async function() {
+            var r = await _origInit.apply(this, arguments);
+            setTimeout(startLivePulse, 2000);
+            return r;
+        };
+    }
+})();
+
 
 </script>
 </body>
