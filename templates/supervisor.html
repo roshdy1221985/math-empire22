@@ -1283,11 +1283,31 @@ async function init(){
 
 async function loadStudents(){
     try{
+        console.log('[loadStudents] fetching /api/supervisor/students...');
         const r=await req('/api/supervisor/students');
-        STUDENTS=r.students||r||[];
+        console.log('[loadStudents] response:', r);
+        
+        if (r && r.detail) {
+            console.error('[loadStudents] backend error:', r.detail);
+            toast('❌ ' + r.detail, 'error');
+            STUDENTS = [];
+            return;
+        }
+        
+        STUDENTS = r.students || (Array.isArray(r) ? r : []) || [];
+        console.log('[loadStudents] STUDENTS count:', STUDENTS.length);
+        
+        if (STUDENTS.length === 0) {
+            console.warn('[loadStudents] لا يوجد طلاب مربوطون بك');
+        }
+        
         fillDropdowns();
         renderLogList();
-    }catch(e){STUDENTS=[];}
+    } catch(e) {
+        console.error('[loadStudents] exception:', e);
+        STUDENTS = [];
+        toast('❌ خطأ في تحميل الطلاب', 'error');
+    }
 }
 
 function fillDropdowns(){

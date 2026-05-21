@@ -6165,6 +6165,9 @@ async function cleanupSecurityRecords() {
                     <button onclick="loadSupervisors()" style="background:linear-gradient(135deg,#3498db,#2c80b4);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;">
                         🔄 تحديث
                     </button>
+                    <button onclick="checkSupervisorTable()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:11px 22px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.9rem;" title="فحص قاعدة البيانات">
+                        🔍 فحص الجدول
+                    </button>
                 </div>
                 
                 <!-- جدول المشرفين -->
@@ -6409,6 +6412,11 @@ async function manageSupStudents(id, name) {
         const data1 = await r1.json();
         const current = Array.isArray(data1) ? data1 : (data1.students || data1.items || []);
         console.log('[sup-students] current:', current.length);
+        
+        // 🔧 نحفظ IDs المربوطين في متغير عالمي للفلترة
+        _currentAssignedIds = new Set(current.map(function(s){return parseInt(s.id);}));
+        console.log('[sup-students] assigned IDs:', Array.from(_currentAssignedIds));
+        
         renderCurrentStudents(current);
         
         // 2️⃣ كل الطلاب - 3 محاولات
@@ -6472,8 +6480,10 @@ async function manageSupStudents(id, name) {
             return;
         }
         
-        const currentIds = new Set(current.map(s => s.id));
-        const available = _allStudentsCache.filter(s => !currentIds.has(s.id));
+        // نستثني المربوطين من قائمة "إضافة"
+        const available = _allStudentsCache.filter(function(s){
+            return !_currentAssignedIds.has(parseInt(s.id));
+        });
         console.log('[sup-students] available:', available.length, '/ total:', _allStudentsCache.length);
         renderAvailableStudents(available);
     } catch(e) {
@@ -6504,6 +6514,7 @@ function renderCurrentStudents(students) {
 
 let _availableFiltered = [];
 let _selectedToAssign = new Set();
+let _currentAssignedIds = new Set();  // 🔧 IDs المربوطين حالياً للمشرف
 
 function renderAvailableStudents(students) {
     _availableFiltered = students;
@@ -6524,47 +6535,179 @@ function renderAvailableStudents(students) {
 function filterAvailableStudents() {
     const q = document.getElementById('sup-add-search').value.toLowerCase().trim();
     if (!_allStudentsCache) return;
-    const currentIds = new Set(_availableFiltered.map(s=>s.id));
+    
+    // 🔧 نستثني المربوطين دائماً + نُطبّق فلتر البحث
     let filtered = _allStudentsCache.filter(function(s) {
+        // 1. استثناء المربوطين
+        if (_currentAssignedIds.has(parseInt(s.id))) return false;
+        
+        // 2. فلتر البحث
         if (!q) return true;
         const name = (s.full_name || '').toLowerCase();
         const user = (s.username || '').toLowerCase();
         return name.includes(q) || user.includes(q);
     });
+    
     renderAvailableStudents(filtered);
 }
 
 function toggleAssignSelect(id, checked) {
-    if (checked) _selectedToAssign.add(id);
-    else _selectedToAssign.delete(id);
+    var intId = parseInt(id);
+    if (isNaN(intId)) {
+        console.warn('[toggle] invalid id:', id);
+        return;
+    }
+    if (checked) _selectedToAssign.add(intId);
+    else _selectedToAssign.delete(intId);
+    console.log('[toggle]', intId, checked, 'total:', _selectedToAssign.size);
+}
+
+async function checkSupervisorTable() {
+    try {
+        const res = await authFetch('/api/admin/check-supervisor-table');
+        const data = await res.json();
+        
+        let msg = '🔍 فحص جدول supervisor_students:\n\n';
+        
+        if (data.table_exists) {
+            msg += '✅ الجدول موجود\n';
+            msg += '📊 عدد الصفوف: ' + data.row_count + '\n';
+            if (data.sample && data.sample.length) {
+                msg += '\n📋 عيّنة من البيانات:\n';
+                data.sample.slice(0,3).forEach(function(r) {
+                    msg += '   • مشرف #' + r.supervisor_id + ' → طالب #' + r.student_id + '\n';
+                });
+            } else {
+                msg += '\n⚠️ الجدول فارغ - لم يتم ربط أي طلاب بعد';
+            }
+        } else {
+            msg += '❌ الجدول غير موجود!\n\n';
+            msg += '🔴 الخطأ: ' + (data.error || 'unknown') + '\n\n';
+            msg += '💡 الحل: انسخ هذا الـ SQL إلى Supabase SQL Editor:\n\n';
+            msg += data.create_sql;
+        }
+        
+        alert(msg);
+        console.log('[check-table]', data);
+    } catch(e) {
+        alert('❌ خطأ في الفحص:\n\n' + (e.message || 'خطأ في الاتصال'));
+    }
 }
 
 async function assignSelectedStudents() {
-    if (_selectedToAssign.size === 0) return showToast('⚠️ اختر طلاباً أولاً', 'warning');
+    console.log('═══ START: assignSelectedStudents ═══');
+    console.log('1. Selected count:', _selectedToAssign.size);
+    console.log('2. Selected IDs:', Array.from(_selectedToAssign));
+    console.log('3. Current sup ID:', _currentSupId, 'type:', typeof _currentSupId);
+    
+    if (_selectedToAssign.size === 0) {
+        alert('⚠️ اختر طلاباً أولاً (ضع علامة ☑️ على الـ checkboxes)');
+        return;
+    }
+    if (!_currentSupId) {
+        alert('⚠️ لم يُحدد مشرف!');
+        return;
+    }
+    
+    // نُحوّل IDs لـ integers بصرامة
+    const idsArr = Array.from(_selectedToAssign).map(function(x){return parseInt(x);}).filter(function(x){return !isNaN(x);});
+    const supId = parseInt(_currentSupId);
+    
+    console.log('4. IDs as int:', idsArr, 'supId:', supId);
+    
+    if (idsArr.length === 0 || isNaN(supId)) {
+        alert('❌ IDs غير صالحة!\nالطلاب: ' + JSON.stringify(idsArr) + '\nالمشرف: ' + supId);
+        return;
+    }
+    
     try {
         const fd = new FormData();
-        fd.append('student_ids', Array.from(_selectedToAssign).join(','));
-        const res = await authFetch('/api/admin/supervisors/' + _currentSupId + '/assign-bulk', { method: 'POST', body: fd });
-        if (!res || !res.ok) throw new Error('failed');
-        const data = await res.json();
-        showToast('✅ تم ربط ' + (data.added || 0) + ' طالب', 'success');
+        fd.append('student_ids', idsArr.join(','));
+        
+        const url = '/api/admin/supervisors/' + supId + '/assign-bulk';
+        console.log('5. POST', url);
+        
+        const res = await authFetch(url, { method: 'POST', body: fd });
+        const txt = await res.text();
+        console.log('6. Status:', res.status, 'Response:', txt.substring(0, 300));
+        
+        let data;
+        try { data = JSON.parse(txt); }
+        catch(e) { 
+            alert('❌ استجابة الخادم ليست JSON صالحة:\n\n' + txt.substring(0, 300));
+            return;
+        }
+        
+        if (!res.ok) {
+            const errMsg = data.detail || data.message || data.error || ('HTTP ' + res.status);
+            alert('❌ فشل الربط:\n\nالحالة: ' + res.status + '\nالرسالة: ' + errMsg);
+            return;
+        }
+        
+        const added = data.added || 0;
+        console.log('7. ✅ Added:', added, 'Skipped:', data.skipped || 0);
+        
+        if (added > 0) {
+            if (typeof showToast === 'function') showToast('✅ تم ربط ' + added + ' طالب', 'success');
+            else alert('✅ تم ربط ' + added + ' طالب');
+        } else if ((data.skipped || 0) > 0) {
+            if (typeof showToast === 'function') showToast('ℹ️ كل المختارين مرتبطون مسبقاً', 'warning');
+        } else {
+            alert('⚠️ لم يُضف أي طالب\n\n' + JSON.stringify(data));
+        }
+        
+        // 🔄 إعادة تحميل كاملة
         _selectedToAssign.clear();
-        manageSupStudents(_currentSupId, document.getElementById('sup-mod-name').textContent);
-        loadSupervisors();
+        _allStudentsCache = null;  // إلغاء cache مهم!
+        
+        // نُمسح الـ checkboxes المُحدّدة في الواجهة
+        document.querySelectorAll('#sup-available-students input[type="checkbox"]').forEach(function(cb){
+            cb.checked = false;
+        });
+        
+        // إعادة تحميل المودال بالكامل
+        const supName = document.getElementById('sup-mod-name').textContent;
+        console.log('8. Reloading modal for sup:', supId, supName);
+        await manageSupStudents(supId, supName);
+        
+        // إعادة تحميل قائمة المشرفين (لتحديث عداد الطلاب)
+        if (typeof loadSupervisors === 'function') {
+            setTimeout(loadSupervisors, 300);
+        }
+        
+        console.log('═══ END: assignSelectedStudents ═══');
     } catch(e) {
-        showToast('❌ فشل', 'error');
+        console.error('💥 EXCEPTION:', e);
+        alert('❌ خطأ غير متوقع:\n\n' + (e.message || 'خطأ في الاتصال') + '\n\nافتح Console (F12) للتفاصيل');
     }
 }
 
 async function unassignStudent(studentId) {
+    if (!_currentSupId) return showToast('⚠️ لم يُحدد مشرف', 'warning');
+    if (!confirm('هل تريد فك ربط هذا الطالب؟')) return;
+    
     try {
-        const res = await authFetch('/api/admin/supervisors/' + _currentSupId + '/unassign-student/' + studentId, { method: 'DELETE' });
-        if (!res || !res.ok) throw new Error('failed');
-        showToast('✅ تم فك الربط', 'success');
-        manageSupStudents(_currentSupId, document.getElementById('sup-mod-name').textContent);
-        loadSupervisors();
+        const supId = parseInt(_currentSupId);
+        const stuId = parseInt(studentId);
+        console.log('[unassign] sup:', supId, 'stu:', stuId);
+        
+        const res = await authFetch('/api/admin/supervisors/' + supId + '/unassign-student/' + stuId, { method: 'DELETE' });
+        const data = await res.json().catch(() => ({}));
+        
+        if (!res.ok) {
+            const errMsg = data.detail || data.message || ('HTTP ' + res.status);
+            alert('❌ فشل فك الربط: ' + errMsg);
+            return;
+        }
+        
+        if (typeof showToast === 'function') showToast('✅ تم فك الربط', 'success');
+        
+        // إعادة تحميل
+        await manageSupStudents(supId, document.getElementById('sup-mod-name').textContent);
+        if (typeof loadSupervisors === 'function') setTimeout(loadSupervisors, 300);
     } catch(e) {
-        showToast('❌ فشل', 'error');
+        console.error('[unassign] exception:', e);
+        alert('❌ خطأ: ' + (e.message || 'خطأ في الاتصال'));
     }
 }
 </script>

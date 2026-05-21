@@ -10129,6 +10129,32 @@ async def supervisor_login(
     return {"access_token": token, "token_type": "bearer"}
 
 
+
+
+@app.get("/api/supervisor/debug")
+async def supervisor_debug(sup = Depends(get_current_supervisor)):
+    """🔍 تشخيص للمشرف - يُظهر هويته وطلابه"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    
+    # نجلب أسماء الطلاب
+    student_names = []
+    if student_ids:
+        try:
+            res = supabase.table("students").select("id, full_name").in_("id", student_ids).execute()
+            student_names = [{"id": s["id"], "name": s.get("full_name", "—")} for s in (res.data or [])]
+        except Exception as e:
+            student_names = [{"error": str(e)[:200]}]
+    
+    return {
+        "supervisor_id": sup["id"],
+        "supervisor_name": sup.get("full_name", "—"),
+        "supervisor_email": sup.get("email", "—"),
+        "student_ids_count": len(student_ids),
+        "student_ids": student_ids,
+        "students": student_names,
+        "diagnosis": "✅ كل شيء يعمل" if student_ids else "⚠️ لم يُربط أي طالب بهذا المشرف بعد"
+    }
+
 @app.get("/api/supervisor/me")
 async def supervisor_me(sup = Depends(get_current_supervisor)):
     """👤 معلومات المشرف الحالي"""
@@ -10144,8 +10170,16 @@ async def supervisor_students(sup = Depends(get_current_supervisor)):
     if not student_ids:
         return {"students": [], "total": 0}
     
-    res = supabase.table("students").select("id,full_name,username,grade,xp,total_points,points,level,last_active,avatar,curriculum").in_("id", student_ids).execute()
+    res = supabase.table("students").select("id,full_name,username,grade,total_xp,total_points,last_active").in_("id", student_ids).execute()
     students = res.data or []
+    
+    # 🔧 normalize للتوافق مع الكود القديم
+    for s in students:
+        s["xp"] = s.get("total_xp", 0) or 0
+        s["points"] = s.get("total_points", 0) or 0
+        s["level"] = max(1, (s.get("total_xp", 0) or 0) // 100)
+        s["avatar"] = ""
+        s["curriculum"] = ""
     
     # نُضيف إحصائيات بسيطة (الدقة، عدد التحديات)
     for s in students:
@@ -10216,7 +10250,10 @@ async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
     if not student_ids:
         return {"students": [], "total": 0}
     
-    students = supabase.table("students").select("id,full_name,username,grade,xp,last_active").in_("id", student_ids).execute()
+    students = supabase.table("students").select("id,full_name,username,grade,total_xp,last_active").in_("id", student_ids).execute()
+    # normalize للتوافق
+    for s in (students.data or []):
+        s["xp"] = s.get("total_xp", 0) or 0
     
     from datetime import datetime, timezone, timedelta
     threshold_date = datetime.now(timezone.utc) - timedelta(days=absent_days)
@@ -10706,9 +10743,9 @@ async def supervisor_student_360(student_id: int, sup = Depends(get_current_supe
             "weekly_attempts": len(week_chal),
             "weekly_accuracy": week_acc,
             "monthly_attempts": len(month_chal),
-            "xp": student.get("xp", 0),
-            "total_points": student.get("total_points", 0) or student.get("points", 0),
-            "level": student.get("level", 1)
+            "xp": student.get("total_xp", 0) or 0,
+            "total_points": student.get("total_points", 0) or 0,
+            "level": max(1, (student.get("total_xp", 0) or 0) // 100)
         },
         "strengths": strengths[:5],
         "weaknesses": weaknesses[:5],
@@ -11190,8 +11227,13 @@ async def admin_get_supervisor_students(sup_id: int, admin = Depends(get_current
     student_ids = [l["student_id"] for l in (links.data or [])]
     if not student_ids:
         return {"students": []}
-    students = supabase.table("students").select("id,full_name,username,grade,xp,points,last_active").in_("id", student_ids).execute()
-    return {"students": students.data or []}
+    students_data = supabase.table("students").select("id,full_name,username,grade,total_xp,total_points,last_active").in_("id", student_ids).execute()
+    result = students_data.data or []
+    # normalize للتوافق
+    for s in result:
+        s["xp"] = s.get("total_xp", 0) or 0
+        s["points"] = s.get("total_points", 0) or 0
+    return {"students": result}
 
 
 @app.post("/api/admin/supervisors/{sup_id}/assign-student")
@@ -11230,6 +11272,46 @@ async def admin_unassign_student(
     return {"status": "success"}
 
 
+
+
+@app.get("/api/admin/check-supervisor-table")
+async def admin_check_supervisor_table(admin = Depends(get_current_admin)):
+    """🔍 فحص حالة جدول supervisor_students"""
+    result = {
+        "table_exists": False,
+        "row_count": 0,
+        "sample": [],
+        "error": None,
+        "create_sql": ""
+    }
+    
+    try:
+        res = supabase.table("supervisor_students").select("*").limit(5).execute()
+        result["table_exists"] = True
+        result["sample"] = res.data or []
+        
+        # عدد الصفوف
+        count_res = supabase.table("supervisor_students").select("supervisor_id", count="exact").limit(1).execute()
+        result["row_count"] = count_res.count or 0
+    except Exception as e:
+        result["error"] = str(e)[:300]
+    
+    result["create_sql"] = """-- SQL لإنشاء جدول supervisor_students في Supabase:
+
+CREATE TABLE IF NOT EXISTS supervisor_students (
+    id SERIAL PRIMARY KEY,
+    supervisor_id INTEGER NOT NULL REFERENCES supervisors(id) ON DELETE CASCADE,
+    student_id INTEGER NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+    assigned_at TIMESTAMPTZ DEFAULT NOW(),
+    notes TEXT,
+    UNIQUE(supervisor_id, student_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_supstu_sup ON supervisor_students(supervisor_id);
+CREATE INDEX IF NOT EXISTS idx_supstu_stu ON supervisor_students(student_id);
+"""
+    return result
+
 @app.post("/api/admin/supervisors/{sup_id}/assign-bulk")
 async def admin_assign_bulk(
     sup_id: int,
@@ -11238,21 +11320,94 @@ async def admin_assign_bulk(
 ):
     """🔗 ربط مجموعة طلاب دفعة واحدة. student_ids: '1,2,3' أو JSON array"""
     import json as _json
+    
+    # 1. parse IDs
     try:
-        ids = _json.loads(student_ids) if student_ids.startswith("[") else [int(x.strip()) for x in student_ids.split(",") if x.strip()]
-    except Exception:
-        raise HTTPException(status_code=400, detail="صيغة IDs خاطئة")
+        if student_ids.strip().startswith("["):
+            ids = _json.loads(student_ids)
+        else:
+            ids = [int(x.strip()) for x in student_ids.split(",") if x.strip()]
+        ids = [int(i) for i in ids]
+    except Exception as e:
+        print(f"[assign-bulk] parse error: {e}, input: {student_ids[:200]}")
+        raise HTTPException(status_code=400, detail=f"صيغة IDs خاطئة: {str(e)[:100]}")
+    
     if not ids:
-        return {"status": "success", "added": 0}
-    # نحذف الموجودين سابقاً لتجنب duplicates
-    existing = supabase.table("supervisor_students").select("student_id").eq("supervisor_id", sup_id).execute()
-    existing_ids = set(r["student_id"] for r in (existing.data or []))
+        return {"status": "success", "added": 0, "message": "لا توجد IDs"}
+    
+    print(f"[assign-bulk] sup={sup_id}, ids={ids}")
+    
+    # 2. التحقق من وجود المشرف
+    try:
+        sup_check = supabase.table("supervisors").select("id, full_name").eq("id", sup_id).execute()
+        if not sup_check.data:
+            raise HTTPException(status_code=404, detail=f"المشرف #{sup_id} غير موجود")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[assign-bulk] supervisor check error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ التحقق من المشرف: {str(e)[:100]}")
+    
+    # 3. التحقق من وجود الطلاب
+    try:
+        students_check = supabase.table("students").select("id").in_("id", ids).execute()
+        valid_ids = [s["id"] for s in (students_check.data or [])]
+        if len(valid_ids) != len(ids):
+            missing = set(ids) - set(valid_ids)
+            print(f"[assign-bulk] missing students: {missing}")
+            ids = valid_ids  # نستخدم فقط الموجودين
+            if not ids:
+                raise HTTPException(status_code=400, detail=f"لم يُعثر على الطلاب: {list(missing)[:5]}")
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"[assign-bulk] students check error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ التحقق من الطلاب: {str(e)[:100]}")
+    
+    # 4. جلب الموجودين لتجنب duplicates
+    try:
+        existing = supabase.table("supervisor_students").select("student_id").eq("supervisor_id", sup_id).execute()
+        existing_ids = set(r["student_id"] for r in (existing.data or []))
+    except Exception as e:
+        # ربما الجدول غير موجود!
+        print(f"[assign-bulk] table check error: {e}")
+        raise HTTPException(status_code=500, detail=f"جدول supervisor_students قد لا يكون موجوداً في Supabase: {str(e)[:150]}")
+    
     new_ids = [i for i in ids if i not in existing_ids]
     if not new_ids:
-        return {"status": "success", "added": 0, "message": "كلهم مرتبطون مسبقاً"}
-    rows = [{"supervisor_id": sup_id, "student_id": sid} for sid in new_ids]
-    res = supabase.table("supervisor_students").insert(rows).execute()
-    return {"status": "success", "added": len(new_ids)}
+        return {"status": "success", "added": 0, "message": f"كلهم مرتبطون مسبقاً ({len(ids)} طالب)"}
+    
+    # 5. الـ insert
+    try:
+        rows = [{"supervisor_id": sup_id, "student_id": sid} for sid in new_ids]
+        res = supabase.table("supervisor_students").insert(rows).execute()
+        print(f"[assign-bulk] ✅ added {len(new_ids)} students to sup {sup_id}")
+        
+        # إبطال الـ cache (لو موجود)
+        try:
+            _cache.invalidate_prefix("supervisor:")
+            _cache.invalidate_prefix("students:")
+        except Exception:
+            pass
+        
+        return {
+            "status": "success", 
+            "added": len(new_ids),
+            "skipped": len(ids) - len(new_ids),
+            "total_attempted": len(ids)
+        }
+    except Exception as e:
+        err_str = str(e)
+        print(f"[assign-bulk] insert error: {err_str}")
+        # رسالة واضحة حسب نوع الخطأ
+        if "duplicate" in err_str.lower() or "unique" in err_str.lower():
+            raise HTTPException(status_code=409, detail="بعض الطلاب مرتبطون مسبقاً")
+        elif "foreign key" in err_str.lower():
+            raise HTTPException(status_code=400, detail="مرجع غير صالح (طالب أو مشرف)")
+        elif "does not exist" in err_str.lower() or "relation" in err_str.lower():
+            raise HTTPException(status_code=500, detail="جدول supervisor_students غير موجود في Supabase!")
+        else:
+            raise HTTPException(status_code=500, detail=f"خطأ الإدراج: {err_str[:200]}")
 
 
 @app.get("/api/admin/supervisors/{sup_id}/report")
