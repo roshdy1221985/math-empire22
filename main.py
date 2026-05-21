@@ -917,9 +917,15 @@ async def login_student(request: Request, username: str = Form(...), password: s
 
         # ═══ تحديث last_active للطالب ═══
         try:
-            supabase.table("students").update({
+            try:
+
+                supabase.table("students").update({
                 "last_active": datetime.now(timezone.utc).isoformat()
             }).eq("id", user["id"]).execute()
+
+            except Exception:
+
+                pass  # last_active column may not exist
         except Exception:
             pass  # الحقل قد لا يكون موجوداً في جداول قديمة
 
@@ -982,10 +988,16 @@ async def sync_student_xp(
         
         # 🛡️ نُحدّث فقط لو القيمة الجديدة أعلى (حماية ضد التراجع)
         if xp > server_xp:
-            supabase.table("students").update({
+            try:
+
+                supabase.table("students").update({
                 "total_points": xp,
                 "last_active": datetime.now(timezone.utc).isoformat()
             }).eq("id", student_id).execute()
+
+            except Exception:
+
+                pass  # last_active column may not exist
             return {"status": "ok", "synced": True, "new_xp": xp, "old_xp": server_xp}
         
         # السيرفر أعلى أو مساوٍ — نُرجع قيمة السيرفر (للتصحيح في العميل)
@@ -2025,7 +2037,7 @@ async def save_result(
     if len(lesson.strip()) < 2 or len(lesson) > 300:
         raise HTTPException(status_code=400, detail="اسم درس غير صحيح")
     # التحقق أن الطالب موجود ونتيجة واحدة لكل درس/جلسة
-    st = supabase.table("students").select("id,username").eq("id", student_id).execute()
+    st = supabase.table("students").select("id, username").eq("id", student_id).execute()
     if not st.data:
         raise HTTPException(status_code=404, detail="الطالب غير موجود")
     supabase.table("results").insert({
@@ -2038,9 +2050,15 @@ async def save_result(
 
     # ═══ تحديث last_active للطالب عند حفظ النتيجة ═══
     try:
-        supabase.table("students").update({
+        try:
+
+            supabase.table("students").update({
             "last_active": datetime.now(timezone.utc).isoformat()
         }).eq("id", student_id).execute()
+
+        except Exception:
+
+            pass  # last_active column may not exist
     except Exception:
         pass
     
@@ -2074,9 +2092,15 @@ async def student_heartbeat(student_id: int = Form(...)):
     now = datetime.now(timezone.utc)
     try:
         # 1. تحديث last_active في students (للتوافق)
-        supabase.table("students").update({
+        try:
+
+            supabase.table("students").update({
             "last_active": now.isoformat()
         }).eq("id", student_id).execute()
+
+        except Exception:
+
+            pass  # last_active column may not exist
         
         # 2. حفظ session bucket (مدة 5 دقائق)
         # نقرّب الوقت لأقرب 5 دقائق (12:00, 12:05, 12:10, ...)
@@ -2708,7 +2732,7 @@ async def arena_websocket(websocket: WebSocket, student_name: str, grade: str, t
                 if sid:
                     # جلب البيانات الحقيقية من DB لاستبدال الاسم/الصف القادم من URL
                     try:
-                        st = supabase.table("students").select("full_name,grade,is_active")\
+                        st = supabase.table("students").select("full_name, grade, is_active")\
                              .eq("id", int(sid)).execute()
                         if st.data:
                             # منع الحسابات المعطلة من الدخول للساحة
@@ -3905,7 +3929,7 @@ def _grant_badge(student_id: int, badge_id: str) -> dict:
         
         # امنح XP إضافي مكافأة
         try:
-            st_res = supabase.table("students").select("total_xp").eq("id", student_id).limit(1).execute()
+            st_res = supabase.table("students").select("total_points").eq("id", student_id).limit(1).execute()
             if st_res.data:
                 cur_xp = st_res.data[0].get("total_xp") or 0
                 supabase.table("students").update({
@@ -3942,14 +3966,14 @@ def _check_and_grant_achievements(student_id: int, context: dict = None) -> list
     try:
         # 1. اجلب بيانات الطالب
         st_res = supabase.table("students").select(
-            "id, total_xp, last_active, created_at"
+            "id, total_points, created_at"
         ).eq("id", student_id).limit(1).execute()
         
         if not st_res.data:
             return []
         
         student = st_res.data[0]
-        total_xp = student.get("total_xp") or 0
+        total_xp = student.get("total_points") or 0
         
         # 2. اجلب نتائج الطالب
         results_res = supabase.table("results").select(
@@ -5385,7 +5409,7 @@ async def empire_full_stats(admin = Depends(get_current_admin)):
         offset = 0
         # نُجرّب أعمدة محتملة (last_login أو last_active)
         select_cols_options = [
-            "id, full_name, grade, total_points, created_at, last_active",
+            "id, full_name, grade, total_points, created_at",
             "id, full_name, grade, total_points, created_at, last_login",
             "id, full_name, grade, total_points, created_at",
             "id, full_name, grade, total_points",
@@ -9334,7 +9358,7 @@ async def get_full_report(admin=Depends(get_current_admin)):
     for _ in range(20):
         try:
             res_batch = supabase.table("students").select(
-                "id, full_name, grade, username, created_at, last_active, total_points, is_active, is_elite"
+                "id, full_name, grade, username, created_at, total_points, is_active, is_elite"
             ).order("full_name").range(offset, offset + 999).execute()
             batch = res_batch.data or []
             if not batch:
@@ -9702,7 +9726,7 @@ async def get_grade_performance(admin=Depends(get_current_admin)):
     for _ in range(20):
         try:
             res = supabase.table("students").select(
-                "id, grade, total_points, last_active, is_active"
+                "id, grade, total_points, is_active, created_at"
             ).range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch: break
@@ -9924,7 +9948,7 @@ async def export_students_csv(admin=Depends(get_current_admin)):
     for _ in range(20):
         try:
             res = supabase.table("students").select(
-                "id, full_name, username, grade, school_name, total_points, last_active, is_active, is_elite, parent_phone, parent_email, created_at"
+                "id, full_name, username, grade, school_name, total_points, is_active, is_elite, parent_phone, parent_email, created_at"
             ).order("total_points", desc=True).range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch: break
@@ -10170,14 +10194,16 @@ async def supervisor_students(sup = Depends(get_current_supervisor)):
     if not student_ids:
         return {"students": [], "total": 0}
     
-    res = supabase.table("students").select("id,full_name,username,grade,total_xp,total_points,last_active").in_("id", student_ids).execute()
+    res = supabase.table("students").select("id, full_name, username, grade, total_points, created_at").in_("id", student_ids).execute()
     students = res.data or []
     
     # 🔧 normalize للتوافق مع الكود القديم
     for s in students:
-        s["xp"] = s.get("total_xp", 0) or 0
+        s["xp"] = s.get("total_points", 0) or 0
         s["points"] = s.get("total_points", 0) or 0
-        s["level"] = max(1, (s.get("total_xp", 0) or 0) // 100)
+        s["total_xp"] = s.get("total_points", 0) or 0
+        s["level"] = max(1, (s.get("total_points", 0) or 0) // 100)
+        s["last_active"] = s.get("created_at", "") or ""
         s["avatar"] = ""
         s["curriculum"] = ""
     
@@ -10250,10 +10276,12 @@ async def supervisor_struggling_students(sup = Depends(get_current_supervisor)):
     if not student_ids:
         return {"students": [], "total": 0}
     
-    students = supabase.table("students").select("id,full_name,username,grade,total_xp,last_active").in_("id", student_ids).execute()
+    students = supabase.table("students").select("id, full_name, username, grade, total_points, created_at").in_("id", student_ids).execute()
     # normalize للتوافق
     for s in (students.data or []):
-        s["xp"] = s.get("total_xp", 0) or 0
+        s["xp"] = s.get("total_points", 0) or 0
+        s["total_xp"] = s.get("total_points", 0) or 0
+        s["last_active"] = s.get("created_at", "") or ""
     
     from datetime import datetime, timezone, timedelta
     threshold_date = datetime.now(timezone.utc) - timedelta(days=absent_days)
@@ -10398,7 +10426,7 @@ async def supervisor_exam_results(exam_id: int, sup = Depends(get_current_superv
     # نُضيف أسماء الطلاب
     if results.data:
         student_ids = list(set(r["student_id"] for r in results.data))
-        stus = supabase.table("students").select("id,full_name,username").in_("id", student_ids).execute()
+        stus = supabase.table("students").select("id, full_name, username").in_("id", student_ids).execute()
         stu_map = {s["id"]: s for s in (stus.data or [])}
         for r in results.data:
             r["student"] = stu_map.get(r["student_id"], {})
@@ -10926,7 +10954,7 @@ async def supervisor_list_messages(sup = Depends(get_current_supervisor)):
     # نُضيف أسماء الطلاب
     student_ids = list(set(m["student_id"] for m in msgs if m.get("student_id")))
     if student_ids:
-        stus = supabase.table("students").select("id,full_name").in_("id", student_ids).execute()
+        stus = supabase.table("students").select("id, full_name").in_("id", student_ids).execute()
         stu_map = {s["id"]: s["full_name"] for s in (stus.data or [])}
         for m in msgs:
             if m.get("student_id"):
@@ -11227,12 +11255,14 @@ async def admin_get_supervisor_students(sup_id: int, admin = Depends(get_current
     student_ids = [l["student_id"] for l in (links.data or [])]
     if not student_ids:
         return {"students": []}
-    students_data = supabase.table("students").select("id,full_name,username,grade,total_xp,total_points,last_active").in_("id", student_ids).execute()
+    students_data = supabase.table("students").select("id, full_name, username, grade, total_points, created_at").in_("id", student_ids).execute()
     result = students_data.data or []
     # normalize للتوافق
     for s in result:
-        s["xp"] = s.get("total_xp", 0) or 0
+        s["xp"] = s.get("total_points", 0) or 0
         s["points"] = s.get("total_points", 0) or 0
+        s["total_xp"] = s.get("total_points", 0) or 0
+        s["last_active"] = s.get("created_at", "") or ""
     return {"students": result}
 
 
@@ -11576,7 +11606,7 @@ async def elite_leaderboard():
     """ترتيب الفائقين — استعلام واحد بدلاً من N+1"""
     # ═══ 1) جلب كل طلاب النخبة (استعلام واحد) ═══
     res = supabase.table("students").select(
-        "id,full_name,grade,school_name,avatar_url"
+        "id, full_name, grade, school_name, avatar_url"
     ).eq("is_elite", True).execute()
     students = res.data or []
 
@@ -11655,7 +11685,7 @@ async def grant_elite_manually(student_id: int, admin=Depends(get_current_admin)
 @app.get("/api/admin/elite/members")
 async def get_elite_members(admin=Depends(get_current_admin)):
     res = supabase.table("students").select(
-        "id,full_name,username,grade,school_name,is_elite,elite_approved_at"
+        "id, full_name, username, grade, school_name, is_elite, elite_approved_at"
     ).eq("is_elite", True).execute()
     return res.data or []
 
@@ -11735,7 +11765,7 @@ async def get_all_students_full(admin=Depends(get_current_admin)):
     for _ in range(20):
         try:
             res = supabase.table("students").select(
-                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, last_active, parent_code, parent_phone, parent_name, parent_email, total_points"
+                "id, full_name, username, grade, school_name, avatar_url, is_active, is_elite, created_at, parent_code, parent_phone, parent_name, parent_email, total_points"
             ).order("full_name").range(offset, offset + 999).execute()
             batch = res.data or []
             if not batch:
@@ -13253,7 +13283,7 @@ async def send_motivation_inactive(
     # اجلب كل الطلاب
     try:
         students_res = supabase.table("students").select(
-            "id, full_name, last_active"
+            "id, full_name"
         ).execute()
         students = students_res.data or []
     except Exception as e:
