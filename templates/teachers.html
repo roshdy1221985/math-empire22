@@ -3690,6 +3690,12 @@
             <span class="btn-icon">🎬</span> <span>المكتبة الإعلامية</span>
         </button>
         
+        <!-- 💬 منتدى المعلمين -->
+        <button class="nav-btn nav-royal" onclick="showSection('forum',this); if(typeof loadForumTopics === 'function') loadForumTopics();" style="background:linear-gradient(135deg,rgba(155,89,182,0.15),rgba(155,89,182,0.05));border-color:rgba(155,89,182,0.4);position:relative;">
+            <span class="btn-icon">💬</span> <span>منتدى المعلمين</span>
+            <span id="forum-notif-badge" style="display:none;position:absolute;top:6px;left:8px;background:#e74c3c;color:#fff;font-size:.7rem;font-weight:bold;padding:2px 7px;border-radius:10px;box-shadow:0 2px 6px rgba(231,76,60,0.5);animation:pulse 2s infinite;">0</span>
+        </button>
+        
         <!-- ⚙️ الهَب 6: الحساب والإعدادات -->
         <button class="nav-btn nav-royal" onclick="showSection('account-hub',this)">
             <span class="btn-icon">⚙️</span> <span>الحساب والإعدادات</span>
@@ -4620,6 +4626,215 @@
     <!-- ══════════════════════════════════════════════════════
          ⚙️ الهَب 6: الحساب والإعدادات
     ══════════════════════════════════════════════════════ -->
+    
+    <!-- ════════ 💬 منتدى المعلمين ════════ -->
+    <div id="section-forum" class="section">
+      <style>
+        .forum-container { padding: 20px; max-width: 1200px; margin: 0 auto; }
+        .forum-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 14px; }
+        .forum-title { 
+            font-family: 'Amiri', serif; 
+            font-size: 2rem; 
+            background: linear-gradient(135deg, #9b59b6, #8e44ad, #d4af37);
+            background-size: 200% auto;
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: shine 3s linear infinite;
+            font-weight: 900;
+        }
+        .forum-btn-new {
+            background: linear-gradient(135deg, #9b59b6, #8e44ad);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: Cairo;
+            font-weight: bold;
+            font-size: 0.95rem;
+            box-shadow: 0 6px 20px rgba(155,89,182,0.4);
+            transition: all 0.3s;
+        }
+        .forum-btn-new:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(155,89,182,0.5); }
+        
+        .forum-stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .forum-stat-card {
+            background: linear-gradient(135deg, rgba(155,89,182,0.1), rgba(155,89,182,0.02));
+            border: 1px solid rgba(155,89,182,0.3);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        .forum-stat-card .num { font-size: 1.6rem; color: #9b59b6; font-weight: 900; font-family: Amiri,serif; }
+        .forum-stat-card .label { font-size: 0.78rem; color: rgba(255,255,255,0.6); }
+        
+        .forum-categories {
+            display: flex; gap: 8px; flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .forum-cat-btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: rgba(255,255,255,0.8);
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-family: Cairo;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+        }
+        .forum-cat-btn:hover { background: rgba(155,89,182,0.15); border-color: rgba(155,89,182,0.4); }
+        .forum-cat-btn.active { background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #9b59b6; color: white; }
+        
+        .forum-search-row {
+            display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
+        }
+        .forum-search {
+            flex: 1; min-width: 200px;
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(155,89,182,0.3);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: Cairo;
+        }
+        .forum-sort {
+            background: rgba(0,0,0,0.3);
+            border: 1px solid rgba(155,89,182,0.3);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-family: Cairo;
+            cursor: pointer;
+        }
+        
+        .forum-topic-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.05), rgba(255,255,255,0.01));
+            border: 1px solid rgba(155,89,182,0.25);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        .forum-topic-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(155,89,182,0.5);
+            box-shadow: 0 8px 24px rgba(155,89,182,0.15);
+        }
+        .forum-topic-card.pinned {
+            background: linear-gradient(135deg, rgba(212,175,55,0.10), rgba(155,89,182,0.05));
+            border-color: rgba(212,175,55,0.4);
+        }
+        .forum-topic-card.pinned::before {
+            content: '📌 مثبّت';
+            position: absolute;
+            top: -8px;
+            right: 14px;
+            background: linear-gradient(135deg, #d4af37, #b38728);
+            color: white;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+        
+        .forum-topic-head { display: flex; justify-content: space-between; align-items: start; gap: 10px; margin-bottom: 8px; }
+        .forum-topic-title { color: #fff; font-weight: bold; font-size: 1.1rem; flex: 1; }
+        .forum-topic-category {
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+        .forum-topic-preview {
+            color: rgba(255,255,255,0.65);
+            font-size: 0.88rem;
+            line-height: 1.6;
+            margin: 8px 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .forum-topic-meta {
+            display: flex; gap: 14px; flex-wrap: wrap;
+            font-size: 0.78rem;
+            color: rgba(255,255,255,0.5);
+            padding-top: 8px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .forum-topic-meta .icon { margin-left: 4px; }
+        .forum-topic-meta .author { color: #9b59b6; font-weight: bold; }
+        
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+      </style>
+      
+      <div class="forum-container">
+        <div class="forum-header">
+          <div class="forum-title">💬 منتدى المعلمين</div>
+          <div style="display:flex;gap:10px;">
+            <button onclick="loadForumLeaderboard()" style="background:linear-gradient(135deg,#d4af37,#b38728);color:white;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🏆 المتصدرون</button>
+            <button class="forum-btn-new" onclick="openNewTopicModal()">✍️ موضوع جديد</button>
+          </div>
+        </div>
+        
+        <!-- إحصاءاتي -->
+        <div class="forum-stats-bar" id="forum-my-stats">
+          <div class="forum-stat-card">
+            <div class="num" id="fs-topics">0</div>
+            <div class="label">📝 مواضيعي</div>
+          </div>
+          <div class="forum-stat-card">
+            <div class="num" id="fs-replies">0</div>
+            <div class="label">💬 ردودي</div>
+          </div>
+          <div class="forum-stat-card">
+            <div class="num" id="fs-likes">0</div>
+            <div class="label">❤️ إعجابات تلقيتها</div>
+          </div>
+          <div class="forum-stat-card">
+            <div class="num" id="fs-views">0</div>
+            <div class="label">👁️ مشاهدات لمواضيعي</div>
+          </div>
+          <div class="forum-stat-card">
+            <div class="num" id="fs-score">0</div>
+            <div class="label">⭐ نقاطي</div>
+          </div>
+        </div>
+        
+        <!-- الفئات -->
+        <div class="forum-categories" id="forum-categories">
+          <button class="forum-cat-btn active" data-cat="all" onclick="filterForumByCat('all')">📋 الكل</button>
+        </div>
+        
+        <!-- البحث والترتيب -->
+        <div class="forum-search-row">
+          <input type="text" class="forum-search" id="forum-search" placeholder="🔍 بحث في المواضيع..." oninput="debouncedSearchForum()">
+          <select class="forum-sort" id="forum-sort" onchange="loadForumTopics()">
+            <option value="recent">⏱️ الأحدث</option>
+            <option value="popular">🔥 الأكثر إعجاباً</option>
+            <option value="replies">💬 الأكثر تفاعلاً</option>
+          </select>
+        </div>
+        
+        <!-- قائمة المواضيع -->
+        <div id="forum-topics-list">
+          <p style="text-align:center;opacity:.5;padding:40px;">⏳ جاري التحميل...</p>
+        </div>
+      </div>
+    </div>
+    
     <div id="section-account-hub" class="section">
         <div class="hub-header" style="background:linear-gradient(160deg,rgba(72,209,204,0.08),rgba(0,8,20,0.9));border:2px solid #48d1cc;">
             <div class="hub-icon">⚙️</div>
@@ -16311,6 +16526,439 @@ window.gbUpdateStats = function() {
     }
 };
 </script>
+
+
+
+<!-- ✍️ Modal موضوع جديد -->
+<div id="new-topic-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);">
+  <div style="background:linear-gradient(135deg,rgba(10,18,40,0.98),rgba(5,10,26,0.99));border:1px solid rgba(155,89,182,0.4);border-radius:20px;padding:24px;max-width:700px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 25px 80px rgba(0,0,0,0.6),0 0 60px rgba(155,89,182,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(155,89,182,0.2);">
+      <h2 style="color:#9b59b6;font-family:Amiri,serif;font-size:1.5rem;">✍️ موضوع جديد</h2>
+      <button onclick="closeNewTopicModal()" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1.2rem;">✕</button>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;color:rgba(255,255,255,0.7);margin-bottom:6px;font-size:.9rem;">الفئة:</label>
+      <select id="nt-category" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:10px 14px;border-radius:8px;font-family:Cairo;">
+        <option value="general">☕ نقاش عام</option>
+      </select>
+    </div>
+    <div style="margin-bottom:12px;">
+      <label style="display:block;color:rgba(255,255,255,0.7);margin-bottom:6px;font-size:.9rem;">العنوان:</label>
+      <input id="nt-title" type="text" maxlength="200" placeholder="عنوان واضح ومفيد..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;color:rgba(255,255,255,0.7);margin-bottom:6px;font-size:.9rem;">المحتوى:</label>
+      <textarea id="nt-content" rows="8" maxlength="5000" placeholder="اكتب موضوعك هنا..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>
+    </div>
+    <div style="display:flex;justify-content:space-between;gap:10px;">
+      <span id="nt-char-count" style="color:rgba(255,255,255,0.4);font-size:.78rem;align-self:center;">0 / 5000</span>
+      <button onclick="submitNewTopic()" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:12px 28px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">📝 نشر</button>
+    </div>
+  </div>
+</div>
+
+<!-- 📖 Modal عرض الموضوع -->
+<div id="topic-view-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;align-items:flex-start;justify-content:center;padding:20px;backdrop-filter:blur(10px);overflow-y:auto;">
+  <div style="background:linear-gradient(135deg,rgba(10,18,40,0.98),rgba(5,10,26,0.99));border:1px solid rgba(155,89,182,0.4);border-radius:20px;padding:24px;max-width:900px;width:100%;margin:20px 0;box-shadow:0 25px 80px rgba(0,0,0,0.6),0 0 60px rgba(155,89,182,0.2);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(155,89,182,0.2);">
+      <h2 style="color:#9b59b6;font-family:Amiri,serif;font-size:1.4rem;">📖 الموضوع</h2>
+      <button onclick="closeTopicView()" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1.2rem;">✕</button>
+    </div>
+    <div id="topic-view-body">
+      <p style="text-align:center;opacity:.5;padding:40px;">⏳ جاري التحميل...</p>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// 💬 منتدى المعلمين - الواجهة
+// ════════════════════════════════════════════════════════════
+var FORUM_CATEGORIES = {};
+var FORUM_CURRENT_CAT = 'all';
+var FORUM_CURRENT_TOPIC = null;
+var FORUM_SEARCH_TIMER = null;
+var FORUM_API = (typeof API_URL !== 'undefined' ? API_URL : '') || '';
+
+function getTeacherForumId() {
+    try {
+        var t = JSON.parse(localStorage.getItem('teacher') || '{}');
+        return t.id || 0;
+    } catch(e) { return 0; }
+}
+
+async function loadForumCategories() {
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/categories');
+        var data = await r.json();
+        FORUM_CATEGORIES = data.categories || {};
+        renderCategoryButtons();
+        renderTopicCategorySelect();
+    } catch(e) { console.error('[forum cats]', e); }
+}
+
+function renderCategoryButtons() {
+    var cont = document.getElementById('forum-categories');
+    if (!cont) return;
+    var html = '<button class="forum-cat-btn ' + (FORUM_CURRENT_CAT === 'all' ? 'active' : '') + '" onclick="filterForumByCat(\'all\')">📋 الكل</button>';
+    Object.keys(FORUM_CATEGORIES).forEach(function(key) {
+        var cat = FORUM_CATEGORIES[key];
+        var active = FORUM_CURRENT_CAT === key ? 'active' : '';
+        var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+',rgba(155,89,182,0.8));border-color:'+cat.color+';' : '';
+        html += '<button class="forum-cat-btn ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + '</button>';
+    });
+    cont.innerHTML = html;
+}
+
+function renderTopicCategorySelect() {
+    var sel = document.getElementById('nt-category');
+    if (!sel) return;
+    sel.innerHTML = Object.keys(FORUM_CATEGORIES).filter(function(k){
+        return !FORUM_CATEGORIES[k].admin_only;
+    }).map(function(k) {
+        var c = FORUM_CATEGORIES[k];
+        return '<option value="' + k + '">' + c.icon + ' ' + c.name.replace(/^[^ ]+ /, '') + '</option>';
+    }).join('');
+}
+
+function filterForumByCat(cat) {
+    FORUM_CURRENT_CAT = cat;
+    renderCategoryButtons();
+    loadForumTopics();
+}
+
+function debouncedSearchForum() {
+    if (FORUM_SEARCH_TIMER) clearTimeout(FORUM_SEARCH_TIMER);
+    FORUM_SEARCH_TIMER = setTimeout(loadForumTopics, 400);
+}
+
+async function loadForumTopics() {
+    var cont = document.getElementById('forum-topics-list');
+    if (!cont) return;
+    if (Object.keys(FORUM_CATEGORIES).length === 0) {
+        await loadForumCategories();
+    }
+    cont.innerHTML = '<p style="text-align:center;opacity:.5;padding:40px;">⏳ جاري التحميل...</p>';
+    var search = (document.getElementById('forum-search') || {}).value || '';
+    var sort = (document.getElementById('forum-sort') || {}).value || 'recent';
+    var params = new URLSearchParams();
+    if (FORUM_CURRENT_CAT && FORUM_CURRENT_CAT !== 'all') params.append('category', FORUM_CURRENT_CAT);
+    if (search.trim()) params.append('search', search.trim());
+    if (sort) params.append('sort', sort);
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/topics?' + params.toString());
+        var data = await r.json();
+        renderForumTopics(data.topics || []);
+        loadMyForumStats();
+    } catch(e) {
+        cont.innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ خطأ في التحميل</p>';
+    }
+}
+
+function renderForumTopics(topics) {
+    var cont = document.getElementById('forum-topics-list');
+    if (!cont) return;
+    if (!topics.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:50px;color:rgba(255,255,255,0.5);"><div style="font-size:4rem;margin-bottom:10px;">💬</div><h3 style="color:#9b59b6;margin-bottom:6px;">لا توجد مواضيع</h3><p style="font-size:.88rem;">كن أول من يبدأ النقاش!</p></div>';
+        return;
+    }
+    cont.innerHTML = topics.map(function(t) {
+        var date = t.created_at ? new Date(t.created_at).toLocaleDateString('ar', {year:'numeric', month:'short', day:'numeric'}) : '';
+        var pinnedClass = t.is_pinned ? 'pinned' : '';
+        var catColor = t.category_color || '#9b59b6';
+        return '<div class="forum-topic-card ' + pinnedClass + '" onclick="openTopicView(' + t.id + ')">' +
+            '<div class="forum-topic-head">' +
+                '<div class="forum-topic-title">' + escHtmlF(t.title) + '</div>' +
+                '<span class="forum-topic-category" style="background:rgba(' + hexToRgb3(catColor) + ',0.18);color:' + catColor + ';border:1px solid rgba(' + hexToRgb3(catColor) + ',0.4);">' + (t.category_icon || '☕') + ' ' + escHtmlF((t.category_name || '').replace(/^[^ ]+ /, '')) + '</span>' +
+            '</div>' +
+            '<div class="forum-topic-preview">' + escHtmlF(t.content_preview || '') + '</div>' +
+            '<div class="forum-topic-meta">' +
+                '<span><span class="icon">👤</span><span class="author">' + escHtmlF(t.teacher_name || '—') + '</span></span>' +
+                '<span><span class="icon">📅</span>' + date + '</span>' +
+                '<span><span class="icon">👁️</span>' + (t.views || 0) + '</span>' +
+                '<span><span class="icon">❤️</span>' + (t.likes_count || 0) + '</span>' +
+                '<span><span class="icon">💬</span>' + (t.replies_count || 0) + '</span>' +
+            '</div>' +
+        '</div>';
+    }).join('');
+}
+
+async function loadMyForumStats() {
+    var tid = getTeacherForumId();
+    if (!tid) return;
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/my-stats?teacher_id=' + tid);
+        var data = await r.json();
+        if (data.error) return;
+        document.getElementById('fs-topics').textContent = data.topics_count || 0;
+        document.getElementById('fs-replies').textContent = data.replies_count || 0;
+        document.getElementById('fs-likes').textContent = data.likes_received || 0;
+        document.getElementById('fs-views').textContent = data.total_views || 0;
+        document.getElementById('fs-score').textContent = data.score || 0;
+    } catch(e) {}
+}
+
+function openNewTopicModal() {
+    var tid = getTeacherForumId();
+    if (!tid) { alert('⚠️ يجب تسجيل الدخول كمعلم أولاً'); return; }
+    if (Object.keys(FORUM_CATEGORIES).length === 0) {
+        loadForumCategories().then(function() { openNewTopicModal(); });
+        return;
+    }
+    document.getElementById('nt-title').value = '';
+    document.getElementById('nt-content').value = '';
+    document.getElementById('nt-char-count').textContent = '0 / 5000';
+    document.getElementById('new-topic-modal').style.display = 'flex';
+    var contentEl = document.getElementById('nt-content');
+    contentEl.oninput = function() {
+        document.getElementById('nt-char-count').textContent = contentEl.value.length + ' / 5000';
+    };
+}
+
+function closeNewTopicModal() {
+    document.getElementById('new-topic-modal').style.display = 'none';
+}
+
+async function submitNewTopic() {
+    var tid = getTeacherForumId();
+    if (!tid) return alert('⚠️ يجب تسجيل الدخول');
+    var title = document.getElementById('nt-title').value.trim();
+    var content = document.getElementById('nt-content').value.trim();
+    var category = document.getElementById('nt-category').value;
+    if (!title || title.length < 5) return alert('⚠️ العنوان قصير جداً');
+    if (!content || content.length < 10) return alert('⚠️ المحتوى قصير جداً');
+    try {
+        var fd = new FormData();
+        fd.append('teacher_id', tid);
+        fd.append('category', category);
+        fd.append('title', title);
+        fd.append('content', content);
+        var r = await fetch(FORUM_API + '/api/teachers/forum/topics', { method: 'POST', body: fd });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        alert('✅ تم نشر الموضوع بنجاح!');
+        closeNewTopicModal();
+        loadForumTopics();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function openTopicView(topicId) {
+    FORUM_CURRENT_TOPIC = topicId;
+    var modal = document.getElementById('topic-view-modal');
+    modal.style.display = 'flex';
+    document.getElementById('topic-view-body').innerHTML = '<p style="text-align:center;opacity:.5;padding:40px;">⏳ جاري التحميل...</p>';
+    var tid = getTeacherForumId();
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/topics/' + topicId + '?teacher_id=' + tid);
+        var data = await r.json();
+        if (data.detail || !data.topic) {
+            document.getElementById('topic-view-body').innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ ' + (data.detail || 'لم يُعثر على الموضوع') + '</p>';
+            return;
+        }
+        renderTopicView(data.topic, data.replies || []);
+    } catch(e) {
+        document.getElementById('topic-view-body').innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ ' + e.message + '</p>';
+    }
+}
+
+function renderTopicView(topic, replies) {
+    var date = topic.created_at ? new Date(topic.created_at).toLocaleString('ar') : '';
+    var myId = getTeacherForumId();
+    var isAuthor = topic.teacher_id === myId;
+    var catColor = topic.category_color || '#9b59b6';
+    var html = '';
+    html += '<div style="margin-bottom:20px;padding-bottom:18px;border-bottom:2px solid rgba(155,89,182,0.2);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:10px;flex-wrap:wrap;">' +
+            '<h2 style="color:#fff;font-family:Amiri,serif;font-size:1.5rem;flex:1;">' + escHtmlF(topic.title) + '</h2>' +
+            '<span style="background:rgba(' + hexToRgb3(catColor) + ',0.18);color:' + catColor + ';border:1px solid rgba(' + hexToRgb3(catColor) + ',0.4);padding:4px 12px;border-radius:14px;font-size:.8rem;white-space:nowrap;">' + (topic.category_icon || '☕') + ' ' + escHtmlF((topic.category_name || '').replace(/^[^ ]+ /, '')) + '</span>' +
+        '</div>' +
+        '<div style="color:rgba(255,255,255,0.55);font-size:.82rem;margin-bottom:14px;">' +
+            '👤 <strong style="color:#9b59b6;">' + escHtmlF(topic.teacher_name || '—') + '</strong>' +
+            ' • 📅 ' + date +
+            ' • 👁️ ' + (topic.views || 0) + ' مشاهدة' +
+        '</div>' +
+        '<div style="color:#fff;line-height:1.8;white-space:pre-wrap;background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);">' + escHtmlF(topic.content || '') + '</div>' +
+        '<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">' +
+            '<button onclick="toggleForumLike(' + topic.id + ', 0)" style="background:' + (topic.liked_by_me ? 'linear-gradient(135deg,#e74c3c,#c0392b)' : 'rgba(231,76,60,0.15)') + ';color:#fff;border:1px solid rgba(231,76,60,0.4);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem;font-weight:bold;">' +
+                (topic.liked_by_me ? '❤️ معجب (' + (topic.likes_count || 0) + ')' : '🤍 إعجاب (' + (topic.likes_count || 0) + ')') +
+            '</button>' +
+            (isAuthor ? '<button onclick="deleteTopic(' + topic.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem;">🗑️ حذف الموضوع</button>' : '') +
+        '</div>' +
+    '</div>';
+    html += '<div style="margin-bottom:14px;color:#9b59b6;font-weight:bold;font-size:1.05rem;">💬 الردود (' + replies.length + ')</div>';
+    if (replies.length === 0) {
+        html += '<p style="text-align:center;color:rgba(255,255,255,0.5);padding:20px;background:rgba(255,255,255,0.02);border-radius:10px;">لا توجد ردود بعد. كن أول من يرد!</p>';
+    } else {
+        replies.forEach(function(r) {
+            var rDate = r.created_at ? new Date(r.created_at).toLocaleString('ar') : '';
+            var rIsAuthor = r.teacher_id === myId;
+            html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(155,89,182,0.15);border-radius:12px;padding:14px;margin-bottom:10px;">' +
+                '<div style="display:flex;justify-content:space-between;margin-bottom:8px;font-size:.82rem;color:rgba(255,255,255,0.6);">' +
+                    '<span>👤 <strong style="color:#9b59b6;">' + escHtmlF(r.teacher_name || '—') + '</strong></span>' +
+                    '<span>' + rDate + '</span>' +
+                '</div>' +
+                '<div style="color:#fff;line-height:1.7;white-space:pre-wrap;">' + escHtmlF(r.content || '') + '</div>' +
+                '<div style="margin-top:10px;display:flex;gap:8px;">' +
+                    '<button onclick="toggleForumLike(0, ' + r.id + ')" style="background:' + (r.liked_by_me ? 'linear-gradient(135deg,#e74c3c,#c0392b)' : 'rgba(231,76,60,0.12)') + ';color:#fff;border:1px solid rgba(231,76,60,0.3);padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;">' +
+                        (r.liked_by_me ? '❤️ ' + (r.likes_count || 0) : '🤍 ' + (r.likes_count || 0)) +
+                    '</button>' +
+                    (rIsAuthor ? '<button onclick="deleteReply(' + r.id + ', ' + topic.id + ')" style="background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.3);color:#e74c3c;padding:5px 10px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;">🗑️</button>' : '') +
+                '</div>' +
+            '</div>';
+        });
+    }
+    html += '<div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(155,89,182,0.2);">' +
+        '<textarea id="new-reply-content" rows="3" placeholder="اكتب ردك..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>' +
+        '<button onclick="submitReply(' + topic.id + ')" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-top:10px;">💬 إرسال الرد</button>' +
+    '</div>';
+    document.getElementById('topic-view-body').innerHTML = html;
+}
+
+function closeTopicView() {
+    document.getElementById('topic-view-modal').style.display = 'none';
+    FORUM_CURRENT_TOPIC = null;
+}
+
+async function toggleForumLike(topicId, replyId) {
+    var tid = getTeacherForumId();
+    if (!tid) return alert('⚠️ يجب تسجيل الدخول');
+    try {
+        var fd = new FormData();
+        fd.append('teacher_id', tid);
+        if (topicId > 0) fd.append('topic_id', topicId);
+        if (replyId > 0) fd.append('reply_id', replyId);
+        var r = await fetch(FORUM_API + '/api/teachers/forum/like', { method: 'POST', body: fd });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        if (FORUM_CURRENT_TOPIC) openTopicView(FORUM_CURRENT_TOPIC);
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function submitReply(topicId) {
+    var tid = getTeacherForumId();
+    if (!tid) return alert('⚠️ يجب تسجيل الدخول');
+    var content = document.getElementById('new-reply-content').value.trim();
+    if (!content || content.length < 2) return alert('⚠️ الرد قصير');
+    try {
+        var fd = new FormData();
+        fd.append('teacher_id', tid);
+        fd.append('content', content);
+        var r = await fetch(FORUM_API + '/api/teachers/forum/topics/' + topicId + '/reply', { method: 'POST', body: fd });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        document.getElementById('new-reply-content').value = '';
+        openTopicView(topicId);
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function deleteTopic(topicId) {
+    var tid = getTeacherForumId();
+    if (!tid) return;
+    if (!confirm('⚠️ هل تريد حذف الموضوع وجميع ردوده؟ لا يمكن التراجع.')) return;
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/topics/' + topicId + '?teacher_id=' + tid, { method: 'DELETE' });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        alert('✅ تم الحذف');
+        closeTopicView();
+        loadForumTopics();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function deleteReply(replyId, topicId) {
+    var tid = getTeacherForumId();
+    if (!tid) return;
+    if (!confirm('⚠️ حذف هذا الرد؟')) return;
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/replies/' + replyId + '?teacher_id=' + tid, { method: 'DELETE' });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        openTopicView(topicId);
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function loadForumLeaderboard() {
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/leaderboard');
+        var data = await r.json();
+        var list = data.leaderboard || [];
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);';
+        var html = '<div style="background:linear-gradient(135deg,rgba(10,18,40,0.98),rgba(5,10,26,0.99));border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:24px;max-width:700px;width:100%;max-height:90vh;overflow:auto;">' +
+            '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.3);">' +
+                '<h2 style="color:#d4af37;font-family:Amiri,serif;font-size:1.5rem;">🏆 لوحة الشرف - أنشط المعلمين</h2>' +
+                '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:36px;height:36px;border-radius:8px;cursor:pointer;">✕</button>' +
+            '</div>';
+        if (list.length === 0) {
+            html += '<p style="text-align:center;color:rgba(255,255,255,0.6);padding:30px;">لا توجد بيانات بعد</p>';
+        } else {
+            html += '<div style="display:flex;flex-direction:column;gap:10px;">';
+            list.forEach(function(t) {
+                var bg = t.rank <= 3 ? 'linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.04))' : 'rgba(255,255,255,0.04)';
+                html += '<div style="background:' + bg + ';border:1px solid rgba(212,175,55,0.25);border-radius:12px;padding:14px;display:flex;align-items:center;gap:12px;">' +
+                    '<div style="font-size:1.8rem;min-width:40px;text-align:center;color:#d4af37;font-weight:bold;font-family:Amiri,serif;">' + (t.badge || '#' + t.rank) + '</div>' +
+                    '<div style="flex:1;">' +
+                        '<div style="color:#fff;font-weight:bold;font-size:1rem;">' + escHtmlF(t.teacher_name) + '</div>' +
+                        '<div style="color:rgba(255,255,255,0.55);font-size:.8rem;margin-top:2px;">📝 ' + t.topics + ' موضوع • 💬 ' + t.replies + ' رد • ❤️ ' + t.likes_received + ' إعجاب</div>' +
+                    '</div>' +
+                    '<div style="color:#d4af37;font-weight:900;font-size:1.4rem;font-family:Amiri,serif;">' + t.score + '</div>' +
+                '</div>';
+            });
+            html += '</div>';
+        }
+        html += '</div>';
+        modal.innerHTML = html;
+        modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+        document.body.appendChild(modal);
+    } catch(e) {
+        alert('❌ خطأ في التحميل');
+    }
+}
+
+async function loadForumNotifBadge() {
+    var tid = getTeacherForumId();
+    if (!tid) return;
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/notifications?teacher_id=' + tid + '&unread_only=true');
+        var data = await r.json();
+        var count = data.unread_count || 0;
+        var badge = document.getElementById('forum-notif-badge');
+        if (badge) {
+            if (count > 0) {
+                badge.textContent = count > 99 ? '99+' : count;
+                badge.style.display = 'block';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+    } catch(e) {}
+}
+
+setTimeout(loadForumNotifBadge, 3000);
+setInterval(loadForumNotifBadge, 30000);
+
+function hexToRgb3(hex) {
+    if (!hex) return '155,89,182';
+    hex = hex.replace('#', '');
+    return parseInt(hex.substring(0,2), 16) + ',' + parseInt(hex.substring(2,4), 16) + ',' + parseInt(hex.substring(4,6), 16);
+}
+
+function escHtmlF(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"\']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+}
+</script>
+
 
 </body>
 </html>

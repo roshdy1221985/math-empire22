@@ -11294,6 +11294,497 @@ def _url_encode(s: str) -> str:
 
 
 
+
+
+# ════════════════════════════════════════════════════════════
+# 💬 منتدى المعلمين
+# ════════════════════════════════════════════════════════════
+
+FORUM_CATEGORIES = {
+    "announcements": {"name": "📢 إعلانات الإدارة", "icon": "📢", "color": "#e74c3c", "admin_only": True},
+    "ideas": {"name": "💡 اقتراحات وأفكار", "icon": "💡", "color": "#f1c40f"},
+    "teaching": {"name": "🎓 أساليب تدريس", "icon": "🎓", "color": "#3498db"},
+    "resources": {"name": "📚 موارد ومصادر", "icon": "📚", "color": "#2ecc71"},
+    "questions": {"name": "❓ أسئلة واستفسارات", "icon": "❓", "color": "#9b59b6"},
+    "collaboration": {"name": "🤝 تعاون ومشاركة", "icon": "🤝", "color": "#e67e22"},
+    "general": {"name": "☕ نقاش عام", "icon": "☕", "color": "#7f8c8d"}
+}
+
+
+async def _verify_teacher(teacher_id: int) -> dict:
+    """التحقق من المعلم وجلب بياناته"""
+    if not teacher_id or teacher_id <= 0:
+        raise HTTPException(status_code=401, detail="معرف المعلم مطلوب")
+    try:
+        res = supabase.table("teachers").select("id, full_name, username").eq("id", teacher_id).limit(1).execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="المعلم غير موجود")
+        return res.data[0]
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ التحقق: {str(e)[:150]}")
+
+
+@app.get("/api/teachers/forum/categories")
+async def forum_get_categories():
+    """📋 قائمة فئات المنتدى"""
+    return {"categories": FORUM_CATEGORIES}
+
+
+@app.get("/api/teachers/forum/topics")
+async def forum_list_topics(
+    category: str = "",
+    search: str = "",
+    sort: str = "recent",  # recent | popular | replies
+    page: int = 1,
+    page_size: int = 20
+):
+    """📋 قائمة المواضيع - مع فلاتر وبحث"""
+    try:
+        page = max(1, page)
+        page_size = min(max(page_size, 5), 50)
+        offset = (page - 1) * page_size
+        
+        query = supabase.table("teacher_forum_topics").select(
+            "id, teacher_id, teacher_name, category, title, content, is_pinned, is_locked, views, likes_count, replies_count, last_reply_at, last_reply_by, created_at"
+        )
+        
+        if category and category != "all":
+            query = query.eq("category", category)
+        
+        if search:
+            # بحث في العنوان والمحتوى
+            search = search.strip()[:100]
+            query = query.or_(f"title.ilike.%{search}%,content.ilike.%{search}%")
+        
+        # ترتيب
+        if sort == "popular":
+            query = query.order("is_pinned", desc=True).order("likes_count", desc=True)
+        elif sort == "replies":
+            query = query.order("is_pinned", desc=True).order("replies_count", desc=True)
+        else:
+            query = query.order("is_pinned", desc=True).order("created_at", desc=True)
+        
+        res = query.range(offset, offset + page_size - 1).execute()
+        topics = res.data or []
+        
+        # إضافة معلومات الفئة
+        for t in topics:
+            cat_info = FORUM_CATEGORIES.get(t.get("category", "general"), FORUM_CATEGORIES["general"])
+            t["category_name"] = cat_info["name"]
+            t["category_icon"] = cat_info["icon"]
+            t["category_color"] = cat_info["color"]
+            # نُختصر المحتوى للمعاينة
+            if t.get("content") and len(t["content"]) > 200:
+                t["content_preview"] = t["content"][:200] + "..."
+            else:
+                t["content_preview"] = t.get("content", "")
+        
+        return {"topics": topics, "total": len(topics), "page": page}
+    except Exception as e:
+        print(f"[forum list] {e}")
+        return {"topics": [], "total": 0, "error": str(e)[:200]}
+
+
+@app.get("/api/teachers/forum/topics/{topic_id}")
+async def forum_get_topic(topic_id: int, teacher_id: int = 0):
+    """📖 موضوع كامل + ردوده"""
+    try:
+        # نجلب الموضوع
+        t_res = supabase.table("teacher_forum_topics").select("*").eq("id", topic_id).limit(1).execute()
+        if not t_res.data:
+            raise HTTPException(status_code=404, detail="الموضوع غير موجود")
+        
+        topic = t_res.data[0]
+        cat_info = FORUM_CATEGORIES.get(topic.get("category", "general"), FORUM_CATEGORIES["general"])
+        topic["category_name"] = cat_info["name"]
+        topic["category_icon"] = cat_info["icon"]
+        topic["category_color"] = cat_info["color"]
+        
+        # زيادة المشاهدات (لو ليس المؤلف)
+        if teacher_id and teacher_id != topic.get("teacher_id"):
+            try:
+                supabase.table("teacher_forum_topics").update({
+                    "views": (topic.get("views", 0) or 0) + 1
+                }).eq("id", topic_id).execute()
+                topic["views"] = (topic.get("views", 0) or 0) + 1
+            except Exception:
+                pass
+        
+        # نجلب الردود
+        r_res = supabase.table("teacher_forum_replies").select("*").eq(
+            "topic_id", topic_id
+        ).order("created_at", desc=False).limit(200).execute()
+        replies = r_res.data or []
+        
+        # نتحقق من إعجابات المعلم الحالي
+        liked_topic = False
+        liked_replies = set()
+        if teacher_id:
+            try:
+                likes_res = supabase.table("teacher_forum_likes").select("topic_id, reply_id").eq(
+                    "teacher_id", teacher_id
+                ).or_(f"topic_id.eq.{topic_id},reply_id.in.({','.join(str(r['id']) for r in replies) or '0'})").execute()
+                for like in (likes_res.data or []):
+                    if like.get("topic_id") == topic_id:
+                        liked_topic = True
+                    if like.get("reply_id"):
+                        liked_replies.add(like["reply_id"])
+            except Exception:
+                pass
+        
+        topic["liked_by_me"] = liked_topic
+        for r in replies:
+            r["liked_by_me"] = r["id"] in liked_replies
+        
+        return {"topic": topic, "replies": replies}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teachers/forum/topics")
+async def forum_create_topic(
+    teacher_id: int = Form(...),
+    category: str = Form("general"),
+    title: str = Form(...),
+    content: str = Form(...)
+):
+    """✍️ إنشاء موضوع جديد"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    if category not in FORUM_CATEGORIES:
+        raise HTTPException(status_code=400, detail=f"فئة غير صالحة: {category}")
+    
+    title = title.strip()[:200]
+    content = content.strip()[:5000]
+    
+    if len(title) < 5:
+        raise HTTPException(status_code=400, detail="العنوان قصير جداً (5+ أحرف)")
+    if len(content) < 10:
+        raise HTTPException(status_code=400, detail="المحتوى قصير جداً (10+ أحرف)")
+    
+    try:
+        new_topic = {
+            "teacher_id": teacher["id"],
+            "teacher_name": teacher.get("full_name", "—"),
+            "category": category,
+            "title": title,
+            "content": content,
+        }
+        res = supabase.table("teacher_forum_topics").insert(new_topic).execute()
+        return {"status": "success", "topic": res.data[0] if res.data else None}
+    except Exception as e:
+        err = str(e)
+        if "does not exist" in err.lower():
+            raise HTTPException(status_code=500, detail="جدول teacher_forum_topics غير موجود!")
+        raise HTTPException(status_code=500, detail=f"خطأ الإنشاء: {err[:200]}")
+
+
+@app.post("/api/teachers/forum/topics/{topic_id}/reply")
+async def forum_add_reply(
+    topic_id: int,
+    teacher_id: int = Form(...),
+    content: str = Form(...),
+    parent_reply_id: int = Form(0)
+):
+    """💬 إضافة رد على موضوع"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    content = content.strip()[:3000]
+    if len(content) < 2:
+        raise HTTPException(status_code=400, detail="الرد قصير جداً")
+    
+    try:
+        # تحقق من الموضوع
+        t_res = supabase.table("teacher_forum_topics").select("id, teacher_id, title, is_locked").eq("id", topic_id).limit(1).execute()
+        if not t_res.data:
+            raise HTTPException(status_code=404, detail="الموضوع غير موجود")
+        
+        topic = t_res.data[0]
+        if topic.get("is_locked"):
+            raise HTTPException(status_code=403, detail="الموضوع مغلق للردود")
+        
+        new_reply = {
+            "topic_id": topic_id,
+            "teacher_id": teacher["id"],
+            "teacher_name": teacher.get("full_name", "—"),
+            "content": content,
+            "parent_reply_id": parent_reply_id if parent_reply_id > 0 else None
+        }
+        res = supabase.table("teacher_forum_replies").insert(new_reply).execute()
+        reply = res.data[0] if res.data else None
+        
+        # تحديث الموضوع (عدد الردود + آخر رد)
+        try:
+            from datetime import datetime, timezone
+            supabase.table("teacher_forum_topics").update({
+                "replies_count": _count_topic_replies(topic_id),
+                "last_reply_at": datetime.now(timezone.utc).isoformat(),
+                "last_reply_by": teacher.get("full_name", "—")
+            }).eq("id", topic_id).execute()
+        except Exception:
+            pass
+        
+        # إشعار صاحب الموضوع (إن لم يكن هو نفسه)
+        if topic.get("teacher_id") and topic["teacher_id"] != teacher["id"]:
+            try:
+                supabase.table("teacher_forum_notifications").insert({
+                    "teacher_id": topic["teacher_id"],
+                    "type": "reply",
+                    "topic_id": topic_id,
+                    "reply_id": reply.get("id") if reply else None,
+                    "from_teacher_id": teacher["id"],
+                    "from_teacher_name": teacher.get("full_name", "—"),
+                    "message": f"رد {teacher.get('full_name', '—')} على موضوعك: {topic.get('title', '')[:50]}"
+                }).execute()
+            except Exception:
+                pass
+        
+        return {"status": "success", "reply": reply}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ الرد: {str(e)[:200]}")
+
+
+def _count_topic_replies(topic_id: int) -> int:
+    try:
+        res = supabase.table("teacher_forum_replies").select("id", count="exact").eq("topic_id", topic_id).limit(1).execute()
+        return res.count or 0
+    except Exception:
+        return 0
+
+
+@app.post("/api/teachers/forum/like")
+async def forum_toggle_like(
+    teacher_id: int = Form(...),
+    topic_id: int = Form(0),
+    reply_id: int = Form(0)
+):
+    """❤️ إعجاب/إلغاء على موضوع أو رد"""
+    await _verify_teacher(teacher_id)
+    
+    if topic_id <= 0 and reply_id <= 0:
+        raise HTTPException(status_code=400, detail="يجب تحديد موضوع أو رد")
+    
+    try:
+        # نتحقق إذا كان معجباً مسبقاً
+        q = supabase.table("teacher_forum_likes").select("id").eq("teacher_id", teacher_id)
+        if topic_id > 0:
+            q = q.eq("topic_id", topic_id).is_("reply_id", "null")
+        else:
+            q = q.eq("reply_id", reply_id).is_("topic_id", "null")
+        
+        existing = q.limit(1).execute()
+        
+        if existing.data:
+            # إلغاء الإعجاب
+            supabase.table("teacher_forum_likes").delete().eq("id", existing.data[0]["id"]).execute()
+            action = "unliked"
+        else:
+            # إضافة إعجاب
+            new_like = {"teacher_id": teacher_id}
+            if topic_id > 0:
+                new_like["topic_id"] = topic_id
+            else:
+                new_like["reply_id"] = reply_id
+            supabase.table("teacher_forum_likes").insert(new_like).execute()
+            action = "liked"
+        
+        # تحديث العداد
+        if topic_id > 0:
+            count_res = supabase.table("teacher_forum_likes").select("id", count="exact").eq(
+                "topic_id", topic_id
+            ).is_("reply_id", "null").limit(1).execute()
+            new_count = count_res.count or 0
+            supabase.table("teacher_forum_topics").update({"likes_count": new_count}).eq("id", topic_id).execute()
+        else:
+            count_res = supabase.table("teacher_forum_likes").select("id", count="exact").eq(
+                "reply_id", reply_id
+            ).is_("topic_id", "null").limit(1).execute()
+            new_count = count_res.count or 0
+            supabase.table("teacher_forum_replies").update({"likes_count": new_count}).eq("id", reply_id).execute()
+        
+        return {"status": "success", "action": action, "likes_count": new_count}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/teachers/forum/topics/{topic_id}")
+async def forum_delete_topic(topic_id: int, teacher_id: int):
+    """🗑️ حذف موضوع (المؤلف فقط)"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    try:
+        # نتحقق من الملكية
+        t_res = supabase.table("teacher_forum_topics").select("teacher_id").eq("id", topic_id).limit(1).execute()
+        if not t_res.data:
+            raise HTTPException(status_code=404, detail="الموضوع غير موجود")
+        if t_res.data[0]["teacher_id"] != teacher["id"]:
+            raise HTTPException(status_code=403, detail="لا يمكنك حذف موضوع لم تكتبه")
+        
+        # حذف الردود أولاً
+        supabase.table("teacher_forum_replies").delete().eq("topic_id", topic_id).execute()
+        # حذف الإعجابات
+        supabase.table("teacher_forum_likes").delete().eq("topic_id", topic_id).execute()
+        # حذف الموضوع
+        supabase.table("teacher_forum_topics").delete().eq("id", topic_id).execute()
+        
+        return {"status": "success", "message": "تم الحذف"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/teachers/forum/replies/{reply_id}")
+async def forum_delete_reply(reply_id: int, teacher_id: int):
+    """🗑️ حذف رد (الكاتب فقط)"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    try:
+        r_res = supabase.table("teacher_forum_replies").select("teacher_id, topic_id").eq("id", reply_id).limit(1).execute()
+        if not r_res.data:
+            raise HTTPException(status_code=404, detail="الرد غير موجود")
+        if r_res.data[0]["teacher_id"] != teacher["id"]:
+            raise HTTPException(status_code=403, detail="لا يمكنك حذف رد ليس لك")
+        
+        topic_id = r_res.data[0].get("topic_id")
+        supabase.table("teacher_forum_likes").delete().eq("reply_id", reply_id).execute()
+        supabase.table("teacher_forum_replies").delete().eq("id", reply_id).execute()
+        
+        # تحديث عداد الردود
+        if topic_id:
+            try:
+                supabase.table("teacher_forum_topics").update({
+                    "replies_count": _count_topic_replies(topic_id)
+                }).eq("id", topic_id).execute()
+            except Exception:
+                pass
+        
+        return {"status": "success"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teachers/forum/leaderboard")
+async def forum_leaderboard():
+    """🏆 الأكثر نشاطاً في المنتدى"""
+    try:
+        # نُحسب نشاط كل معلم
+        topics_res = supabase.table("teacher_forum_topics").select(
+            "teacher_id, teacher_name, likes_count, replies_count"
+        ).limit(500).execute()
+        replies_res = supabase.table("teacher_forum_replies").select(
+            "teacher_id, teacher_name, likes_count"
+        ).limit(1000).execute()
+        
+        stats = {}
+        for t in (topics_res.data or []):
+            tid = t.get("teacher_id")
+            if not tid:
+                continue
+            if tid not in stats:
+                stats[tid] = {"teacher_id": tid, "teacher_name": t.get("teacher_name", "—"), "topics": 0, "replies": 0, "likes_received": 0, "score": 0}
+            stats[tid]["topics"] += 1
+            stats[tid]["likes_received"] += t.get("likes_count", 0) or 0
+        
+        for r in (replies_res.data or []):
+            tid = r.get("teacher_id")
+            if not tid:
+                continue
+            if tid not in stats:
+                stats[tid] = {"teacher_id": tid, "teacher_name": r.get("teacher_name", "—"), "topics": 0, "replies": 0, "likes_received": 0, "score": 0}
+            stats[tid]["replies"] += 1
+            stats[tid]["likes_received"] += r.get("likes_count", 0) or 0
+        
+        # حساب النقاط: 10 لكل موضوع، 3 لكل رد، 2 لكل إعجاب مُستقبل
+        for s in stats.values():
+            s["score"] = s["topics"] * 10 + s["replies"] * 3 + s["likes_received"] * 2
+        
+        # ترتيب
+        ranked = sorted(stats.values(), key=lambda x: x["score"], reverse=True)[:20]
+        
+        # رتب
+        for i, t in enumerate(ranked):
+            t["rank"] = i + 1
+            if i == 0: t["badge"] = "👑"
+            elif i == 1: t["badge"] = "🥈"
+            elif i == 2: t["badge"] = "🥉"
+            else: t["badge"] = ""
+        
+        return {"leaderboard": ranked, "total": len(stats)}
+    except Exception as e:
+        print(f"[forum leaderboard] {e}")
+        return {"leaderboard": [], "error": str(e)[:200]}
+
+
+@app.get("/api/teachers/forum/notifications")
+async def forum_get_notifications(teacher_id: int, unread_only: bool = False):
+    """🔔 إشعارات المعلم"""
+    await _verify_teacher(teacher_id)
+    try:
+        q = supabase.table("teacher_forum_notifications").select("*").eq("teacher_id", teacher_id)
+        if unread_only:
+            q = q.eq("is_read", False)
+        res = q.order("created_at", desc=True).limit(50).execute()
+        notifs = res.data or []
+        unread_count = sum(1 for n in notifs if not n.get("is_read"))
+        return {"notifications": notifs, "unread_count": unread_count, "total": len(notifs)}
+    except Exception as e:
+        return {"notifications": [], "unread_count": 0, "error": str(e)[:200]}
+
+
+@app.post("/api/teachers/forum/notifications/mark-read")
+async def forum_mark_read(teacher_id: int = Form(...), notification_id: int = Form(0)):
+    """✅ تعليم إشعار كمقروء"""
+    await _verify_teacher(teacher_id)
+    try:
+        q = supabase.table("teacher_forum_notifications").update({"is_read": True}).eq("teacher_id", teacher_id)
+        if notification_id > 0:
+            q = q.eq("id", notification_id)
+        q.execute()
+        return {"status": "success"}
+    except Exception as e:
+        return {"status": "error", "message": str(e)[:200]}
+
+
+@app.get("/api/teachers/forum/my-stats")
+async def forum_my_stats(teacher_id: int):
+    """📊 إحصاءات المعلم في المنتدى"""
+    teacher = await _verify_teacher(teacher_id)
+    try:
+        topics_res = supabase.table("teacher_forum_topics").select("id, likes_count, replies_count, views").eq("teacher_id", teacher_id).execute()
+        replies_res = supabase.table("teacher_forum_replies").select("id, likes_count").eq("teacher_id", teacher_id).execute()
+        
+        topics = topics_res.data or []
+        replies = replies_res.data or []
+        
+        total_views = sum(t.get("views", 0) or 0 for t in topics)
+        total_likes_received = sum(t.get("likes_count", 0) or 0 for t in topics) + sum(r.get("likes_count", 0) or 0 for r in replies)
+        score = len(topics) * 10 + len(replies) * 3 + total_likes_received * 2
+        
+        return {
+            "teacher_name": teacher.get("full_name", "—"),
+            "topics_count": len(topics),
+            "replies_count": len(replies),
+            "likes_received": total_likes_received,
+            "total_views": total_views,
+            "score": score
+        }
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+
+
 @app.get("/api/supervisor/student-360/{student_id}")
 async def supervisor_student_360(student_id: int, sup = Depends(get_current_supervisor)):
     """📊 بطاقة الطالب التفصيلية - Student 360 view"""
