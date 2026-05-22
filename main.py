@@ -10612,6 +10612,688 @@ async def supervisor_live_pulse(sup = Depends(get_current_supervisor)):
         print(f"[live-pulse] error: {e}")
         return {"active_now": 0, "today_attempts": 0, "today_accuracy": 0, "recent": [], "error": str(e)[:100]}
 
+
+
+# ════════════════════════════════════════════════════════════
+# 🏆 نظام شهادات التقدير من المشرف
+# ════════════════════════════════════════════════════════════
+
+# قوالب الشهادات المتاحة
+CERTIFICATE_TEMPLATES = {
+    "excellence": {
+        "name": "👑 شهادة التميّز الإمبراطوري",
+        "icon": "👑",
+        "color": "#d4af37",
+        "category": "academic",
+        "description": "للطلاب المتميّزين أكاديمياً"
+    },
+    "champion": {
+        "name": "🏆 شهادة بطل التحديات",
+        "icon": "🏆",
+        "color": "#e74c3c",
+        "category": "sport",
+        "description": "للنشطين في التحديات"
+    },
+    "elite": {
+        "name": "💎 شهادة النخبة الذهبية",
+        "icon": "💎",
+        "color": "#9b59b6",
+        "category": "elite",
+        "description": "لأعضاء النادي الإمبراطوري"
+    },
+    "progress": {
+        "name": "🌟 شهادة التحسّن المستمر",
+        "icon": "🌟",
+        "color": "#f39c12",
+        "category": "motivation",
+        "description": "للطلاب الذين تحسّنوا بشكل ملحوظ"
+    },
+    "mastery": {
+        "name": "🎯 شهادة الإتقان الكامل",
+        "icon": "🎯",
+        "color": "#3498db",
+        "category": "achievement",
+        "description": "لمن حقق 100% في الاختبارات"
+    },
+    "dedication": {
+        "name": "📚 شهادة المثابر الذهبي",
+        "icon": "📚",
+        "color": "#27ae60",
+        "category": "attendance",
+        "description": "للمواظبة والمثابرة"
+    }
+}
+
+def _generate_qr_code() -> str:
+    """يُولّد رمز فريد للشهادة"""
+    import secrets, string
+    chars = string.ascii_uppercase + string.digits
+    return "ME-" + "".join(secrets.choice(chars) for _ in range(12))
+
+
+@app.get("/api/supervisor/certificates/templates")
+async def get_certificate_templates(sup = Depends(get_current_supervisor)):
+    """📋 قائمة قوالب الشهادات المتاحة"""
+    return {"templates": CERTIFICATE_TEMPLATES}
+
+
+@app.post("/api/supervisor/certificates/issue")
+async def issue_certificate(
+    student_id: int = Form(...),
+    template_type: str = Form("excellence"),
+    title: str = Form(...),
+    message: str = Form(""),
+    sup = Depends(get_current_supervisor)
+):
+    """🏆 إصدار شهادة تقدير لطالب"""
+    
+    # تحقق: التيمبليت موجود
+    if template_type not in CERTIFICATE_TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"قالب غير صالح: {template_type}")
+    
+    # تحقق: الطالب من طلابي
+    sup_students = _get_supervisor_student_ids(sup["id"])
+    if student_id not in sup_students:
+        raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+    
+    # جلب اسم الطالب
+    try:
+        st_res = supabase.table("students").select("id, full_name").eq("id", student_id).limit(1).execute()
+        if not st_res.data:
+            raise HTTPException(status_code=404, detail="الطالب غير موجود")
+        student_name = st_res.data[0].get("full_name", "—")
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ جلب الطالب: {str(e)[:150]}")
+    
+    # توليد رمز QR فريد
+    qr_code = _generate_qr_code()
+    
+    # الإدراج
+    try:
+        new_cert = {
+            "student_id": student_id,
+            "supervisor_id": sup["id"],
+            "supervisor_name": sup.get("full_name", "—"),
+            "template_type": template_type,
+            "title": title.strip()[:200],
+            "message": message.strip()[:1000],
+            "student_name": student_name,
+            "qr_code": qr_code,
+        }
+        res = supabase.table("certificates").insert(new_cert).execute()
+        if not res.data:
+            raise HTTPException(status_code=500, detail="فشل الإدراج")
+        
+        cert = res.data[0]
+        print(f"[cert] ✅ issued #{cert['id']} for student {student_id} by sup {sup['id']}")
+        return {"status": "success", "certificate": cert}
+    except HTTPException:
+        raise
+    except Exception as e:
+        err_str = str(e)
+        if "does not exist" in err_str.lower() or "relation" in err_str.lower():
+            raise HTTPException(status_code=500, detail="جدول certificates غير موجود في Supabase!")
+        raise HTTPException(status_code=500, detail=f"خطأ الإصدار: {err_str[:200]}")
+
+
+@app.get("/api/supervisor/certificates/list")
+async def list_supervisor_certificates(sup = Depends(get_current_supervisor)):
+    """📋 قائمة الشهادات التي منحها المشرف"""
+    try:
+        res = supabase.table("certificates").select(
+            "id, student_id, student_name, template_type, title, message, qr_code, issued_at, is_revoked"
+        ).eq("supervisor_id", sup["id"]).order("issued_at", desc=True).limit(200).execute()
+        
+        certs = res.data or []
+        # إضافة معلومات القالب
+        for c in certs:
+            tpl = CERTIFICATE_TEMPLATES.get(c.get("template_type", "excellence"), {})
+            c["template_name"] = tpl.get("name", "—")
+            c["template_icon"] = tpl.get("icon", "🏆")
+            c["template_color"] = tpl.get("color", "#d4af37")
+        
+        return {"certificates": certs, "total": len(certs)}
+    except Exception as e:
+        print(f"[cert list] {e}")
+        return {"certificates": [], "total": 0, "error": str(e)[:200]}
+
+
+@app.get("/api/student/certificates")
+async def get_my_certificates(student = Depends(get_current_student)):
+    """🏆 شهادات الطالب"""
+    try:
+        res = supabase.table("certificates").select(
+            "id, supervisor_name, template_type, title, message, qr_code, issued_at"
+        ).eq("student_id", student["id"]).eq("is_revoked", False).order("issued_at", desc=True).limit(100).execute()
+        
+        certs = res.data or []
+        for c in certs:
+            tpl = CERTIFICATE_TEMPLATES.get(c.get("template_type", "excellence"), {})
+            c["template_name"] = tpl.get("name", "—")
+            c["template_icon"] = tpl.get("icon", "🏆")
+            c["template_color"] = tpl.get("color", "#d4af37")
+        
+        return {"certificates": certs, "total": len(certs)}
+    except Exception as e:
+        print(f"[student certs] {e}")
+        return {"certificates": [], "total": 0}
+
+
+@app.get("/api/certificate/verify/{qr_code}")
+async def verify_certificate(qr_code: str):
+    """🔍 التحقق من صحة شهادة بـ QR Code (عام - لا يحتاج تسجيل دخول)"""
+    try:
+        res = supabase.table("certificates").select(
+            "id, student_name, supervisor_name, template_type, title, message, issued_at, is_revoked"
+        ).eq("qr_code", qr_code.upper().strip()).limit(1).execute()
+        
+        if not res.data:
+            return {"valid": False, "reason": "الشهادة غير موجودة"}
+        
+        cert = res.data[0]
+        if cert.get("is_revoked"):
+            return {"valid": False, "reason": "تم سحب الشهادة", "certificate": cert}
+        
+        tpl = CERTIFICATE_TEMPLATES.get(cert.get("template_type", "excellence"), {})
+        cert["template_name"] = tpl.get("name", "—")
+        cert["template_icon"] = tpl.get("icon", "🏆")
+        cert["template_color"] = tpl.get("color", "#d4af37")
+        
+        return {"valid": True, "certificate": cert}
+    except Exception as e:
+        return {"valid": False, "reason": f"خطأ في التحقق: {str(e)[:100]}"}
+
+
+@app.delete("/api/supervisor/certificates/{cert_id}")
+async def revoke_certificate(cert_id: int, sup = Depends(get_current_supervisor)):
+    """❌ سحب شهادة (لا تُحذف، تُعلَّم كملغاة)"""
+    try:
+        # نتحقق أنها شهادة المشرف
+        check = supabase.table("certificates").select("id, supervisor_id").eq("id", cert_id).limit(1).execute()
+        if not check.data:
+            raise HTTPException(status_code=404, detail="الشهادة غير موجودة")
+        if check.data[0]["supervisor_id"] != sup["id"]:
+            raise HTTPException(status_code=403, detail="لا يمكنك سحب شهادة لم تمنحها")
+        
+        # نُعلّمها كملغاة
+        from datetime import datetime, timezone
+        supabase.table("certificates").update({
+            "is_revoked": True,
+            "revoked_at": datetime.now(timezone.utc).isoformat()
+        }).eq("id", cert_id).execute()
+        
+        return {"status": "success", "message": "تم سحب الشهادة"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ السحب: {str(e)[:200]}")
+
+
+@app.get("/api/supervisor/certificates/suggestions/{student_id}")
+async def suggest_certificate(student_id: int, sup = Depends(get_current_supervisor)):
+    """💡 اقتراح شهادة مناسبة لطالب بناءً على بياناته"""
+    
+    # تحقق: الطالب من طلابي
+    sup_students = _get_supervisor_student_ids(sup["id"])
+    if student_id not in sup_students:
+        raise HTTPException(status_code=403, detail="هذا الطالب ليس من طلابك")
+    
+    suggestions = []
+    
+    try:
+        # جلب بيانات الطالب
+        st_res = supabase.table("students").select("id, full_name, total_points, is_elite").eq("id", student_id).limit(1).execute()
+        if not st_res.data:
+            return {"suggestions": []}
+        student = st_res.data[0]
+        total_points = student.get("total_points", 0) or 0
+        is_elite = student.get("is_elite", False)
+        
+        # جلب التحدّيات
+        chal_res = supabase.table("student_challenges").select("is_correct, created_at").eq("student_id", student_id).execute()
+        chals = chal_res.data or []
+        total_chals = len(chals)
+        correct_chals = sum(1 for c in chals if c.get("is_correct"))
+        accuracy = (correct_chals / total_chals * 100) if total_chals else 0
+        
+        # القواعد الذكية
+        
+        # 1. للنخبة
+        if is_elite:
+            suggestions.append({
+                "template": "elite",
+                "title": "عضو النخبة الذهبية",
+                "message": f"تكريماً للطالب/ـة {student['full_name']} لعضويته في النادي الإمبراطوري وتميّزه المستمر.",
+                "reason": "💎 عضو في النادي الإمبراطوري",
+                "priority": 10
+            })
+        
+        # 2. للإتقان (دقة 95%+)
+        if total_chals >= 10 and accuracy >= 95:
+            suggestions.append({
+                "template": "mastery",
+                "title": "إتقان كامل في التعلّم",
+                "message": f"تكريماً للطالب/ـة {student['full_name']} على تحقيق دقة استثنائية {accuracy:.1f}% في {total_chals} تحدي.",
+                "reason": f"🎯 دقة {accuracy:.1f}% في {total_chals} تحدي",
+                "priority": 9
+            })
+        
+        # 3. لبطل التحديات (50+ تحدي)
+        if total_chals >= 50:
+            suggestions.append({
+                "template": "champion",
+                "title": "بطل التحديات",
+                "message": f"تكريماً للطالب/ـة {student['full_name']} على إنجاز {total_chals} تحدي بمعدل {accuracy:.0f}% دقة.",
+                "reason": f"🏆 {total_chals} تحدي مُكتمل",
+                "priority": 8
+            })
+        
+        # 4. للمتفوقين (XP عالي)
+        if total_points >= 1000:
+            suggestions.append({
+                "template": "excellence",
+                "title": "التميّز الأكاديمي",
+                "message": f"تكريماً للطالب/ـة {student['full_name']} على جمع {total_points} نقطة وتميّزه في الأداء الأكاديمي.",
+                "reason": f"👑 {total_points} نقطة XP",
+                "priority": 7
+            })
+        
+        # 5. للتحسّن (إن كان من الضعاف وتحسّن)
+        if total_chals >= 20 and 50 <= accuracy < 80:
+            # نقارن الأسبوع الأخير بالأول
+            from datetime import datetime, timezone, timedelta
+            week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+            recent = [c for c in chals if c.get("created_at", "") > week_ago]
+            if recent:
+                recent_acc = sum(1 for c in recent if c.get("is_correct")) / len(recent) * 100
+                if recent_acc > accuracy + 10:
+                    suggestions.append({
+                        "template": "progress",
+                        "title": "تحسّن ملحوظ ومستمر",
+                        "message": f"تكريماً للطالب/ـة {student['full_name']} على التحسّن الكبير من {accuracy:.0f}% إلى {recent_acc:.0f}% في أداء التحديات.",
+                        "reason": f"🌟 تحسّن +{recent_acc-accuracy:.0f}% هذا الأسبوع",
+                        "priority": 9
+                    })
+        
+        # 6. للمواظبة (نشط مؤخراً)
+        if total_chals >= 30:
+            suggestions.append({
+                "template": "dedication",
+                "title": "المثابرة والمواظبة",
+                "message": f"تكريماً للطالب/ـة {student['full_name']} على المواظبة والمثابرة في حل {total_chals} تحدي.",
+                "reason": f"📚 {total_chals} تحدي بمواظبة",
+                "priority": 5
+            })
+        
+        # ترتيب حسب الأولوية
+        suggestions.sort(key=lambda x: x.get("priority", 0), reverse=True)
+        
+        return {
+            "suggestions": suggestions[:3],  # أفضل 3
+            "student_stats": {
+                "total_points": total_points,
+                "is_elite": is_elite,
+                "total_challenges": total_chals,
+                "accuracy": round(accuracy, 1)
+            }
+        }
+    except Exception as e:
+        print(f"[cert suggest] {e}")
+        return {"suggestions": [], "error": str(e)[:200]}
+
+
+@app.get("/verify-certificate/{qr_code}")
+async def verify_certificate_page(request: Request, qr_code: str):
+    """صفحة التحقق العامة من الشهادة"""
+    return templates.TemplateResponse(request=request, name="verify_certificate.html")
+
+
+
+
+
+
+# ════════════════════════════════════════════════════════════
+# 🎁 الميزات المتقدمة للشهادات
+# ════════════════════════════════════════════════════════════
+
+# قواعد الإصدار التلقائي
+AUTO_CERT_RULES = {
+    "first_100_correct": {
+        "name": "🎊 أول 100 إجابة صحيحة",
+        "template": "champion",
+        "title": "إنجاز أول 100 إجابة صحيحة",
+        "message_template": "تكريماً للطالب/ـة {name} على إنجاز أول 100 إجابة صحيحة في رحلته التعليمية. هذا إنجاز يستحق الفخر!",
+        "check": lambda stats: stats.get("correct_total", 0) >= 100 and stats.get("correct_total", 0) < 110
+    },
+    "first_500_correct": {
+        "name": "🏆 خمسمئة إجابة صحيحة",
+        "template": "champion",
+        "title": "بطل الـ 500 إجابة",
+        "message_template": "تكريماً للطالب/ـة {name} على بلوغه/ا 500 إجابة صحيحة. تميّز رائع يستحق التكريم!",
+        "check": lambda stats: 500 <= stats.get("correct_total", 0) < 510
+    },
+    "perfect_week": {
+        "name": "💎 أسبوع مثالي",
+        "template": "mastery",
+        "title": "أسبوع الإتقان الكامل",
+        "message_template": "تكريماً للطالب/ـة {name} على تحقيق دقة 100% لمدة أسبوع كامل. إنجاز استثنائي!",
+        "check": lambda stats: stats.get("week_accuracy", 0) == 100 and stats.get("week_attempts", 0) >= 10
+    },
+    "high_xp": {
+        "name": "👑 صاحب الـ 2000 نقطة",
+        "template": "excellence",
+        "title": "صاحب الـ 2000 نقطة الذهبية",
+        "message_template": "تكريماً للطالب/ـة {name} على جمع 2000 نقطة. تميّز أكاديمي بارز يستحق الإشادة!",
+        "check": lambda stats: 2000 <= stats.get("total_points", 0) < 2100
+    },
+    "improved_50": {
+        "name": "🌟 تحسّن بنسبة 50%",
+        "template": "progress",
+        "title": "صاحب التحسّن الاستثنائي",
+        "message_template": "تكريماً للطالب/ـة {name} على التحسّن الملحوظ بنسبة 50% في الدقة خلال الأسابيع الماضية.",
+        "check": lambda stats: stats.get("improvement", 0) >= 50
+    }
+}
+
+
+@app.get("/api/public/wall-of-fame")
+async def get_wall_of_fame(limit: int = 20):
+    """🏅 جدار الفخر العام - آخر الشهادات المُمنوحة (للجميع)"""
+    try:
+        limit = min(max(limit, 1), 50)
+        res = supabase.table("certificates").select(
+            "id, student_name, supervisor_name, template_type, title, issued_at, qr_code"
+        ).eq("is_revoked", False).order("issued_at", desc=True).limit(limit).execute()
+        
+        certs = res.data or []
+        for c in certs:
+            tpl = CERTIFICATE_TEMPLATES.get(c.get("template_type", "excellence"), {})
+            c["template_icon"] = tpl.get("icon", "🏆")
+            c["template_color"] = tpl.get("color", "#d4af37")
+            c["template_name"] = tpl.get("name", "—")
+        
+        # إخفاء جزئي من اسم الطالب لحماية الخصوصية
+        for c in certs:
+            name = c.get("student_name", "")
+            if len(name) > 3:
+                parts = name.split()
+                if len(parts) >= 2:
+                    c["student_name_display"] = parts[0] + " " + parts[-1][0] + "."
+                else:
+                    c["student_name_display"] = name[:3] + "..."
+            else:
+                c["student_name_display"] = name
+        
+        return {"certificates": certs, "total": len(certs)}
+    except Exception as e:
+        print(f"[wall-of-fame] {e}")
+        return {"certificates": [], "total": 0}
+
+
+@app.get("/api/supervisor/certificates/auto-check")
+async def check_auto_certificates(sup = Depends(get_current_supervisor)):
+    """🤖 فحص أتمتة الشهادات - يقترح من يستحق شهادة تلقائية"""
+    student_ids = _get_supervisor_student_ids(sup["id"])
+    if not student_ids:
+        return {"candidates": []}
+    
+    candidates = []
+    
+    try:
+        # جلب بيانات كل الطلاب
+        st_res = supabase.table("students").select("id, full_name, total_points, is_elite").in_("id", student_ids).execute()
+        students = {s["id"]: s for s in (st_res.data or [])}
+        
+        # جلب التحديات لكل الطلاب
+        from datetime import datetime, timezone, timedelta
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        
+        chal_res = supabase.table("student_challenges").select(
+            "student_id, is_correct, created_at"
+        ).in_("student_id", student_ids).execute()
+        all_chals = chal_res.data or []
+        
+        # تجميع الإحصائيات لكل طالب
+        student_stats = {}
+        for sid in student_ids:
+            chals = [c for c in all_chals if c.get("student_id") == sid]
+            week_chals = [c for c in chals if c.get("created_at", "") > week_ago]
+            
+            correct_total = sum(1 for c in chals if c.get("is_correct"))
+            week_correct = sum(1 for c in week_chals if c.get("is_correct"))
+            week_accuracy = (week_correct / len(week_chals) * 100) if week_chals else 0
+            
+            student = students.get(sid, {})
+            
+            # حساب التحسّن (مقارنة آخر أسبوع بما قبله)
+            two_weeks_ago = (datetime.now(timezone.utc) - timedelta(days=14)).isoformat()
+            prev_week_chals = [c for c in chals if two_weeks_ago < c.get("created_at", "") <= week_ago]
+            prev_correct = sum(1 for c in prev_week_chals if c.get("is_correct"))
+            prev_acc = (prev_correct / len(prev_week_chals) * 100) if prev_week_chals else 0
+            improvement = week_accuracy - prev_acc
+            
+            student_stats[sid] = {
+                "name": student.get("full_name", "—"),
+                "total_points": student.get("total_points", 0) or 0,
+                "is_elite": student.get("is_elite", False),
+                "correct_total": correct_total,
+                "total_attempts": len(chals),
+                "week_attempts": len(week_chals),
+                "week_accuracy": round(week_accuracy, 1),
+                "improvement": round(improvement, 1)
+            }
+        
+        # جلب الشهادات الحالية لتجنب التكرار
+        existing_res = supabase.table("certificates").select("student_id, metadata").eq(
+            "supervisor_id", sup["id"]
+        ).execute()
+        existing_keys = set()
+        for c in (existing_res.data or []):
+            meta = c.get("metadata", {}) or {}
+            if isinstance(meta, dict) and "auto_rule" in meta:
+                existing_keys.add(f"{c['student_id']}:{meta['auto_rule']}")
+        
+        # تطبيق القواعد
+        for sid, stats in student_stats.items():
+            for rule_key, rule in AUTO_CERT_RULES.items():
+                if f"{sid}:{rule_key}" in existing_keys:
+                    continue  # سبق منحه
+                try:
+                    if rule["check"](stats):
+                        candidates.append({
+                            "student_id": sid,
+                            "student_name": stats["name"],
+                            "rule_key": rule_key,
+                            "rule_name": rule["name"],
+                            "template": rule["template"],
+                            "title": rule["title"],
+                            "message": rule["message_template"].format(name=stats["name"]),
+                            "stats": stats
+                        })
+                except Exception:
+                    pass
+        
+        return {"candidates": candidates[:20], "total": len(candidates)}
+    except Exception as e:
+        print(f"[auto-check] {e}")
+        return {"candidates": [], "error": str(e)[:200]}
+
+
+@app.post("/api/supervisor/certificates/auto-issue")
+async def auto_issue_certificates(
+    candidates_json: str = Form(...),
+    sup = Depends(get_current_supervisor)
+):
+    """🎁 إصدار جماعي لشهادات تلقائية"""
+    import json as _json
+    
+    try:
+        candidates = _json.loads(candidates_json)
+        if not isinstance(candidates, list):
+            raise ValueError("candidates يجب أن يكون list")
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"صيغة JSON خاطئة: {str(e)[:100]}")
+    
+    sup_students = _get_supervisor_student_ids(sup["id"])
+    sup_set = set(sup_students)
+    
+    issued = []
+    failed = []
+    
+    for cand in candidates:
+        try:
+            sid = int(cand.get("student_id", 0))
+            if sid not in sup_set:
+                failed.append({"student_id": sid, "reason": "ليس من طلابك"})
+                continue
+            
+            qr = _generate_qr_code()
+            new_cert = {
+                "student_id": sid,
+                "supervisor_id": sup["id"],
+                "supervisor_name": sup.get("full_name", "—"),
+                "template_type": cand.get("template", "excellence"),
+                "title": cand.get("title", "")[:200],
+                "message": cand.get("message", "")[:1000],
+                "student_name": cand.get("student_name", ""),
+                "qr_code": qr,
+                "metadata": {"auto_rule": cand.get("rule_key", ""), "auto_issued": True}
+            }
+            res = supabase.table("certificates").insert(new_cert).execute()
+            if res.data:
+                issued.append(res.data[0])
+        except Exception as e:
+            failed.append({"student_id": cand.get("student_id"), "reason": str(e)[:100]})
+    
+    return {
+        "status": "success",
+        "issued_count": len(issued),
+        "failed_count": len(failed),
+        "issued": issued,
+        "failed": failed
+    }
+
+
+@app.post("/api/supervisor/certificates/bulk-issue")
+async def bulk_issue_certificates(
+    student_ids_json: str = Form(...),
+    template_type: str = Form("excellence"),
+    title: str = Form(...),
+    message: str = Form(""),
+    sup = Depends(get_current_supervisor)
+):
+    """🎓 إصدار جماعي لمجموعة طلاب (مثل نهاية الفصل)"""
+    import json as _json
+    
+    try:
+        student_ids = _json.loads(student_ids_json)
+        student_ids = [int(x) for x in student_ids]
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"صيغة IDs خاطئة: {str(e)[:100]}")
+    
+    if template_type not in CERTIFICATE_TEMPLATES:
+        raise HTTPException(status_code=400, detail=f"قالب غير صالح: {template_type}")
+    
+    sup_students = _get_supervisor_student_ids(sup["id"])
+    sup_set = set(sup_students)
+    
+    issued = []
+    failed = []
+    
+    # جلب أسماء الطلاب
+    valid_ids = [i for i in student_ids if i in sup_set]
+    if not valid_ids:
+        return {"status": "error", "message": "لا يوجد طلاب صالحين"}
+    
+    try:
+        names_res = supabase.table("students").select("id, full_name").in_("id", valid_ids).execute()
+        names_map = {s["id"]: s.get("full_name", "—") for s in (names_res.data or [])}
+    except Exception:
+        names_map = {}
+    
+    for sid in valid_ids:
+        try:
+            student_name = names_map.get(sid, "—")
+            # نُشخصن الرسالة
+            personalized_msg = message.replace("{name}", student_name).replace("{student}", student_name)
+            
+            qr = _generate_qr_code()
+            new_cert = {
+                "student_id": sid,
+                "supervisor_id": sup["id"],
+                "supervisor_name": sup.get("full_name", "—"),
+                "template_type": template_type,
+                "title": title.strip()[:200],
+                "message": personalized_msg[:1000],
+                "student_name": student_name,
+                "qr_code": qr,
+                "metadata": {"bulk_issued": True}
+            }
+            res = supabase.table("certificates").insert(new_cert).execute()
+            if res.data:
+                issued.append(res.data[0])
+        except Exception as e:
+            failed.append({"student_id": sid, "reason": str(e)[:100]})
+    
+    return {
+        "status": "success",
+        "issued_count": len(issued),
+        "failed_count": len(failed),
+        "skipped_count": len(student_ids) - len(valid_ids),
+        "issued": issued[:50],  # نُرجع أول 50 فقط
+        "failed": failed[:10]
+    }
+
+
+@app.get("/wall-of-fame")
+async def wall_of_fame_page(request: Request):
+    """🏅 صفحة جدار الفخر العامة"""
+    return templates.TemplateResponse(request=request, name="wall_of_fame.html")
+
+
+@app.get("/api/student/certificates/share-link/{cert_id}")
+async def get_share_link(cert_id: int, student = Depends(get_current_student)):
+    """📤 الحصول على رابط مشاركة الشهادة"""
+    try:
+        res = supabase.table("certificates").select(
+            "id, qr_code, title, student_name, supervisor_name, template_type"
+        ).eq("id", cert_id).eq("student_id", student["id"]).limit(1).execute()
+        
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الشهادة غير موجودة")
+        
+        cert = res.data[0]
+        tpl = CERTIFICATE_TEMPLATES.get(cert.get("template_type", "excellence"), {})
+        
+        # إنشاء رسائل جاهزة للمشاركة
+        verify_url = f"/verify-certificate/{cert['qr_code']}"
+        
+        whatsapp_msg = f"🏆 حصلت على شهادة تقدير: {cert['title']}\n\n👨‍🏫 من المشرف: {cert['supervisor_name']}\n\n✅ للتحقق من صحة الشهادة:\n{verify_url}"
+        
+        return {
+            "qr_code": cert["qr_code"],
+            "verify_url": verify_url,
+            "whatsapp_text": whatsapp_msg,
+            "whatsapp_link": f"https://wa.me/?text={_url_encode(whatsapp_msg)}",
+            "title": cert["title"],
+            "template_icon": tpl.get("icon", "🏆")
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e)[:200])
+
+
+def _url_encode(s: str) -> str:
+    """تشفير URL آمن"""
+    from urllib.parse import quote
+    return quote(s, safe="")
+
+
+
+
 @app.get("/api/supervisor/student-360/{student_id}")
 async def supervisor_student_360(student_id: int, sup = Depends(get_current_supervisor)):
     """📊 بطاقة الطالب التفصيلية - Student 360 view"""

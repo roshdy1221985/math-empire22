@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<title>التحقق من الشهادة - إمبراطورية الرياضيات</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+    font-family: 'Cairo', sans-serif;
+    background: linear-gradient(135deg, #0a0f23 0%, #1a1f3a 50%, #0a0f23 100%);
+    color: #fff;
+    min-height: 100vh;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background: 
+        radial-gradient(circle at 20% 30%, rgba(212,175,55,0.12) 0%, transparent 50%),
+        radial-gradient(circle at 80% 70%, rgba(168,85,247,0.08) 0%, transparent 50%);
+    animation: bgGlow 12s ease-in-out infinite;
+}
+@keyframes bgGlow { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+.container { max-width: 700px; width: 100%; position: relative; z-index: 1; }
+
+.header { text-align: center; margin-bottom: 24px; }
+.header .crown { font-size: 3rem; animation: crownBounce 2.5s ease-in-out infinite; display: inline-block; }
+@keyframes crownBounce {
+    0%, 100% { transform: translateY(0) rotate(-3deg); }
+    50% { transform: translateY(-8px) rotate(3deg); }
+}
+.header h1 {
+    font-family: 'Amiri', serif;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, #d4af37, #fcf6ba, #d4af37);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: shine 3s linear infinite;
+    margin-top: 8px;
+}
+@keyframes shine { to { background-position: 200% center; } }
+
+.card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02));
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 20px;
+    padding: 36px 28px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 40px rgba(212,175,55,0.1);
+    text-align: center;
+}
+
+.status-icon { font-size: 4rem; margin-bottom: 12px; }
+.status-title { font-size: 1.4rem; font-weight: 900; margin-bottom: 24px; }
+.valid { color: #2ecc71; }
+.invalid { color: #e74c3c; }
+
+.cert-info {
+    background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(212,175,55,0.02));
+    border: 1px solid rgba(212,175,55,0.3);
+    border-radius: 14px;
+    padding: 20px;
+    margin: 16px 0;
+    text-align: right;
+}
+.cert-info .row {
+    display: flex; justify-content: space-between; padding: 10px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    font-size: 0.95rem;
+}
+.cert-info .row:last-child { border-bottom: none; }
+.cert-info .label { color: rgba(255,255,255,0.6); }
+.cert-info .value { color: #fff; font-weight: bold; }
+
+.cert-title {
+    font-family: 'Amiri', serif;
+    font-size: 1.5rem;
+    color: #d4af37;
+    margin: 16px 0;
+    text-shadow: 0 0 20px rgba(212,175,55,0.4);
+}
+
+.cert-message {
+    background: rgba(255,255,255,0.04);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 16px 0;
+    font-size: 1rem;
+    line-height: 1.8;
+    color: rgba(255,255,255,0.9);
+}
+
+.loading {
+    display: inline-block;
+    width: 40px; height: 40px;
+    border: 4px solid rgba(212,175,55,0.2);
+    border-top-color: #d4af37;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.back-btn {
+    background: linear-gradient(135deg, #d4af37, #b38728);
+    color: white;
+    border: none;
+    padding: 12px 32px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: Cairo;
+    font-weight: bold;
+    font-size: 1rem;
+    margin-top: 20px;
+    transition: all 0.3s;
+}
+.back-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(212,175,55,0.4); }
+
+.footer { text-align: center; margin-top: 24px; color: rgba(255,255,255,0.5); font-size: 0.85rem; }
+.footer a { color: #d4af37; text-decoration: none; }
+</style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <div class="crown">👑</div>
+        <h1>إمبراطورية الرياضيات</h1>
+        <p style="color: rgba(255,255,255,0.6); margin-top: 4px;">نظام التحقق من الشهادات</p>
+    </div>
+
+    <div class="card" id="result-card">
+        <div class="loading"></div>
+        <p style="margin-top: 14px; color: rgba(255,255,255,0.6);">جاري التحقق من الشهادة...</p>
+    </div>
+
+    <div class="footer">
+        <p>© 2026 إمبراطورية الرياضيات</p>
+    </div>
+</div>
+
+<script>
+async function verifyCert() {
+    const path = window.location.pathname;
+    const qrCode = path.split('/').pop();
+    
+    if (!qrCode || qrCode.length < 5) {
+        showInvalid("رمز الشهادة غير صالح");
+        return;
+    }
+    
+    try {
+        const res = await fetch('/api/certificate/verify/' + encodeURIComponent(qrCode));
+        const data = await res.json();
+        
+        if (data.valid && data.certificate) {
+            showValid(data.certificate);
+        } else {
+            showInvalid(data.reason || "الشهادة غير موجودة أو ملغاة");
+        }
+    } catch(e) {
+        showInvalid("خطأ في الاتصال بالخادم");
+    }
+}
+
+function showValid(cert) {
+    const card = document.getElementById('result-card');
+    const date = cert.issued_at ? new Date(cert.issued_at).toLocaleDateString('ar', {
+        year: 'numeric', month: 'long', day: 'numeric'
+    }) : '—';
+    
+    card.innerHTML = `
+        <div class="status-icon valid">✅</div>
+        <div class="status-title valid">الشهادة صحيحة ومُعتمدة</div>
+        
+        <div style="font-size: 3rem; margin: 16px 0;">${cert.template_icon || '🏆'}</div>
+        <div class="cert-title">${escapeHtml(cert.title || '—')}</div>
+        
+        ${cert.message ? `<div class="cert-message">${escapeHtml(cert.message)}</div>` : ''}
+        
+        <div class="cert-info">
+            <div class="row"><span class="label">🎓 الطالب:</span><span class="value">${escapeHtml(cert.student_name || '—')}</span></div>
+            <div class="row"><span class="label">👨‍🏫 المشرف:</span><span class="value">${escapeHtml(cert.supervisor_name || '—')}</span></div>
+            <div class="row"><span class="label">📅 تاريخ الإصدار:</span><span class="value">${date}</span></div>
+            <div class="row"><span class="label">🏆 نوع الشهادة:</span><span class="value">${escapeHtml(cert.template_name || '—')}</span></div>
+            <div class="row"><span class="label">🔐 رمز التحقق:</span><span class="value" style="font-family:monospace;font-size:0.85rem;">${escapeHtml(window.location.pathname.split('/').pop())}</span></div>
+        </div>
+        
+        <p style="color: rgba(255,255,255,0.5); font-size: 0.85rem; margin-top: 16px;">
+            🔒 هذه الشهادة صادرة رسمياً من نظام إمبراطورية الرياضيات
+        </p>
+    `;
+}
+
+function showInvalid(reason) {
+    const card = document.getElementById('result-card');
+    card.innerHTML = `
+        <div class="status-icon invalid">❌</div>
+        <div class="status-title invalid">شهادة غير صالحة</div>
+        <p style="color: rgba(255,255,255,0.7); margin: 16px 0;">${escapeHtml(reason)}</p>
+        <button class="back-btn" onclick="window.location.href='/'">العودة للرئيسية</button>
+    `;
+}
+
+function escapeHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function(m) {
+        return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];
+    });
+}
+
+verifyCert();
+</script>
+
+</body>
+</html>

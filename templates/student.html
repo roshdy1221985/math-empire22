@@ -1568,6 +1568,12 @@
         <button class="nav-btn shiny-btn btn-archive" id="btn-archive" onclick="openMyArchive()">
             <span class="btn-icon">📂</span><span class="sidebar-label">أرشيفي الدراسي</span>
         </button>
+        <button class="nav-btn shiny-btn" id="btn-certificates" onclick="openMyCertificates()" style="background:linear-gradient(135deg,#d4af37,#b38728);border-color:#fcf6ba;">
+            <span class="btn-icon">🏆</span><span class="sidebar-label">شهاداتي</span>
+        </button>
+        <button class="nav-btn shiny-btn" id="btn-wall-of-fame" onclick="window.open('/wall-of-fame', '_blank')" style="background:linear-gradient(135deg,#e67e22,#d35400);border-color:#f39c12;">
+            <span class="btn-icon">🏅</span><span class="sidebar-label">جدار الفخر</span>
+        </button>
 
         <!-- ════════ 💎 القسم 4: المصادر الإضافية ════════ -->
         <div class="sidebar-section-title">💎 المصادر الإضافية</div>
@@ -11302,5 +11308,183 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<script>
+
+// ════════════════════════════════════════════════════════════
+// 🏆 شهادات الطالب
+// ════════════════════════════════════════════════════════════
+async function openMyCertificates() {
+    // نُغلق أي modal مفتوح
+    document.querySelectorAll('.modal-overlay').forEach(function(m){ m.style.display = 'none'; });
+    
+    // نُنشئ modal الشهادات
+    var existing = document.getElementById('my-certs-modal');
+    if (existing) existing.remove();
+    
+    const modal = document.createElement('div');
+    modal.id = 'my-certs-modal';
+    modal.className = 'modal-overlay';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);';
+    
+    modal.innerHTML = '<div style="background:linear-gradient(135deg,rgba(10,18,40,0.98),rgba(5,10,26,0.99));border:1px solid rgba(212,175,55,0.4);border-radius:20px;padding:24px;max-width:900px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 25px 80px rgba(0,0,0,0.6),0 0 60px rgba(212,175,55,0.2);">' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.2);">' +
+            '<h2 style="color:#d4af37;font-family:Amiri,serif;font-size:1.6rem;">🏆 شهادات التقدير الخاصة بي</h2>' +
+            '<button onclick="closeMyCerts()" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:36px;height:36px;border-radius:8px;cursor:pointer;font-size:1.2rem;">✕</button>' +
+        '</div>' +
+        '<div id="my-certs-list">' +
+            '<p style="text-align:center;opacity:.5;padding:40px;color:#fff;">⏳ جاري التحميل...</p>' +
+        '</div>' +
+    '</div>';
+    
+    modal.onclick = function(e) { if (e.target === modal) closeMyCerts(); };
+    document.body.appendChild(modal);
+    
+    // نُحمّل الشهادات
+    try {
+        const token = localStorage.getItem('student_token') || sessionStorage.getItem('student_token') || (window.STUDENT_TOKEN || '');
+        const res = await fetch('/api/student/certificates', {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        renderMyCerts(data.certificates || []);
+    } catch(e) {
+        document.getElementById('my-certs-list').innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ خطأ في التحميل</p>';
+    }
+}
+
+function closeMyCerts() {
+    var m = document.getElementById('my-certs-modal');
+    if (m) m.remove();
+}
+
+function renderMyCerts(certs) {
+    window._myCerts = certs;
+    const cont = document.getElementById('my-certs-list');
+    if (!cont) return;
+    
+    if (!certs.length) {
+        cont.innerHTML = '<div style="text-align:center;padding:50px;color:rgba(255,255,255,0.6);">' +
+            '<div style="font-size:4rem;margin-bottom:12px;">🏆</div>' +
+            '<h3 style="color:#d4af37;margin-bottom:8px;">لا توجد شهادات بعد</h3>' +
+            '<p style="font-size:.9rem;">استمر في التميّز وستحصل على شهادات تقدير من معلميك! 🌟</p>' +
+        '</div>';
+        return;
+    }
+    
+    cont.innerHTML = '<div style="margin-bottom:14px;color:rgba(255,255,255,0.7);font-size:.9rem;">📊 لديك <strong style="color:#d4af37;font-size:1.1rem;">' + certs.length + '</strong> شهادة تقدير 🎉</div>' +
+        '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;">' +
+        certs.map(function(c, idx) {
+            const date = c.issued_at ? new Date(c.issued_at).toLocaleDateString('ar', {year:'numeric',month:'long',day:'numeric'}) : '—';
+            const color = c.template_color || '#d4af37';
+            const verifyUrl = window.location.origin + '/verify-certificate/' + encodeURIComponent(c.qr_code);
+            return '<div style="background:linear-gradient(135deg,rgba(' + hexToRgb2(color) + ',0.10),rgba(' + hexToRgb2(color) + ',0.02));border:1px solid rgba(' + hexToRgb2(color) + ',0.35);border-radius:14px;padding:16px;cursor:pointer;transition:all .3s;" onclick="viewMyCertByIdx(' + idx + ')" onmouseover="this.style.transform=&quot;translateY(-4px)&quot;;this.style.boxShadow=&quot;0 12px 32px rgba(' + hexToRgb2(color) + ',0.3)&quot;" onmouseout="this.style.transform=&quot;&quot;;this.style.boxShadow=&quot;&quot;">' +
+                '<div style="text-align:center;font-size:3rem;margin-bottom:8px;">' + (c.template_icon || '🏆') + '</div>' +
+                '<div style="text-align:center;color:#fff;font-weight:bold;font-size:1rem;margin-bottom:4px;font-family:Amiri,serif;">' + escHtml(c.title) + '</div>' +
+                '<div style="text-align:center;color:rgba(255,255,255,0.6);font-size:.82rem;margin-bottom:8px;">' + escHtml(c.template_name || '') + '</div>' +
+                '<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:8px;margin-top:8px;font-size:.78rem;color:rgba(255,255,255,0.55);">' +
+                    '<div>👨‍🏫 ' + escHtml(c.supervisor_name || '—') + '</div>' +
+                    '<div>📅 ' + date + '</div>' +
+                '</div>' +
+                '<div style="margin-top:10px;text-align:center;">' +
+                    '<button style="background:rgba(212,175,55,0.25);border:1px solid rgba(212,175,55,0.4);color:#d4af37;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.82rem;font-weight:bold;">👁️ عرض الشهادة</button>' +
+                '</div>' +
+            '</div>';
+        }).join('') + '</div>';
+}
+
+function viewMyCertByIdx(idx) {
+    const c = (window._myCerts || [])[idx];
+    if (c) viewMyCert(c);
+}
+
+function viewMyCert(c) {
+    const date = c.issued_at ? new Date(c.issued_at).toLocaleDateString('ar', {year:'numeric',month:'long',day:'numeric'}) : '—';
+    const color = c.template_color || '#d4af37';
+    
+    const certHtml = '<div style="background:linear-gradient(135deg,#fffdf5,#fff);border:8px solid '+color+';border-radius:14px;padding:34px 28px;position:relative;font-family:Cairo,Tajawal,sans-serif;color:#1a1a1a;min-height:400px;">' +
+        '<div style="position:absolute;top:8px;left:8px;width:50px;height:50px;border-top:3px solid '+color+';border-left:3px solid '+color+';"></div>' +
+        '<div style="position:absolute;top:8px;right:8px;width:50px;height:50px;border-top:3px solid '+color+';border-right:3px solid '+color+';"></div>' +
+        '<div style="position:absolute;bottom:8px;left:8px;width:50px;height:50px;border-bottom:3px solid '+color+';border-left:3px solid '+color+';"></div>' +
+        '<div style="position:absolute;bottom:8px;right:8px;width:50px;height:50px;border-bottom:3px solid '+color+';border-right:3px solid '+color+';"></div>' +
+        '<div style="text-align:center;margin-bottom:18px;">' +
+            '<div style="font-size:3.5rem;">'+ (c.template_icon||'🏆') +'</div>' +
+            '<div style="font-family:Amiri,serif;font-size:1.4rem;color:'+color+';margin-top:6px;font-weight:bold;">إمبراطورية الرياضيات</div>' +
+            '<div style="height:2px;background:linear-gradient(90deg,transparent,'+color+',transparent);margin:6px auto;width:80%;"></div>' +
+        '</div>' +
+        '<h2 style="text-align:center;font-family:Amiri,serif;color:'+color+';font-size:1.7rem;margin:14px 0;">'+escHtml(c.title||'')+'</h2>' +
+        '<p style="text-align:center;font-size:1rem;line-height:1.8;color:#444;margin:18px 16px;">'+escHtml(c.message||'')+'</p>' +
+        '<div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:30px;font-size:0.85rem;">' +
+            '<div style="text-align:center;">' +
+                '<div style="border-top:1px solid #999;padding-top:4px;color:#666;min-width:100px;">المشرف</div>' +
+                '<div style="font-weight:bold;color:#1a1a1a;">'+escHtml(c.supervisor_name||'—')+'</div>' +
+            '</div>' +
+            '<div style="text-align:center;color:#666;">'+date+'</div>' +
+            '<div style="text-align:center;font-family:monospace;color:#999;font-size:0.72rem;">'+escHtml(c.qr_code||'')+'</div>' +
+        '</div>' +
+    '</div>';
+    
+    const view = document.createElement('div');
+    view.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;';
+    view.innerHTML = '<div style="max-width:700px;width:100%;max-height:95vh;overflow:auto;">' +
+        '<div id="my-cert-printable">' + certHtml + '</div>' +
+        '<div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;justify-content:center;">' +
+            '<button onclick="printMyCert()" style="background:#3498db;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🖨️ طباعة</button>' +
+            '<button onclick="shareCertWhatsApp(' + (c.id || 0) + ')" style="background:#25d366;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">📱 واتساب</button>' +
+            '<a href="' + (c.qr_code ? '/verify-certificate/' + encodeURIComponent(c.qr_code) : '#') + '" target="_blank" style="background:#a855f7;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-family:Cairo;font-weight:bold;display:inline-block;">🔗 رابط التحقق</a>' +
+            '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:#e74c3c;color:#fff;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إغلاق</button>' +
+        '</div>' +
+    '</div>';
+    view.onclick = function(e) { if (e.target === view) view.remove(); };
+    document.body.appendChild(view);
+}
+
+function printMyCert() {
+    const content = document.getElementById('my-cert-printable').innerHTML;
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) return alert('⚠️ المتصفح منع فتح النافذة');
+    win.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>شهادة تقدير</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>@page { size: A4 landscape; margin: 10mm; } body { margin: 0; padding: 20px; font-family: Cairo,sans-serif; } @media print { .no-print { display: none; } }</style>' +
+        '</head><body>' +
+        '<div class="no-print" style="text-align:center;margin-bottom:14px;"><button onclick="window.print()" style="background:#3498db;color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🖨️ طباعة</button></div>' +
+        content + '</body></html>');
+    win.document.close();
+}
+
+function hexToRgb2(hex) {
+    if (!hex) return '212,175,55';
+    hex = hex.replace('#', '');
+    return parseInt(hex.substring(0,2), 16) + ',' + parseInt(hex.substring(2,4), 16) + ',' + parseInt(hex.substring(4,6), 16);
+}
+
+function escHtml(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"\']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+}
+
+
+
+// 📱 مشاركة شهادة عبر واتساب
+async function shareCertWhatsApp(certId) {
+    if (!certId) return alert('⚠️ معرف الشهادة غير صالح');
+    try {
+        const token = localStorage.getItem('student_token') || sessionStorage.getItem('student_token') || (window.STUDENT_TOKEN || '');
+        const res = await fetch('/api/student/certificates/share-link/' + certId, {
+            headers: { 'Authorization': 'Bearer ' + token }
+        });
+        const data = await res.json();
+        if (!res.ok) {
+            alert('❌ ' + (data.detail || 'فشل'));
+            return;
+        }
+        // فتح واتساب
+        window.open(data.whatsapp_link, '_blank');
+    } catch(e) {
+        alert('❌ خطأ: ' + e.message);
+    }
+}
+
+
+</script>
 </body>
 </html>
