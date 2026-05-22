@@ -2597,6 +2597,7 @@ html, body {
                     <div class="nav-group-title">⚙️ الإعدادات والإدارة</div>
                     <div class="nav-link nl-red" onclick="showSection('security');setTimeout(loadSecurityDashboard, 200);"><i class="fas fa-shield-alt"></i> 🛡️ مركز الأمان</div>
                     <div class="nav-link nl-red" onclick="showSection('supervisors');setTimeout(loadSupervisors, 200);"><i class="fas fa-user-tie"></i> 🎓 إدارة المشرفين</div>
+                    <div class="nav-link" onclick="showSection('forum-admin');setTimeout(loadForumAdminPanel, 200);" style="color:#9b59b6;"><i class="fas fa-comments"></i> 💬 إدارة المنتدى</div>
                     <div class="nav-link nl-red" onclick="showSection('accounts')"><i class="fas fa-users-cog"></i> إدارة الحسابات</div>
                     <div class="nav-link nl-green" onclick="showSection('sub-codes')"><i class="fas fa-key"></i> مولّد أكواد الاشتراك</div>
                     <div class="nav-link" onclick="showSection('backup');" style="color:#27ae60;"><i class="fas fa-download"></i> النسخ الاحتياطي</div>
@@ -3878,6 +3879,53 @@ html, body {
             </section>
 
             <!-- ==================== 🎯 MOTIVATION ==================== -->
+            
+            <!-- ════════ 💬 إدارة المنتدى ════════ -->
+            <section id="forum-admin" class="section">
+                <div class="card glass-pro">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
+                        <h2 style="color:#9b59b6;font-family:Amiri,serif;font-size:1.6rem;">💬 إدارة منتدى المعلمين</h2>
+                        <button onclick="loadForumAdminPanel()" style="background:linear-gradient(135deg,#3498db,#2980b9);color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🔄 تحديث</button>
+                    </div>
+                    
+                    <!-- إحصاءات شاملة -->
+                    <div id="forum-admin-stats" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;">
+                        <p style="text-align:center;opacity:.5;padding:20px;grid-column:1/-1;">⏳ جاري التحميل...</p>
+                    </div>
+                    
+                    <!-- توزيع الفئات -->
+                    <div style="background:rgba(155,89,182,0.05);border:1px solid rgba(155,89,182,0.2);border-radius:14px;padding:16px;margin-bottom:20px;">
+                        <h3 style="color:#9b59b6;margin-bottom:12px;font-size:1rem;">📊 توزيع الفئات</h3>
+                        <div id="forum-admin-categories" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;"></div>
+                    </div>
+                    
+                    <!-- نمو أسبوعي -->
+                    <div style="background:rgba(52,152,219,0.05);border:1px solid rgba(52,152,219,0.2);border-radius:14px;padding:16px;margin-bottom:20px;">
+                        <h3 style="color:#3498db;margin-bottom:12px;font-size:1rem;">📈 النشاط الأسبوعي</h3>
+                        <div id="forum-admin-growth" style="display:flex;align-items:flex-end;gap:8px;height:140px;padding:10px;background:rgba(0,0,0,0.2);border-radius:10px;"></div>
+                    </div>
+                    
+                    <!-- أكثر المواضيع تفاعلاً -->
+                    <div style="background:rgba(212,175,55,0.05);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:16px;margin-bottom:20px;">
+                        <h3 style="color:#d4af37;margin-bottom:12px;font-size:1rem;">🔥 أكثر المواضيع تفاعلاً</h3>
+                        <div id="forum-admin-top-topics"></div>
+                    </div>
+                    
+                    <!-- إدارة المواضيع -->
+                    <div style="background:rgba(231,76,60,0.05);border:1px solid rgba(231,76,60,0.2);border-radius:14px;padding:16px;">
+                        <h3 style="color:#e74c3c;margin-bottom:12px;font-size:1rem;">⚙️ إدارة المواضيع</h3>
+                        <div style="margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;">
+                            <select id="forum-admin-cat-filter" onchange="loadForumAdminTopics()" style="background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:8px 12px;border-radius:8px;font-family:Cairo;">
+                                <option value="">📋 كل الفئات</option>
+                            </select>
+                        </div>
+                        <div id="forum-admin-topics-list">
+                            <p style="text-align:center;opacity:.5;padding:20px;">⏳ جاري التحميل...</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section id="motivation" class="section">
                 <div class="card">
                     <h2 style="color:#e91e63;"><i class="fas fa-paper-plane"></i> 🎯 تحفيز الطلاب — Push Notifications</h2>
@@ -18650,6 +18698,220 @@ function amvmToggleDnd() {
         setTimeout(amvmSetupDragDrop, 300);
     };
 })();
+
+
+// ════════════════════════════════════════════════════════════
+// 💬 إدارة المنتدى (للأدمن)
+// ════════════════════════════════════════════════════════════
+var FORUM_ADMIN_CATEGORIES = {};
+
+async function loadForumAdminPanel() {
+    try {
+        const r = await fetch('/api/admin/forum/stats', {
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('admin_token') || '') }
+        });
+        const data = await r.json();
+        
+        if (data.error) {
+            document.getElementById('forum-admin-stats').innerHTML = 
+                '<p style="text-align:center;color:#e74c3c;padding:20px;grid-column:1/-1;">❌ ' + data.error + '</p>';
+            return;
+        }
+        
+        // الإحصاءات الرئيسية
+        const totals = data.totals || {};
+        const weekly = data.this_week || {};
+        document.getElementById('forum-admin-stats').innerHTML = 
+            renderForumAdminStat('📝', totals.topics || 0, 'موضوع', '#9b59b6', '+' + (weekly.topics || 0) + ' هذا الأسبوع') +
+            renderForumAdminStat('💬', totals.replies || 0, 'رد', '#3498db', '+' + (weekly.replies || 0) + ' هذا الأسبوع') +
+            renderForumAdminStat('❤️', totals.likes || 0, 'إعجاب', '#e74c3c', '') +
+            renderForumAdminStat('👥', totals.active_teachers || 0, 'معلم نشط', '#2ecc71', '');
+        
+        // توزيع الفئات
+        const cats = data.categories || {};
+        const catNames = {
+            announcements: { name: 'إعلانات', icon: '📢', color: '#e74c3c' },
+            ideas: { name: 'اقتراحات', icon: '💡', color: '#f1c40f' },
+            teaching: { name: 'تدريس', icon: '🎓', color: '#3498db' },
+            resources: { name: 'موارد', icon: '📚', color: '#2ecc71' },
+            questions: { name: 'أسئلة', icon: '❓', color: '#9b59b6' },
+            collaboration: { name: 'تعاون', icon: '🤝', color: '#e67e22' },
+            general: { name: 'عام', icon: '☕', color: '#7f8c8d' }
+        };
+        FORUM_ADMIN_CATEGORIES = catNames;
+        
+        document.getElementById('forum-admin-categories').innerHTML = Object.keys(catNames).map(function(k) {
+            const c = catNames[k];
+            const count = cats[k] || 0;
+            return '<div style="background:linear-gradient(135deg,' + c.color + '22,' + c.color + '08);border:1px solid ' + c.color + '40;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;">' +
+                '<div style="font-size:1.8rem;">' + c.icon + '</div>' +
+                '<div style="flex:1;">' +
+                    '<div style="color:#fff;font-weight:bold;font-size:.9rem;">' + c.name + '</div>' +
+                    '<div style="color:' + c.color + ';font-size:1.4rem;font-weight:900;font-family:Amiri,serif;">' + count + '</div>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+        
+        // النمو اليومي
+        const growth = data.daily_growth || [];
+        const maxVal = Math.max(1, ...growth.map(function(g){return g.topics;}));
+        document.getElementById('forum-admin-growth').innerHTML = growth.map(function(g) {
+            const height = (g.topics / maxVal * 100) || 2;
+            return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">' +
+                '<div style="color:#3498db;font-size:.78rem;font-weight:bold;">' + g.topics + '</div>' +
+                '<div style="width:100%;background:linear-gradient(180deg,#3498db,#2980b9);border-radius:4px 4px 0 0;height:' + height + '%;min-height:4px;transition:all .3s;"></div>' +
+                '<div style="color:rgba(255,255,255,0.5);font-size:.7rem;">' + g.date + '</div>' +
+            '</div>';
+        }).join('');
+        
+        // أكثر المواضيع
+        const topTopics = data.top_topics || [];
+        document.getElementById('forum-admin-top-topics').innerHTML = topTopics.length === 0 ?
+            '<p style="text-align:center;opacity:.5;padding:10px;">لا توجد مواضيع بعد</p>' :
+            topTopics.slice(0, 5).map(function(t) {
+                return '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;">' +
+                    '<div style="flex:1;">' +
+                        '<div style="color:#fff;font-weight:bold;font-size:.92rem;">' + escAdmin(t.title || '') + '</div>' +
+                        '<div style="color:rgba(255,255,255,0.5);font-size:.78rem;">👤 ' + escAdmin(t.teacher_name || '—') + '</div>' +
+                    '</div>' +
+                    '<div style="display:flex;gap:10px;font-size:.82rem;">' +
+                        '<span style="color:#e74c3c;">❤️ ' + (t.likes_count || 0) + '</span>' +
+                        '<span style="color:#3498db;">💬 ' + (t.replies_count || 0) + '</span>' +
+                        '<span style="color:#f39c12;">👁️ ' + (t.views || 0) + '</span>' +
+                    '</div>' +
+                '</div>';
+            }).join('');
+        
+        // ملء فلتر الفئات
+        const filterSel = document.getElementById('forum-admin-cat-filter');
+        if (filterSel && filterSel.options.length <= 1) {
+            Object.keys(catNames).forEach(function(k) {
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.textContent = catNames[k].icon + ' ' + catNames[k].name;
+                filterSel.appendChild(opt);
+            });
+        }
+        
+        // تحميل قائمة المواضيع
+        loadForumAdminTopics();
+        
+    } catch(e) {
+        document.getElementById('forum-admin-stats').innerHTML = 
+            '<p style="text-align:center;color:#e74c3c;padding:20px;grid-column:1/-1;">❌ خطأ: ' + e.message + '</p>';
+    }
+}
+
+function renderForumAdminStat(icon, num, label, color, extra) {
+    return '<div style="background:linear-gradient(135deg,' + color + '20,' + color + '05);border:1px solid ' + color + '40;border-radius:12px;padding:14px;text-align:center;">' +
+        '<div style="font-size:1.8rem;margin-bottom:2px;">' + icon + '</div>' +
+        '<div style="color:' + color + ';font-size:1.8rem;font-weight:900;font-family:Amiri,serif;">' + num + '</div>' +
+        '<div style="color:rgba(255,255,255,0.7);font-size:.8rem;">' + label + '</div>' +
+        (extra ? '<div style="color:rgba(255,255,255,0.5);font-size:.72rem;margin-top:4px;">' + extra + '</div>' : '') +
+    '</div>';
+}
+
+async function loadForumAdminTopics() {
+    const cat = (document.getElementById('forum-admin-cat-filter') || {}).value || '';
+    try {
+        const r = await fetch('/api/admin/forum/topics?category=' + encodeURIComponent(cat) + '&page_size=30', {
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('admin_token') || '') }
+        });
+        const data = await r.json();
+        const topics = data.topics || [];
+        const cont = document.getElementById('forum-admin-topics-list');
+        
+        if (!topics.length) {
+            cont.innerHTML = '<p style="text-align:center;opacity:.5;padding:20px;">لا توجد مواضيع</p>';
+            return;
+        }
+        
+        cont.innerHTML = topics.map(function(t) {
+            const date = t.created_at ? new Date(t.created_at).toLocaleDateString('ar') : '';
+            const cat = FORUM_ADMIN_CATEGORIES[t.category] || { icon: '☕', color: '#7f8c8d' };
+            return '<div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:center;flex-wrap:wrap;">' +
+                '<div style="font-size:1.6rem;">' + cat.icon + '</div>' +
+                '<div style="flex:1;min-width:200px;">' +
+                    '<div style="color:#fff;font-weight:bold;font-size:.95rem;">' + escAdmin(t.title || '') + '</div>' +
+                    '<div style="color:rgba(255,255,255,0.5);font-size:.78rem;margin-top:2px;">' +
+                        '👤 ' + escAdmin(t.teacher_name || '—') + ' • 📅 ' + date +
+                        ' • 💬 ' + (t.replies_count || 0) + ' • ❤️ ' + (t.likes_count || 0) +
+                        (t.is_pinned ? ' • <span style="color:#d4af37;">📌</span>' : '') +
+                        (t.is_locked ? ' • <span style="color:#e74c3c;">🔒</span>' : '') +
+                    '</div>' +
+                '</div>' +
+                '<div style="display:flex;gap:6px;flex-wrap:wrap;">' +
+                    '<button onclick="adminPinTopic(' + t.id + ', ' + (!t.is_pinned) + ')" style="background:rgba(212,175,55,' + (t.is_pinned ? '0.3' : '0.12') + ');border:1px solid rgba(212,175,55,0.4);color:#d4af37;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;" title="' + (t.is_pinned ? 'إلغاء التثبيت' : 'تثبيت') + '">📌</button>' +
+                    '<button onclick="adminLockTopic(' + t.id + ', ' + (!t.is_locked) + ')" style="background:rgba(231,76,60,' + (t.is_locked ? '0.3' : '0.12') + ');border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;" title="' + (t.is_locked ? 'فتح' : 'قفل') + '">🔒</button>' +
+                    '<button onclick="adminDeleteTopic(' + t.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:6px 10px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.78rem;" title="حذف">🗑️</button>' +
+                '</div>' +
+            '</div>';
+        }).join('');
+    } catch(e) {
+        document.getElementById('forum-admin-topics-list').innerHTML = '<p style="color:#e74c3c;text-align:center;padding:20px;">❌ ' + e.message + '</p>';
+    }
+}
+
+async function adminPinTopic(topicId, pin) {
+    try {
+        const fd = new FormData();
+        fd.append('topic_id', topicId);
+        fd.append('pin', pin);
+        const r = await fetch('/api/admin/forum/pin-topic', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('admin_token') || '') },
+            body: fd
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        if (typeof toast === 'function') toast(pin ? '📌 تم التثبيت' : '✅ تم إلغاء التثبيت', 'success');
+        loadForumAdminTopics();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function adminLockTopic(topicId, lock) {
+    try {
+        const fd = new FormData();
+        fd.append('topic_id', topicId);
+        fd.append('lock', lock);
+        const r = await fetch('/api/admin/forum/lock-topic', {
+            method: 'POST',
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('admin_token') || '') },
+            body: fd
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        if (typeof toast === 'function') toast(lock ? '🔒 تم القفل' : '🔓 تم الفتح', 'success');
+        loadForumAdminTopics();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+async function adminDeleteTopic(topicId) {
+    if (!confirm('⚠️ هل أنت متأكد من حذف هذا الموضوع وكل ردوده؟')) return;
+    try {
+        const r = await fetch('/api/admin/forum/topics/' + topicId, {
+            method: 'DELETE',
+            headers: { 'Authorization': 'Bearer ' + (localStorage.getItem('admin_token') || '') }
+        });
+        const data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        if (typeof toast === 'function') toast('✅ تم الحذف', 'success');
+        loadForumAdminPanel();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+function escAdmin(s) {
+    if (s == null) return '';
+    return String(s).replace(/[&<>"']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
+}
+
+
 </script>
 
 </body>

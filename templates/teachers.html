@@ -16548,7 +16548,18 @@ window.gbUpdateStats = function() {
     </div>
     <div style="margin-bottom:14px;">
       <label style="display:block;color:rgba(255,255,255,0.7);margin-bottom:6px;font-size:.9rem;">المحتوى:</label>
-      <textarea id="nt-content" rows="8" maxlength="5000" placeholder="اكتب موضوعك هنا..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>
+      <textarea id="nt-content" rows="6" maxlength="5000" placeholder="اكتب موضوعك هنا..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>
+    </div>
+    
+    <!-- 📎 المرفقات -->
+    <div style="margin-bottom:14px;background:rgba(155,89,182,0.05);border:1px dashed rgba(155,89,182,0.3);border-radius:10px;padding:12px;">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:rgba(255,255,255,0.7);font-size:.9rem;">
+        <span style="font-size:1.3rem;">📎</span>
+        <span>إرفاق ملفات (صور، PDF، Word، Excel) - حتى 5MB لكل ملف</span>
+        <input type="file" id="nt-files" multiple accept="image/*,.pdf,.doc,.docx,.xls,.xlsx" onchange="onFilesSelected(event)" style="display:none;">
+        <button onclick="document.getElementById('nt-files').click()" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:6px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:.82rem;margin-right:auto;">اختر ملفات</button>
+      </label>
+      <div id="nt-files-preview" style="margin-top:10px;display:flex;flex-direction:column;gap:6px;"></div>
     </div>
     <div style="display:flex;justify-content:space-between;gap:10px;">
       <span id="nt-char-count" style="color:rgba(255,255,255,0.4);font-size:.78rem;align-self:center;">0 / 5000</span>
@@ -16727,7 +16738,9 @@ async function submitNewTopic() {
     var category = document.getElementById('nt-category').value;
     if (!title || title.length < 5) return alert('⚠️ العنوان قصير جداً');
     if (!content || content.length < 10) return alert('⚠️ المحتوى قصير جداً');
+    
     try {
+        // 1. إنشاء الموضوع
         var fd = new FormData();
         fd.append('teacher_id', tid);
         fd.append('category', category);
@@ -16736,9 +16749,104 @@ async function submitNewTopic() {
         var r = await fetch(FORUM_API + '/api/teachers/forum/topics', { method: 'POST', body: fd });
         var data = await r.json();
         if (!r.ok) throw new Error(data.detail || 'فشل');
+        
+        var topicId = data.topic && data.topic.id;
+        
+        // 2. رفع المرفقات (إن وُجدت)
+        if (topicId && FORUM_PENDING_FILES.length > 0) {
+            for (var i = 0; i < FORUM_PENDING_FILES.length; i++) {
+                var file = FORUM_PENDING_FILES[i];
+                try {
+                    var fd2 = new FormData();
+                    fd2.append('teacher_id', tid);
+                    fd2.append('topic_id', topicId);
+                    fd2.append('file', file);
+                    await fetch(FORUM_API + '/api/teachers/forum/upload-attachment', { method: 'POST', body: fd2 });
+                } catch(uErr) {
+                    console.warn('[upload]', file.name, uErr);
+                }
+            }
+        }
+        
+        FORUM_PENDING_FILES = [];
         alert('✅ تم نشر الموضوع بنجاح!');
         closeNewTopicModal();
         loadForumTopics();
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+// 📎 معالجة رفع الملفات
+var FORUM_PENDING_FILES = [];
+
+function onFilesSelected(event) {
+    var newFiles = Array.from(event.target.files);
+    // فحص الحجم
+    var validFiles = [];
+    newFiles.forEach(function(f) {
+        if (f.size > 5 * 1024 * 1024) {
+            alert('⚠️ ' + f.name + ' كبير جداً (الحد 5MB)');
+        } else {
+            validFiles.push(f);
+        }
+    });
+    FORUM_PENDING_FILES = FORUM_PENDING_FILES.concat(validFiles);
+    renderFilesPreview();
+}
+
+function renderFilesPreview() {
+    var cont = document.getElementById('nt-files-preview');
+    if (!cont) return;
+    if (FORUM_PENDING_FILES.length === 0) {
+        cont.innerHTML = '';
+        return;
+    }
+    cont.innerHTML = FORUM_PENDING_FILES.map(function(f, i) {
+        var icon = '📄';
+        var type = f.type || '';
+        if (type.startsWith('image/')) icon = '🖼️';
+        else if (type.includes('pdf')) icon = '📕';
+        else if (type.includes('word') || type.includes('document')) icon = '📘';
+        else if (type.includes('sheet') || type.includes('excel')) icon = '📊';
+        var sizeKb = Math.round(f.size / 1024);
+        return '<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;font-size:.85rem;color:#fff;">' +
+            '<span style="font-size:1.2rem;">' + icon + '</span>' +
+            '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtmlF(f.name) + '</span>' +
+            '<span style="color:rgba(255,255,255,0.5);font-size:.78rem;">' + sizeKb + ' KB</span>' +
+            '<button onclick="removeFileFromList(' + i + ')" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;width:24px;height:24px;border-radius:6px;cursor:pointer;">✕</button>' +
+        '</div>';
+    }).join('');
+}
+
+function removeFileFromList(idx) {
+    FORUM_PENDING_FILES.splice(idx, 1);
+    renderFilesPreview();
+}
+
+// 🔔 الاشتراك والكتم
+async function toggleSubscription(topicId, action) {
+    var tid = getTeacherForumId();
+    if (!tid) return alert('⚠️ يجب تسجيل الدخول');
+    try {
+        var fd = new FormData();
+        fd.append('teacher_id', tid);
+        fd.append('topic_id', topicId);
+        fd.append('action', action);
+        var r = await fetch(FORUM_API + '/api/teachers/forum/subscribe', { method: 'POST', body: fd });
+        var data = await r.json();
+        if (!r.ok) throw new Error(data.detail || 'فشل');
+        
+        var actionMsg = {
+            'subscribe': '✅ تم الاشتراك - ستصلك إشعارات',
+            'unsubscribe': '✅ تم إلغاء الاشتراك',
+            'mute': '🔕 تم كتم الموضوع',
+            'unmute': '🔔 تم إلغاء الكتم'
+        };
+        if (typeof showToast === 'function') showToast(actionMsg[action] || '✅', 'success');
+        
+        // إعادة عرض الموضوع
+        if (FORUM_CURRENT_TOPIC) openTopicView(FORUM_CURRENT_TOPIC);
     } catch(e) {
         alert('❌ ' + e.message);
     }
@@ -16758,6 +16866,8 @@ async function openTopicView(topicId) {
             return;
         }
         renderTopicView(data.topic, data.replies || []);
+        // نُحمّل المرفقات
+        setTimeout(function() { loadTopicAttachments(topicId); }, 100);
     } catch(e) {
         document.getElementById('topic-view-body').innerHTML = '<p style="text-align:center;color:#e74c3c;padding:40px;">❌ ' + e.message + '</p>';
     }
@@ -16780,10 +16890,14 @@ function renderTopicView(topic, replies) {
             ' • 👁️ ' + (topic.views || 0) + ' مشاهدة' +
         '</div>' +
         '<div style="color:#fff;line-height:1.8;white-space:pre-wrap;background:rgba(255,255,255,0.03);padding:14px;border-radius:10px;border:1px solid rgba(255,255,255,0.05);">' + escHtmlF(topic.content || '') + '</div>' +
+        '<div id="topic-attachments" style="margin-top:10px;"></div>' +
         '<div style="margin-top:12px;display:flex;gap:10px;flex-wrap:wrap;">' +
             '<button onclick="toggleForumLike(' + topic.id + ', 0)" style="background:' + (topic.liked_by_me ? 'linear-gradient(135deg,#e74c3c,#c0392b)' : 'rgba(231,76,60,0.15)') + ';color:#fff;border:1px solid rgba(231,76,60,0.4);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem;font-weight:bold;">' +
                 (topic.liked_by_me ? '❤️ معجب (' + (topic.likes_count || 0) + ')' : '🤍 إعجاب (' + (topic.likes_count || 0) + ')') +
             '</button>' +
+            '<button id="sub-btn-' + topic.id + '" onclick="handleSubscribeClick(' + topic.id + ')" style="background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.4);color:#9b59b6;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem;font-weight:bold;">🔔 اشتراك</button>' +
+            (topic.is_locked ? '<span style="background:rgba(231,76,60,0.2);color:#e74c3c;padding:8px 16px;border-radius:8px;font-size:.82rem;border:1px solid rgba(231,76,60,0.4);">🔒 مقفل</span>' : '') +
+            (topic.is_pinned ? '<span style="background:rgba(212,175,55,0.2);color:#d4af37;padding:8px 16px;border-radius:8px;font-size:.82rem;border:1px solid rgba(212,175,55,0.4);">📌 مثبّت</span>' : '') +
             (isAuthor ? '<button onclick="deleteTopic(' + topic.id + ')" style="background:rgba(231,76,60,0.15);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:.85rem;">🗑️ حذف الموضوع</button>' : '') +
         '</div>' +
     '</div>';
@@ -16809,10 +16923,14 @@ function renderTopicView(topic, replies) {
             '</div>';
         });
     }
-    html += '<div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(155,89,182,0.2);">' +
-        '<textarea id="new-reply-content" rows="3" placeholder="اكتب ردك..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>' +
-        '<button onclick="submitReply(' + topic.id + ')" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-top:10px;">💬 إرسال الرد</button>' +
-    '</div>';
+    if (!topic.is_locked) {
+        html += '<div style="margin-top:20px;padding-top:14px;border-top:1px solid rgba(155,89,182,0.2);">' +
+            '<textarea id="new-reply-content" rows="3" placeholder="اكتب ردك..." style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(155,89,182,0.3);color:#fff;padding:12px;border-radius:8px;font-family:Cairo;resize:vertical;line-height:1.7;"></textarea>' +
+            '<button onclick="submitReply(' + topic.id + ')" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;margin-top:10px;">💬 إرسال الرد</button>' +
+        '</div>';
+    } else {
+        html += '<div style="margin-top:20px;padding:14px;background:rgba(231,76,60,0.08);border:1px solid rgba(231,76,60,0.3);border-radius:10px;text-align:center;color:#e74c3c;">🔒 هذا الموضوع مُقفل - لا يُمكن الرد عليه</div>';
+    }
     document.getElementById('topic-view-body').innerHTML = html;
 }
 
@@ -16957,6 +17075,80 @@ function escHtmlF(s) {
     if (s == null) return '';
     return String(s).replace(/[&<>"\']/g, function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m];});
 }
+
+
+// 🔔 معالج النقر على زر الاشتراك
+async function handleSubscribeClick(topicId) {
+    var tid = getTeacherForumId();
+    if (!tid) return alert('⚠️ يجب تسجيل الدخول');
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/my-subscription/' + topicId + '?teacher_id=' + tid);
+        var sub = await r.json();
+        
+        var modal = document.createElement('div');
+        modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(10px);';
+        modal.innerHTML = '<div style="background:linear-gradient(135deg,rgba(10,18,40,0.98),rgba(5,10,26,0.99));border:1px solid rgba(155,89,182,0.4);border-radius:16px;padding:24px;max-width:400px;width:100%;">' +
+            '<h3 style="color:#9b59b6;margin-bottom:16px;font-family:Amiri,serif;font-size:1.3rem;">🔔 إعدادات الإشعارات</h3>' +
+            '<p style="color:rgba(255,255,255,0.7);margin-bottom:14px;font-size:.9rem;">حالتك الحالية: ' + 
+                (sub.subscribed ? (sub.muted ? '🔕 مكتوم' : '🔔 مُشترك') : '⚪ غير مُشترك') + 
+            '</p>' +
+            '<div style="display:flex;flex-direction:column;gap:8px;">' +
+                (!sub.subscribed || sub.muted ? '<button onclick="toggleSubscription(' + topicId + ', \'subscribe\'); this.closest(\'div[style*=fixed]\').remove()" style="background:linear-gradient(135deg,#9b59b6,#8e44ad);color:#fff;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🔔 اشترك في الموضوع</button>' : '') +
+                (sub.subscribed && !sub.muted ? '<button onclick="toggleSubscription(' + topicId + ', \'mute\'); this.closest(\'div[style*=fixed]\').remove()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">🔕 كتم الإشعارات</button>' : '') +
+                (sub.subscribed ? '<button onclick="toggleSubscription(' + topicId + ', \'unsubscribe\'); this.closest(\'div[style*=fixed]\').remove()" style="background:rgba(231,76,60,0.2);border:1px solid rgba(231,76,60,0.4);color:#e74c3c;padding:10px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;">❌ إلغاء الاشتراك</button>' : '') +
+                '<button onclick="this.closest(\'div[style*=fixed]\').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;">إلغاء</button>' +
+            '</div>' +
+        '</div>';
+        modal.onclick = function(e) { if (e.target === modal) modal.remove(); };
+        document.body.appendChild(modal);
+    } catch(e) {
+        alert('❌ ' + e.message);
+    }
+}
+
+// 📎 تحميل مرفقات الموضوع
+async function loadTopicAttachments(topicId) {
+    try {
+        var r = await fetch(FORUM_API + '/api/teachers/forum/attachments?topic_id=' + topicId);
+        var data = await r.json();
+        var attachments = data.attachments || [];
+        renderAttachments(attachments, 'topic-attachments');
+    } catch(e) {}
+}
+
+function renderAttachments(attachments, containerId) {
+    var cont = document.getElementById(containerId);
+    if (!cont || !attachments.length) return;
+    
+    cont.innerHTML = '<div style="background:rgba(155,89,182,0.05);border:1px solid rgba(155,89,182,0.2);border-radius:10px;padding:12px;margin-top:10px;">' +
+        '<div style="color:#9b59b6;font-weight:bold;font-size:.88rem;margin-bottom:8px;">📎 المرفقات (' + attachments.length + ')</div>' +
+        '<div style="display:flex;flex-direction:column;gap:6px;">' +
+        attachments.map(function(a) {
+            var icon = '📄';
+            var type = a.file_type || '';
+            var isImage = type.startsWith('image/');
+            if (isImage) icon = '🖼️';
+            else if (type.includes('pdf')) icon = '📕';
+            else if (type.includes('word') || type.includes('document')) icon = '📘';
+            else if (type.includes('sheet') || type.includes('excel')) icon = '📊';
+            
+            var preview = isImage ? 
+                '<img src="' + a.file_url + '" style="max-width:100%;max-height:200px;border-radius:8px;margin-top:6px;cursor:pointer;" onclick="window.open(\'' + a.file_url + '\', \'_blank\')">' : '';
+            
+            return '<div style="display:flex;flex-direction:column;gap:4px;">' +
+                '<a href="' + a.file_url + '" target="_blank" style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.04);border-radius:6px;color:#fff;text-decoration:none;font-size:.88rem;transition:all .2s;" onmouseover="this.style.background=\'rgba(155,89,182,0.15)\'" onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">' +
+                    '<span style="font-size:1.3rem;">' + icon + '</span>' +
+                    '<span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escHtmlF(a.file_name || 'ملف') + '</span>' +
+                    '<span style="color:rgba(255,255,255,0.5);font-size:.78rem;">' + (a.file_size_kb || 0) + ' KB</span>' +
+                    '<span style="color:#9b59b6;">⬇️</span>' +
+                '</a>' +
+                preview +
+            '</div>';
+        }).join('') +
+        '</div></div>';
+}
+
+
 </script>
 
 

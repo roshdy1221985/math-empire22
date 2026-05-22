@@ -11785,6 +11785,372 @@ async def forum_my_stats(teacher_id: int):
 
 
 
+
+
+# ════════════════════════════════════════════════════════════
+# 📎 المرفقات + 🔝 التثبيت + 📊 إدارة الأدمن + 🔔 الاشتراكات
+# ════════════════════════════════════════════════════════════
+
+@app.post("/api/teachers/forum/upload-attachment")
+async def forum_upload_attachment(
+    teacher_id: int = Form(...),
+    topic_id: int = Form(0),
+    reply_id: int = Form(0),
+    file: UploadFile = File(...)
+):
+    """📎 رفع مرفق لموضوع أو رد"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    if topic_id <= 0 and reply_id <= 0:
+        raise HTTPException(status_code=400, detail="يجب تحديد موضوع أو رد")
+    
+    # تحقق من نوع وحجم الملف
+    ALLOWED_TYPES = {
+        "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp",
+        "application/pdf",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",  # docx
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",  # xlsx
+        "application/msword", "application/vnd.ms-excel"
+    }
+    
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"نوع الملف غير مسموح: {file.content_type}")
+    
+    # قراءة الملف وفحص الحجم (5MB max)
+    contents = await file.read()
+    size_kb = len(contents) // 1024
+    if size_kb > 5120:  # 5 MB
+        raise HTTPException(status_code=400, detail=f"الملف كبير جداً ({size_kb} KB). الحد الأقصى 5 MB")
+    
+    try:
+        # رفع الملف لـ Supabase Storage
+        import secrets
+        ext = file.filename.split(".")[-1] if "." in file.filename else "bin"
+        safe_name = f"forum/{secrets.token_urlsafe(12)}.{ext}"
+        
+        try:
+            upload_res = supabase.storage.from_("uploads").upload(
+                safe_name, contents, {"content-type": file.content_type or "application/octet-stream"}
+            )
+            file_url = supabase.storage.from_("uploads").get_public_url(safe_name)
+        except Exception as storage_err:
+            # محاولة بـ bucket آخر
+            try:
+                upload_res = supabase.storage.from_("public").upload(
+                    safe_name, contents, {"content-type": file.content_type or "application/octet-stream"}
+                )
+                file_url = supabase.storage.from_("public").get_public_url(safe_name)
+            except Exception:
+                raise HTTPException(status_code=500, detail=f"فشل رفع الملف: {str(storage_err)[:150]}")
+        
+        # نُسجّل في جدول المرفقات
+        attach_data = {
+            "teacher_id": teacher["id"],
+            "file_url": file_url,
+            "file_name": file.filename[:200] if file.filename else "ملف",
+            "file_type": file.content_type or "unknown",
+            "file_size_kb": size_kb
+        }
+        if topic_id > 0:
+            attach_data["topic_id"] = topic_id
+        if reply_id > 0:
+            attach_data["reply_id"] = reply_id
+        
+        res = supabase.table("teacher_forum_attachments").insert(attach_data).execute()
+        
+        return {
+            "status": "success",
+            "attachment": res.data[0] if res.data else None,
+            "file_url": file_url
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teachers/forum/attachments")
+async def forum_get_attachments(topic_id: int = 0, reply_id: int = 0):
+    """📋 جلب مرفقات موضوع أو رد"""
+    if topic_id <= 0 and reply_id <= 0:
+        return {"attachments": []}
+    
+    try:
+        q = supabase.table("teacher_forum_attachments").select("*")
+        if topic_id > 0:
+            q = q.eq("topic_id", topic_id)
+        else:
+            q = q.eq("reply_id", reply_id)
+        res = q.order("created_at", desc=False).execute()
+        return {"attachments": res.data or []}
+    except Exception as e:
+        return {"attachments": [], "error": str(e)[:200]}
+
+
+# ──────── 🔝 التثبيت والقفل (الأدمن) ────────
+
+@app.post("/api/admin/forum/pin-topic")
+async def admin_pin_topic(
+    topic_id: int = Form(...),
+    pin: bool = Form(True),
+    admin = Depends(get_current_admin)
+):
+    """📌 تثبيت/إلغاء تثبيت موضوع (الأدمن فقط)"""
+    try:
+        supabase.table("teacher_forum_topics").update({"is_pinned": pin}).eq("id", topic_id).execute()
+        return {"status": "success", "is_pinned": pin}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/admin/forum/lock-topic")
+async def admin_lock_topic(
+    topic_id: int = Form(...),
+    lock: bool = Form(True),
+    admin = Depends(get_current_admin)
+):
+    """🔒 قفل/فتح موضوع (الأدمن فقط)"""
+    try:
+        supabase.table("teacher_forum_topics").update({"is_locked": lock}).eq("id", topic_id).execute()
+        return {"status": "success", "is_locked": lock}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/admin/forum/topics/{topic_id}")
+async def admin_delete_topic(topic_id: int, admin = Depends(get_current_admin)):
+    """🗑️ حذف موضوع (الأدمن - بدون قيود)"""
+    try:
+        supabase.table("teacher_forum_replies").delete().eq("topic_id", topic_id).execute()
+        supabase.table("teacher_forum_likes").delete().eq("topic_id", topic_id).execute()
+        supabase.table("teacher_forum_attachments").delete().eq("topic_id", topic_id).execute()
+        supabase.table("teacher_forum_subscriptions").delete().eq("topic_id", topic_id).execute()
+        supabase.table("teacher_forum_topics").delete().eq("id", topic_id).execute()
+        return {"status": "success", "message": "تم الحذف بواسطة الأدمن"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ──────── 📊 لوحة تحكم الأدمن للمنتدى ────────
+
+@app.get("/api/admin/forum/stats")
+async def admin_forum_stats(admin = Depends(get_current_admin)):
+    """📊 إحصاءات شاملة عن المنتدى"""
+    try:
+        # العدد الإجمالي
+        topics_res = supabase.table("teacher_forum_topics").select("id", count="exact").limit(1).execute()
+        replies_res = supabase.table("teacher_forum_replies").select("id", count="exact").limit(1).execute()
+        likes_res = supabase.table("teacher_forum_likes").select("id", count="exact").limit(1).execute()
+        
+        total_topics = topics_res.count or 0
+        total_replies = replies_res.count or 0
+        total_likes = likes_res.count or 0
+        
+        # عدد المعلمين النشطين
+        active_res = supabase.table("teacher_forum_topics").select("teacher_id").limit(1000).execute()
+        active_in_topics = set(t.get("teacher_id") for t in (active_res.data or []))
+        replies_active_res = supabase.table("teacher_forum_replies").select("teacher_id").limit(1000).execute()
+        active_in_replies = set(r.get("teacher_id") for r in (replies_active_res.data or []))
+        active_teachers = len(active_in_topics | active_in_replies)
+        
+        # هذا الأسبوع
+        from datetime import datetime, timezone, timedelta
+        week_ago = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+        
+        week_topics_res = supabase.table("teacher_forum_topics").select("id", count="exact").gte("created_at", week_ago).limit(1).execute()
+        week_replies_res = supabase.table("teacher_forum_replies").select("id", count="exact").gte("created_at", week_ago).limit(1).execute()
+        
+        # توزيع الفئات
+        cat_res = supabase.table("teacher_forum_topics").select("category").limit(1000).execute()
+        cat_counts = {}
+        for t in (cat_res.data or []):
+            c = t.get("category", "general")
+            cat_counts[c] = cat_counts.get(c, 0) + 1
+        
+        # أكثر المواضيع تفاعلاً
+        top_topics_res = supabase.table("teacher_forum_topics").select(
+            "id, title, teacher_name, likes_count, replies_count, views, created_at"
+        ).order("likes_count", desc=True).limit(10).execute()
+        
+        # أكثر المعلمين نشاطاً
+        sup_stats = {}
+        for t in (active_res.data or []):
+            tid = t.get("teacher_id")
+            if tid:
+                sup_stats[tid] = sup_stats.get(tid, 0) + 1
+        top_teachers = sorted(sup_stats.items(), key=lambda x: x[1], reverse=True)[:5]
+        
+        # نمو أسبوعي (آخر 7 أيام)
+        daily_growth = []
+        for i in range(7):
+            day_start = (datetime.now(timezone.utc) - timedelta(days=6-i)).replace(hour=0, minute=0, second=0, microsecond=0)
+            day_end = day_start + timedelta(days=1)
+            day_topics_res = supabase.table("teacher_forum_topics").select("id", count="exact").gte(
+                "created_at", day_start.isoformat()
+            ).lt("created_at", day_end.isoformat()).limit(1).execute()
+            daily_growth.append({
+                "date": day_start.strftime("%m-%d"),
+                "topics": day_topics_res.count or 0
+            })
+        
+        return {
+            "totals": {
+                "topics": total_topics,
+                "replies": total_replies,
+                "likes": total_likes,
+                "active_teachers": active_teachers
+            },
+            "this_week": {
+                "topics": week_topics_res.count or 0,
+                "replies": week_replies_res.count or 0
+            },
+            "categories": cat_counts,
+            "top_topics": top_topics_res.data or [],
+            "daily_growth": daily_growth
+        }
+    except Exception as e:
+        return {"error": str(e)[:200]}
+
+
+@app.get("/api/admin/forum/topics")
+async def admin_list_topics(
+    category: str = "",
+    page: int = 1,
+    page_size: int = 30,
+    admin = Depends(get_current_admin)
+):
+    """📋 قائمة المواضيع للأدمن (مع تفاصيل إدارية)"""
+    try:
+        page = max(1, page)
+        page_size = min(max(page_size, 10), 100)
+        offset = (page - 1) * page_size
+        
+        q = supabase.table("teacher_forum_topics").select("*")
+        if category:
+            q = q.eq("category", category)
+        
+        res = q.order("created_at", desc=True).range(offset, offset + page_size - 1).execute()
+        return {"topics": res.data or [], "page": page}
+    except Exception as e:
+        return {"topics": [], "error": str(e)[:200]}
+
+
+# ──────── 🔔 الاشتراكات والكتم ────────
+
+@app.post("/api/teachers/forum/subscribe")
+async def forum_subscribe(
+    teacher_id: int = Form(...),
+    topic_id: int = Form(...),
+    action: str = Form("subscribe")  # subscribe | unsubscribe | mute | unmute
+):
+    """🔔 اشتراك/كتم/إلغاء موضوع"""
+    teacher = await _verify_teacher(teacher_id)
+    
+    try:
+        # نتحقق من الموضوع
+        t_res = supabase.table("teacher_forum_topics").select("id").eq("id", topic_id).limit(1).execute()
+        if not t_res.data:
+            raise HTTPException(status_code=404, detail="الموضوع غير موجود")
+        
+        # نتحقق من وجود اشتراك حالي
+        existing = supabase.table("teacher_forum_subscriptions").select("id, is_muted").eq(
+            "teacher_id", teacher_id
+        ).eq("topic_id", topic_id).limit(1).execute()
+        
+        if action == "subscribe":
+            if existing.data:
+                supabase.table("teacher_forum_subscriptions").update({"is_muted": False}).eq("id", existing.data[0]["id"]).execute()
+            else:
+                supabase.table("teacher_forum_subscriptions").insert({
+                    "teacher_id": teacher_id,
+                    "topic_id": topic_id,
+                    "is_muted": False
+                }).execute()
+            return {"status": "success", "subscribed": True, "muted": False}
+        
+        elif action == "unsubscribe":
+            if existing.data:
+                supabase.table("teacher_forum_subscriptions").delete().eq("id", existing.data[0]["id"]).execute()
+            return {"status": "success", "subscribed": False, "muted": False}
+        
+        elif action == "mute":
+            if existing.data:
+                supabase.table("teacher_forum_subscriptions").update({"is_muted": True}).eq("id", existing.data[0]["id"]).execute()
+            else:
+                supabase.table("teacher_forum_subscriptions").insert({
+                    "teacher_id": teacher_id,
+                    "topic_id": topic_id,
+                    "is_muted": True
+                }).execute()
+            return {"status": "success", "subscribed": True, "muted": True}
+        
+        elif action == "unmute":
+            if existing.data:
+                supabase.table("teacher_forum_subscriptions").update({"is_muted": False}).eq("id", existing.data[0]["id"]).execute()
+            return {"status": "success", "subscribed": True, "muted": False}
+        
+        else:
+            raise HTTPException(status_code=400, detail=f"إجراء غير صالح: {action}")
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teachers/forum/my-subscription/{topic_id}")
+async def forum_my_subscription(topic_id: int, teacher_id: int):
+    """🔍 حالة اشتراكي في موضوع"""
+    try:
+        res = supabase.table("teacher_forum_subscriptions").select("is_muted").eq(
+            "teacher_id", teacher_id
+        ).eq("topic_id", topic_id).limit(1).execute()
+        
+        if not res.data:
+            return {"subscribed": False, "muted": False}
+        
+        return {"subscribed": True, "muted": res.data[0].get("is_muted", False)}
+    except Exception:
+        return {"subscribed": False, "muted": False}
+
+
+@app.get("/api/teachers/forum/my-subscriptions")
+async def forum_my_subscriptions(teacher_id: int):
+    """📋 قائمة اشتراكاتي"""
+    await _verify_teacher(teacher_id)
+    try:
+        subs_res = supabase.table("teacher_forum_subscriptions").select("topic_id, is_muted, created_at").eq(
+            "teacher_id", teacher_id
+        ).order("created_at", desc=True).execute()
+        
+        subs = subs_res.data or []
+        if not subs:
+            return {"subscriptions": []}
+        
+        topic_ids = [s["topic_id"] for s in subs]
+        topics_res = supabase.table("teacher_forum_topics").select(
+            "id, title, category, replies_count, likes_count, last_reply_at, teacher_name"
+        ).in_("id", topic_ids).execute()
+        
+        topics_map = {t["id"]: t for t in (topics_res.data or [])}
+        result = []
+        for s in subs:
+            t = topics_map.get(s["topic_id"])
+            if t:
+                t["is_muted"] = s["is_muted"]
+                t["subscribed_at"] = s["created_at"]
+                cat_info = FORUM_CATEGORIES.get(t.get("category", "general"), FORUM_CATEGORIES["general"])
+                t["category_icon"] = cat_info["icon"]
+                t["category_color"] = cat_info["color"]
+                result.append(t)
+        
+        return {"subscriptions": result, "total": len(result)}
+    except Exception as e:
+        return {"subscriptions": [], "error": str(e)[:200]}
+
+
+
+
 @app.get("/api/supervisor/student-360/{student_id}")
 async def supervisor_student_360(student_id: int, sup = Depends(get_current_supervisor)):
     """📊 بطاقة الطالب التفصيلية - Student 360 view"""
