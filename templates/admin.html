@@ -18727,23 +18727,47 @@ async function loadForumAdminPanel() {
             renderForumAdminStat('❤️', totals.likes || 0, 'إعجاب', '#e74c3c', '') +
             renderForumAdminStat('👥', totals.active_teachers || 0, 'معلم نشط', '#2ecc71', '');
         
-        // توزيع الفئات
+        // توزيع الفئات (12 فئة نشطة + 5 مؤرشفة للعرض)
         const cats = data.categories || {};
         const catNames = {
-            announcements: { name: 'إعلانات', icon: '📢', color: '#e74c3c' },
-            ideas: { name: 'اقتراحات', icon: '💡', color: '#f1c40f' },
-            teaching: { name: 'تدريس', icon: '🎓', color: '#3498db' },
-            resources: { name: 'موارد', icon: '📚', color: '#2ecc71' },
-            questions: { name: 'أسئلة', icon: '❓', color: '#9b59b6' },
-            collaboration: { name: 'تعاون', icon: '🤝', color: '#e67e22' },
-            general: { name: 'عام', icon: '☕', color: '#7f8c8d' }
+            // ════════ الإعلانات (للأدمن) ════════
+            announcements: { name: 'إعلانات', icon: '📢', color: '#e74c3c', group: 'general' },
+            // ════════ الصفوف الدراسية (10) ════════
+            grade_5:           { name: 'الصف الخامس',           icon: '5️⃣',  color: '#10b981', group: 'grades' },
+            grade_6:           { name: 'الصف السادس',           icon: '6️⃣',  color: '#059669', group: 'grades' },
+            grade_7:           { name: 'الصف السابع',           icon: '7️⃣',  color: '#06b6d4', group: 'grades' },
+            grade_8:           { name: 'الصف الثامن',           icon: '8️⃣',  color: '#0891b2', group: 'grades' },
+            grade_9:           { name: 'الصف التاسع',           icon: '9️⃣',  color: '#3b82f6', group: 'grades' },
+            grade_10:          { name: 'الصف العاشر',           icon: '🔟',  color: '#6366f1', group: 'grades' },
+            grade_11_basic:    { name: 'الـ11 أساسي',           icon: '📘',  color: '#a855f7', group: 'grades' },
+            grade_11_advanced: { name: 'الـ11 متقدم',           icon: '🌟',  color: '#9333ea', group: 'grades' },
+            grade_12_basic:    { name: 'الـ12 أساسي',           icon: '📕',  color: '#ec4899', group: 'grades' },
+            grade_12_advanced: { name: 'الـ12 متقدم',           icon: '💎',  color: '#be185d', group: 'grades' },
+            // ════════ العام ════════
+            general:           { name: 'نقاش عام',              icon: '☕',  color: '#d4af37', group: 'general' },
+            // ════════ المؤرشفة (تظهر فقط إذا فيها مواضيع قديمة) ════════
+            ideas:         { name: 'اقتراحات (مؤرشف)', icon: '💡', color: '#f1c40f', group: 'archived' },
+            teaching:      { name: 'تدريس (مؤرشف)',   icon: '🎓', color: '#3498db', group: 'archived' },
+            resources:     { name: 'موارد (مؤرشف)',   icon: '📚', color: '#2ecc71', group: 'archived' },
+            questions:     { name: 'أسئلة (مؤرشف)',   icon: '❓', color: '#9b59b6', group: 'archived' },
+            collaboration: { name: 'تعاون (مؤرشف)',   icon: '🤝', color: '#e67e22', group: 'archived' }
         };
         FORUM_ADMIN_CATEGORIES = catNames;
         
-        document.getElementById('forum-admin-categories').innerHTML = Object.keys(catNames).map(function(k) {
+        // عرض الفئات الفعّالة أولاً، ثم المؤرشفة التي بها مواضيع فقط
+        const activeKeys = Object.keys(catNames).filter(function(k){ return catNames[k].group !== 'archived'; });
+        const archivedKeys = Object.keys(catNames).filter(function(k){ return catNames[k].group === 'archived' && (cats[k] || 0) > 0; });
+        const orderedKeys = activeKeys.concat(archivedKeys);
+        
+        document.getElementById('forum-admin-categories').innerHTML = orderedKeys.map(function(k) {
             const c = catNames[k];
             const count = cats[k] || 0;
-            return '<div style="background:linear-gradient(135deg,' + c.color + '22,' + c.color + '08);border:1px solid ' + c.color + '40;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;">' +
+            const isArchived = c.group === 'archived';
+            const isGrade = c.group === 'grades';
+            const opacity = isArchived ? '0.6' : '1';
+            const badge = isArchived ? '<div style="position:absolute;top:-6px;left:6px;background:#7f8c8d;color:#fff;font-size:.6rem;padding:1px 6px;border-radius:8px;">مؤرشف</div>' : (isGrade ? '<div style="position:absolute;top:-6px;left:6px;background:linear-gradient(135deg,#d4af37,#b38728);color:#fff;font-size:.6rem;padding:1px 6px;border-radius:8px;">صف</div>' : '');
+            return '<div style="position:relative;background:linear-gradient(135deg,' + c.color + '22,' + c.color + '08);border:1px solid ' + c.color + '40;border-radius:10px;padding:12px;display:flex;align-items:center;gap:10px;opacity:' + opacity + ';">' +
+                badge +
                 '<div style="font-size:1.8rem;">' + c.icon + '</div>' +
                 '<div style="flex:1;">' +
                     '<div style="color:#fff;font-weight:bold;font-size:.9rem;">' + c.name + '</div>' +

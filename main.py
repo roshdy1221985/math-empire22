@@ -11301,13 +11301,31 @@ def _url_encode(s: str) -> str:
 # ════════════════════════════════════════════════════════════
 
 FORUM_CATEGORIES = {
-    "announcements": {"name": "📢 إعلانات الإدارة", "icon": "📢", "color": "#e74c3c", "admin_only": True},
-    "ideas": {"name": "💡 اقتراحات وأفكار", "icon": "💡", "color": "#f1c40f"},
-    "teaching": {"name": "🎓 أساليب تدريس", "icon": "🎓", "color": "#3498db"},
-    "resources": {"name": "📚 موارد ومصادر", "icon": "📚", "color": "#2ecc71"},
-    "questions": {"name": "❓ أسئلة واستفسارات", "icon": "❓", "color": "#9b59b6"},
-    "collaboration": {"name": "🤝 تعاون ومشاركة", "icon": "🤝", "color": "#e67e22"},
-    "general": {"name": "☕ نقاش عام", "icon": "☕", "color": "#7f8c8d"}
+    # ════════ القسم العلوي: الإعلانات (للأدمن) ════════
+    "announcements": {"name": "📢 إعلانات الإدارة", "icon": "📢", "color": "#e74c3c", "admin_only": True, "order": 0, "group": "general"},
+
+    # ════════ الصفوف الدراسية (10 صفوف) ════════
+    "grade_5":             {"name": "5️⃣ الصف الخامس",                 "icon": "5️⃣",  "color": "#10b981", "order": 1,  "group": "grades", "grade_num": 5,  "level": "basic"},
+    "grade_6":             {"name": "6️⃣ الصف السادس",                 "icon": "6️⃣",  "color": "#059669", "order": 2,  "group": "grades", "grade_num": 6,  "level": "basic"},
+    "grade_7":             {"name": "7️⃣ الصف السابع",                 "icon": "7️⃣",  "color": "#06b6d4", "order": 3,  "group": "grades", "grade_num": 7,  "level": "basic"},
+    "grade_8":             {"name": "8️⃣ الصف الثامن",                 "icon": "8️⃣",  "color": "#0891b2", "order": 4,  "group": "grades", "grade_num": 8,  "level": "basic"},
+    "grade_9":             {"name": "9️⃣ الصف التاسع",                 "icon": "9️⃣",  "color": "#3b82f6", "order": 5,  "group": "grades", "grade_num": 9,  "level": "basic"},
+    "grade_10":            {"name": "🔟 الصف العاشر",                  "icon": "🔟",  "color": "#6366f1", "order": 6,  "group": "grades", "grade_num": 10, "level": "basic"},
+    "grade_11_basic":      {"name": "1️⃣1️⃣ الحادي عشر - أساسي",        "icon": "📘", "color": "#a855f7", "order": 7,  "group": "grades", "grade_num": 11, "level": "basic"},
+    "grade_11_advanced":   {"name": "🌟 الحادي عشر - متقدم",            "icon": "🌟", "color": "#9333ea", "order": 8,  "group": "grades", "grade_num": 11, "level": "advanced"},
+    "grade_12_basic":      {"name": "1️⃣2️⃣ الثاني عشر - أساسي",        "icon": "📕", "color": "#ec4899", "order": 9,  "group": "grades", "grade_num": 12, "level": "basic"},
+    "grade_12_advanced":   {"name": "💎 الثاني عشر - متقدم",            "icon": "💎", "color": "#be185d", "order": 10, "group": "grades", "grade_num": 12, "level": "advanced"},
+
+    # ════════ القسم العام ════════
+    "general": {"name": "☕ نقاش عام", "icon": "☕", "color": "#d4af37", "order": 11, "group": "general"},
+
+    # ════════ الفئات القديمة (مؤرشفة - مخفية عن المستخدم العادي) ════════
+    # ⚠️ لا تُحذف! المواضيع القديمة تستخدمها. is_hidden=True يخفيها من القوائم الجديدة
+    "ideas":         {"name": "💡 اقتراحات وأفكار",  "icon": "💡", "color": "#f1c40f", "order": 90, "group": "archived", "is_hidden": True},
+    "teaching":      {"name": "🎓 أساليب تدريس",      "icon": "🎓", "color": "#3498db", "order": 91, "group": "archived", "is_hidden": True},
+    "resources":     {"name": "📚 موارد ومصادر",      "icon": "📚", "color": "#2ecc71", "order": 92, "group": "archived", "is_hidden": True},
+    "questions":     {"name": "❓ أسئلة واستفسارات",  "icon": "❓", "color": "#9b59b6", "order": 93, "group": "archived", "is_hidden": True},
+    "collaboration": {"name": "🤝 تعاون ومشاركة",    "icon": "🤝", "color": "#e67e22", "order": 94, "group": "archived", "is_hidden": True},
 }
 
 
@@ -11327,9 +11345,19 @@ async def _verify_teacher(teacher_id: int) -> dict:
 
 
 @app.get("/api/teachers/forum/categories")
-async def forum_get_categories():
-    """📋 قائمة فئات المنتدى"""
-    return {"categories": FORUM_CATEGORIES}
+async def forum_get_categories(include_hidden: bool = False):
+    """📋 قائمة فئات المنتدى (الفئات المرئية فقط افتراضياً)
+    
+    include_hidden=True: يُرجع كل الفئات بما فيها المؤرشفة (للأدمن فقط)
+    """
+    if include_hidden:
+        # للأدمن: كل الفئات (بما فيها المؤرشفة للعرض/الإدارة)
+        return {"categories": FORUM_CATEGORIES}
+    # للمستخدم العادي: فقط الفئات غير المخفية، مُرتّبة
+    visible = {k: v for k, v in FORUM_CATEGORIES.items() if not v.get("is_hidden", False)}
+    # ترتيب حسب الـ order
+    ordered = dict(sorted(visible.items(), key=lambda x: x[1].get("order", 999)))
+    return {"categories": ordered}
 
 
 @app.get("/api/teachers/forum/topics")

@@ -4693,6 +4693,54 @@
         .forum-cat-btn:hover { background: rgba(155,89,182,0.15); border-color: rgba(155,89,182,0.4); }
         .forum-cat-btn.active { background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #9b59b6; color: white; }
         
+        /* ✨ تحسينات الأقسام الجديدة (الصفوف) ✨ */
+        .forum-cat-divider {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 8px 0 4px;
+            color: rgba(212,175,55,0.7);
+            font-family: Amiri, serif;
+            font-size: 0.85rem;
+        }
+        .forum-cat-divider::before,
+        .forum-cat-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent);
+        }
+        .forum-cat-divider span {
+            padding: 0 8px;
+            white-space: nowrap;
+        }
+        .forum-cat-btn.forum-cat-grade {
+            background: rgba(255,255,255,0.03);
+            font-weight: 600;
+            position: relative;
+            transition: all 0.25s;
+        }
+        .forum-cat-btn.forum-cat-grade:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            background: rgba(255,255,255,0.08);
+        }
+        .forum-cat-btn.forum-cat-grade.active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
+        }
+        .forum-cat-level {
+            display: inline-block;
+            margin-right: 6px;
+            font-size: 0.65rem;
+            padding: 1px 6px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #d4af37, #b38728);
+            color: #fff;
+            vertical-align: middle;
+        }
+        
         .forum-search-row {
             display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
         }
@@ -16593,9 +16641,27 @@ var FORUM_API = (typeof API_URL !== 'undefined' ? API_URL : '') || '';
 
 function getTeacherForumId() {
     try {
-        var t = JSON.parse(localStorage.getItem('teacher') || '{}');
-        return t.id || 0;
-    } catch(e) { return 0; }
+        // 1. نُجرّب window.teacherData أولاً (المتغير المُفعّل حالياً)
+        if (typeof teacherData !== 'undefined' && teacherData && teacherData.id) {
+            return teacherData.id;
+        }
+        // 2. نُجرّب sessionStorage.teacherData (الطريقة الأساسية)
+        var td = sessionStorage.getItem('teacherData');
+        if (td) {
+            var t = JSON.parse(td);
+            if (t && t.id) return t.id;
+        }
+        // 3. نُجرّب localStorage.teacher (للتوافقية)
+        var lt = localStorage.getItem('teacher');
+        if (lt) {
+            var t2 = JSON.parse(lt);
+            if (t2 && t2.id) return t2.id;
+        }
+        return 0;
+    } catch(e) { 
+        console.error('[getTeacherForumId]', e);
+        return 0; 
+    }
 }
 
 async function loadForumCategories() {
@@ -16611,25 +16677,84 @@ async function loadForumCategories() {
 function renderCategoryButtons() {
     var cont = document.getElementById('forum-categories');
     if (!cont) return;
-    var html = '<button class="forum-cat-btn ' + (FORUM_CURRENT_CAT === 'all' ? 'active' : '') + '" onclick="filterForumByCat(\'all\')">📋 الكل</button>';
-    Object.keys(FORUM_CATEGORIES).forEach(function(key) {
+
+    // فصل الفئات حسب المجموعة (general أولاً، ثم grades، ثم باقي)
+    var keys = Object.keys(FORUM_CATEGORIES);
+    var generalKeys = keys.filter(function(k){ var g = (FORUM_CATEGORIES[k].group || ''); return g === 'general' || g === ''; });
+    var gradeKeys   = keys.filter(function(k){ return FORUM_CATEGORIES[k].group === 'grades'; });
+    var otherKeys   = keys.filter(function(k){ var g = FORUM_CATEGORIES[k].group; return g && g !== 'general' && g !== 'grades' && g !== 'archived'; });
+
+    // ترتيب داخلي حسب order
+    function byOrder(a, b){ return (FORUM_CATEGORIES[a].order || 999) - (FORUM_CATEGORIES[b].order || 999); }
+    generalKeys.sort(byOrder); gradeKeys.sort(byOrder); otherKeys.sort(byOrder);
+
+    var html = '';
+    // زر "الكل" دائماً في البداية
+    html += '<button class="forum-cat-btn ' + (FORUM_CURRENT_CAT === 'all' ? 'active' : '') + '" onclick="filterForumByCat(\'all\')">📋 الكل</button>';
+
+    // عام (إعلانات + نقاش عام)
+    generalKeys.forEach(function(key){
+        var cat = FORUM_CATEGORIES[key];
+        var active = FORUM_CURRENT_CAT === key ? 'active' : '';
+        var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+',rgba(155,89,182,0.8));border-color:'+cat.color+';' : 'border-color:' + cat.color + '55;';
+        html += '<button class="forum-cat-btn ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + '</button>';
+    });
+
+    // فاصل قبل الصفوف
+    if (gradeKeys.length > 0) {
+        html += '<div class="forum-cat-divider"><span>🎓 حسب الصف الدراسي</span></div>';
+        gradeKeys.forEach(function(key){
+            var cat = FORUM_CATEGORIES[key];
+            var active = FORUM_CURRENT_CAT === key ? 'active' : '';
+            var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+','+cat.color+'cc);border-color:'+cat.color+';color:#fff;' : 'border-color:' + cat.color + '66;color:' + cat.color + ';';
+            var levelBadge = cat.level === 'advanced' ? '<span class="forum-cat-level">⭐ متقدم</span>' : '';
+            html += '<button class="forum-cat-btn forum-cat-grade ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + levelBadge + '</button>';
+        });
+    }
+
+    // أي فئات أخرى (مرونة مستقبلية)
+    otherKeys.forEach(function(key){
         var cat = FORUM_CATEGORIES[key];
         var active = FORUM_CURRENT_CAT === key ? 'active' : '';
         var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+',rgba(155,89,182,0.8));border-color:'+cat.color+';' : '';
         html += '<button class="forum-cat-btn ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + '</button>';
     });
+
     cont.innerHTML = html;
 }
 
 function renderTopicCategorySelect() {
     var sel = document.getElementById('nt-category');
     if (!sel) return;
-    sel.innerHTML = Object.keys(FORUM_CATEGORIES).filter(function(k){
-        return !FORUM_CATEGORIES[k].admin_only;
-    }).map(function(k) {
+    var allKeys = Object.keys(FORUM_CATEGORIES).filter(function(k){
+        return !FORUM_CATEGORIES[k].admin_only && !FORUM_CATEGORIES[k].is_hidden;
+    });
+    function byOrder(a, b){ return (FORUM_CATEGORIES[a].order || 999) - (FORUM_CATEGORIES[b].order || 999); }
+    var generalKeys = allKeys.filter(function(k){ var g = (FORUM_CATEGORIES[k].group || ''); return g === 'general' || g === ''; }).sort(byOrder);
+    var gradeKeys   = allKeys.filter(function(k){ return FORUM_CATEGORIES[k].group === 'grades'; }).sort(byOrder);
+    var otherKeys   = allKeys.filter(function(k){ var g = FORUM_CATEGORIES[k].group; return g && g !== 'general' && g !== 'grades' && g !== 'archived'; }).sort(byOrder);
+
+    function optStr(k){
         var c = FORUM_CATEGORIES[k];
         return '<option value="' + k + '">' + c.icon + ' ' + c.name.replace(/^[^ ]+ /, '') + '</option>';
-    }).join('');
+    }
+    var html = '';
+    if (generalKeys.length) {
+        html += '<optgroup label="📋 عام">';
+        html += generalKeys.map(optStr).join('');
+        html += '</optgroup>';
+    }
+    if (gradeKeys.length) {
+        html += '<optgroup label="🎓 حسب الصف الدراسي">';
+        html += gradeKeys.map(optStr).join('');
+        html += '</optgroup>';
+    }
+    if (otherKeys.length) {
+        html += '<optgroup label="📌 أخرى">';
+        html += otherKeys.map(optStr).join('');
+        html += '</optgroup>';
+    }
+    sel.innerHTML = html;
 }
 
 function filterForumByCat(cat) {
