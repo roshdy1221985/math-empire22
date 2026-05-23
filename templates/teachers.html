@@ -4693,54 +4693,6 @@
         .forum-cat-btn:hover { background: rgba(155,89,182,0.15); border-color: rgba(155,89,182,0.4); }
         .forum-cat-btn.active { background: linear-gradient(135deg, #9b59b6, #8e44ad); border-color: #9b59b6; color: white; }
         
-        /* ✨ تحسينات الأقسام الجديدة (الصفوف) ✨ */
-        .forum-cat-divider {
-            width: 100%;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin: 8px 0 4px;
-            color: rgba(212,175,55,0.7);
-            font-family: Amiri, serif;
-            font-size: 0.85rem;
-        }
-        .forum-cat-divider::before,
-        .forum-cat-divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: linear-gradient(90deg, transparent, rgba(212,175,55,0.4), transparent);
-        }
-        .forum-cat-divider span {
-            padding: 0 8px;
-            white-space: nowrap;
-        }
-        .forum-cat-btn.forum-cat-grade {
-            background: rgba(255,255,255,0.03);
-            font-weight: 600;
-            position: relative;
-            transition: all 0.25s;
-        }
-        .forum-cat-btn.forum-cat-grade:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
-            background: rgba(255,255,255,0.08);
-        }
-        .forum-cat-btn.forum-cat-grade.active {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 18px rgba(0,0,0,0.3);
-        }
-        .forum-cat-level {
-            display: inline-block;
-            margin-right: 6px;
-            font-size: 0.65rem;
-            padding: 1px 6px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #d4af37, #b38728);
-            color: #fff;
-            vertical-align: middle;
-        }
-        
         .forum-search-row {
             display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;
         }
@@ -4941,57 +4893,91 @@
             </div>
         </div>
         
-        <!-- 🎖️ Hero Card — إنجاز الأسبوع -->
-        <div class="hero-card" style="margin-bottom:22px;">
-            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
-                <div style="background:rgba(212,175,55,0.15);color:#fcd34d;font-size:0.75rem;padding:4px 12px;border-radius:14px;border:1px solid rgba(212,175,55,0.3);">⭐ إنجاز أسبوعي</div>
-                <div id="hero-week-range" style="color:rgba(255,255,255,0.4);font-size:0.78rem;"></div>
-            </div>
-            <h2 id="hero-week-title" style="color:#fff;margin:8px 0 18px;font-weight:600;font-size:1.5rem;font-family:'Amiri';">أسبوع رائع، أيها الأستاذ! 🌟</h2>
+                <!-- ⚡ الوصول السريع — 9 بطاقات أيقونية بألوان مميزة -->
+        <div class="glass-pro qa-container" style="padding:24px;margin-bottom:20px;position:relative;overflow:hidden;">
+            <!-- خلفية متحركة دقيقة -->
+            <div class="qa-bg-orb qa-bg-orb-1"></div>
+            <div class="qa-bg-orb qa-bg-orb-2"></div>
             
-            <div class="bento-grid" style="margin-bottom:18px;grid-template-columns:repeat(4,1fr);grid-template-rows:auto;">
-                <div style="grid-column:1;grid-row:1;background:none;border:none;padding:0;text-align:center;">
-                    <div class="hero-stat-num" style="color:#fcd34d;">42</div>
-                    <div class="hero-stat-label">درس جديد</div>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;position:relative;z-index:1;">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <div class="qa-header-icon">⚡</div>
+                    <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.45rem;background:linear-gradient(135deg,#fcd34d,#fbbf24,#f59e0b);background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700;">الوصول السريع</h3>
                 </div>
-                <div style="grid-column:2;grid-row:1;background:none;border:none;padding:0;text-align:center;">
-                    <div class="hero-stat-num" style="color:#818cf8;">128</div>
-                    <div class="hero-stat-label">طالب نشط</div>
-                </div>
-                <div style="grid-column:3;grid-row:1;background:none;border:none;padding:0;text-align:center;">
-                    <div class="hero-stat-num" style="color:#4ade80;">86%</div>
-                    <div class="hero-stat-label">معدل النجاح</div>
-                </div>
-                <div style="grid-column:4;grid-row:1;background:none;border:none;padding:0;text-align:center;">
-                    <div class="hero-stat-num" style="color:#f472b6;">23</div>
-                    <div class="hero-stat-label">شهادة</div>
-                </div>
+                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;display:flex;align-items:center;gap:6px;">
+                    <i class="fas fa-bolt" style="color:#fcd34d;"></i>
+                    أكثر الأدوات استخداماً
+                </span>
             </div>
             
-            <div style="background:rgba(255,255,255,0.04);border-radius:12px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
-                <span class="flame-icon" style="font-size:1.5rem;">🔥</span>
-                <div style="color:rgba(255,255,255,0.75);font-size:0.88rem;line-height:1.7;">
-                    <span style="color:#f97316;font-weight:600;" id="hero-streak">7 أيام متتالية</span> من النشاط — أنت في طريقك لإنجاز شهري ممتاز!
+            <!-- شبكة البطاقات (9 بطاقات) -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;position:relative;z-index:1;">
+                
+                <!-- 1. 🏆 محرر الاختبارات (الجديد - أول بطاقة بشارة جديد) -->
+                <div onclick="showSection('visual-maker', null)" class="qa-card qa-emerald" style="position:relative;">
+                    <div class="qa-new-badge qa-badge-hot">🔥 الأقوى</div>
+                    <div class="qa-icon-box"><i class="fas fa-file-signature"></i></div>
+                    <div class="qa-title">محرر الاختبارات</div>
+                    <div class="qa-sub">دباجة + 15 شكل</div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="glass-card" style="padding:20px;margin-bottom:18px;">
-            <h3 style="color:#f9c74f;font-family:'Amiri';margin:0 0 14px;font-size:1.15rem;">⚡ إجراءات سريعة</h3>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
-                <button onclick="showSection('exam-gen', null); var b = document.querySelector('.btn-exam'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#e74c3c,#c0392b);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(231,76,60,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
-                    📝<br>إنشاء اختبار جديد
-                </button>
-                <button onclick="showSection('plan-gen', null); var b = document.querySelector('.btn-plan'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#3498db,#2471a3);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(52,152,219,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
-                    📓<br>تحضير AI سريع
-                </button>
-                <button onclick="showSection('certificates', null); var b = document.querySelector('.btn-cert'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#16a085,#0e7d6c);color:#fff;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(22,160,133,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
-                    🏆<br>طباعة شهادات
-                </button>
-                <button onclick="showSection('ai-assistant', null); var b = document.querySelector('.btn-ai'); if (b) b.classList.add('active');" style="background:linear-gradient(135deg,#00ff88,#00cc66);color:#001a0d;border:none;padding:18px 14px;border-radius:14px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.95rem;box-shadow:0 4px 14px rgba(0,255,136,0.4);transition:all 0.3s;" onmouseover="this.style.transform='translateY(-3px)'" onmouseout="this.style.transform=''">
-                    🤖<br>اسأل المساعد
-                </button>
+                
+                <!-- 2. 🚀 حزمة كاملة AI -->
+                <div onclick="showSection('lesson-pack', null)" class="qa-card qa-orange" style="position:relative;">
+                    <div class="qa-new-badge">جديد</div>
+                    <div class="qa-icon-box"><i class="fas fa-rocket"></i></div>
+                    <div class="qa-title">حزمة كاملة AI</div>
+                    <div class="qa-sub">8 مواد في دقيقة</div>
+                </div>
+                
+                <!-- 3. 📝 مولّد اختبارات -->
+                <div onclick="showSection('exam-gen', null)" class="qa-card qa-red">
+                    <div class="qa-icon-box"><i class="fas fa-file-alt"></i></div>
+                    <div class="qa-title">مولّد اختبارات</div>
+                    <div class="qa-sub">اختبار/نشاط</div>
+                </div>
+                
+                <!-- 4. 🏆 الشهادات -->
+                <div onclick="showSection('certificates', null)" class="qa-card qa-gold">
+                    <div class="qa-icon-box"><i class="fas fa-trophy"></i></div>
+                    <div class="qa-title">الشهادات</div>
+                    <div class="qa-sub">8 قوالب + صور</div>
+                </div>
+                
+                <!-- 5. 📓 تحضير AI -->
+                <div onclick="showSection('plan-gen', null)" class="qa-card qa-indigo">
+                    <div class="qa-icon-box"><i class="fas fa-book"></i></div>
+                    <div class="qa-title">تحضير AI</div>
+                    <div class="qa-sub">في 30 ثانية</div>
+                </div>
+                
+                <!-- 6. 🏛️ فصولي -->
+                <div onclick="showSection('my-classrooms', null)" class="qa-card qa-cyan">
+                    <div class="qa-icon-box"><i class="fas fa-university"></i></div>
+                    <div class="qa-title">فصولي</div>
+                    <div class="qa-sub">إدارة الطلاب</div>
+                </div>
+                
+                <!-- 7. 🤖 المساعد AI -->
+                <div onclick="showSection('ai-assistant', null)" class="qa-card qa-teal">
+                    <div class="qa-icon-box"><i class="fas fa-robot"></i></div>
+                    <div class="qa-title">المساعد AI</div>
+                    <div class="qa-sub">اسأل أي شيء</div>
+                </div>
+                
+                <!-- 8. 🎨 الأشكال -->
+                <div onclick="showSection('visual-maker', null)" class="qa-card qa-pink">
+                    <div class="qa-icon-box"><i class="fas fa-palette"></i></div>
+                    <div class="qa-title">الأشكال</div>
+                    <div class="qa-sub">2D + 3D</div>
+                </div>
+                
+                <!-- 9. 📅 الجداول -->
+                <div onclick="showSection('schedule-tpl', null)" class="qa-card qa-purple">
+                    <div class="qa-icon-box"><i class="fas fa-calendar-alt"></i></div>
+                    <div class="qa-title">الجداول</div>
+                    <div class="qa-sub">6 قوالب</div>
+                </div>
+                
             </div>
         </div>
 
@@ -5046,75 +5032,8 @@
             </div>
         </div>
         
-                <!-- ⚡ الوصول السريع — 8 بطاقات أيقونية بألوان مميزة -->
-        <div class="glass-pro" style="padding:22px;margin-bottom:20px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;">
-                <h3 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.3rem;">⚡ الوصول السريع</h3>
-                <span style="color:rgba(255,255,255,0.5);font-size:0.82rem;">أكثر الأدوات استخداماً</span>
-            </div>
-            
-            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;">
-                
-                <!-- 1. الجداول -->
-                <div onclick="showSection('schedule-tpl', null)" class="qa-card qa-purple">
-                    <div class="qa-icon-box"><i class="fas fa-calendar-alt"></i></div>
-                    <div class="qa-title">الجداول</div>
-                    <div class="qa-sub">6 قوالب</div>
-                </div>
-                
-                <!-- 2. الأشكال -->
-                <div onclick="showSection('visual-maker', null)" class="qa-card qa-pink">
-                    <div class="qa-icon-box"><i class="fas fa-palette"></i></div>
-                    <div class="qa-title">الأشكال</div>
-                    <div class="qa-sub">2D + 3D</div>
-                </div>
-                
-                <!-- 3. المساعد AI -->
-                <div onclick="showSection('ai-assistant', null)" class="qa-card qa-teal">
-                    <div class="qa-icon-box"><i class="fas fa-robot"></i></div>
-                    <div class="qa-title">المساعد AI</div>
-                    <div class="qa-sub">اسأل أي شيء</div>
-                </div>
-                
-                <!-- 4. فصولي -->
-                <div onclick="showSection('my-classrooms', null)" class="qa-card qa-cyan">
-                    <div class="qa-icon-box"><i class="fas fa-university"></i></div>
-                    <div class="qa-title">فصولي</div>
-                    <div class="qa-sub">إدارة الطلاب</div>
-                </div>
-                
-                <!-- 5. تحضير AI -->
-                <div onclick="showSection('plan-gen', null)" class="qa-card qa-indigo">
-                    <div class="qa-icon-box"><i class="fas fa-book"></i></div>
-                    <div class="qa-title">تحضير AI</div>
-                    <div class="qa-sub">في 30 ثانية</div>
-                </div>
-                
-                <!-- 6. الشهادات -->
-                <div onclick="showSection('certificates', null)" class="qa-card qa-gold">
-                    <div class="qa-icon-box"><i class="fas fa-trophy"></i></div>
-                    <div class="qa-title">الشهادات</div>
-                    <div class="qa-sub">8 قوالب + صور</div>
-                </div>
-                
-                <!-- 7. مولّد اختبارات -->
-                <div onclick="showSection('exam-gen', null)" class="qa-card qa-red">
-                    <div class="qa-icon-box"><i class="fas fa-file-alt"></i></div>
-                    <div class="qa-title">مولّد اختبارات</div>
-                    <div class="qa-sub">اختبار/نشاط</div>
-                </div>
-                
-                <!-- 8. حزمة كاملة AI (مع شارة جديد) -->
-                <div onclick="showSection('lesson-pack', null)" class="qa-card qa-orange" style="position:relative;">
-                    <div class="qa-new-badge">جديد</div>
-                    <div class="qa-icon-box"><i class="fas fa-rocket"></i></div>
-                    <div class="qa-title">حزمة كاملة AI</div>
-                    <div class="qa-sub">8 مواد في دقيقة</div>
-                </div>
-                
-            </div>
-            
-            <style>
+                <!-- ⚡ CSS بطاقات الوصول السريع -->
+        <style>
                 /* ════════════════════════════════════════════════
                    ⚡ Quick Access Cards — بطاقات أيقونية أنيقة
                 ════════════════════════════════════════════════ */
@@ -5231,8 +5150,121 @@
                     0%, 100% { transform: scale(1); }
                     50% { transform: scale(1.1); }
                 }
+                
+                /* ✨ الإضافات الجديدة ✨ */
+                
+                /* بطاقة محرر الاختبارات - زمرّدي مميّز */
+                .qa-emerald .qa-icon-box { 
+                    background: linear-gradient(135deg, rgba(16,185,129,0.3), rgba(5,150,105,0.2));
+                    color: #6ee7b7;
+                    box-shadow: 0 0 16px rgba(16,185,129,0.2);
+                }
+                .qa-emerald .qa-title { 
+                    color: #6ee7b7;
+                    background: linear-gradient(135deg, #6ee7b7, #34d399);
+                    background-clip: text;
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                }
+                .qa-emerald::before { 
+                    background: radial-gradient(circle, #10b981, transparent);
+                }
+                .qa-emerald {
+                    border: 1px solid rgba(16,185,129,0.25) !important;
+                    background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(255,255,255,0.02)) !important;
+                }
+                .qa-emerald:hover {
+                    border-color: rgba(16,185,129,0.5) !important;
+                    box-shadow: 0 8px 24px rgba(16,185,129,0.25) !important;
+                    background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(255,255,255,0.04)) !important;
+                }
+                
+                /* شارة "🔥 الأقوى" متحركة */
+                .qa-badge-hot {
+                    background: linear-gradient(135deg, #f59e0b, #dc2626) !important;
+                    font-size: 0.58rem !important;
+                    padding: 3px 8px !important;
+                    box-shadow: 0 3px 12px rgba(220,38,38,0.5) !important;
+                    animation: qaHotBadgeShimmer 2.5s ease-in-out infinite !important;
+                }
+                @keyframes qaHotBadgeShimmer {
+                    0%, 100% { box-shadow: 0 3px 12px rgba(220,38,38,0.5); transform: scale(1); }
+                    50% { box-shadow: 0 4px 20px rgba(245,158,11,0.7); transform: scale(1.08); }
+                }
+                
+                /* أيقونة العنوان الرئيسي المتحركة ⚡ */
+                .qa-header-icon {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 10px;
+                    background: linear-gradient(135deg, rgba(252,211,77,0.25), rgba(251,191,36,0.15));
+                    border: 1px solid rgba(252,211,77,0.4);
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 1.2rem;
+                    box-shadow: 0 4px 14px rgba(252,211,77,0.2);
+                    animation: qaHeaderIconFloat 3s ease-in-out infinite;
+                }
+                @keyframes qaHeaderIconFloat {
+                    0%, 100% { transform: translateY(0); }
+                    50% { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(252,211,77,0.35); }
+                }
+                
+                /* خلفية متحركة (orbs) */
+                .qa-container {
+                    isolation: isolate;
+                }
+                .qa-bg-orb {
+                    position: absolute;
+                    border-radius: 50%;
+                    filter: blur(60px);
+                    opacity: 0.12;
+                    pointer-events: none;
+                    z-index: 0;
+                }
+                .qa-bg-orb-1 {
+                    width: 220px;
+                    height: 220px;
+                    top: -80px;
+                    right: -60px;
+                    background: radial-gradient(circle, #fcd34d, transparent);
+                    animation: qaOrbFloat1 12s ease-in-out infinite;
+                }
+                .qa-bg-orb-2 {
+                    width: 180px;
+                    height: 180px;
+                    bottom: -50px;
+                    left: -40px;
+                    background: radial-gradient(circle, #10b981, transparent);
+                    animation: qaOrbFloat2 14s ease-in-out infinite;
+                }
+                @keyframes qaOrbFloat1 {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(-20px, 30px) scale(1.1); }
+                }
+                @keyframes qaOrbFloat2 {
+                    0%, 100% { transform: translate(0, 0) scale(1); }
+                    50% { transform: translate(30px, -20px) scale(1.15); }
+                }
+                
+                /* تحسينات عامة على البطاقات */
+                .qa-card {
+                    isolation: isolate;
+                }
+                .qa-card .qa-icon-box {
+                    position: relative;
+                    z-index: 1;
+                }
+                .qa-card .qa-title {
+                    position: relative;
+                    z-index: 1;
+                }
+                .qa-card .qa-sub {
+                    position: relative;
+                    z-index: 1;
+                }
             </style>
-        </div>
 
         <!-- Last Activity + Favorites -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:18px;" id="home-twocol">
@@ -6336,13 +6368,47 @@
 
         <!-- معلومات الاختبار (Header الرسمي) -->
         <div class="glass-card" style="padding:16px;margin-bottom:14px;">
-            <details>
+            <details open>
                 <summary style="cursor:pointer;color:#f9c74f;font-family:Amiri;font-size:1rem;font-weight:bold;padding:6px;display:flex;align-items:center;gap:8px;">⚙️ معلومات الاختبار (الرأس الرسمي)</summary>
-                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px;">
-                    <div>
-                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏫 اسم المدرسة</label>
-                        <input id="exam-school" type="text" value="" placeholder="مدرسة ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                
+                <!-- ✨ القسم الجديد: الجهات الرسمية -->
+                <div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(0,8,20,0.4));border:1px solid rgba(212,175,55,0.3);border-radius:10px;padding:12px;margin-top:12px;">
+                    <div style="color:#d4af37;font-size:0.85rem;font-weight:bold;margin-bottom:8px;display:flex;align-items:center;gap:6px;">🏛️ الجهات الرسمية</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏛️ الوزارة / الجهة العليا</label>
+                            <input id="exam-ministry" type="text" value="سلطنة عُمان — وزارة التربية والتعليم" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📍 المحافظة</label>
+                            <select id="exam-governorate" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
+                                <option value="">— اختر —</option>
+                                <option>مسقط</option>
+                                <option>ظفار</option>
+                                <option>الباطنة شمال</option>
+                                <option>الباطنة جنوب</option>
+                                <option>الشرقية شمال</option>
+                                <option>الشرقية جنوب</option>
+                                <option>الداخلية</option>
+                                <option>الظاهرة</option>
+                                <option>البريمي</option>
+                                <option>مسندم</option>
+                                <option>الوسطى</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏢 المديرية</label>
+                            <input id="exam-directorate" type="text" value="" placeholder="مثال: المديرية العامة للتربية والتعليم بمحافظة ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏫 اسم المدرسة</label>
+                            <input id="exam-school" type="text" value="" placeholder="مدرسة ..." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
+                        </div>
                     </div>
+                </div>
+
+                <!-- بيانات الاختبار -->
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:14px;">
                     <div>
                         <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📝 عنوان الاختبار</label>
                         <input id="exam-title" type="text" value="اختبار الفصل الدراسي الأول" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
@@ -6370,6 +6436,58 @@
                     <div>
                         <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📅 التاريخ</label>
                         <input id="exam-date" type="text" value="" placeholder="../../...." onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📚 الفصل الدراسي</label>
+                        <select id="exam-semester" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                            <option value="">— اختر —</option>
+                            <option>الفصل الدراسي الأول</option>
+                            <option>الفصل الدراسي الثاني</option>
+                            <option>الفصل الصيفي</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📅 العام الدراسي</label>
+                        <input id="exam-year" type="text" value="" placeholder="مثال: 1446/1447هـ — 2025/2026م" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                    </div>
+                </div>
+
+                <!-- ✨ إعدادات التصميم -->
+                <div style="background:linear-gradient(135deg,rgba(155,89,182,0.08),rgba(0,8,20,0.4));border:1px solid rgba(155,89,182,0.3);border-radius:10px;padding:12px;margin-top:12px;">
+                    <div style="color:#c084fc;font-size:0.85rem;font-weight:bold;margin-bottom:8px;display:flex;align-items:center;gap:6px;">🎨 إعدادات التصميم والتخطيط</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;">
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🖼️ نمط الدباجة</label>
+                            <select id="exam-header-style" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(155,89,182,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                                <option value="classic">📜 كلاسيكية (3 أعمدة - مسقط الافتراضية)</option>
+                                <option value="modern">✨ عصرية (خطوط ذهبية)</option>
+                                <option value="elegant">🌹 أنيقة (بإطار زخرفي)</option>
+                                <option value="minimal">⚪ بسيطة (نص فقط)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🔲 إطار الصفحة</label>
+                            <select id="exam-border-style" onchange="examUpdateBorder()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(155,89,182,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                                <option value="none">بدون إطار</option>
+                                <option value="single">▭ خط مفرد</option>
+                                <option value="double" selected>⊟ خط مزدوج</option>
+                                <option value="dashed">┄ متقطع</option>
+                                <option value="gold">🌟 ذهبي مزخرف</option>
+                                <option value="academic">🎓 أكاديمي رسمي</option>
+                                <option value="elegant">🌹 أنيق بزوايا</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📰 تخطيط الصفحة</label>
+                            <select id="exam-columns" onchange="examUpdateColumns()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(155,89,182,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;">
+                                <option value="1" selected>📄 عمود واحد (افتراضي)</option>
+                                <option value="2">📑 عمودان</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🎨 لون الخط الرئيسي</label>
+                            <input id="exam-primary-color" type="color" value="#0c447c" onchange="examUpdateHeader();examUpdateBorder();" style="width:100%;height:38px;background:rgba(0,0,0,.4);border:1px solid rgba(155,89,182,.3);border-radius:8px;cursor:pointer;">
+                        </div>
                     </div>
                 </div>
             </details>
@@ -6510,6 +6628,44 @@
             <div id="exam-library-list" style="display:grid;gap:10px;"></div>
         </div>
     </div>
+
+    <!-- ════════════════════════════════════════════════════════════
+         🎨 Modal: صانع الأشكال المدمج (15 شكل)
+    ════════════════════════════════════════════════════════════ -->
+    <div id="exam-shape-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.92);backdrop-filter:blur(8px);overflow-y:auto;padding:20px;">
+        <div style="max-width:1100px;margin:0 auto;background:linear-gradient(135deg,#0a1228,#050a1a);border:2px solid #f39c12;border-radius:18px;padding:22px;color:#fff;">
+            <!-- Header -->
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+                <h3 style="color:#f9c74f;margin:0;font-family:Amiri;font-size:1.4rem;">🎨 صانع الأشكال البصرية</h3>
+                <button onclick="examCloseShapeModal()" style="background:rgba(231,76,60,0.2);color:#e74c3c;border:1px solid #e74c3c;padding:7px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">✕ إغلاق</button>
+            </div>
+
+            <!-- اختيار الشكل -->
+            <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:12px;padding:14px;margin-bottom:14px;">
+                <div style="color:#f9c74f;font-size:0.95rem;font-weight:bold;margin-bottom:10px;">🎯 اختر الشكل</div>
+                <div id="exam-shape-tools" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(95px,1fr));gap:6px;"></div>
+            </div>
+
+            <!-- المنطقة المقسومة: ضوابط + معاينة -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+                <!-- يسار: الضوابط -->
+                <div style="background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.25);border-radius:12px;padding:14px;">
+                    <div style="color:#f9c74f;font-size:0.9rem;font-weight:bold;margin-bottom:10px;">⚙️ الإعدادات</div>
+                    <div id="exam-shape-controls" style="display:grid;gap:8px;"></div>
+                </div>
+                <!-- يمين: المعاينة -->
+                <div style="background:#fff;border:2px dashed rgba(243,156,18,0.5);border-radius:12px;padding:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:300px;">
+                    <div id="exam-shape-preview" style="width:100%;text-align:center;color:#999;">اختر شكلاً لعرضه</div>
+                </div>
+            </div>
+
+            <!-- أزرار العمل -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:flex-end;">
+                <button onclick="examCloseShapeModal()" style="background:rgba(127,140,141,0.2);color:#bdc3c7;border:1px solid #7f8c8d;padding:10px 18px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;">إلغاء</button>
+                <button onclick="examInsertCurrentShape()" id="exam-shape-insert-btn" disabled style="background:linear-gradient(135deg,#27ae60,#1e8449);color:#fff;border:none;padding:10px 22px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.92rem;opacity:0.5;">✅ إدراج في الاختبار</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Modal: إدراج جدول -->
     <div id="exam-table-modal" style="display:none;position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,0.85);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px;">
@@ -6583,22 +6739,162 @@
         kbd { background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.2);color:#fbbf24;padding:1px 6px;border-radius:4px;font-family:monospace;font-size:0.75rem;}
         
         #exam-editor h1, #exam-editor h2, #exam-editor h3 { font-family:'Amiri',serif;color:#0c447c;margin:14px 0 8px;}
-        #exam-editor .ex-q { background:rgba(243,156,18,0.06);border-right:4px solid #f39c12;padding:10px 14px;border-radius:6px;margin:14px 0;}
+        #exam-editor .ex-q { background:rgba(243,156,18,0.06);border-right:4px solid #f39c12;padding:10px 14px;border-radius:6px;margin:14px 0;break-inside:avoid;}
         #exam-editor .ex-q-num { color:#0c447c;font-weight:bold;font-size:1.05rem;font-family:Amiri,serif;}
-        #exam-editor .ex-shape { display:block;text-align:center;margin:14px auto;padding:8px;background:#fafafa;border:1px dashed #999;border-radius:6px;max-width:90%;}
-        #exam-editor .ex-shape img, #exam-editor .ex-shape svg { max-width:100%;height:auto;display:inline-block;}
-        #exam-editor .ex-eq { display:inline-block;font-family:'Times New Roman',serif;font-size:1.3em;padding:4px 10px;background:#f0f8ff;border:1px solid #c0d0e0;border-radius:5px;direction:ltr;color:#000;margin:4px 2px;}
-        #exam-editor table { border-collapse:collapse;width:100%;margin:14px 0;}
+        #exam-editor .ex-shape { display:block;text-align:center;margin:14px auto;padding:8px;background:#fafafa;border:1px dashed #999;border-radius:6px;max-width:90%;break-inside:avoid;page-break-inside:avoid;position:relative;cursor:pointer;transition:all 0.2s;}
+        #exam-editor .ex-shape img, #exam-editor .ex-shape svg { max-width:100%;height:auto;display:inline-block;pointer-events:none;}
+        #exam-editor .ex-eq { display:inline-block;font-family:'Times New Roman',serif;font-size:1.3em;padding:4px 10px;background:#f0f8ff;border:1px solid #c0d0e0;border-radius:5px;direction:ltr;color:#000;margin:4px 2px;position:relative;cursor:pointer;}
+        #exam-editor table { border-collapse:collapse;width:100%;margin:14px 0;break-inside:avoid;position:relative;}
         #exam-editor table td, #exam-editor table th { border:1px solid #1a1a1a;padding:8px;text-align:center;color:#1a1a1a;}
         #exam-editor table th { background:#1a1a1a;color:#fff;font-weight:bold;}
         #exam-editor .ex-sep { border:none;border-top:2px dashed #999;margin:18px 0;}
         #exam-editor .ex-pgbreak { page-break-after:always;border:none;border-top:2px dotted #e74c3c;margin:18px 0;text-align:center;}
         #exam-editor .ex-pgbreak::before { content:"— فاصل صفحة —";color:#e74c3c;font-size:0.8rem;padding:2px 10px;background:#fff;}
         
+        /* 🖼️ الصور المُدرجة - قابلة للتحديد */
+        #exam-editor img.ex-img { max-width:100%;height:auto;display:block;margin:10px auto;cursor:pointer;border:2px solid transparent;border-radius:4px;transition:all 0.2s;}
+        
+        /* ════════════ نظام التحديد الذكي ════════════ */
+        /* العنصر المُحدّد - حدود زرقاء واضحة */
+        #exam-editor .ex-selected {
+            outline: 3px solid #3b82f6 !important;
+            outline-offset: 2px;
+            box-shadow: 0 0 0 1px rgba(255,255,255,1), 0 4px 16px rgba(59,130,246,0.3) !important;
+            position: relative;
+        }
+        #exam-editor .ex-shape:hover:not(.ex-selected) { 
+            border-color:#3b82f6;
+            box-shadow:0 2px 8px rgba(59,130,246,0.15);
+        }
+        #exam-editor img.ex-img:hover:not(.ex-selected) {
+            border-color:#3b82f6;
+        }
+        #exam-editor table:hover:not(.ex-selected) {
+            outline:2px dashed rgba(59,130,246,0.5);
+            outline-offset:2px;
+        }
+        
+        /* شريط الأدوات العائم فوق العنصر المحدد */
+        .ex-floating-toolbar {
+            position: absolute;
+            background: linear-gradient(135deg,#1e293b,#0f172a);
+            border: 1px solid #3b82f6;
+            border-radius: 8px;
+            padding: 4px;
+            display: flex;
+            gap: 2px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+            z-index: 10000;
+            direction: rtl;
+        }
+        .ex-floating-toolbar button {
+            background: rgba(255,255,255,0.05);
+            border: none;
+            color: #fff;
+            padding: 6px 9px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: Cairo;
+            font-size: 0.78rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            min-width: 32px;
+        }
+        .ex-floating-toolbar button:hover { background:rgba(59,130,246,0.4);transform:translateY(-1px); }
+        .ex-floating-toolbar button.del:hover { background:#dc2626; }
+        .ex-floating-toolbar .sep { width:1px;background:rgba(255,255,255,0.15);margin:2px 1px; }
+        .ex-floating-toolbar select {
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 5px;
+            padding: 3px 6px;
+            font-family: Cairo;
+            font-size: 0.75rem;
+            cursor: pointer;
+        }
+        
+        /* مقابض تغيير الحجم */
+        .ex-resize-handle {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            background: #fff;
+            border: 2px solid #3b82f6;
+            border-radius: 50%;
+            z-index: 9999;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        }
+        .ex-resize-handle.tl { top:-7px;right:-7px;cursor:nesw-resize; }
+        .ex-resize-handle.tr { top:-7px;left:-7px;cursor:nwse-resize; }
+        .ex-resize-handle.bl { bottom:-7px;right:-7px;cursor:nwse-resize; }
+        .ex-resize-handle.br { bottom:-7px;left:-7px;cursor:nesw-resize; }
+        
+        /* ✨ صانع الأشكال - تفاعلية الأزرار ✨ */
+        .esh-tool:hover { transform:translateY(-2px); box-shadow:0 4px 12px rgba(243,156,18,0.3); }
+        
+        /* ════════════ إصلاح الطباعة ════════════ */
         @media print {
-            body * { visibility:hidden; }
-            #exam-doc, #exam-doc * { visibility:visible; }
-            #exam-doc { position:absolute;top:0;left:0;box-shadow:none !important;padding:0 !important;margin:0 !important;width:100% !important;}
+            @page {
+                size: A4 portrait;
+                margin: 12mm 10mm;
+            }
+            html, body {
+                background: #fff !important;
+                margin: 0 !important;
+                padding: 0 !important;
+            }
+            body * { visibility: hidden !important; }
+            #exam-doc, #exam-doc * { visibility: visible !important; }
+            
+            #exam-doc {
+                position: absolute !important;
+                top: 0 !important;
+                right: 0 !important;
+                left: 0 !important;
+                margin: 0 auto !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                min-height: auto !important;
+                box-shadow: none !important;
+                transform: none !important;
+                page-break-after: auto;
+            }
+            
+            /* الإطار المزدوج/الذهبي يظل ظاهراً */
+            #exam-page-decor { display: block !important; visibility: visible !important; }
+            
+            /* الأشكال والجداول لا تنقسم بين صفحتين */
+            #exam-doc .ex-shape,
+            #exam-doc .ex-q,
+            #exam-doc table {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+            
+            /* فاصل الصفحة يعمل */
+            #exam-doc .ex-pgbreak { page-break-after: always !important; }
+            
+            /* نخفي عناصر التحديد والمقابض */
+            .ex-floating-toolbar,
+            .ex-resize-handle,
+            .ex-selected { outline: none !important; box-shadow: none !important; }
+            
+            /* نخفي ظل الـ glass-card */
+            .glass-card { box-shadow: none !important; }
+            
+            /* الأشكال المُدرجة - بدون خلفية رمادية وحدود متقطعة */
+            #exam-doc .ex-shape {
+                background: transparent !important;
+                border: none !important;
+                padding: 4px !important;
+            }
+            
+            /* تأكيد ظهور المحتوى الأيسر */
+            #exam-editor {
+                column-count: var(--print-cols, 1) !important;
+                column-gap: 10mm !important;
+            }
         }
     </style>
 
@@ -6622,10 +6918,12 @@
         <div class="glass-card" style="padding:22px;margin-bottom:18px;">
             <h3 style="color:#5dd5ff;font-family:'Amiri';margin:0 0 16px;font-size:1.2rem;">📋 اختر القالب</h3>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
-                <div onclick="generateSchedule('weekly')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                <!-- 🌟 1. الجدول الأسبوعي - ديناميكي -->
+                <div onclick="generateSchedule('weekly')" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(0,212,255,0.06));border:2px solid rgba(16,185,129,0.5);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;position:relative;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:0.62rem;padding:3px 9px;border-radius:12px;font-weight:bold;">⚡ ديناميكي</div>
                     <div style="font-size:2.5rem;margin-bottom:8px;">📅</div>
-                    <div style="font-weight:700;color:#7feaff;font-family:'Amiri';font-size:1.05rem;">جدول الحصص الأسبوعي</div>
-                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">7 أيام × 8 حصص — جاهز للملء</p>
+                    <div style="font-weight:700;color:#6ee7b7;font-family:'Amiri';font-size:1.05rem;">جدول الحصص الأسبوعي</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">عبئ المواد بنفسك · ألوان مخصصة</p>
                 </div>
                 
                 <div onclick="generateSchedule('grades')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
@@ -6634,16 +6932,12 @@
                     <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">قائمة طلاب + 6 اختبارات</p>
                 </div>
                 
-                <div onclick="generateSchedule('attendance')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                <!-- 🌟 2. سجل الحضور - ديناميكي -->
+                <div onclick="generateSchedule('attendance')" style="background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(0,212,255,0.06));border:2px solid rgba(16,185,129,0.5);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;position:relative;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(16,185,129,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+                    <div style="position:absolute;top:8px;left:8px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:0.62rem;padding:3px 9px;border-radius:12px;font-weight:bold;">⚡ ديناميكي</div>
                     <div style="font-size:2.5rem;margin-bottom:8px;">✅</div>
-                    <div style="font-weight:700;color:#7feaff;font-family:'Amiri';font-size:1.05rem;">سجل الحضور والغياب</div>
-                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">طلاب × أيام الشهر</p>
-                </div>
-                
-                <div onclick="generateSchedule('lesson-plan')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">📝</div>
-                    <div style="font-weight:700;color:#7feaff;font-family:'Amiri';font-size:1.05rem;">قالب تحضير درس</div>
-                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">أهداف · أنشطة · تقويم</p>
+                    <div style="font-weight:700;color:#6ee7b7;font-family:'Amiri';font-size:1.05rem;">سجل الحضور والغياب</div>
+                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">طلاب × أيام الشهر · حفظ تلقائي</p>
                 </div>
                 
                 <div onclick="generateSchedule('parent-meeting')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
@@ -6651,12 +6945,18 @@
                     <div style="font-weight:700;color:#7feaff;font-family:'Amiri';font-size:1.05rem;">سجل اجتماع أولياء الأمور</div>
                     <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">توقيعات + ملاحظات</p>
                 </div>
-                
-                <div onclick="generateSchedule('honor-board')" style="background:rgba(0,212,255,0.06);border:2px solid rgba(0,212,255,0.4);border-radius:14px;padding:18px;cursor:pointer;text-align:center;transition:all 0.3s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 8px 24px rgba(0,212,255,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
-                    <div style="font-size:2.5rem;margin-bottom:8px;">🏆</div>
-                    <div style="font-weight:700;color:#7feaff;font-family:'Amiri';font-size:1.05rem;">لوحة شرف الطلاب</div>
-                    <p style="font-size:0.78rem;color:rgba(255,255,255,0.55);margin-top:6px;line-height:1.6;">طباعة وتعليق في الفصل</p>
-                </div>
+            </div>
+        </div>
+
+        <!-- إشعار توضيحي عن القوالب الديناميكية -->
+        <div style="background:linear-gradient(135deg,rgba(16,185,129,0.08),rgba(0,212,255,0.05));border:1px solid rgba(16,185,129,0.3);border-radius:14px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <div style="font-size:1.8rem;flex-shrink:0;">⚡</div>
+            <div style="flex:1;min-width:200px;">
+                <div style="color:#6ee7b7;font-family:'Amiri';font-weight:bold;font-size:1.02rem;margin-bottom:3px;">القوالب الديناميكية الجديدة</div>
+                <p style="color:rgba(255,255,255,0.7);margin:0;font-size:0.85rem;line-height:1.6;">
+                    📅 <b>جدول الحصص</b>: حدّد الأيام والحصص، أدخل المواد، ولوّن كل مادة • 
+                    ✅ <b>سجل الحضور</b>: أدخل أسماء طلابك مرة واحدة، وسجّل الحضور لكل يوم بنقرة • كل شيء يُحفظ تلقائياً
+                </p>
             </div>
         </div>
 
@@ -9934,18 +10234,15 @@ function generateSchedule(type) {
     } else if (type === 'attendance') {
         title = 'سجل الحضور والغياب';
         html = buildAttendanceHTML();
-    } else if (type === 'lesson-plan') {
-        title = 'قالب تحضير درس';
-        html = buildLessonPlanHTML();
     } else if (type === 'parent-meeting') {
         title = 'سجل اجتماع أولياء الأمور';
         html = buildParentMeetingHTML();
-    } else if (type === 'honor-board') {
-        title = 'لوحة شرف الطلاب';
-        html = buildHonorBoardHTML();
+    } else {
+        return;
     }
     
     var w = window.open('', '_blank');
+    if (!w) { alert('⚠️ فعّل النوافذ المنبثقة'); return; }
     w.document.open();
     w.document.write(html);
     w.document.close();
@@ -9981,29 +10278,244 @@ function _baseHTML(title, body) {
 }
 
 function buildWeeklyScheduleHTML() {
-    var days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس'];
-    var periods = 8;
-    
-    var body = '<h1>📅 جدول الحصص الأسبوعي</h1>';
-    body += '<p class="subtitle">السنة الدراسية: ............... &nbsp;·&nbsp; المعلم: ...............</p>';
-    body += '<div class="school-info">';
-    body += '<div><b>المدرسة:</b> ......................</div>';
-    body += '<div><b>المرحلة:</b> ......................</div>';
-    body += '<div><b>التاريخ:</b> ......................</div>';
-    body += '</div>';
-    body += '<table><thead><tr>';
-    body += '<th>الحصة</th>';
-    days.forEach(function(d) { body += '<th>' + d + '</th>'; });
-    body += '</tr></thead><tbody>';
-    for (var i = 1; i <= periods; i++) {
-        body += '<tr>';
-        body += '<th>الحصة ' + i + '</th>';
-        for (var j = 0; j < days.length; j++) body += '<td class="empty-row"></td>';
-        body += '</tr>';
-    }
-    body += '</tbody></table>';
-    
-    return _baseHTML('جدول الحصص الأسبوعي', body);
+    // 🌟 جدول حصص ديناميكي - يحفظ في localStorage
+    return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>جدول الحصص الأسبوعي</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; } ' +
+        'body { font-family: \'Cairo\', sans-serif; padding: 20px; color: #000; background: linear-gradient(135deg, #f5f7fa, #e8ecf3); min-height: 100vh; }' +
+        '.controls { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }' +
+        '.controls .group { display: flex; gap: 6px; align-items: center; padding: 0 8px; border-left: 1px solid #ddd; }' +
+        '.controls .group:last-child { border-left: 0; margin-right: auto; }' +
+        '.controls label { font-size: 0.85rem; color: #555; font-weight: 600; }' +
+        '.controls input, .controls select { padding: 5px 8px; border: 1px solid #bbb; border-radius: 5px; font-family: Cairo; font-size: 0.85rem; }' +
+        '.controls input[type=text] { width: 130px; }' +
+        '.controls input[type=number] { width: 55px; }' +
+        '.controls button { background: #1976d2; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-family: Cairo; font-weight: 600; font-size: 0.85rem; }' +
+        '.controls button.green { background: #43a047; }' +
+        '.controls button.red { background: #e53935; }' +
+        '.controls button.gold { background: linear-gradient(135deg,#d4af37,#b38728); }' +
+        '@media print { .controls, .hint { display: none !important; } body { padding: 10px; background: #fff !important; } @page { size: A4 landscape; margin: 8mm; } table { font-size: 13px; } th, td { padding: 6px !important; } }' +
+        '.sheet { background: #fff; border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }' +
+        '@media print { .sheet { box-shadow: none; padding: 0; border-radius: 0; } }' +
+        'h1 { font-family: \'Amiri\', serif; text-align: center; font-size: 30px; margin-bottom: 6px; color: #1565c0; }' +
+        '.subtitle { text-align: center; color: #666; margin-bottom: 16px; font-size: 13px; }' +
+        '.school-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 8px; margin-bottom: 18px; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; }' +
+        '.school-info > div { font-size: 0.88rem; }' +
+        '.school-info input { width: 60%; border: none; border-bottom: 1px dashed #999; padding: 2px 4px; font-family: Cairo; font-size: 0.88rem; background: transparent; }' +
+        '.school-info input:focus { outline: none; border-bottom-color: #1565c0; }' +
+        'table { width: 100%; border-collapse: collapse; }' +
+        'th, td { border: 1px solid #333; padding: 10px; text-align: center; font-size: 14px; }' +
+        'th { background: linear-gradient(135deg, #1565c0, #0d47a1); color: #fff; font-weight: 700; }' +
+        'th.day-header { background: linear-gradient(135deg, #1976d2, #1565c0); }' +
+        'tr:nth-child(even) td { background: #fafbfc; }' +
+        'td.cell { cursor: pointer; transition: all 0.15s; min-height: 50px; height: 50px; position: relative; }' +
+        'td.cell:hover { background: #e3f2fd !important; }' +
+        'td.cell.filled { font-weight: 700; color: #fff; }' +
+        '.hint { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 1px solid #4caf50; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; color: #1b5e20; display: flex; gap: 10px; align-items: center; }' +
+        '.modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }' +
+        '.modal-bg.show { display: flex; }' +
+        '.modal { background: #fff; border-radius: 12px; padding: 24px; max-width: 420px; width: 100%; box-shadow: 0 20px 50px rgba(0,0,0,0.3); }' +
+        '.modal h3 { margin-bottom: 16px; color: #1565c0; font-family: Amiri; }' +
+        '.modal input { width: 100%; padding: 10px 12px; border: 1px solid #bbb; border-radius: 6px; font-family: Cairo; font-size: 1rem; margin-bottom: 14px; }' +
+        '.modal .colors { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 16px; }' +
+        '.modal .color-swatch { aspect-ratio: 1; border-radius: 8px; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; }' +
+        '.modal .color-swatch:hover { transform: scale(1.1); }' +
+        '.modal .color-swatch.selected { border-color: #000; transform: scale(1.15); }' +
+        '.modal-actions { display: flex; gap: 8px; justify-content: flex-end; }' +
+        '.modal-actions button { padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; font-family: Cairo; font-weight: 600; }' +
+        '.modal-actions .save { background: #43a047; color: #fff; }' +
+        '.modal-actions .clear { background: #e53935; color: #fff; }' +
+        '.modal-actions .cancel { background: #eee; color: #333; }' +
+        '</style></head><body>' +
+        // شريط التحكم
+        '<div class="controls">' +
+        '<div class="group">' +
+        '<label>📅 الأيام:</label>' +
+        '<select id="ctl-days" onchange="rebuildTable()">' +
+        '<option value="5">5 (أحد-خميس)</option>' +
+        '<option value="6">6 (أحد-جمعة)</option>' +
+        '<option value="7">7 (أسبوع كامل)</option>' +
+        '</select>' +
+        '</div>' +
+        '<div class="group">' +
+        '<label>⏰ الحصص:</label>' +
+        '<input type="number" id="ctl-periods" value="8" min="4" max="12" onchange="rebuildTable()">' +
+        '</div>' +
+        '<div class="group">' +
+        '<button class="gold" onclick="saveSchedule()">💾 حفظ</button>' +
+        '<button class="green" onclick="window.print()">🖨️ طباعة</button>' +
+        '<button class="red" onclick="if(confirm(\'مسح كل المواد؟ (لن يُمسَح اسم المدرسة)\')) clearAll();">🗑 مسح الكل</button>' +
+        '<button onclick="window.close()" style="background:#9e9e9e;">✕ إغلاق</button>' +
+        '</div>' +
+        '</div>' +
+        // التلميح
+        '<div class="hint">' +
+        '<span style="font-size:1.4rem;">💡</span>' +
+        '<div><b>كيف يعمل؟</b> انقر أي خلية لإدخال اسم المادة واختيار لون لها · يُحفظ تلقائياً في متصفحك · أيقونة 💾 للنسخ الاحتياطي</div>' +
+        '</div>' +
+        // الورقة
+        '<div class="sheet">' +
+        '<h1>📅 جدول الحصص الأسبوعي</h1>' +
+        '<p class="subtitle"><span id="sub-year">السنة الدراسية: ...............</span> &nbsp;·&nbsp; <span id="sub-teacher">المعلم: ...............</span></p>' +
+        '<div class="school-info">' +
+        '<div><b>المدرسة:</b> <input type="text" id="inf-school" placeholder="..." onchange="saveAuto()"></div>' +
+        '<div><b>المرحلة/الصف:</b> <input type="text" id="inf-stage" placeholder="..." onchange="saveAuto()"></div>' +
+        '<div><b>المعلم:</b> <input type="text" id="inf-teacher" placeholder="..." onchange="updateSubtitle();saveAuto();"></div>' +
+        '<div><b>السنة الدراسية:</b> <input type="text" id="inf-year" placeholder="..." onchange="updateSubtitle();saveAuto();"></div>' +
+        '</div>' +
+        '<div id="table-wrap"></div>' +
+        '</div>' +
+        // مودال تعبئة الخلية
+        '<div class="modal-bg" id="cell-modal">' +
+        '<div class="modal">' +
+        '<h3>📝 إدخال المادة</h3>' +
+        '<label style="display:block;margin-bottom:6px;font-size:0.88rem;color:#555;font-weight:600;">اسم المادة</label>' +
+        '<input type="text" id="cell-name" placeholder="مثال: رياضيات">' +
+        '<label style="display:block;margin-bottom:6px;font-size:0.88rem;color:#555;font-weight:600;">اللون</label>' +
+        '<div class="colors" id="color-swatches"></div>' +
+        '<div class="modal-actions">' +
+        '<button class="cancel" onclick="closeModal()">إلغاء</button>' +
+        '<button class="clear" onclick="clearCell()">مسح الخلية</button>' +
+        '<button class="save" onclick="saveCell()">حفظ</button>' +
+        '</div>' +
+        '</div>' +
+        '</div>' +
+        // الـ JavaScript
+        '<script>' +
+        'var DATA_KEY = "math_empire_schedule_v1";' +
+        'var SUBJECT_COLORS = ["#1976d2","#43a047","#e53935","#f57c00","#7b1fa2","#00838f","#5d4037","#c2185b","#388e3c","#0288d1","#fbc02d","#455a64","#ef5350","#26a69a","#ab47bc","#8d6e63"];' +
+        'var data = { days: 5, periods: 8, info: {school:"",stage:"",teacher:"",year:""}, cells: {} };' +
+        'var currentCell = null;' +
+        'var currentColor = SUBJECT_COLORS[0];' +
+        '' +
+        'function load(){' +
+        '  try {' +
+        '    var d = localStorage.getItem(DATA_KEY);' +
+        '    if (d) data = JSON.parse(d);' +
+        '  } catch(e){}' +
+        '  document.getElementById("ctl-days").value = data.days;' +
+        '  document.getElementById("ctl-periods").value = data.periods;' +
+        '  document.getElementById("inf-school").value = data.info.school || "";' +
+        '  document.getElementById("inf-stage").value = data.info.stage || "";' +
+        '  document.getElementById("inf-teacher").value = data.info.teacher || "";' +
+        '  document.getElementById("inf-year").value = data.info.year || "";' +
+        '  updateSubtitle();' +
+        '  rebuildTable();' +
+        '}' +
+        '' +
+        'function saveAuto(){' +
+        '  data.info.school = document.getElementById("inf-school").value;' +
+        '  data.info.stage = document.getElementById("inf-stage").value;' +
+        '  data.info.teacher = document.getElementById("inf-teacher").value;' +
+        '  data.info.year = document.getElementById("inf-year").value;' +
+        '  try { localStorage.setItem(DATA_KEY, JSON.stringify(data)); } catch(e){}' +
+        '}' +
+        '' +
+        'function updateSubtitle(){' +
+        '  var t = document.getElementById("inf-teacher").value || "...............";' +
+        '  var y = document.getElementById("inf-year").value || "...............";' +
+        '  document.getElementById("sub-year").textContent = "السنة الدراسية: " + y;' +
+        '  document.getElementById("sub-teacher").textContent = "المعلم: " + t;' +
+        '}' +
+        '' +
+        'function rebuildTable(){' +
+        '  data.days = parseInt(document.getElementById("ctl-days").value);' +
+        '  data.periods = Math.max(4, Math.min(12, parseInt(document.getElementById("ctl-periods").value) || 8));' +
+        '  document.getElementById("ctl-periods").value = data.periods;' +
+        '  var allDays = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];' +
+        '  var days = allDays.slice(0, data.days);' +
+        '  var html = "<table><thead><tr>";' +
+        '  html += "<th style=\\"width:90px;\\">الحصة</th>";' +
+        '  days.forEach(function(d){ html += "<th class=\\"day-header\\">"+d+"</th>"; });' +
+        '  html += "</tr></thead><tbody>";' +
+        '  for (var i = 1; i <= data.periods; i++){' +
+        '    html += "<tr><th>الحصة " + i + "</th>";' +
+        '    for (var j = 0; j < days.length; j++){' +
+        '      var key = i + "-" + j;' +
+        '      var cell = data.cells[key];' +
+        '      if (cell){' +
+        '        html += "<td class=\\"cell filled\\" style=\\"background:"+cell.color+";\\" onclick=\\"openCell("+i+","+j+")\\">"+escapeHtml(cell.name)+"</td>";' +
+        '      } else {' +
+        '        html += "<td class=\\"cell\\" onclick=\\"openCell("+i+","+j+")\\">&nbsp;</td>";' +
+        '      }' +
+        '    }' +
+        '    html += "</tr>";' +
+        '  }' +
+        '  html += "</tbody></table>";' +
+        '  document.getElementById("table-wrap").innerHTML = html;' +
+        '  saveAuto();' +
+        '}' +
+        '' +
+        'function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }' +
+        '' +
+        'function openCell(p, d){' +
+        '  currentCell = p + "-" + d;' +
+        '  var cell = data.cells[currentCell] || {name:"", color: SUBJECT_COLORS[0]};' +
+        '  document.getElementById("cell-name").value = cell.name;' +
+        '  currentColor = cell.color;' +
+        '  var swHtml = "";' +
+        '  SUBJECT_COLORS.forEach(function(c){' +
+        '    var sel = c === currentColor ? "selected" : "";' +
+        '    swHtml += "<div class=\\"color-swatch "+sel+"\\" style=\\"background:"+c+";\\" data-c=\\""+c+"\\" onclick=\\"selectColor(this)\\"></div>";' +
+        '  });' +
+        '  document.getElementById("color-swatches").innerHTML = swHtml;' +
+        '  document.getElementById("cell-modal").classList.add("show");' +
+        '  setTimeout(function(){ document.getElementById("cell-name").focus(); }, 50);' +
+        '}' +
+        '' +
+        'function selectColor(el){' +
+        '  document.querySelectorAll(".color-swatch").forEach(function(s){ s.classList.remove("selected"); });' +
+        '  el.classList.add("selected");' +
+        '  currentColor = el.getAttribute("data-c");' +
+        '}' +
+        '' +
+        'function saveCell(){' +
+        '  if (!currentCell) return;' +
+        '  var name = document.getElementById("cell-name").value.trim();' +
+        '  if (!name) { clearCell(); return; }' +
+        '  data.cells[currentCell] = { name: name, color: currentColor };' +
+        '  closeModal();' +
+        '  rebuildTable();' +
+        '}' +
+        '' +
+        'function clearCell(){' +
+        '  if (!currentCell) return;' +
+        '  delete data.cells[currentCell];' +
+        '  closeModal();' +
+        '  rebuildTable();' +
+        '}' +
+        '' +
+        'function closeModal(){' +
+        '  document.getElementById("cell-modal").classList.remove("show");' +
+        '  currentCell = null;' +
+        '}' +
+        '' +
+        'function clearAll(){' +
+        '  data.cells = {};' +
+        '  rebuildTable();' +
+        '}' +
+        '' +
+        'function saveSchedule(){' +
+        '  saveAuto();' +
+        '  alert("✅ تم الحفظ بنجاح في متصفحك\\nسيتم استرجاع البيانات تلقائياً في المرة القادمة");' +
+        '}' +
+        '' +
+        '// مفاتيح: Enter يحفظ، Escape يلغي' +
+        'document.addEventListener("keydown", function(e){' +
+        '  if (!document.getElementById("cell-modal").classList.contains("show")) return;' +
+        '  if (e.key === "Enter") saveCell();' +
+        '  if (e.key === "Escape") closeModal();' +
+        '});' +
+        '' +
+        '// إغلاق المودال عند النقر خارجه' +
+        'document.getElementById("cell-modal").addEventListener("click", function(e){' +
+        '  if (e.target === this) closeModal();' +
+        '});' +
+        '' +
+        'load();' +
+        '<\/script>' +
+        '</body></html>';
 }
 
 function buildGradesTableHTML() {
@@ -10033,63 +10545,278 @@ function buildGradesTableHTML() {
 }
 
 function buildAttendanceHTML() {
-    var body = '<h1>✅ سجل الحضور والغياب</h1>';
-    body += '<p class="subtitle">الشهر: ............... &nbsp;·&nbsp; الصف: ...............</p>';
-    body += '<div class="school-info">';
-    body += '<div><b>المدرسة:</b> ......................</div>';
-    body += '<div><b>المعلم:</b> ......................</div>';
-    body += '</div>';
-    body += '<table style="font-size:11px;"><thead><tr>';
-    body += '<th style="width:30px;">م</th>';
-    body += '<th style="width:160px;">اسم الطالب</th>';
-    for (var d = 1; d <= 30; d++) body += '<th style="width:22px;padding:4px 2px;">' + d + '</th>';
-    body += '</tr></thead><tbody>';
-    for (var i = 1; i <= 35; i++) {
-        body += '<tr><th>' + i + '</th><td style="text-align:right;padding-right:8px;"></td>';
-        for (var d = 1; d <= 30; d++) body += '<td style="padding:4px 2px;"></td>';
-        body += '</tr>';
-    }
-    body += '</tbody></table>';
-    body += '<p style="margin-top:14px;font-size:13px;background:#fff3e0;padding:10px;border-radius:6px;border-right:4px solid #f57c00;">';
-    body += '<b>الرموز:</b> ✓ حاضر &nbsp;·&nbsp; ✗ غائب &nbsp;·&nbsp; ت تأخر &nbsp;·&nbsp; م مأذون';
-    body += '</p>';
-    
-    return _baseHTML('سجل الحضور', body);
-}
-
-function buildLessonPlanHTML() {
-    var body = '<h1>📝 تحضير درس</h1>';
-    body += '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:20px;padding:14px;background:#e3f2fd;border-radius:8px;">';
-    body += '<div><b>📚 المادة:</b> ......................</div>';
-    body += '<div><b>🎓 الصف:</b> ......................</div>';
-    body += '<div><b>📅 التاريخ:</b> ......................</div>';
-    body += '<div><b>📖 الدرس:</b> ......................</div>';
-    body += '<div><b>⏱️ الزمن:</b> ......................</div>';
-    body += '<div><b>👨‍🏫 المعلم:</b> ......................</div>';
-    body += '</div>';
-    
-    var sections = [
-        ['🎯 الأهداف العامة', 4],
-        ['📋 الأهداف السلوكية', 5],
-        ['🛠️ الوسائل التعليمية', 3],
-        ['🚀 التمهيد', 3],
-        ['📚 العرض والشرح', 6],
-        ['📝 الأنشطة والتطبيقات', 5],
-        ['✅ التقويم', 4],
-        ['📌 الواجب المنزلي', 2],
-        ['💭 ملاحظات وتأملات', 3],
-    ];
-    
-    sections.forEach(function(s) {
-        body += '<h3 style="background:#1565c0;color:#fff;padding:10px 14px;border-radius:6px;margin:14px 0 8px;">' + s[0] + '</h3>';
-        body += '<div style="border:1px solid #ddd;border-radius:6px;padding:14px;background:#fafafa;">';
-        for (var i = 0; i < s[1]; i++) {
-            body += '<div style="border-bottom:1px solid #999;height:28px;margin:6px 0;"></div>';
-        }
-        body += '</div>';
-    });
-    
-    return _baseHTML('تحضير درس', body);
+    // 🌟 سجل حضور ديناميكي - يحفظ في localStorage
+    return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>سجل الحضور والغياب</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' +
+        '* { box-sizing: border-box; margin: 0; padding: 0; } ' +
+        'body { font-family: Cairo, sans-serif; padding: 20px; color: #000; background: linear-gradient(135deg, #f5f7fa, #e8ecf3); min-height: 100vh; }' +
+        '.controls { background: #fff; border-radius: 10px; padding: 14px; margin-bottom: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }' +
+        '.controls .group { display: flex; gap: 6px; align-items: center; padding: 0 8px; border-left: 1px solid #ddd; }' +
+        '.controls .group:last-child { border-left: 0; margin-right: auto; }' +
+        '.controls label { font-size: 0.85rem; color: #555; font-weight: 600; }' +
+        '.controls input, .controls select { padding: 5px 8px; border: 1px solid #bbb; border-radius: 5px; font-family: Cairo; font-size: 0.85rem; }' +
+        '.controls input[type=text] { width: 120px; }' +
+        '.controls input[type=number] { width: 55px; }' +
+        '.controls button { background: #1976d2; color: #fff; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-family: Cairo; font-weight: 600; font-size: 0.85rem; }' +
+        '.controls button.green { background: #43a047; }' +
+        '.controls button.red { background: #e53935; }' +
+        '.controls button.gold { background: linear-gradient(135deg,#d4af37,#b38728); }' +
+        '@media print { .controls, .hint, .sidebar { display: none !important; } body { padding: 8px; background: #fff !important; } @page { size: A4 landscape; margin: 6mm; } table { font-size: 10px; } th, td { padding: 4px 2px !important; } .main { grid-template-columns: 1fr !important; } }' +
+        '.layout { display: grid; grid-template-columns: 1fr; gap: 14px; }' +
+        '.sheet { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); }' +
+        '@media print { .sheet { box-shadow: none; padding: 0; border-radius: 0; } }' +
+        'h1 { font-family: Amiri, serif; text-align: center; font-size: 28px; margin-bottom: 6px; color: #1565c0; }' +
+        '.subtitle { text-align: center; color: #666; margin-bottom: 14px; font-size: 13px; }' +
+        '.school-info { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; margin-bottom: 14px; padding: 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 6px; }' +
+        '.school-info > div { font-size: 0.85rem; }' +
+        '.school-info input { width: 60%; border: none; border-bottom: 1px dashed #999; padding: 2px 4px; font-family: Cairo; font-size: 0.85rem; background: transparent; }' +
+        '.school-info input:focus { outline: none; border-bottom-color: #1565c0; }' +
+        'table { width: 100%; border-collapse: collapse; }' +
+        'th, td { border: 1px solid #aaa; padding: 6px 4px; text-align: center; font-size: 12px; }' +
+        'th { background: linear-gradient(135deg, #1565c0, #0d47a1); color: #fff; font-weight: 700; }' +
+        'th.weekend { background: linear-gradient(135deg, #757575, #424242); }' +
+        'td.name { text-align: right; padding-right: 8px; min-width: 130px; max-width: 180px; font-weight: 600; background: #f9f9f9; }' +
+        'td.name input { width: 100%; border: none; background: transparent; font-family: Cairo; font-size: 0.85rem; padding: 2px; }' +
+        'td.name input:focus { outline: 1px solid #1565c0; background: #fff; }' +
+        'td.day-cell { cursor: pointer; min-width: 22px; transition: all 0.15s; user-select: none; font-weight: 700; font-size: 13px; }' +
+        'td.day-cell:hover { background: #fff9c4 !important; }' +
+        'td.day-cell.present { background: #c8e6c9 !important; color: #1b5e20; }' +
+        'td.day-cell.absent { background: #ffcdd2 !important; color: #b71c1c; }' +
+        'td.day-cell.late { background: #fff9c4 !important; color: #f57c00; }' +
+        'td.day-cell.excused { background: #bbdefb !important; color: #0d47a1; }' +
+        'td.day-cell.weekend { background: #eceff1 !important; color: #78909c; }' +
+        'td.total { font-weight: 700; background: #f5f5f5; min-width: 50px; }' +
+        '.legend { background: #fff3e0; padding: 10px 14px; border-radius: 8px; border-right: 4px solid #f57c00; font-size: 13px; margin-top: 14px; line-height: 1.8; }' +
+        '.legend span { display: inline-block; padding: 2px 10px; border-radius: 4px; margin: 0 4px; font-weight: 600; }' +
+        '.legend .lp { background: #c8e6c9; color: #1b5e20; }' +
+        '.legend .la { background: #ffcdd2; color: #b71c1c; }' +
+        '.legend .ll { background: #fff9c4; color: #f57c00; }' +
+        '.legend .le { background: #bbdefb; color: #0d47a1; }' +
+        '.hint { background: linear-gradient(135deg, #e8f5e9, #c8e6c9); border: 1px solid #4caf50; border-radius: 8px; padding: 10px 14px; margin-bottom: 14px; font-size: 0.85rem; color: #1b5e20; display: flex; gap: 10px; align-items: center; }' +
+        '.add-bar { margin: 12px 0; display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }' +
+        '.add-bar input { padding: 6px 10px; border: 1px solid #bbb; border-radius: 5px; font-family: Cairo; font-size: 0.88rem; flex: 1; min-width: 200px; }' +
+        '.add-bar button { background: #43a047; color: #fff; border: none; padding: 6px 14px; border-radius: 5px; cursor: pointer; font-family: Cairo; font-weight: 600; font-size: 0.85rem; }' +
+        '.stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 14px 0; }' +
+        '.stat { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; }' +
+        '.stat .v { font-size: 1.4rem; font-weight: 700; font-family: Amiri; }' +
+        '.stat .l { font-size: 0.75rem; color: #777; margin-top: 2px; }' +
+        '</style></head><body>' +
+        // شريط التحكم
+        '<div class="controls">' +
+        '<div class="group">' +
+        '<label>📆 الشهر:</label>' +
+        '<select id="ctl-month" onchange="rebuildAttTable()">' +
+        '<option value="1">يناير</option><option value="2">فبراير</option><option value="3">مارس</option><option value="4">أبريل</option>' +
+        '<option value="5">مايو</option><option value="6">يونيو</option><option value="7">يوليو</option><option value="8">أغسطس</option>' +
+        '<option value="9">سبتمبر</option><option value="10">أكتوبر</option><option value="11">نوفمبر</option><option value="12">ديسمبر</option>' +
+        '</select>' +
+        '<input type="number" id="ctl-year" value="2026" min="2020" max="2050" onchange="rebuildAttTable()">' +
+        '</div>' +
+        '<div class="group">' +
+        '<button class="gold" onclick="saveAtt()">💾 حفظ</button>' +
+        '<button class="green" onclick="window.print()">🖨️ طباعة</button>' +
+        '<button class="red" onclick="if(confirm(\'مسح كل الحضور لهذا الشهر؟\')) clearAttMonth();">🗑 مسح الشهر</button>' +
+        '<button onclick="window.close()" style="background:#9e9e9e;">✕ إغلاق</button>' +
+        '</div>' +
+        '</div>' +
+        // التلميح
+        '<div class="hint">' +
+        '<span style="font-size:1.4rem;">💡</span>' +
+        '<div><b>كيف يعمل؟</b> أضف أسماء طلابك مرة واحدة • انقر أي خلية لتدوير: <b>✓ حاضر → ✗ غائب → ت تأخر → م مأذون → فارغ</b> • الإحصاءات تتحدث تلقائياً • كل شيء يُحفظ في متصفحك</div>' +
+        '</div>' +
+        // الورقة
+        '<div class="sheet">' +
+        '<h1>✅ سجل الحضور والغياب</h1>' +
+        '<p class="subtitle" id="att-subtitle">الشهر: ............... &nbsp;·&nbsp; الصف: ...............</p>' +
+        '<div class="school-info">' +
+        '<div><b>المدرسة:</b> <input type="text" id="att-school" placeholder="..." onchange="saveAttAuto()"></div>' +
+        '<div><b>الصف:</b> <input type="text" id="att-grade" placeholder="..." onchange="updateAttSubtitle();saveAttAuto();"></div>' +
+        '<div><b>المعلم:</b> <input type="text" id="att-teacher" placeholder="..." onchange="saveAttAuto()"></div>' +
+        '<div><b>المادة:</b> <input type="text" id="att-subject" placeholder="..." onchange="saveAttAuto()"></div>' +
+        '</div>' +
+        // شريط إضافة الطلاب
+        '<div class="add-bar">' +
+        '<input type="text" id="new-student" placeholder="اكتب اسم الطالب واضغط Enter (يمكنك لصق قائمة - كل اسم في سطر)" onkeydown="if(event.key===\'Enter\')addStudent()">' +
+        '<button onclick="addStudent()">➕ إضافة طالب</button>' +
+        '<button onclick="addBulkStudents()" style="background:#1976d2;">📋 إضافة دفعة (من حافظة)</button>' +
+        '</div>' +
+        // إحصاءات
+        '<div class="stats-row" id="stats-row"></div>' +
+        // الجدول
+        '<div id="att-table-wrap" style="overflow-x:auto;"></div>' +
+        // وسيلة الإيضاح
+        '<div class="legend">' +
+        '<b>الرموز:</b> ' +
+        '<span class="lp">✓ حاضر</span>' +
+        '<span class="la">✗ غائب</span>' +
+        '<span class="ll">ت تأخر</span>' +
+        '<span class="le">م مأذون</span>' +
+        '</div>' +
+        '</div>' +
+        // JavaScript
+        '<script>' +
+        'var ATT_KEY = "math_empire_attendance_v1";' +
+        'var attData = { students: [], info: {school:"",grade:"",teacher:"",subject:""}, month: new Date().getMonth()+1, year: new Date().getFullYear(), cells: {} };' +
+        '// cells: { "studentId-day": "p|a|l|e" }' +
+        '' +
+        'function loadAtt(){' +
+        '  try { var d = localStorage.getItem(ATT_KEY); if (d) attData = JSON.parse(d); } catch(e){}' +
+        '  document.getElementById("ctl-month").value = attData.month;' +
+        '  document.getElementById("ctl-year").value = attData.year;' +
+        '  document.getElementById("att-school").value = attData.info.school || "";' +
+        '  document.getElementById("att-grade").value = attData.info.grade || "";' +
+        '  document.getElementById("att-teacher").value = attData.info.teacher || "";' +
+        '  document.getElementById("att-subject").value = attData.info.subject || "";' +
+        '  updateAttSubtitle();' +
+        '  rebuildAttTable();' +
+        '}' +
+        '' +
+        'function saveAttAuto(){' +
+        '  attData.info.school = document.getElementById("att-school").value;' +
+        '  attData.info.grade = document.getElementById("att-grade").value;' +
+        '  attData.info.teacher = document.getElementById("att-teacher").value;' +
+        '  attData.info.subject = document.getElementById("att-subject").value;' +
+        '  try { localStorage.setItem(ATT_KEY, JSON.stringify(attData)); } catch(e){}' +
+        '}' +
+        '' +
+        'function updateAttSubtitle(){' +
+        '  var months = ["","يناير","فبراير","مارس","أبريل","مايو","يونيو","يوليو","أغسطس","سبتمبر","أكتوبر","نوفمبر","ديسمبر"];' +
+        '  var m = months[attData.month] || "..............."; ' +
+        '  var g = document.getElementById("att-grade").value || "...............";' +
+        '  document.getElementById("att-subtitle").innerHTML = "الشهر: " + m + " " + attData.year + " &nbsp;·&nbsp; الصف: " + g;' +
+        '}' +
+        '' +
+        'function getDaysInMonth(m, y){ return new Date(y, m, 0).getDate(); }' +
+        '' +
+        'function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\"/g,"&quot;"); }' +
+        '' +
+        'function rebuildAttTable(){' +
+        '  attData.month = parseInt(document.getElementById("ctl-month").value);' +
+        '  attData.year = parseInt(document.getElementById("ctl-year").value);' +
+        '  var days = getDaysInMonth(attData.month, attData.year);' +
+        '  var html = "<table><thead><tr>";' +
+        '  html += "<th style=\\"width:30px;\\">م</th>";' +
+        '  html += "<th style=\\"min-width:130px;\\">اسم الطالب</th>";' +
+        '  for (var d = 1; d <= days; d++){' +
+        '    var dow = new Date(attData.year, attData.month-1, d).getDay();' +
+        '    var weekendCls = (dow === 5 || dow === 6) ? " weekend" : "";' +
+        '    html += "<th class=\\""+weekendCls+"\\" style=\\"min-width:24px;padding:4px 2px;\\">"+d+"</th>";' +
+        '  }' +
+        '  html += "<th class=\\"total\\">✓</th><th class=\\"total\\">✗</th><th class=\\"total\\">ت</th><th class=\\"total\\">م</th>";' +
+        '  html += "</tr></thead><tbody>";' +
+        '  if (attData.students.length === 0){' +
+        '    html += "<tr><td colspan=\\""+(days+6)+"\\" style=\\"padding:24px;text-align:center;color:#888;\\">📋 لم تُضِف طلاباً بعد. استخدم الشريط أعلاه لإضافة الطلاب.</td></tr>";' +
+        '  } else {' +
+        '    attData.students.forEach(function(st, idx){' +
+        '      html += "<tr><th>"+(idx+1)+"</th>";' +
+        '      html += "<td class=\\"name\\"><input type=\\"text\\" value=\\""+escapeHtml(st.name)+"\\" onchange=\\"renameStudent(\\\'"+st.id+"\\\', this.value)\\"> <button onclick=\\"deleteStudent(\\\'"+st.id+"\\\')\\" style=\\"background:none;border:none;cursor:pointer;color:#e53935;font-size:1rem;\\" title=\\"حذف\\">🗑</button></td>";' +
+        '      var counts = {p:0, a:0, l:0, e:0};' +
+        '      for (var d = 1; d <= days; d++){' +
+        '        var key = st.id + "-" + d;' +
+        '        var st2 = attData.cells[key] || "";' +
+        '        var dow = new Date(attData.year, attData.month-1, d).getDay();' +
+        '        var weekendCls = (dow === 5 || dow === 6) ? " weekend" : "";' +
+        '        var sym = "";' +
+        '        if (st2 === "p"){ sym = "✓"; counts.p++; }' +
+        '        else if (st2 === "a"){ sym = "✗"; counts.a++; }' +
+        '        else if (st2 === "l"){ sym = "ت"; counts.l++; }' +
+        '        else if (st2 === "e"){ sym = "م"; counts.e++; }' +
+        '        var stCls = st2 ? (" "+({p:"present",a:"absent",l:"late",e:"excused"})[st2]) : "";' +
+        '        html += "<td class=\\"day-cell"+weekendCls+stCls+"\\" onclick=\\"toggleCell(\\\'"+st.id+"\\\',"+d+")\\">"+sym+"</td>";' +
+        '      }' +
+        '      html += "<td class=\\"total\\" style=\\"color:#1b5e20;\\">"+counts.p+"</td>";' +
+        '      html += "<td class=\\"total\\" style=\\"color:#b71c1c;\\">"+counts.a+"</td>";' +
+        '      html += "<td class=\\"total\\" style=\\"color:#f57c00;\\">"+counts.l+"</td>";' +
+        '      html += "<td class=\\"total\\" style=\\"color:#0d47a1;\\">"+counts.e+"</td>";' +
+        '      html += "</tr>";' +
+        '    });' +
+        '  }' +
+        '  html += "</tbody></table>";' +
+        '  document.getElementById("att-table-wrap").innerHTML = html;' +
+        '  updateAttStats();' +
+        '  saveAttAuto();' +
+        '}' +
+        '' +
+        'function updateAttStats(){' +
+        '  var totalP = 0, totalA = 0, totalL = 0, totalE = 0;' +
+        '  Object.keys(attData.cells).forEach(function(k){' +
+        '    var v = attData.cells[k];' +
+        '    if (v === "p") totalP++;' +
+        '    else if (v === "a") totalA++;' +
+        '    else if (v === "l") totalL++;' +
+        '    else if (v === "e") totalE++;' +
+        '  });' +
+        '  var total = totalP + totalA + totalL + totalE;' +
+        '  var rate = total ? Math.round(totalP/total*100) : 0;' +
+        '  var h = "";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#43a047;\\">"+attData.students.length+"</div><div class=\\"l\\">إجمالي الطلاب</div></div>";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#1b5e20;\\">"+totalP+"</div><div class=\\"l\\">حضور</div></div>";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#b71c1c;\\">"+totalA+"</div><div class=\\"l\\">غياب</div></div>";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#f57c00;\\">"+totalL+"</div><div class=\\"l\\">تأخر</div></div>";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#0d47a1;\\">"+totalE+"</div><div class=\\"l\\">مأذون</div></div>";' +
+        '  h += "<div class=\\"stat\\"><div class=\\"v\\" style=\\"color:#1976d2;\\">"+rate+"%</div><div class=\\"l\\">معدل الحضور</div></div>";' +
+        '  document.getElementById("stats-row").innerHTML = h;' +
+        '}' +
+        '' +
+        'function addStudent(){' +
+        '  var inp = document.getElementById("new-student");' +
+        '  var name = inp.value.trim();' +
+        '  if (!name) return;' +
+        '  attData.students.push({ id: "s_"+Date.now()+"_"+Math.random().toString(36).substr(2,5), name: name });' +
+        '  inp.value = "";' +
+        '  rebuildAttTable();' +
+        '  inp.focus();' +
+        '}' +
+        '' +
+        'function addBulkStudents(){' +
+        '  var txt = prompt("الصق قائمة الأسماء (كل اسم في سطر):");' +
+        '  if (!txt) return;' +
+        '  var names = txt.split(/\\n/).map(function(n){return n.trim();}).filter(function(n){return n.length;});' +
+        '  names.forEach(function(name){' +
+        '    attData.students.push({ id: "s_"+Date.now()+"_"+Math.random().toString(36).substr(2,5), name: name });' +
+        '  });' +
+        '  if (names.length) { alert("✅ تمت إضافة " + names.length + " طالب"); rebuildAttTable(); }' +
+        '}' +
+        '' +
+        'function renameStudent(id, newName){' +
+        '  var s = attData.students.find(function(x){return x.id === id;});' +
+        '  if (s) { s.name = newName.trim(); saveAttAuto(); }' +
+        '}' +
+        '' +
+        'function deleteStudent(id){' +
+        '  if (!confirm("حذف الطالب وكل سجله؟")) return;' +
+        '  attData.students = attData.students.filter(function(s){return s.id !== id;});' +
+        '  Object.keys(attData.cells).forEach(function(k){' +
+        '    if (k.indexOf(id + "-") === 0) delete attData.cells[k];' +
+        '  });' +
+        '  rebuildAttTable();' +
+        '}' +
+        '' +
+        'function toggleCell(sid, day){' +
+        '  var key = sid + "-" + day;' +
+        '  var seq = ["", "p", "a", "l", "e"];' +
+        '  var cur = attData.cells[key] || "";' +
+        '  var idx = seq.indexOf(cur);' +
+        '  var next = seq[(idx + 1) % seq.length];' +
+        '  if (next === "") delete attData.cells[key];' +
+        '  else attData.cells[key] = next;' +
+        '  rebuildAttTable();' +
+        '}' +
+        '' +
+        'function clearAttMonth(){' +
+        '  attData.cells = {};' +
+        '  rebuildAttTable();' +
+        '}' +
+        '' +
+        'function saveAtt(){' +
+        '  saveAttAuto();' +
+        '  alert("✅ تم الحفظ بنجاح في متصفحك\\nسيتم استرجاع البيانات تلقائياً في المرة القادمة");' +
+        '}' +
+        '' +
+        'loadAtt();' +
+        '<\/script>' +
+        '</body></html>';
 }
 
 function buildParentMeetingHTML() {
@@ -10116,24 +10843,6 @@ function buildParentMeetingHTML() {
     body += '</tbody></table>';
     
     return _baseHTML('سجل اجتماع أولياء الأمور', body);
-}
-
-function buildHonorBoardHTML() {
-    var body = '<h1 style="color:#d4af37;">🏆 لوحة شرف الطلاب المتميّزين</h1>';
-    body += '<p class="subtitle">⚜️ تكريماً لجهودهم وتميّزهم ⚜️</p>';
-    body += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:30px;">';
-    
-    for (var i = 0; i < 9; i++) {
-        body += '<div style="border:4px double #d4af37;border-radius:14px;padding:20px;background:#fefae0;text-align:center;">';
-        body += '<div style="font-size:3rem;">⭐</div>';
-        body += '<div style="border-bottom:2px solid #8b6914;padding:18px 0 6px;font-family:\'Amiri\',serif;font-size:22px;font-weight:bold;color:#5d4e1f;">................................</div>';
-        body += '<div style="margin-top:10px;font-size:14px;color:#8b6914;font-weight:600;">الصف: ........</div>';
-        body += '<div style="margin-top:6px;font-size:12px;color:#5d4e1f;">📅 ........</div>';
-        body += '</div>';
-    }
-    body += '</div>';
-    
-    return _baseHTML('لوحة شرف', body);
 }
 
 
@@ -14253,6 +14962,10 @@ function exec(cmd, val) {
 }
 
 function examUpdateHeader() {
+    // === جمع القيم ===
+    var ministry = (document.getElementById('exam-ministry')||{}).value || '';
+    var governorate = (document.getElementById('exam-governorate')||{}).value || '';
+    var directorate = (document.getElementById('exam-directorate')||{}).value || '';
     var school = (document.getElementById('exam-school')||{}).value || '';
     var title = (document.getElementById('exam-title')||{}).value || 'اختبار';
     var grade = (document.getElementById('exam-grade')||{}).value || '';
@@ -14261,25 +14974,195 @@ function examUpdateHeader() {
     var marks = (document.getElementById('exam-marks')||{}).value || '';
     var teacher = (document.getElementById('exam-teacher')||{}).value || '';
     var date = (document.getElementById('exam-date')||{}).value || '';
-    
+    var semester = (document.getElementById('exam-semester')||{}).value || '';
+    var year = (document.getElementById('exam-year')||{}).value || '';
+    var style = (document.getElementById('exam-header-style')||{}).value || 'classic';
+    var primary = (document.getElementById('exam-primary-color')||{}).value || '#0c447c';
+
+    // === رابط للجهات الرسمية ===
+    var directorateFull = directorate || (governorate ? 'المديرية العامة للتربية والتعليم بمحافظة ' + governorate : '');
+
     var html = '';
-    if (school) html += '<div style="font-size:14px;color:#555;margin-bottom:4px;">' + escHtml(school) + '</div>';
-    html += '<div style="font-size:22px;font-weight:bold;margin:8px 0;color:#0c447c;font-family:Amiri,serif;">' + escHtml(title) + '</div>';
-    if (subject) html += '<div style="font-size:16px;color:#666;margin-bottom:8px;">' + escHtml(subject) + '</div>';
-    
-    var meta = [];
-    if (grade) meta.push('<span><b>الصف:</b> ' + escHtml(grade) + '</span>');
-    if (time) meta.push('<span><b>الزمن:</b> ' + escHtml(time) + '</span>');
-    if (marks) meta.push('<span><b>الدرجة:</b> ' + escHtml(marks) + '</span>');
-    if (date) meta.push('<span><b>التاريخ:</b> ' + escHtml(date) + '</span>');
-    if (meta.length) html += '<div style="font-size:13px;color:#555;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;">' + meta.join('') + '</div>';
-    
-    if (teacher) html += '<div style="font-size:13px;color:#555;margin-top:6px;">المعلم: ' + escHtml(teacher) + '</div>';
-    
-    html += '<div style="margin-top:12px;font-size:13px;color:#666;text-align:right;">الاسم: <span style="border-bottom:1px solid #999;display:inline-block;min-width:200px;">&nbsp;</span></div>';
-    
+
+    if (style === 'classic') {
+        // ════════════ النمط الكلاسيكي: 3 أعمدة (مديرية | عنوان | بيانات) ════════════
+        html += '<table style="width:100%;border-collapse:collapse;margin-bottom:10px;font-family:Cairo,Tajawal,sans-serif;">';
+        html += '<tr style="vertical-align:top;">';
+        // العمود الأيمن: المديرية والمدرسة (في RTL يظهر يمين)
+        html += '<td style="width:36%;text-align:center;padding:6px;">';
+        if (ministry) html += '<div style="font-size:11px;color:#444;margin-bottom:4px;font-weight:600;">' + escHtml(ministry) + '</div>';
+        if (directorateFull) html += '<div style="font-size:12px;color:' + primary + ';font-weight:bold;font-family:Amiri,serif;line-height:1.5;">' + escHtml(directorateFull) + '</div>';
+        if (school) html += '<div style="font-size:13px;color:#222;font-weight:bold;margin-top:6px;border-top:1px solid #ddd;padding-top:4px;">' + escHtml(school) + '</div>';
+        html += '</td>';
+        // العمود الأوسط: عنوان الاختبار
+        html += '<td style="width:28%;text-align:center;padding:6px;border-right:1px solid #ccc;border-left:1px solid #ccc;">';
+        html += '<div style="font-size:20px;font-weight:bold;color:' + primary + ';font-family:Amiri,serif;line-height:1.4;">' + escHtml(title) + '</div>';
+        if (semester) html += '<div style="font-size:11px;color:#666;margin-top:4px;">' + escHtml(semester) + '</div>';
+        if (year) html += '<div style="font-size:10px;color:#888;margin-top:2px;">' + escHtml(year) + '</div>';
+        html += '</td>';
+        // العمود الأيسر: المادة + الصف + الزمن
+        html += '<td style="width:36%;text-align:center;padding:6px;">';
+        var lt = [];
+        if (subject) lt.push('<div style="font-size:13px;color:#222;font-weight:bold;padding:3px 0;border-bottom:1px dashed #ccc;"><span style="color:' + primary + ';">المادة:</span> ' + escHtml(subject) + '</div>');
+        if (grade) lt.push('<div style="font-size:13px;color:#222;font-weight:bold;padding:3px 0;border-bottom:1px dashed #ccc;"><span style="color:' + primary + ';">الصف:</span> ' + escHtml(grade) + '</div>');
+        if (time) lt.push('<div style="font-size:13px;color:#222;font-weight:bold;padding:3px 0;border-bottom:1px dashed #ccc;"><span style="color:' + primary + ';">الزمن:</span> ' + escHtml(time) + '</div>');
+        if (marks) lt.push('<div style="font-size:13px;color:#222;font-weight:bold;padding:3px 0;"><span style="color:' + primary + ';">الدرجة:</span> ' + escHtml(marks) + '</div>');
+        html += lt.join('');
+        html += '</td>';
+        html += '</tr></table>';
+        // خط فاصل سفلي مزدوج
+        html += '<div style="border-top:2px solid ' + primary + ';border-bottom:1px solid ' + primary + ';height:3px;margin:8px 0;"></div>';
+        // سطر الاسم + التاريخ + المعلم
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:#444;margin-top:10px;flex-wrap:wrap;gap:8px;">';
+        html += '<span><b>الاسم:</b> <span style="border-bottom:1px solid #999;display:inline-block;min-width:200px;">&nbsp;</span></span>';
+        if (date) html += '<span><b>التاريخ:</b> ' + escHtml(date) + '</span>';
+        if (teacher) html += '<span><b>المعلم:</b> ' + escHtml(teacher) + '</span>';
+        html += '</div>';
+    }
+    else if (style === 'modern') {
+        // ════════════ النمط العصري: خطوط ذهبية ════════════
+        html += '<div style="background:linear-gradient(135deg,' + primary + '08,' + primary + '02);border:1px solid ' + primary + '40;border-radius:8px;padding:14px;">';
+        if (ministry) html += '<div style="text-align:center;font-size:12px;color:#555;margin-bottom:4px;font-weight:600;">' + escHtml(ministry) + '</div>';
+        if (directorateFull) html += '<div style="text-align:center;font-size:13px;color:' + primary + ';font-weight:bold;font-family:Amiri,serif;margin-bottom:6px;">' + escHtml(directorateFull) + '</div>';
+        if (school) html += '<div style="text-align:center;font-size:14px;color:#222;font-weight:bold;margin-bottom:10px;padding-bottom:6px;border-bottom:2px solid #d4af37;">' + escHtml(school) + '</div>';
+        html += '<div style="text-align:center;font-size:22px;font-weight:bold;color:' + primary + ';font-family:Amiri,serif;margin:10px 0;">' + escHtml(title) + '</div>';
+        if (semester || year) html += '<div style="text-align:center;font-size:11px;color:#666;margin-bottom:8px;">' + escHtml(semester) + (semester && year ? ' — ' : '') + escHtml(year) + '</div>';
+        // شريط البيانات السفلي
+        var modMeta = [];
+        if (subject) modMeta.push('<b>المادة:</b> ' + escHtml(subject));
+        if (grade) modMeta.push('<b>الصف:</b> ' + escHtml(grade));
+        if (time) modMeta.push('<b>الزمن:</b> ' + escHtml(time));
+        if (marks) modMeta.push('<b>الدرجة:</b> ' + escHtml(marks));
+        if (date) modMeta.push('<b>التاريخ:</b> ' + escHtml(date));
+        if (modMeta.length) html += '<div style="display:flex;justify-content:center;gap:18px;flex-wrap:wrap;font-size:12px;color:#444;padding:8px;background:#f7f3e9;border-radius:6px;margin-top:6px;">' + modMeta.join(' • ') + '</div>';
+        if (teacher) html += '<div style="text-align:center;font-size:12px;color:#555;margin-top:6px;">المعلم: ' + escHtml(teacher) + '</div>';
+        html += '<div style="margin-top:10px;font-size:12px;color:#444;">الاسم: <span style="border-bottom:1px solid #999;display:inline-block;min-width:240px;">&nbsp;</span></div>';
+        html += '</div>';
+    }
+    else if (style === 'elegant') {
+        // ════════════ النمط الأنيق: بإطار زخرفي ════════════
+        html += '<div style="position:relative;padding:14px 20px;border:2px solid ' + primary + ';border-radius:0;background:linear-gradient(180deg,#fffef9,#fff);">';
+        // زوايا زخرفية
+        html += '<div style="position:absolute;top:-2px;right:-2px;width:24px;height:24px;border-top:4px solid #d4af37;border-right:4px solid #d4af37;"></div>';
+        html += '<div style="position:absolute;top:-2px;left:-2px;width:24px;height:24px;border-top:4px solid #d4af37;border-left:4px solid #d4af37;"></div>';
+        html += '<div style="position:absolute;bottom:-2px;right:-2px;width:24px;height:24px;border-bottom:4px solid #d4af37;border-right:4px solid #d4af37;"></div>';
+        html += '<div style="position:absolute;bottom:-2px;left:-2px;width:24px;height:24px;border-bottom:4px solid #d4af37;border-left:4px solid #d4af37;"></div>';
+        html += '<table style="width:100%;border-collapse:collapse;">';
+        html += '<tr style="vertical-align:top;">';
+        html += '<td style="width:38%;text-align:center;font-size:11px;color:#444;line-height:1.6;">';
+        if (ministry) html += '<div style="font-weight:600;">' + escHtml(ministry) + '</div>';
+        if (directorateFull) html += '<div style="color:' + primary + ';font-weight:bold;margin-top:3px;font-size:12px;font-family:Amiri,serif;">' + escHtml(directorateFull) + '</div>';
+        if (school) html += '<div style="margin-top:3px;font-weight:bold;font-size:12px;">' + escHtml(school) + '</div>';
+        html += '</td>';
+        html += '<td style="width:24%;text-align:center;">';
+        html += '<div style="font-size:22px;font-weight:bold;color:' + primary + ';font-family:Amiri,serif;">' + escHtml(title) + '</div>';
+        if (semester) html += '<div style="font-size:10px;color:#666;margin-top:3px;">' + escHtml(semester) + '</div>';
+        html += '</td>';
+        html += '<td style="width:38%;font-size:11px;color:#333;padding-right:10px;">';
+        var elTbl = '<table style="width:100%;border-collapse:collapse;font-size:11px;">';
+        if (subject) elTbl += '<tr><td style="padding:2px 0;color:' + primary + ';"><b>المادة:</b></td><td style="padding:2px 0;">' + escHtml(subject) + '</td></tr>';
+        if (grade) elTbl += '<tr><td style="padding:2px 0;color:' + primary + ';"><b>الصف:</b></td><td style="padding:2px 0;">' + escHtml(grade) + '</td></tr>';
+        if (time) elTbl += '<tr><td style="padding:2px 0;color:' + primary + ';"><b>الزمن:</b></td><td style="padding:2px 0;">' + escHtml(time) + '</td></tr>';
+        if (marks) elTbl += '<tr><td style="padding:2px 0;color:' + primary + ';"><b>الدرجة:</b></td><td style="padding:2px 0;">' + escHtml(marks) + '</td></tr>';
+        if (date) elTbl += '<tr><td style="padding:2px 0;color:' + primary + ';"><b>التاريخ:</b></td><td style="padding:2px 0;">' + escHtml(date) + '</td></tr>';
+        elTbl += '</table>';
+        html += elTbl;
+        html += '</td>';
+        html += '</tr></table>';
+        html += '<div style="margin-top:8px;font-size:11px;color:#333;border-top:1px dashed #d4af37;padding-top:6px;">الاسم: <span style="border-bottom:1px solid #999;display:inline-block;min-width:220px;">&nbsp;</span>' + (teacher ? '<span style="float:left;">المعلم: ' + escHtml(teacher) + '</span>' : '') + '</div>';
+        html += '</div>';
+    }
+    else {
+        // ════════════ النمط البسيط ════════════
+        if (ministry) html += '<div style="text-align:center;font-size:11px;color:#666;margin-bottom:2px;">' + escHtml(ministry) + '</div>';
+        if (directorateFull) html += '<div style="text-align:center;font-size:12px;color:' + primary + ';font-weight:bold;margin-bottom:2px;">' + escHtml(directorateFull) + '</div>';
+        if (school) html += '<div style="text-align:center;font-size:13px;color:#222;font-weight:bold;margin-bottom:6px;">' + escHtml(school) + '</div>';
+        html += '<div style="text-align:center;font-size:20px;font-weight:bold;color:' + primary + ';font-family:Amiri,serif;margin:8px 0;">' + escHtml(title) + '</div>';
+        if (subject) html += '<div style="text-align:center;font-size:14px;color:#555;margin-bottom:6px;">' + escHtml(subject) + '</div>';
+        var miniMeta = [];
+        if (grade) miniMeta.push('<b>الصف:</b> ' + escHtml(grade));
+        if (time) miniMeta.push('<b>الزمن:</b> ' + escHtml(time));
+        if (marks) miniMeta.push('<b>الدرجة:</b> ' + escHtml(marks));
+        if (date) miniMeta.push('<b>التاريخ:</b> ' + escHtml(date));
+        if (miniMeta.length) html += '<div style="font-size:12px;color:#555;display:flex;gap:18px;justify-content:center;flex-wrap:wrap;margin-top:6px;">' + miniMeta.join(' • ') + '</div>';
+        if (teacher) html += '<div style="font-size:12px;color:#555;margin-top:6px;text-align:center;">المعلم: ' + escHtml(teacher) + '</div>';
+        html += '<div style="margin-top:10px;font-size:12px;color:#444;text-align:right;">الاسم: <span style="border-bottom:1px solid #999;display:inline-block;min-width:200px;">&nbsp;</span></div>';
+    }
+
     var headerEl = document.getElementById('exam-header');
-    if (headerEl) headerEl.innerHTML = html;
+    if (headerEl) {
+        headerEl.innerHTML = html;
+        headerEl.style.borderBottom = (style === 'modern' || style === 'elegant') ? 'none' : '2px solid ' + primary;
+    }
+}
+
+// ✨ تحديث إطار الصفحة
+function examUpdateBorder() {
+    var style = (document.getElementById('exam-border-style')||{}).value || 'double';
+    var primary = (document.getElementById('exam-primary-color')||{}).value || '#0c447c';
+    var doc = document.getElementById('exam-doc');
+    if (!doc) return;
+    var borderStyle = '';
+    var padding = '20mm 22mm';
+    // نزيل أي إطارات قديمة
+    doc.style.outline = 'none';
+    doc.style.boxShadow = '0 8px 32px rgba(0,0,0,0.4)';
+    // نزيل العنصر الزخرفي القديم إن وجد
+    var oldDecor = document.getElementById('exam-page-decor');
+    if (oldDecor) oldDecor.remove();
+    if (style === 'none') {
+        doc.style.border = 'none';
+    } else if (style === 'single') {
+        doc.style.border = '1.5px solid ' + primary;
+    } else if (style === 'double') {
+        doc.style.border = '4px double ' + primary;
+        padding = '18mm 20mm';
+    } else if (style === 'dashed') {
+        doc.style.border = '2px dashed ' + primary;
+    } else if (style === 'gold') {
+        doc.style.border = '6px ridge #d4af37';
+        doc.style.outline = '1px solid ' + primary;
+        doc.style.outlineOffset = '3px';
+        padding = '16mm 20mm';
+    } else if (style === 'academic') {
+        // إطار مزدوج (داخلي + خارجي)
+        doc.style.border = '3px solid ' + primary;
+        doc.style.outline = '1px solid ' + primary;
+        doc.style.outlineOffset = '4px';
+        padding = '16mm 18mm';
+    } else if (style === 'elegant') {
+        // إطار بزوايا زخرفية
+        doc.style.border = '2px solid ' + primary;
+        // نضيف عنصر زخرفي
+        var decor = document.createElement('div');
+        decor.id = 'exam-page-decor';
+        decor.style.cssText = 'position:absolute;inset:6px;border:1px dashed ' + primary + '99;pointer-events:none;z-index:0;';
+        decor.innerHTML = 
+            '<div style="position:absolute;top:-1px;right:-1px;width:30px;height:30px;border-top:3px solid #d4af37;border-right:3px solid #d4af37;"></div>' +
+            '<div style="position:absolute;top:-1px;left:-1px;width:30px;height:30px;border-top:3px solid #d4af37;border-left:3px solid #d4af37;"></div>' +
+            '<div style="position:absolute;bottom:-1px;right:-1px;width:30px;height:30px;border-bottom:3px solid #d4af37;border-right:3px solid #d4af37;"></div>' +
+            '<div style="position:absolute;bottom:-1px;left:-1px;width:30px;height:30px;border-bottom:3px solid #d4af37;border-left:3px solid #d4af37;"></div>';
+        doc.style.position = 'relative';
+        doc.appendChild(decor);
+        padding = '18mm 20mm';
+    }
+    doc.style.padding = padding;
+}
+
+// ✨ تحديث تخطيط الأعمدة
+function examUpdateColumns() {
+    var cols = (document.getElementById('exam-columns')||{}).value || '1';
+    var editor = document.getElementById('exam-editor');
+    if (!editor) return;
+    if (cols === '2') {
+        editor.style.columnCount = '2';
+        editor.style.columnGap = '12mm';
+        editor.style.columnRule = '1px dashed #ccc';
+    } else {
+        editor.style.columnCount = '1';
+        editor.style.columnGap = 'normal';
+        editor.style.columnRule = 'none';
+    }
 }
 
 function escHtml(s) {
@@ -14357,9 +15240,10 @@ function examInsertImage() {
         if (!file) return;
         var reader = new FileReader();
         reader.onload = function(ev) {
-            var html = '<div style="text-align:center;margin:14px 0;"><img src="' + ev.target.result + '" style="max-width:80%;height:auto;border-radius:6px;"></div><p><br></p>';
+            var html = '<div style="text-align:center;margin:14px 0;"><img class="ex-img" data-ex-type="image" src="' + ev.target.result + '" style="max-width:80%;height:auto;border-radius:6px;"></div><p><br></p>';
             document.getElementById('exam-editor').focus();
             document.execCommand('insertHTML', false, html);
+            if (typeof showToast === 'function') showToast('✅ تم إدراج الصورة (انقر عليها لتحديدها)', 'success');
         };
         reader.readAsDataURL(file);
     };
@@ -14375,7 +15259,7 @@ function examInsertTableConfirm() {
     var cols = parseInt(document.getElementById('tbl-cols').value) || 3;
     var hasHeader = document.getElementById('tbl-header').checked;
     
-    var html = '<table>';
+    var html = '<table data-ex-type="table">';
     for (var r = 0; r < rows; r++) {
         html += '<tr>';
         for (var c = 0; c < cols; c++) {
@@ -14392,6 +15276,7 @@ function examInsertTableConfirm() {
     document.getElementById('exam-editor').focus();
     document.execCommand('insertHTML', false, html);
     document.getElementById('exam-table-modal').style.display = 'none';
+    if (typeof showToast === 'function') showToast('✅ تم إدراج الجدول (انقر على حدوده لتحديده)', 'success');
 }
 
 // ════════════════════════════════════════════════════════════
@@ -14426,7 +15311,7 @@ function examInsertEquationConfirm() {
         if (typeof showToast === 'function') showToast('⚠️ المعادلة فارغة', 'warning');
         return;
     }
-    var html = ' <span class="ex-eq">' + escHtml(v) + '</span> ';
+    var html = ' <span class="ex-eq" data-ex-type="equation">' + escHtml(v) + '</span> ';
     document.getElementById('exam-equation-modal').style.display = 'none';
     document.getElementById('exam-editor').focus();
     document.execCommand('insertHTML', false, html);
@@ -14437,56 +15322,891 @@ document.addEventListener('input', function(e) {
 });
 
 // ════════════════════════════════════════════════════════════
-// 🎨 إدراج أشكال - يستخدم صانع الأشكال الأصلي
+// 🎨 صانع الأشكال المدمج - 15 شكلاً جاهز
 // ════════════════════════════════════════════════════════════
+var EXAM_SHAPES = [
+    {id:'triangle',     icon:'📐',  name:'مثلث',          color:'#f39c12'},
+    {id:'rectangle',    icon:'▭',   name:'مستطيل',        color:'#3498db'},
+    {id:'circle',       icon:'⭕',  name:'دائرة',          color:'#e74c3c'},
+    {id:'circle-sector',icon:'🥧',  name:'قطاع دائري',     color:'#9b59b6'},
+    {id:'number-line',  icon:'📏',  name:'محور أعداد',     color:'#16a085'},
+    {id:'bar-chart',    icon:'📊',  name:'رسم بياني',      color:'#3498db'},
+    {id:'pie-chart',    icon:'🥧',  name:'دائري نسبي',     color:'#e67e22'},
+    {id:'grid',         icon:'▦',   name:'شبكة',           color:'#7f8c8d'},
+    {id:'fraction-bar', icon:'🟧',  name:'شريط كسور',      color:'#e74c3c'},
+    {id:'cube',         icon:'⬛',   name:'مكعب',           color:'#2ecc71'},
+    {id:'cuboid',       icon:'📦',  name:'متوازي مستطيلات', color:'#27ae60'},
+    {id:'cylinder',     icon:'🥫',  name:'أسطوانة',        color:'#16a085'},
+    {id:'cone',         icon:'🍦',  name:'مخروط',          color:'#1abc9c'},
+    {id:'angle',        icon:'∠',   name:'زاوية',          color:'#a855f7'},
+    {id:'venn',         icon:'⛓️',  name:'مخطط فن',        color:'#c084fc'}
+];
+
+var _examCurrentShape = null;
+var _examShapeSvg = '';
+
 function examOpenShapeMaker() {
-    // نحفظ مكان المؤشر
+    // نحفظ مكان المؤشر للإدراج لاحقاً
     var sel = window.getSelection();
     if (sel.rangeCount > 0) {
         window._examSavedRange = sel.getRangeAt(0).cloneRange();
     }
-    // نفتح صانع الأشكال الأصلي
-    if (typeof openVmModal === 'function') {
-        openVmModal();
-        // نُعيد توجيه زر "إدراج" ليُدرج في المحرر
-        window._examModeActive = true;
-    } else if (typeof window.openVisualMaker === 'function') {
-        window.openVisualMaker();
-        window._examModeActive = true;
-    } else {
-        // البديل: نستخدم section-visual-maker الأصلي ونعرضه كـ inline
-        if (typeof showToast === 'function') showToast('⚠️ صانع الأشكال غير متاح', 'warning');
+    // افتح المودال
+    var modal = document.getElementById('exam-shape-modal');
+    if (!modal) return;
+    modal.style.display = 'block';
+    // املأ شريط الأدوات
+    var tools = document.getElementById('exam-shape-tools');
+    if (tools && !tools.innerHTML) {
+        tools.innerHTML = EXAM_SHAPES.map(function(s){
+            return '<div class="esh-tool" data-id="' + s.id + '" onclick="examSelectShape(\'' + s.id + '\')" ' +
+                'style="background:' + s.color + '15;border:2px solid ' + s.color + '60;border-radius:10px;padding:10px 6px;cursor:pointer;text-align:center;transition:all 0.25s;">' +
+                '<div style="font-size:1.5rem;">' + s.icon + '</div>' +
+                '<div style="font-weight:700;font-size:0.74rem;color:' + s.color + ';margin-top:3px;">' + s.name + '</div>' +
+                '</div>';
+        }).join('');
     }
+    // أعد المعاينة الافتراضية
+    if (!_examCurrentShape) {
+        document.getElementById('exam-shape-preview').innerHTML = '<div style="color:#999;padding:40px;">👆 اختر شكلاً من الأعلى</div>';
+        document.getElementById('exam-shape-controls').innerHTML = '<div style="color:#888;text-align:center;padding:20px;font-size:0.85rem;">اختر شكلاً لتظهر الإعدادات</div>';
+    }
+}
+
+function examCloseShapeModal() {
+    document.getElementById('exam-shape-modal').style.display = 'none';
+}
+
+function examSelectShape(id) {
+    _examCurrentShape = id;
+    // تمييز الزر المختار
+    var tools = document.querySelectorAll('.esh-tool');
+    tools.forEach(function(t){
+        t.style.transform = '';
+        t.style.boxShadow = '';
+    });
+    var active = document.querySelector('.esh-tool[data-id="' + id + '"]');
+    if (active) {
+        active.style.transform = 'scale(1.06)';
+        active.style.boxShadow = '0 0 16px rgba(243,156,18,0.5)';
+    }
+    // اعرض الإعدادات
+    examRenderShapeControls(id);
+    // ارسم المعاينة
+    setTimeout(examDrawShape, 80);
+    // فعّل زر الإدراج
+    var btn = document.getElementById('exam-shape-insert-btn');
+    if (btn) { btn.disabled = false; btn.style.opacity = '1'; }
+}
+
+function examRenderShapeControls(id) {
+    var c = document.getElementById('exam-shape-controls');
+    if (!c) return;
+    var inp = 'width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(243,156,18,.3);color:#fff;padding:7px 10px;border-radius:6px;font-family:Cairo;box-sizing:border-box;';
+    var lbl = 'color:rgba(255,255,255,.75);font-size:0.78rem;font-weight:600;display:block;margin-bottom:3px;';
+    var html = '';
+    if (id === 'triangle') {
+        html += '<div><label style="' + lbl + '">📐 نوع المثلث</label>';
+        html += '<select id="esh-tri-type" oninput="examDrawShape()" style="' + inp + '">';
+        html += '<option value="equilateral">متساوي الأضلاع</option>';
+        html += '<option value="right">قائم الزاوية</option>';
+        html += '<option value="isosceles">متساوي الساقين</option>';
+        html += '<option value="scalene" selected>مختلف الأضلاع</option>';
+        html += '</select></div>';
+        html += '<div><label style="' + lbl + '">📏 الضلع 1</label><input type="number" id="esh-tri-a" value="6" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الضلع 2</label><input type="number" id="esh-tri-b" value="8" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الضلع 3</label><input type="number" id="esh-tri-c" value="10" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-tri-color" value="#f39c12" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'rectangle') {
+        html += '<div><label style="' + lbl + '">📏 العرض</label><input type="number" id="esh-rect-w" value="10" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الارتفاع</label><input type="number" id="esh-rect-h" value="6" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-rect-color" value="#3498db" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'circle') {
+        html += '<div><label style="' + lbl + '">⭕ نصف القطر</label><input type="number" id="esh-circle-r" value="5" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-circle-color" value="#e74c3c" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+        html += '<div><label style="display:flex;align-items:center;gap:6px;color:#fff;font-size:0.82rem;cursor:pointer;"><input type="checkbox" id="esh-circle-radius" checked oninput="examDrawShape()"> إظهار نصف القطر</label></div>';
+    }
+    else if (id === 'circle-sector') {
+        html += '<div><label style="' + lbl + '">📐 الزاوية (°)</label><input type="number" id="esh-sec-angle" value="90" min="1" max="359" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">⭕ نصف القطر</label><input type="number" id="esh-sec-r" value="5" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-sec-color" value="#9b59b6" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'number-line') {
+        html += '<div><label style="' + lbl + '">⬅️ القيمة الأدنى</label><input type="number" id="esh-nl-min" value="-5" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">➡️ القيمة الأعلى</label><input type="number" id="esh-nl-max" value="10" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📌 نقاط مُحدّدة (مفصولة بفواصل)</label><input type="text" id="esh-nl-points" placeholder="مثال: -3,0,5" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-nl-color" value="#16a085" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'bar-chart') {
+        html += '<div><label style="' + lbl + '">📊 البيانات (اسم:قيمة)</label><textarea id="esh-bar-data" rows="5" oninput="examDrawShape()" style="' + inp + 'resize:vertical;">رياضيات:85\nعلوم:78\nلغة:92\nاجتماعيات:70</textarea></div>';
+        html += '<div><label style="' + lbl + '">📝 العنوان</label><input type="text" id="esh-bar-title" value="درجات الطلاب" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-bar-color" value="#3498db" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'pie-chart') {
+        html += '<div><label style="' + lbl + '">🥧 البيانات (اسم:قيمة)</label><textarea id="esh-pie-data" rows="5" oninput="examDrawShape()" style="' + inp + 'resize:vertical;">القسم 1:35\nالقسم 2:25\nالقسم 3:40</textarea></div>';
+        html += '<div><label style="' + lbl + '">📝 العنوان</label><input type="text" id="esh-pie-title" value="التوزيع" oninput="examDrawShape()" style="' + inp + '"></div>';
+    }
+    else if (id === 'grid') {
+        html += '<div><label style="' + lbl + '">🔢 الأعمدة</label><input type="number" id="esh-grid-cols" value="10" min="2" max="30" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🔢 الصفوف</label><input type="number" id="esh-grid-rows" value="10" min="2" max="30" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="display:flex;align-items:center;gap:6px;color:#fff;font-size:0.82rem;cursor:pointer;"><input type="checkbox" id="esh-grid-axes" oninput="examDrawShape()"> إظهار محاور (x,y)</label></div>';
+    }
+    else if (id === 'fraction-bar') {
+        html += '<div><label style="' + lbl + '">🔢 المقام (عدد التقسيمات)</label><input type="number" id="esh-frac-denom" value="6" min="2" max="20" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🔢 البسط (المظلَّل)</label><input type="number" id="esh-frac-num" value="3" min="0" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-frac-color" value="#e74c3c" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'cube') {
+        html += '<div><label style="' + lbl + '">📏 طول الضلع</label><input type="number" id="esh-cube-side" value="6" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-cube-color" value="#2ecc71" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'cuboid') {
+        html += '<div><label style="' + lbl + '">📏 الطول</label><input type="number" id="esh-cb-l" value="8" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 العرض</label><input type="number" id="esh-cb-w" value="5" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الارتفاع</label><input type="number" id="esh-cb-h" value="3" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-cb-color" value="#27ae60" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'cylinder') {
+        html += '<div><label style="' + lbl + '">⭕ نصف القطر</label><input type="number" id="esh-cyl-r" value="3" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الارتفاع</label><input type="number" id="esh-cyl-h" value="7" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-cyl-color" value="#16a085" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'cone') {
+        html += '<div><label style="' + lbl + '">⭕ نصف قطر القاعدة</label><input type="number" id="esh-cone-r" value="4" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">📏 الارتفاع</label><input type="number" id="esh-cone-h" value="8" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-cone-color" value="#1abc9c" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    else if (id === 'angle') {
+        html += '<div><label style="' + lbl + '">📐 قياس الزاوية (°)</label><input type="number" id="esh-ang-deg" value="60" min="1" max="359" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 اللون</label><input type="color" id="esh-ang-color" value="#a855f7" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+        html += '<div><label style="display:flex;align-items:center;gap:6px;color:#fff;font-size:0.82rem;cursor:pointer;"><input type="checkbox" id="esh-ang-arc" checked oninput="examDrawShape()"> رسم قوس الزاوية</label></div>';
+    }
+    else if (id === 'venn') {
+        html += '<div><label style="' + lbl + '">🔤 اسم المجموعة الأولى</label><input type="text" id="esh-venn-a" value="A" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🔤 اسم المجموعة الثانية</label><input type="text" id="esh-venn-b" value="B" oninput="examDrawShape()" style="' + inp + '"></div>';
+        html += '<div><label style="' + lbl + '">🎨 لون A</label><input type="color" id="esh-venn-ca" value="#3498db" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+        html += '<div><label style="' + lbl + '">🎨 لون B</label><input type="color" id="esh-venn-cb" value="#e74c3c" oninput="examDrawShape()" style="' + inp + 'height:36px;"></div>';
+    }
+    c.innerHTML = html;
+}
+
+// ════════════ مولّدات الـ SVG ════════════
+function _gv(id, def) { var el = document.getElementById(id); return el ? el.value : def; }
+function _gn(id, def) { var v = parseFloat(_gv(id, def)); return isNaN(v) ? def : v; }
+function _gc(id, def) { var el = document.getElementById(id); return el ? el.checked : def; }
+
+function examDrawShape() {
+    var id = _examCurrentShape;
+    if (!id) return;
+    var svg = '';
+    try {
+        if (id === 'triangle')      svg = _exDrawTriangle();
+        else if (id === 'rectangle') svg = _exDrawRectangle();
+        else if (id === 'circle')    svg = _exDrawCircle();
+        else if (id === 'circle-sector') svg = _exDrawSector();
+        else if (id === 'number-line')   svg = _exDrawNumberLine();
+        else if (id === 'bar-chart')     svg = _exDrawBarChart();
+        else if (id === 'pie-chart')     svg = _exDrawPieChart();
+        else if (id === 'grid')          svg = _exDrawGrid();
+        else if (id === 'fraction-bar')  svg = _exDrawFractionBar();
+        else if (id === 'cube')          svg = _exDrawCube();
+        else if (id === 'cuboid')        svg = _exDrawCuboid();
+        else if (id === 'cylinder')      svg = _exDrawCylinder();
+        else if (id === 'cone')          svg = _exDrawCone();
+        else if (id === 'angle')         svg = _exDrawAngle();
+        else if (id === 'venn')          svg = _exDrawVenn();
+    } catch(e) { svg = '<div style="color:#e74c3c;">⚠️ خطأ في الرسم: ' + e.message + '</div>'; }
+    _examShapeSvg = svg;
+    var preview = document.getElementById('exam-shape-preview');
+    if (preview) preview.innerHTML = svg;
+}
+
+// ─── مثلث ───
+function _exDrawTriangle() {
+    var type = _gv('esh-tri-type', 'scalene');
+    var a = _gn('esh-tri-a', 6), b = _gn('esh-tri-b', 8), c = _gn('esh-tri-c', 10);
+    var color = _gv('esh-tri-color', '#f39c12');
+    var W = 320, H = 240, pad = 30;
+    var pts;
+    if (type === 'right') {
+        var sc = Math.min((W - pad*2) / b, (H - pad*2) / a);
+        pts = [[pad, H-pad], [pad + b*sc, H-pad], [pad, H-pad - a*sc]];
+        c = Math.sqrt(a*a + b*b).toFixed(2);
+    } else if (type === 'equilateral') {
+        var s = Math.min((W - pad*2), (H - pad*2) / (Math.sqrt(3)/2));
+        var h = s * Math.sqrt(3)/2;
+        var cx = W/2, cy = pad + h;
+        pts = [[cx - s/2, cy], [cx + s/2, cy], [cx, cy - h]];
+        a = b = c = a;
+    } else if (type === 'isosceles') {
+        var bs = Math.min(W - pad*2, b * 30);
+        var hs = Math.min(H - pad*2, a * 30);
+        pts = [[W/2 - bs/2, H-pad], [W/2 + bs/2, H-pad], [W/2, H-pad-hs]];
+    } else {
+        // SSS scalene بحساب القانون
+        var p = (a+b+c)/2, area = Math.sqrt(Math.max(0, p*(p-a)*(p-b)*(p-c)));
+        if (!area || isNaN(area)) area = 20;
+        var hh = 2*area/a;
+        var dx = (a*a + b*b - c*c) / (2*a);
+        var sc2 = Math.min((W - pad*2) / a, (H - pad*2) / hh);
+        pts = [[pad, H-pad], [pad + a*sc2, H-pad], [pad + dx*sc2, H-pad - hh*sc2]];
+    }
+    var poly = pts.map(function(p){ return p[0].toFixed(1) + ',' + p[1].toFixed(1); }).join(' ');
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<polygon points="' + poly + '" fill="' + color + '40" stroke="' + color + '" stroke-width="2.5"/>';
+    // تسميات الأضلاع
+    var mids = [
+        {x:(pts[0][0]+pts[1][0])/2, y:(pts[0][1]+pts[1][1])/2 + 16, t: a},
+        {x:(pts[1][0]+pts[2][0])/2 + 12, y:(pts[1][1]+pts[2][1])/2, t: b},
+        {x:(pts[0][0]+pts[2][0])/2 - 16, y:(pts[0][1]+pts[2][1])/2, t: c}
+    ];
+    mids.forEach(function(m){
+        svg += '<text x="' + m.x.toFixed(0) + '" y="' + m.y.toFixed(0) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + m.t + '</text>';
+    });
+    // علامة الزاوية القائمة
+    if (type === 'right') {
+        svg += '<rect x="' + (pts[0][0]) + '" y="' + (pts[0][1]-12) + '" width="12" height="12" fill="none" stroke="' + color + '" stroke-width="2"/>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── مستطيل ───
+function _exDrawRectangle() {
+    var w = _gn('esh-rect-w', 10), h = _gn('esh-rect-h', 6);
+    var color = _gv('esh-rect-color', '#3498db');
+    var W = 320, H = 240, pad = 30;
+    var sc = Math.min((W - pad*2) / w, (H - pad*2) / h);
+    var rw = w * sc, rh = h * sc;
+    var x = (W - rw)/2, y = (H - rh)/2;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + rw.toFixed(1) + '" height="' + rh.toFixed(1) + '" fill="' + color + '35" stroke="' + color + '" stroke-width="2.5"/>';
+    svg += '<text x="' + (W/2) + '" y="' + (y + rh + 22) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + w + '</text>';
+    svg += '<text x="' + (x - 14) + '" y="' + (y + rh/2 + 5) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + h + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── دائرة ───
+function _exDrawCircle() {
+    var r = _gn('esh-circle-r', 5);
+    var color = _gv('esh-circle-color', '#e74c3c');
+    var showR = _gc('esh-circle-radius', true);
+    var W = 280, H = 280;
+    var cx = W/2, cy = H/2, rr = 110;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rr + '" fill="' + color + '25" stroke="' + color + '" stroke-width="2.5"/>';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="#1a1a1a"/>';
+    if (showR) {
+        svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + rr) + '" y2="' + cy + '" stroke="#1a1a1a" stroke-width="2" stroke-dasharray="4,3"/>';
+        svg += '<text x="' + (cx + rr/2) + '" y="' + (cy - 8) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">r = ' + r + '</text>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── قطاع دائري ───
+function _exDrawSector() {
+    var ang = _gn('esh-sec-angle', 90), r = _gn('esh-sec-r', 5);
+    var color = _gv('esh-sec-color', '#9b59b6');
+    var W = 280, H = 280;
+    var cx = W/2, cy = H/2, rr = 110;
+    var rad = ang * Math.PI / 180;
+    var x2 = cx + rr * Math.cos(-rad), y2 = cy + rr * Math.sin(-rad);
+    var largeArc = ang > 180 ? 1 : 0;
+    var d = 'M ' + cx + ' ' + cy + ' L ' + (cx + rr) + ' ' + cy + ' A ' + rr + ' ' + rr + ' 0 ' + largeArc + ' 0 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' Z';
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="' + rr + '" fill="none" stroke="#bbb" stroke-width="1" stroke-dasharray="3,2"/>';
+    svg += '<path d="' + d + '" fill="' + color + '50" stroke="' + color + '" stroke-width="2.5"/>';
+    // قوس صغير لإظهار الزاوية
+    var arcR = 28;
+    var ax2 = cx + arcR * Math.cos(-rad), ay2 = cy + arcR * Math.sin(-rad);
+    svg += '<path d="M ' + (cx + arcR) + ' ' + cy + ' A ' + arcR + ' ' + arcR + ' 0 ' + largeArc + ' 0 ' + ax2.toFixed(1) + ' ' + ay2.toFixed(1) + '" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>';
+    svg += '<text x="' + (cx + 45) + '" y="' + (cy - 8) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a">' + ang + '°</text>';
+    svg += '<text x="' + (cx + rr/2 + 5) + '" y="' + (cy + 18) + '" font-family="Cairo" font-size="12" fill="#1a1a1a">r = ' + r + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── محور أعداد ───
+function _exDrawNumberLine() {
+    var mn = _gn('esh-nl-min', -5), mx = _gn('esh-nl-max', 10);
+    var ptsStr = _gv('esh-nl-points', '');
+    var color = _gv('esh-nl-color', '#16a085');
+    if (mx <= mn) mx = mn + 1;
+    var W = 480, H = 100, pad = 30;
+    var sc = (W - pad*2) / (mx - mn);
+    var y = H/2;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<line x1="' + pad + '" y1="' + y + '" x2="' + (W-pad) + '" y2="' + y + '" stroke="#1a1a1a" stroke-width="2"/>';
+    // أسهم
+    svg += '<polygon points="' + (W-pad) + ',' + y + ' ' + (W-pad-9) + ',' + (y-5) + ' ' + (W-pad-9) + ',' + (y+5) + '" fill="#1a1a1a"/>';
+    svg += '<polygon points="' + pad + ',' + y + ' ' + (pad+9) + ',' + (y-5) + ' ' + (pad+9) + ',' + (y+5) + '" fill="#1a1a1a"/>';
+    // علامات الأعداد
+    for (var i = Math.ceil(mn); i <= Math.floor(mx); i++) {
+        var x = pad + (i - mn) * sc;
+        svg += '<line x1="' + x.toFixed(1) + '" y1="' + (y-6) + '" x2="' + x.toFixed(1) + '" y2="' + (y+6) + '" stroke="#1a1a1a" stroke-width="1.5"/>';
+        svg += '<text x="' + x.toFixed(1) + '" y="' + (y+22) + '" font-family="Cairo" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + i + '</text>';
+    }
+    // النقاط المُحدّدة
+    if (ptsStr.trim()) {
+        ptsStr.split(',').forEach(function(p){
+            var v = parseFloat(p.trim());
+            if (!isNaN(v) && v >= mn && v <= mx) {
+                var x = pad + (v - mn) * sc;
+                svg += '<circle cx="' + x.toFixed(1) + '" cy="' + y + '" r="5" fill="' + color + '" stroke="' + color + '" stroke-width="2"/>';
+            }
+        });
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── رسم بياني عمودي ───
+function _exDrawBarChart() {
+    var data = (_gv('esh-bar-data', '') || '').split('\n').map(function(line){
+        var parts = line.split(':');
+        return { name: (parts[0]||'').trim(), val: parseFloat(parts[1]) || 0 };
+    }).filter(function(d){ return d.name; });
+    if (data.length === 0) return '<div style="color:#999;">أدخل بيانات</div>';
+    var title = _gv('esh-bar-title', 'درجات');
+    var color = _gv('esh-bar-color', '#3498db');
+    var W = 480, H = 320, pad = 50;
+    var maxV = Math.max.apply(null, data.map(function(d){return d.val;})) || 1;
+    var bw = (W - pad*2) / data.length * 0.7;
+    var gap = (W - pad*2) / data.length * 0.3;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<text x="' + (W/2) + '" y="22" font-family="Cairo" font-size="16" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + title + '</text>';
+    // محاور
+    svg += '<line x1="' + pad + '" y1="' + (H-pad) + '" x2="' + (W-pad) + '" y2="' + (H-pad) + '" stroke="#1a1a1a" stroke-width="2"/>';
+    svg += '<line x1="' + pad + '" y1="40" x2="' + pad + '" y2="' + (H-pad) + '" stroke="#1a1a1a" stroke-width="2"/>';
+    // الأعمدة
+    data.forEach(function(d, i){
+        var x = pad + i * (bw + gap) + gap/2;
+        var bh = (d.val / maxV) * (H - pad - 50);
+        var y = H - pad - bh;
+        svg += '<rect x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + bh.toFixed(1) + '" fill="' + color + '" stroke="#1a1a1a" stroke-width="1"/>';
+        svg += '<text x="' + (x + bw/2) + '" y="' + (y - 5) + '" font-family="Cairo" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + d.val + '</text>';
+        svg += '<text x="' + (x + bw/2) + '" y="' + (H - pad + 18) + '" font-family="Cairo" font-size="11" fill="#1a1a1a" text-anchor="middle">' + d.name + '</text>';
+    });
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── دائرة نسبية ───
+function _exDrawPieChart() {
+    var data = (_gv('esh-pie-data', '') || '').split('\n').map(function(line){
+        var parts = line.split(':');
+        return { name: (parts[0]||'').trim(), val: parseFloat(parts[1]) || 0 };
+    }).filter(function(d){ return d.name && d.val > 0; });
+    if (data.length === 0) return '<div style="color:#999;">أدخل بيانات</div>';
+    var title = _gv('esh-pie-title', 'التوزيع');
+    var colors = ['#3498db','#e74c3c','#f39c12','#2ecc71','#9b59b6','#1abc9c','#e67e22','#34495e'];
+    var total = data.reduce(function(s,d){return s+d.val;}, 0);
+    var W = 420, H = 320;
+    var cx = 150, cy = H/2 + 10, r = 110;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<text x="' + (W/2) + '" y="22" font-family="Cairo" font-size="16" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + title + '</text>';
+    var startA = -90;
+    data.forEach(function(d, i){
+        var pct = d.val / total;
+        var endA = startA + pct * 360;
+        var sR = startA * Math.PI/180, eR = endA * Math.PI/180;
+        var x1 = cx + r * Math.cos(sR), y1 = cy + r * Math.sin(sR);
+        var x2 = cx + r * Math.cos(eR), y2 = cy + r * Math.sin(eR);
+        var large = (endA - startA) > 180 ? 1 : 0;
+        var path = 'M ' + cx + ' ' + cy + ' L ' + x1.toFixed(1) + ' ' + y1.toFixed(1) + ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' + x2.toFixed(1) + ' ' + y2.toFixed(1) + ' Z';
+        svg += '<path d="' + path + '" fill="' + colors[i % colors.length] + '" stroke="#fff" stroke-width="2"/>';
+        // نسبة
+        var midA = (startA + endA) / 2 * Math.PI/180;
+        var tx = cx + r * 0.65 * Math.cos(midA), ty = cy + r * 0.65 * Math.sin(midA);
+        if (pct > 0.05) {
+            svg += '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" font-family="Cairo" font-size="12" font-weight="bold" fill="#fff" text-anchor="middle">' + (pct*100).toFixed(0) + '%</text>';
+        }
+        startA = endA;
+    });
+    // وسيلة الإيضاح
+    data.forEach(function(d, i){
+        var ly = 60 + i * 22;
+        svg += '<rect x="300" y="' + ly + '" width="15" height="15" fill="' + colors[i % colors.length] + '" stroke="#1a1a1a" stroke-width="1"/>';
+        svg += '<text x="290" y="' + (ly+12) + '" font-family="Cairo" font-size="12" fill="#1a1a1a" text-anchor="end">' + d.name + '</text>';
+    });
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── شبكة ───
+function _exDrawGrid() {
+    var cols = _gn('esh-grid-cols', 10), rows = _gn('esh-grid-rows', 10);
+    var axes = _gc('esh-grid-axes', false);
+    var W = 360, H = 360, pad = 20;
+    var cs = (W - pad*2) / cols, rs = (H - pad*2) / rows;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    for (var i = 0; i <= cols; i++) {
+        var x = pad + i * cs;
+        svg += '<line x1="' + x.toFixed(1) + '" y1="' + pad + '" x2="' + x.toFixed(1) + '" y2="' + (H-pad) + '" stroke="#7f8c8d" stroke-width="' + (axes && i === Math.floor(cols/2) ? 2 : 0.8) + '"/>';
+    }
+    for (var j = 0; j <= rows; j++) {
+        var y = pad + j * rs;
+        svg += '<line x1="' + pad + '" y1="' + y.toFixed(1) + '" x2="' + (W-pad) + '" y2="' + y.toFixed(1) + '" stroke="#7f8c8d" stroke-width="' + (axes && j === Math.floor(rows/2) ? 2 : 0.8) + '"/>';
+    }
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── شريط كسور ───
+function _exDrawFractionBar() {
+    var d = _gn('esh-frac-denom', 6), n = Math.min(_gn('esh-frac-num', 3), d);
+    var color = _gv('esh-frac-color', '#e74c3c');
+    var W = 480, H = 110, pad = 30;
+    var bw = (W - pad*2) / d;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    for (var i = 0; i < d; i++) {
+        var x = pad + i * bw;
+        var fill = i < n ? color : '#fff';
+        svg += '<rect x="' + x.toFixed(1) + '" y="20" width="' + bw.toFixed(1) + '" height="50" fill="' + fill + '" stroke="#1a1a1a" stroke-width="1.5"/>';
+    }
+    svg += '<text x="' + (W/2) + '" y="95" font-family="Cairo" font-size="16" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + n + ' / ' + d + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── مكعب ───
+function _exDrawCube() {
+    var s = _gn('esh-cube-side', 6);
+    var color = _gv('esh-cube-color', '#2ecc71');
+    var W = 260, H = 240, sz = 120, off = 40;
+    var x = (W - sz - off) / 2, y = (H - sz - off) / 2;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    // الوجه الخلفي
+    svg += '<polygon points="' + (x+off) + ',' + y + ' ' + (x+off+sz) + ',' + y + ' ' + (x+off+sz) + ',' + (y+sz) + ' ' + (x+off) + ',' + (y+sz) + '" fill="' + color + '20" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    // الوجه الأمامي
+    svg += '<rect x="' + x + '" y="' + (y+off) + '" width="' + sz + '" height="' + sz + '" fill="' + color + '40" stroke="' + color + '" stroke-width="2"/>';
+    // الخطوط الواصلة
+    svg += '<line x1="' + x + '" y1="' + (y+off) + '" x2="' + (x+off) + '" y2="' + y + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + (x+sz) + '" y1="' + (y+off) + '" x2="' + (x+off+sz) + '" y2="' + y + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + (x+sz) + '" y1="' + (y+off+sz) + '" x2="' + (x+off+sz) + '" y2="' + (y+sz) + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + x + '" y1="' + (y+off+sz) + '" x2="' + (x+off) + '" y2="' + (y+sz) + '" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    // تسميات
+    svg += '<text x="' + (x + sz/2) + '" y="' + (y+off+sz+18) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + s + '</text>';
+    svg += '<text x="' + (x - 10) + '" y="' + (y+off+sz/2) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + s + '</text>';
+    svg += '<text x="' + (x + sz + off/2 + 4) + '" y="' + (y+off-2) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + s + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── متوازي مستطيلات ───
+function _exDrawCuboid() {
+    var l = _gn('esh-cb-l', 8), w = _gn('esh-cb-w', 5), h = _gn('esh-cb-h', 3);
+    var color = _gv('esh-cb-color', '#27ae60');
+    var W = 320, H = 260;
+    var maxDim = Math.max(l, w, h);
+    var unit = 22, off = 30;
+    var lw = l * unit / maxDim * 4, lh = h * unit / maxDim * 4, dz = w * unit / maxDim * 2.5;
+    if (lw < 60) lw = 60; if (lh < 50) lh = 50; if (dz < 30) dz = 30;
+    var x = (W - lw - dz) / 2, y = (H - lh - dz) / 2 + dz;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<polygon points="' + (x+dz) + ',' + (y-dz) + ' ' + (x+dz+lw) + ',' + (y-dz) + ' ' + (x+dz+lw) + ',' + (y+lh-dz) + ' ' + (x+dz) + ',' + (y+lh-dz) + '" fill="' + color + '20" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    svg += '<rect x="' + x + '" y="' + y + '" width="' + lw + '" height="' + lh + '" fill="' + color + '40" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + x + '" y1="' + y + '" x2="' + (x+dz) + '" y2="' + (y-dz) + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + (x+lw) + '" y1="' + y + '" x2="' + (x+lw+dz) + '" y2="' + (y-dz) + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + (x+lw) + '" y1="' + (y+lh) + '" x2="' + (x+lw+dz) + '" y2="' + (y+lh-dz) + '" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<line x1="' + x + '" y1="' + (y+lh) + '" x2="' + (x+dz) + '" y2="' + (y+lh-dz) + '" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    svg += '<text x="' + (x + lw/2) + '" y="' + (y+lh+18) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a" text-anchor="middle">الطول = ' + l + '</text>';
+    svg += '<text x="' + (x - 6) + '" y="' + (y+lh/2) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a" text-anchor="end">' + h + '</text>';
+    svg += '<text x="' + (x + lw + dz/2 + 6) + '" y="' + (y-dz/2 - 2) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a">' + w + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── أسطوانة ───
+function _exDrawCylinder() {
+    var r = _gn('esh-cyl-r', 3), h = _gn('esh-cyl-h', 7);
+    var color = _gv('esh-cyl-color', '#16a085');
+    var W = 220, H = 280;
+    var cx = W/2, rx = 60, ry = 16, y1 = 50, y2 = y1 + 180;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<path d="M ' + (cx-rx) + ' ' + y1 + ' A ' + rx + ' ' + ry + ' 0 0 0 ' + (cx+rx) + ' ' + y1 + ' L ' + (cx+rx) + ' ' + y2 + ' A ' + rx + ' ' + ry + ' 0 0 0 ' + (cx-rx) + ' ' + y2 + ' Z" fill="' + color + '30" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<ellipse cx="' + cx + '" cy="' + y1 + '" rx="' + rx + '" ry="' + ry + '" fill="' + color + '50" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<path d="M ' + (cx-rx) + ' ' + y2 + ' A ' + rx + ' ' + ry + ' 0 0 0 ' + (cx+rx) + ' ' + y2 + '" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    svg += '<line x1="' + (cx+rx+10) + '" y1="' + y1 + '" x2="' + (cx+rx+10) + '" y2="' + y2 + '" stroke="#1a1a1a" stroke-width="1"/>';
+    svg += '<text x="' + (cx+rx+20) + '" y="' + ((y1+y2)/2 + 4) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a">h = ' + h + '</text>';
+    svg += '<line x1="' + cx + '" y1="' + y1 + '" x2="' + (cx+rx) + '" y2="' + y1 + '" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="3,2"/>';
+    svg += '<text x="' + (cx + rx/2) + '" y="' + (y1 - 5) + '" font-family="Cairo" font-size="12" font-weight="bold" fill="#1a1a1a" text-anchor="middle">r = ' + r + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── مخروط ───
+function _exDrawCone() {
+    var r = _gn('esh-cone-r', 4), h = _gn('esh-cone-h', 8);
+    var color = _gv('esh-cone-color', '#1abc9c');
+    var W = 240, H = 280;
+    var cx = W/2, rx = 70, ry = 18, baseY = H - 40, apexY = baseY - 190;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<path d="M ' + (cx-rx) + ' ' + baseY + ' L ' + cx + ' ' + apexY + ' L ' + (cx+rx) + ' ' + baseY + ' A ' + rx + ' ' + ry + ' 0 0 1 ' + (cx-rx) + ' ' + baseY + ' Z" fill="' + color + '40" stroke="' + color + '" stroke-width="2"/>';
+    svg += '<path d="M ' + (cx-rx) + ' ' + baseY + ' A ' + rx + ' ' + ry + ' 0 0 0 ' + (cx+rx) + ' ' + baseY + '" fill="none" stroke="' + color + '" stroke-width="1.5" stroke-dasharray="3,3"/>';
+    svg += '<line x1="' + cx + '" y1="' + apexY + '" x2="' + cx + '" y2="' + baseY + '" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="3,2"/>';
+    svg += '<text x="' + (cx + 8) + '" y="' + ((apexY + baseY)/2 + 4) + '" font-family="Cairo" font-size="13" font-weight="bold" fill="#1a1a1a">h = ' + h + '</text>';
+    svg += '<line x1="' + cx + '" y1="' + (baseY+ry) + '" x2="' + (cx+rx) + '" y2="' + baseY + '" stroke="#1a1a1a" stroke-width="1" stroke-dasharray="3,2"/>';
+    svg += '<text x="' + (cx + rx/2 + 8) + '" y="' + (baseY + 20) + '" font-family="Cairo" font-size="12" font-weight="bold" fill="#1a1a1a">r = ' + r + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── زاوية ───
+function _exDrawAngle() {
+    var deg = _gn('esh-ang-deg', 60);
+    var color = _gv('esh-ang-color', '#a855f7');
+    var arc = _gc('esh-ang-arc', true);
+    var W = 320, H = 240;
+    var cx = 60, cy = H - 50, len = 220;
+    var rad = deg * Math.PI / 180;
+    var x2 = cx + len * Math.cos(-rad), y2 = cy + len * Math.sin(-rad);
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + (cx + len) + '" y2="' + cy + '" stroke="#1a1a1a" stroke-width="2.5"/>';
+    svg += '<line x1="' + cx + '" y1="' + cy + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#1a1a1a" stroke-width="2.5"/>';
+    if (arc) {
+        var r = 40;
+        var ax = cx + r * Math.cos(-rad), ay = cy + r * Math.sin(-rad);
+        var large = deg > 180 ? 1 : 0;
+        svg += '<path d="M ' + (cx + r) + ' ' + cy + ' A ' + r + ' ' + r + ' 0 ' + large + ' 0 ' + ax.toFixed(1) + ' ' + ay.toFixed(1) + '" fill="' + color + '30" stroke="' + color + '" stroke-width="2"/>';
+    }
+    svg += '<text x="' + (cx + 60) + '" y="' + (cy - 12) + '" font-family="Cairo" font-size="15" font-weight="bold" fill="' + color + '">' + deg + '°</text>';
+    svg += '<circle cx="' + cx + '" cy="' + cy + '" r="3" fill="#1a1a1a"/>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ─── مخطط فن ───
+function _exDrawVenn() {
+    var a = _gv('esh-venn-a', 'A'), b = _gv('esh-venn-b', 'B');
+    var ca = _gv('esh-venn-ca', '#3498db'), cb = _gv('esh-venn-cb', '#e74c3c');
+    var W = 380, H = 260;
+    var cy = H/2, r = 85;
+    var c1x = W/2 - r/1.6, c2x = W/2 + r/1.6;
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;">';
+    svg += '<circle cx="' + c1x + '" cy="' + cy + '" r="' + r + '" fill="' + ca + '40" stroke="' + ca + '" stroke-width="2.5"/>';
+    svg += '<circle cx="' + c2x + '" cy="' + cy + '" r="' + r + '" fill="' + cb + '40" stroke="' + cb + '" stroke-width="2.5"/>';
+    svg += '<text x="' + (c1x - r*0.55) + '" y="' + (cy + 5) + '" font-family="Cairo" font-size="22" font-weight="bold" fill="' + ca + '" text-anchor="middle">' + escHtml(a) + '</text>';
+    svg += '<text x="' + (c2x + r*0.55) + '" y="' + (cy + 5) + '" font-family="Cairo" font-size="22" font-weight="bold" fill="' + cb + '" text-anchor="middle">' + escHtml(b) + '</text>';
+    svg += '<text x="' + (W/2) + '" y="' + (cy + 5) + '" font-family="Cairo" font-size="14" font-weight="bold" fill="#1a1a1a" text-anchor="middle">' + escHtml(a) + ' ∩ ' + escHtml(b) + '</text>';
+    svg += '</svg>';
+    return svg;
+}
+
+// ════════════ إدراج الشكل في المحرر ════════════
+function examInsertCurrentShape() {
+    if (!_examShapeSvg) {
+        if (typeof showToast === 'function') showToast('⚠️ اختر شكلاً أولاً', 'warning');
+        return;
+    }
+    examInsertShapeFromMaker(_examShapeSvg);
+    examCloseShapeModal();
 }
 
 // عند انتهاء الرسم في صانع الأشكال - نُدرجه في المحرر
 function examInsertShapeFromMaker(svgString) {
     if (!svgString) return;
-    
-    // نحوّل SVG لـ data URL أو نُدرجه مباشرة
-    var html = '<div class="ex-shape" contenteditable="false">' + svgString + '</div><p><br></p>';
-    
-    // نستعيد مكان المؤشر
+    // نُدرج بدون contenteditable="false" حتى يبقى العنصر قابلاً للتحديد
+    // ولكن نضع tabindex="0" حتى يستقبل focus
+    var html = '<div class="ex-shape" tabindex="0" data-ex-type="shape" style="user-select:none;">' + svgString + '</div><p><br></p>';
     var ed = document.getElementById('exam-editor');
+    if (!ed) return;
     ed.focus();
-    
     if (window._examSavedRange) {
         var sel = window.getSelection();
         sel.removeAllRanges();
         sel.addRange(window._examSavedRange);
     }
-    
     document.execCommand('insertHTML', false, html);
-    window._examModeActive = false;
-    
-    if (typeof showToast === 'function') showToast('✅ تم إدراج الشكل', 'success');
+    if (typeof showToast === 'function') showToast('✅ تم إدراج الشكل (انقر عليه لتحديده)', 'success');
 }
+
+// ════════════════════════════════════════════════════════════
+// 🎯 نظام التحديد الذكي - يعمل مع الأشكال + الصور + الجداول + المعادلات
+// ════════════════════════════════════════════════════════════
+var _examSelectedEl = null;
+var _examFloatingTb = null;
+var _examResizing = null;
+
+// تحديد عنصر
+function examSelectElement(el) {
+    examDeselectAll();
+    if (!el) return;
+    _examSelectedEl = el;
+    el.classList.add('ex-selected');
+    examShowFloatingToolbar(el);
+    // المقابض فقط للأشكال والصور (ليس الجداول والمعادلات)
+    var type = el.getAttribute('data-ex-type');
+    if (type === 'shape' || type === 'image') {
+        examShowResizeHandles(el);
+    }
+}
+
+// إلغاء التحديد
+function examDeselectAll() {
+    var ed = document.getElementById('exam-editor');
+    if (!ed) return;
+    var prev = ed.querySelectorAll('.ex-selected');
+    prev.forEach(function(p){ p.classList.remove('ex-selected'); });
+    if (_examFloatingTb) { _examFloatingTb.remove(); _examFloatingTb = null; }
+    var handles = document.querySelectorAll('.ex-resize-handle');
+    handles.forEach(function(h){ h.remove(); });
+    _examSelectedEl = null;
+}
+
+// شريط الأدوات العائم
+function examShowFloatingToolbar(el) {
+    if (_examFloatingTb) _examFloatingTb.remove();
+    var type = el.getAttribute('data-ex-type') || 'item';
+    var tb = document.createElement('div');
+    tb.className = 'ex-floating-toolbar';
+    
+    var html = '';
+    // محاذاة (للأشكال والصور والجداول)
+    if (type !== 'equation') {
+        html += '<button onclick="examAlignSelected(\'right\')" title="محاذاة لليمين">⇥</button>';
+        html += '<button onclick="examAlignSelected(\'center\')" title="توسيط">≡</button>';
+        html += '<button onclick="examAlignSelected(\'left\')" title="محاذاة لليسار">⇤</button>';
+        html += '<div class="sep"></div>';
+    }
+    // نقل لأعلى/أسفل
+    html += '<button onclick="examMoveSelected(\'up\')" title="نقل لأعلى">↑</button>';
+    html += '<button onclick="examMoveSelected(\'down\')" title="نقل لأسفل">↓</button>';
+    html += '<div class="sep"></div>';
+    // نسخ
+    html += '<button onclick="examDuplicateSelected()" title="نسخ">⎘</button>';
+    // الحجم للأشكال والصور
+    if (type === 'shape' || type === 'image') {
+        html += '<select onchange="examResizeSelected(this.value)" title="الحجم">';
+        html += '<option value="">📏 الحجم</option>';
+        html += '<option value="30">30%</option>';
+        html += '<option value="50">50%</option>';
+        html += '<option value="75">75%</option>';
+        html += '<option value="100">100%</option>';
+        html += '</select>';
+        html += '<div class="sep"></div>';
+    }
+    // حذف
+    html += '<button class="del" onclick="examDeleteSelected()" title="حذف (Delete)">🗑</button>';
+    tb.innerHTML = html;
+    
+    document.body.appendChild(tb);
+    _examFloatingTb = tb;
+    
+    // وضع الشريط فوق العنصر
+    examRepositionToolbar();
+}
+
+function examRepositionToolbar() {
+    if (!_examFloatingTb || !_examSelectedEl) return;
+    var rect = _examSelectedEl.getBoundingClientRect();
+    var tbRect = _examFloatingTb.getBoundingClientRect();
+    var top = rect.top + window.scrollY - tbRect.height - 8;
+    if (top < window.scrollY + 10) top = rect.bottom + window.scrollY + 8;
+    var left = rect.left + window.scrollX + (rect.width - tbRect.width) / 2;
+    if (left < 10) left = 10;
+    if (left + tbRect.width > window.innerWidth - 10) left = window.innerWidth - tbRect.width - 10;
+    _examFloatingTb.style.top = top + 'px';
+    _examFloatingTb.style.left = left + 'px';
+}
+
+// المقابض لتغيير الحجم
+function examShowResizeHandles(el) {
+    var positions = ['tl', 'tr', 'bl', 'br'];
+    positions.forEach(function(pos){
+        var h = document.createElement('div');
+        h.className = 'ex-resize-handle ' + pos;
+        h.setAttribute('data-pos', pos);
+        el.style.position = 'relative';
+        el.appendChild(h);
+        h.addEventListener('mousedown', function(e){
+            e.preventDefault();
+            e.stopPropagation();
+            examStartResize(e, el, pos);
+        });
+    });
+}
+
+function examStartResize(e, el, pos) {
+    var rect = el.getBoundingClientRect();
+    _examResizing = {
+        el: el,
+        pos: pos,
+        startX: e.clientX,
+        startY: e.clientY,
+        startW: rect.width,
+        startH: rect.height
+    };
+    document.addEventListener('mousemove', examDoResize);
+    document.addEventListener('mouseup', examEndResize);
+}
+
+function examDoResize(e) {
+    if (!_examResizing) return;
+    var r = _examResizing;
+    var dx = e.clientX - r.startX;
+    var pos = r.pos;
+    // في الـ RTL: tr هو اليسار/الأعلى → يكبّر عند dx<0
+    var dir = (pos === 'tr' || pos === 'br') ? -1 : 1;
+    var newW = Math.max(50, r.startW + dx * dir);
+    var pct = Math.min(100, (newW / 700) * 100);
+    if (r.el.tagName === 'IMG') {
+        r.el.style.maxWidth = pct + '%';
+        r.el.style.width = pct + '%';
+    } else {
+        r.el.style.maxWidth = pct + '%';
+    }
+    examRepositionToolbar();
+}
+
+function examEndResize() {
+    document.removeEventListener('mousemove', examDoResize);
+    document.removeEventListener('mouseup', examEndResize);
+    _examResizing = null;
+}
+
+// عمليات على العنصر المحدد
+function examDeleteSelected() {
+    if (!_examSelectedEl) return;
+    // نُلغي المقابض قبل الحذف
+    var handles = _examSelectedEl.querySelectorAll('.ex-resize-handle');
+    handles.forEach(function(h){ h.remove(); });
+    // لو العنصر داخل div container (مثل الصورة) نحذف الـ container
+    var parent = _examSelectedEl.parentElement;
+    if (_examSelectedEl.tagName === 'IMG' && parent && parent.children.length === 1 && parent !== document.getElementById('exam-editor')) {
+        parent.remove();
+    } else {
+        _examSelectedEl.remove();
+    }
+    examDeselectAll();
+    examOnInput();
+    if (typeof showToast === 'function') showToast('🗑 تم الحذف', 'success');
+}
+
+function examDuplicateSelected() {
+    if (!_examSelectedEl) return;
+    var clone = _examSelectedEl.cloneNode(true);
+    // إزالة المقابض من النسخة
+    var handles = clone.querySelectorAll('.ex-resize-handle');
+    handles.forEach(function(h){ h.remove(); });
+    clone.classList.remove('ex-selected');
+    _examSelectedEl.parentNode.insertBefore(clone, _examSelectedEl.nextSibling);
+    // فاصل بعد النسخة
+    var br = document.createElement('p');
+    br.innerHTML = '<br>';
+    clone.parentNode.insertBefore(br, clone.nextSibling);
+    examOnInput();
+    if (typeof showToast === 'function') showToast('⎘ تم النسخ', 'success');
+}
+
+function examMoveSelected(dir) {
+    if (!_examSelectedEl) return;
+    var el = _examSelectedEl;
+    // نقل بين العناصر الشقيقة
+    if (dir === 'up') {
+        var prev = el.previousElementSibling;
+        if (prev) el.parentNode.insertBefore(el, prev);
+    } else {
+        var next = el.nextElementSibling;
+        if (next) el.parentNode.insertBefore(next, el);
+    }
+    examRepositionToolbar();
+    examOnInput();
+}
+
+function examAlignSelected(align) {
+    if (!_examSelectedEl) return;
+    var el = _examSelectedEl;
+    if (el.tagName === 'IMG') {
+        var parent = el.parentElement;
+        if (parent) parent.style.textAlign = align;
+    } else if (el.tagName === 'TABLE') {
+        // الجدول دائماً 100% — التحكم يكون بـ margin
+        if (align === 'right') { el.style.marginRight = '0'; el.style.marginLeft = 'auto'; }
+        else if (align === 'left') { el.style.marginRight = 'auto'; el.style.marginLeft = '0'; }
+        else { el.style.marginRight = 'auto'; el.style.marginLeft = 'auto'; }
+    } else {
+        // الأشكال
+        if (align === 'right') { el.style.marginRight = '0'; el.style.marginLeft = 'auto'; el.style.textAlign = 'right'; }
+        else if (align === 'left') { el.style.marginRight = 'auto'; el.style.marginLeft = '0'; el.style.textAlign = 'left'; }
+        else { el.style.marginRight = 'auto'; el.style.marginLeft = 'auto'; el.style.textAlign = 'center'; }
+    }
+    examRepositionToolbar();
+    examOnInput();
+}
+
+function examResizeSelected(pct) {
+    if (!_examSelectedEl || !pct) return;
+    var el = _examSelectedEl;
+    el.style.maxWidth = pct + '%';
+    if (el.tagName === 'IMG') el.style.width = pct + '%';
+    examRepositionToolbar();
+    examOnInput();
+}
+
+// التهيئة - الـ click handler الموحّد
+(function setupExamSelectionSystem() {
+    document.addEventListener('DOMContentLoaded', function() {
+        var setup = function() {
+            var ed = document.getElementById('exam-editor');
+            if (!ed) { setTimeout(setup, 500); return; }
+            
+            // النقر على عنصر داخل المحرر
+            ed.addEventListener('click', function(e) {
+                var target = e.target;
+                // تجاهل المقابض
+                if (target.classList.contains('ex-resize-handle')) return;
+                // نبحث عن أقرب عنصر قابل للتحديد
+                var selectable = target.closest('.ex-shape, img.ex-img, table, .ex-eq');
+                if (selectable) {
+                    e.stopPropagation();
+                    examSelectElement(selectable);
+                } else {
+                    // النقر على نص عادي → إلغاء التحديد
+                    examDeselectAll();
+                }
+            });
+            
+            // النقر خارج المحرر → إلغاء التحديد
+            document.addEventListener('click', function(e) {
+                if (!ed.contains(e.target) && !e.target.closest('.ex-floating-toolbar') && !e.target.closest('#exam-shape-modal') && !e.target.closest('#exam-table-modal') && !e.target.closest('#exam-equation-modal')) {
+                    if (_examSelectedEl) examDeselectAll();
+                }
+            });
+            
+            // المفاتيح
+            ed.addEventListener('keydown', function(e) {
+                if (!_examSelectedEl) return;
+                if (e.key === 'Delete' || e.key === 'Backspace') {
+                    e.preventDefault();
+                    examDeleteSelected();
+                } else if (e.key === 'Escape') {
+                    examDeselectAll();
+                }
+            });
+            
+            // عند الـ scroll نُحدّث موضع شريط الأدوات
+            window.addEventListener('scroll', function(){
+                if (_examFloatingTb && _examSelectedEl) examRepositionToolbar();
+            }, true);
+            window.addEventListener('resize', function(){
+                if (_examFloatingTb && _examSelectedEl) examRepositionToolbar();
+            });
+        };
+        setup();
+    });
+})();
 
 // ════════════════════════════════════════════════════════════
 // 💾 حفظ محلي + استرجاع
 // ════════════════════════════════════════════════════════════
 function examGetData() {
     return {
+        // الحقول الأصلية
         school: (document.getElementById('exam-school')||{}).value || '',
         title: (document.getElementById('exam-title')||{}).value || '',
         grade: (document.getElementById('exam-grade')||{}).value || '',
@@ -14495,9 +16215,47 @@ function examGetData() {
         marks: (document.getElementById('exam-marks')||{}).value || '',
         teacher: (document.getElementById('exam-teacher')||{}).value || '',
         date: (document.getElementById('exam-date')||{}).value || '',
+        // ✨ الحقول الجديدة (الجهات الرسمية)
+        ministry: (document.getElementById('exam-ministry')||{}).value || '',
+        governorate: (document.getElementById('exam-governorate')||{}).value || '',
+        directorate: (document.getElementById('exam-directorate')||{}).value || '',
+        semester: (document.getElementById('exam-semester')||{}).value || '',
+        year: (document.getElementById('exam-year')||{}).value || '',
+        // ✨ إعدادات التصميم
+        headerStyle: (document.getElementById('exam-header-style')||{}).value || 'classic',
+        borderStyle: (document.getElementById('exam-border-style')||{}).value || 'double',
+        columns: (document.getElementById('exam-columns')||{}).value || '1',
+        primaryColor: (document.getElementById('exam-primary-color')||{}).value || '#0c447c',
         content: document.getElementById('exam-editor').innerHTML,
         savedAt: new Date().toISOString()
     };
+}
+
+// 🔄 استعادة كل الحقول من بيانات محفوظة
+function _examApplyData(d) {
+    if (!d) return;
+    var setVal = function(id, v) { var el = document.getElementById(id); if (el && v !== undefined && v !== null) el.value = v; };
+    setVal('exam-school', d.school);
+    setVal('exam-title', d.title);
+    setVal('exam-grade', d.grade);
+    setVal('exam-subject', d.subject);
+    setVal('exam-time', d.time);
+    setVal('exam-marks', d.marks);
+    setVal('exam-teacher', d.teacher);
+    setVal('exam-date', d.date);
+    setVal('exam-ministry', d.ministry);
+    setVal('exam-governorate', d.governorate);
+    setVal('exam-directorate', d.directorate);
+    setVal('exam-semester', d.semester);
+    setVal('exam-year', d.year);
+    setVal('exam-header-style', d.headerStyle);
+    setVal('exam-border-style', d.borderStyle);
+    setVal('exam-columns', d.columns);
+    setVal('exam-primary-color', d.primaryColor);
+    if (d.content !== undefined) document.getElementById('exam-editor').innerHTML = d.content;
+    examUpdateHeader();
+    examUpdateBorder();
+    examUpdateColumns();
 }
 
 function examAutoSave() {
@@ -14560,18 +16318,7 @@ function examLoadFromLibrary(id) {
     var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
     var ex = saved.find(function(e){ return e.id === id; });
     if (!ex) return;
-    
-    document.getElementById('exam-school').value = ex.school || '';
-    document.getElementById('exam-title').value = ex.title || '';
-    document.getElementById('exam-grade').value = ex.grade || '';
-    document.getElementById('exam-subject').value = ex.subject || '';
-    document.getElementById('exam-time').value = ex.time || '';
-    document.getElementById('exam-marks').value = ex.marks || '';
-    document.getElementById('exam-teacher').value = ex.teacher || '';
-    document.getElementById('exam-date').value = ex.date || '';
-    document.getElementById('exam-editor').innerHTML = ex.content || '';
-    
-    examUpdateHeader();
+    _examApplyData(ex);
     examOnInput();
     document.getElementById('exam-library-modal').style.display = 'none';
     if (typeof showToast === 'function') showToast('📂 تم فتح الاختبار', 'success');
@@ -14598,16 +16345,7 @@ function examRestoreDraft() {
         var draft = JSON.parse(localStorage.getItem('exam_draft') || 'null');
         if (draft && draft.content && draft.content.length > 100) {
             if (confirm('وُجد اختبار محفوظ تلقائياً - هل تريد استرجاعه؟')) {
-                document.getElementById('exam-school').value = draft.school || '';
-                document.getElementById('exam-title').value = draft.title || '';
-                document.getElementById('exam-grade').value = draft.grade || '';
-                document.getElementById('exam-subject').value = draft.subject || '';
-                document.getElementById('exam-time').value = draft.time || '';
-                document.getElementById('exam-marks').value = draft.marks || '';
-                document.getElementById('exam-teacher').value = draft.teacher || '';
-                document.getElementById('exam-date').value = draft.date || '';
-                document.getElementById('exam-editor').innerHTML = draft.content;
-                examUpdateHeader();
+                _examApplyData(draft);
                 examOnInput();
             }
         }
@@ -14631,11 +16369,91 @@ function examZoom(dir) {
 function examPrint() {
     var doc = document.getElementById('exam-doc');
     if (!doc) return;
+    
+    // 🔧 نُلغي التحديد والمقابض قبل الطباعة
+    var prevSelected = _examSelectedEl;
+    examDeselectAll();
+    
     var clone = doc.cloneNode(true);
+    // إزالة كل عناصر التحديد من النسخة
+    var sels = clone.querySelectorAll('.ex-selected, .ex-resize-handle');
+    sels.forEach(function(s){ s.remove ? s.remove() : s.classList.remove('ex-selected'); });
+    var selClones = clone.querySelectorAll('.ex-selected');
+    selClones.forEach(function(s){ s.classList.remove('ex-selected'); });
+    
+    // نحصل على عدد الأعمدة
+    var cols = (document.getElementById('exam-columns')||{}).value || '1';
+    var borderStyle = (document.getElementById('exam-border-style')||{}).value || 'double';
+    var primary = (document.getElementById('exam-primary-color')||{}).value || '#0c447c';
+    
+    // إعدادات الإطار للطباعة
+    var borderCss = '';
+    if (borderStyle === 'single') borderCss = 'border:1.5px solid ' + primary + ';padding:8mm 10mm;';
+    else if (borderStyle === 'double') borderCss = 'border:4px double ' + primary + ';padding:8mm 10mm;';
+    else if (borderStyle === 'dashed') borderCss = 'border:2px dashed ' + primary + ';padding:8mm 10mm;';
+    else if (borderStyle === 'gold') borderCss = 'border:5px ridge #d4af37;outline:1px solid ' + primary + ';outline-offset:3px;padding:8mm 10mm;';
+    else if (borderStyle === 'academic') borderCss = 'border:3px solid ' + primary + ';outline:1px solid ' + primary + ';outline-offset:4px;padding:8mm 10mm;';
+    else if (borderStyle === 'elegant') borderCss = 'border:2px solid ' + primary + ';padding:9mm 11mm;';
+    else borderCss = 'padding:5mm 6mm;';
+    
+    // نُنظّف clone من الإعدادات الزائدة
+    clone.removeAttribute('style');
+    clone.style.cssText = 'background:#fff;color:#000;width:100%;direction:rtl;font-family:"Cairo","Tajawal",sans-serif;' + borderCss + 'box-sizing:border-box;position:relative;';
+    
+    // ✨ تطبيق العمودين على المحرر داخل النسخة
+    var clonedEditor = clone.querySelector('#exam-editor');
+    if (clonedEditor && cols === '2') {
+        clonedEditor.style.columnCount = '2';
+        clonedEditor.style.columnGap = '8mm';
+        clonedEditor.style.columnRule = '1px dashed #ccc';
+    }
+    
     var win = window.open('', '_blank');
-    win.document.write('<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8"><title>طباعة اختبار</title><style>body{font-family:"Cairo","Tajawal",sans-serif;margin:0;padding:20mm;direction:rtl;color:#000;}table{border-collapse:collapse;width:100%;}td,th{border:1px solid #000;padding:6px;}th{background:#000;color:#fff;}.ex-q{background:#f9f4e6;border-right:4px solid #f39c12;padding:8px 12px;border-radius:5px;margin:12px 0;}.ex-shape{text-align:center;margin:12px 0;}.ex-eq{display:inline-block;font-family:"Times New Roman",serif;font-size:1.3em;padding:3px 8px;background:#eef6ff;border-radius:4px;direction:ltr;}.ex-pgbreak{page-break-after:always;border:0;}@page{size:A4;margin:15mm;}</style></head><body>' + clone.outerHTML + '</body></html>');
+    if (!win) {
+        if (typeof showToast === 'function') showToast('⚠️ فعّل النوافذ المنبثقة', 'warning');
+        return;
+    }
+    
+    // 🎯 الـ HTML الجديد مع إعدادات طباعة محسّنة
+    var printHtml = '<!DOCTYPE html><html dir="rtl"><head><meta charset="utf-8">';
+    printHtml += '<title>طباعة اختبار</title>';
+    printHtml += '<style>';
+    printHtml += '@page { size: A4 portrait; margin: 8mm; }';
+    printHtml += '* { box-sizing: border-box; }';
+    printHtml += 'html, body { margin:0 !important; padding:0 !important; background:#fff; color:#000; direction:rtl; font-family:"Cairo","Tajawal","Arial",sans-serif; -webkit-print-color-adjust:exact !important; print-color-adjust:exact !important; color-adjust:exact !important; }';
+    printHtml += 'body { padding:0; width:100%; }';
+    // الجدول العام
+    printHtml += 'table { border-collapse:collapse; width:100%; page-break-inside:avoid; }';
+    printHtml += 'td, th { border:1px solid #000; padding:6px; color:#000; }';
+    printHtml += 'th { background:#1a1a1a; color:#fff; font-weight:bold; }';
+    // عناصر الاختبار
+    printHtml += '.ex-q { background:#f9f4e6 !important; border-right:4px solid #f39c12 !important; padding:8px 12px; border-radius:5px; margin:12px 0; page-break-inside:avoid; }';
+    printHtml += '.ex-shape { text-align:center; margin:12px auto; padding:4px; page-break-inside:avoid; background:transparent !important; border:none !important; }';
+    printHtml += '.ex-shape svg, .ex-shape img { max-width:100%; height:auto; }';
+    printHtml += '.ex-eq { display:inline-block; font-family:"Times New Roman",serif; font-size:1.3em; padding:3px 8px; background:#eef6ff; border:1px solid #c0d0e0; border-radius:4px; direction:ltr; color:#000; }';
+    printHtml += '.ex-pgbreak { page-break-after:always; border:0; height:0; }';
+    printHtml += '.ex-pgbreak::before { content:""; }';
+    // إخفاء عناصر التحرير
+    printHtml += '.ex-floating-toolbar, .ex-resize-handle, .ex-selected { display:none !important; }';
+    // الصور
+    printHtml += 'img { max-width:100%; height:auto; }';
+    // الإطار الزخرفي
+    printHtml += '#exam-page-decor { position:absolute; inset:6px; border:1px dashed ' + primary + '99; pointer-events:none; }';
+    printHtml += '#exam-page-decor > div { position:absolute; width:30px; height:30px; }';
+    // الـ header الرسمي
+    printHtml += '#exam-header { margin-bottom:14px; }';
+    printHtml += '</style></head><body>';
+    printHtml += clone.outerHTML;
+    printHtml += '<script>window.onload=function(){setTimeout(function(){window.print();},400);};window.onafterprint=function(){window.close();};<\/script>';
+    printHtml += '</body></html>';
+    
+    win.document.write(printHtml);
     win.document.close();
-    setTimeout(function(){ win.print(); }, 500);
+    
+    // إعادة التحديد لو كان موجوداً
+    if (prevSelected && document.contains(prevSelected)) {
+        setTimeout(function(){ examSelectElement(prevSelected); }, 200);
+    }
 }
 
 function examExportPdf() {
@@ -14648,29 +16466,61 @@ function examExportPdf() {
     }
     if (typeof showToast === 'function') showToast('⏳ جاري إنشاء PDF...', 'info', 3000);
     
+    // 🔧 نُلغي التحديد قبل التصدير
+    examDeselectAll();
+    
     var title = (document.getElementById('exam-title')||{}).value || 'اختبار';
+    
+    // نُنشئ نسخة منفصلة بدون transform/zoom وبأبعاد ثابتة
+    var clone = doc.cloneNode(true);
+    // إزالة عناصر التحديد
+    var sels = clone.querySelectorAll('.ex-resize-handle');
+    sels.forEach(function(s){ s.remove(); });
+    var selClasses = clone.querySelectorAll('.ex-selected');
+    selClasses.forEach(function(s){ s.classList.remove('ex-selected'); });
+    
+    // تطبيق العمودين
+    var cols = (document.getElementById('exam-columns')||{}).value || '1';
+    var clonedEditor = clone.querySelector('#exam-editor');
+    if (clonedEditor && cols === '2') {
+        clonedEditor.style.columnCount = '2';
+        clonedEditor.style.columnGap = '8mm';
+    }
+    // نُلغي أي transform أو scroll
+    clone.style.transform = 'none';
+    clone.style.boxShadow = 'none';
+    clone.style.width = '190mm';
+    clone.style.minHeight = '277mm';
+    clone.style.maxWidth = '190mm';
+    clone.style.margin = '0 auto';
+    clone.style.background = '#fff';
+    clone.style.color = '#000';
+    
+    var wrap = document.createElement('div');
+    wrap.style.cssText = 'position:fixed;top:-10000px;left:0;width:210mm;background:#fff;';
+    wrap.appendChild(clone);
+    document.body.appendChild(wrap);
+    
     var opt = {
         margin: [10, 10, 10, 10],
         filename: title + '.pdf',
         image: { type: 'jpeg', quality: 0.95 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true, 
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowWidth: 794  // 210mm @ 96dpi
+        },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+        pagebreak: { mode: ['avoid-all', 'css', 'legacy'], avoid: ['.ex-shape', '.ex-q', 'table'] }
     };
-    
-    // نُنشئ نسخة منفصلة للطباعة بدون transform
-    var clone = doc.cloneNode(true);
-    clone.style.transform = 'none';
-    clone.style.boxShadow = 'none';
-    clone.style.width = '210mm';
-    var wrap = document.createElement('div');
-    wrap.appendChild(clone);
-    document.body.appendChild(wrap);
     
     html2pdf().set(opt).from(clone).save().then(function() {
         document.body.removeChild(wrap);
         if (typeof showToast === 'function') showToast('✅ تم تحميل PDF', 'success');
     }).catch(function(err) {
-        document.body.removeChild(wrap);
+        if (wrap.parentNode) document.body.removeChild(wrap);
         if (typeof showToast === 'function') showToast('❌ فشل التصدير', 'error');
         console.error(err);
     });
@@ -14762,6 +16612,8 @@ function examExportWord() {
             if (name === 'visual-maker') {
                 setTimeout(function() {
                     examUpdateHeader();
+                    if (typeof examUpdateBorder === 'function') examUpdateBorder();
+                    if (typeof examUpdateColumns === 'function') examUpdateColumns();
                     examRestoreDraft();
                     // نُركّز على المحرر
                     var ed = document.getElementById('exam-editor');
@@ -14776,6 +16628,8 @@ function examExportWord() {
         document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 examUpdateHeader();
+                if (typeof examUpdateBorder === 'function') examUpdateBorder();
+                if (typeof examUpdateColumns === 'function') examUpdateColumns();
             }, 500);
         });
     }
@@ -16677,84 +18531,25 @@ async function loadForumCategories() {
 function renderCategoryButtons() {
     var cont = document.getElementById('forum-categories');
     if (!cont) return;
-
-    // فصل الفئات حسب المجموعة (general أولاً، ثم grades، ثم باقي)
-    var keys = Object.keys(FORUM_CATEGORIES);
-    var generalKeys = keys.filter(function(k){ var g = (FORUM_CATEGORIES[k].group || ''); return g === 'general' || g === ''; });
-    var gradeKeys   = keys.filter(function(k){ return FORUM_CATEGORIES[k].group === 'grades'; });
-    var otherKeys   = keys.filter(function(k){ var g = FORUM_CATEGORIES[k].group; return g && g !== 'general' && g !== 'grades' && g !== 'archived'; });
-
-    // ترتيب داخلي حسب order
-    function byOrder(a, b){ return (FORUM_CATEGORIES[a].order || 999) - (FORUM_CATEGORIES[b].order || 999); }
-    generalKeys.sort(byOrder); gradeKeys.sort(byOrder); otherKeys.sort(byOrder);
-
-    var html = '';
-    // زر "الكل" دائماً في البداية
-    html += '<button class="forum-cat-btn ' + (FORUM_CURRENT_CAT === 'all' ? 'active' : '') + '" onclick="filterForumByCat(\'all\')">📋 الكل</button>';
-
-    // عام (إعلانات + نقاش عام)
-    generalKeys.forEach(function(key){
-        var cat = FORUM_CATEGORIES[key];
-        var active = FORUM_CURRENT_CAT === key ? 'active' : '';
-        var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+',rgba(155,89,182,0.8));border-color:'+cat.color+';' : 'border-color:' + cat.color + '55;';
-        html += '<button class="forum-cat-btn ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + '</button>';
-    });
-
-    // فاصل قبل الصفوف
-    if (gradeKeys.length > 0) {
-        html += '<div class="forum-cat-divider"><span>🎓 حسب الصف الدراسي</span></div>';
-        gradeKeys.forEach(function(key){
-            var cat = FORUM_CATEGORIES[key];
-            var active = FORUM_CURRENT_CAT === key ? 'active' : '';
-            var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+','+cat.color+'cc);border-color:'+cat.color+';color:#fff;' : 'border-color:' + cat.color + '66;color:' + cat.color + ';';
-            var levelBadge = cat.level === 'advanced' ? '<span class="forum-cat-level">⭐ متقدم</span>' : '';
-            html += '<button class="forum-cat-btn forum-cat-grade ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + levelBadge + '</button>';
-        });
-    }
-
-    // أي فئات أخرى (مرونة مستقبلية)
-    otherKeys.forEach(function(key){
+    var html = '<button class="forum-cat-btn ' + (FORUM_CURRENT_CAT === 'all' ? 'active' : '') + '" onclick="filterForumByCat(\'all\')">📋 الكل</button>';
+    Object.keys(FORUM_CATEGORIES).forEach(function(key) {
         var cat = FORUM_CATEGORIES[key];
         var active = FORUM_CURRENT_CAT === key ? 'active' : '';
         var bgStyle = FORUM_CURRENT_CAT === key ? 'background:linear-gradient(135deg,'+cat.color+',rgba(155,89,182,0.8));border-color:'+cat.color+';' : '';
         html += '<button class="forum-cat-btn ' + active + '" onclick="filterForumByCat(\'' + key + '\')" style="' + bgStyle + '">' + cat.icon + ' ' + cat.name.replace(/^[^ ]+ /, '') + '</button>';
     });
-
     cont.innerHTML = html;
 }
 
 function renderTopicCategorySelect() {
     var sel = document.getElementById('nt-category');
     if (!sel) return;
-    var allKeys = Object.keys(FORUM_CATEGORIES).filter(function(k){
-        return !FORUM_CATEGORIES[k].admin_only && !FORUM_CATEGORIES[k].is_hidden;
-    });
-    function byOrder(a, b){ return (FORUM_CATEGORIES[a].order || 999) - (FORUM_CATEGORIES[b].order || 999); }
-    var generalKeys = allKeys.filter(function(k){ var g = (FORUM_CATEGORIES[k].group || ''); return g === 'general' || g === ''; }).sort(byOrder);
-    var gradeKeys   = allKeys.filter(function(k){ return FORUM_CATEGORIES[k].group === 'grades'; }).sort(byOrder);
-    var otherKeys   = allKeys.filter(function(k){ var g = FORUM_CATEGORIES[k].group; return g && g !== 'general' && g !== 'grades' && g !== 'archived'; }).sort(byOrder);
-
-    function optStr(k){
+    sel.innerHTML = Object.keys(FORUM_CATEGORIES).filter(function(k){
+        return !FORUM_CATEGORIES[k].admin_only;
+    }).map(function(k) {
         var c = FORUM_CATEGORIES[k];
         return '<option value="' + k + '">' + c.icon + ' ' + c.name.replace(/^[^ ]+ /, '') + '</option>';
-    }
-    var html = '';
-    if (generalKeys.length) {
-        html += '<optgroup label="📋 عام">';
-        html += generalKeys.map(optStr).join('');
-        html += '</optgroup>';
-    }
-    if (gradeKeys.length) {
-        html += '<optgroup label="🎓 حسب الصف الدراسي">';
-        html += gradeKeys.map(optStr).join('');
-        html += '</optgroup>';
-    }
-    if (otherKeys.length) {
-        html += '<optgroup label="📌 أخرى">';
-        html += otherKeys.map(optStr).join('');
-        html += '</optgroup>';
-    }
-    sel.innerHTML = html;
+    }).join('');
 }
 
 function filterForumByCat(cat) {
