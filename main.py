@@ -9319,6 +9319,296 @@ async def teacher_lesson_pack_save_questions(
         raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
 
 
+# ════════════════════════════════════════════════════════════
+# 🎮 GAMES WORKSHOP — Backend endpoints لتغذية الألعاب
+# ════════════════════════════════════════════════════════════
+
+@app.get("/api/teacher/games/filters")
+async def games_get_filters(grade: str = "", semester: str = "", unit: str = ""):
+    """
+    📋 جلب القيم المتاحة للفلاتر (cascade dropdown)
+    
+    منطق متدرّج:
+    - بدون grade   → يرجع كل الصفوف المتاحة
+    - مع grade فقط → يرجع الفصول والوحدات والدروس لذلك الصف
+    - مع grade + semester → يرجع الوحدات والدروس لهذا الفصل
+    - مع grade + semester + unit → يرجع الدروس لهذه الوحدة
+    """
+    try:
+        query = supabase.table("questions").select("grade,semester,unit,lesson,subject")
+        if grade.strip():
+            query = query.eq("grade", grade.strip())
+        if semester.strip():
+            query = query.eq("semester", semester.strip())
+        if unit.strip():
+            query = query.eq("unit", unit.strip())
+        
+        # نجلب حتى 5000 سجل لاستخراج القيم الفريدة
+        res = query.limit(5000).execute()
+        rows = res.data or []
+        
+        # نستخرج القيم الفريدة المرتّبة
+        grades_set, semesters_set, units_set, lessons_set, subjects_set = set(), set(), set(), set(), set()
+        for r in rows:
+            if r.get("grade"):
+                grades_set.add(r["grade"])
+            if r.get("semester"):
+                semesters_set.add(r["semester"])
+            if r.get("unit"):
+                units_set.add(r["unit"])
+            if r.get("lesson"):
+                lessons_set.add(r["lesson"])
+            if r.get("subject"):
+                subjects_set.add(r["subject"])
+        
+        return {
+            "status": "ok",
+            "grades":    sorted(grades_set),
+            "semesters": sorted(semesters_set),
+            "units":     sorted(units_set),
+            "lessons":   sorted(lessons_set),
+            "subjects":  sorted(subjects_set),
+            "total_rows": len(rows)
+        }
+    except Exception as e:
+        print(f"[games/filters] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.get("/api/teacher/games/bank")
+async def games_get_from_bank(
+    grade: str = "",
+    semester: str = "",
+    unit: str = "",
+    lesson: str = "",
+    q_type: str = "",
+    limit: int = 50,
+    random_order: bool = True
+):
+    """
+    📚 جلب الأسئلة من بنك الأسئلة بفلاتر متعددة - للاستخدام في الألعاب
+    
+    Parameters:
+    - grade, semester, unit, lesson: فلاتر التصنيف
+    - q_type: نوع السؤال (multiple_choice / true_false / written / ...)
+    - limit: العدد المطلوب (افتراضي 50، أقصى 200)
+    - random_order: ترتيب عشوائي (افتراضي True)
+    
+    Returns:
+    - قائمة الأسئلة بصيغة موحدة للألعاب: { question, answer, options[], q_type, lesson, grade }
+    """
+    limit = max(1, min(200, limit))
+    
+    try:
+        query = supabase.table("questions").select("id,question,answer,options,q_type,grade,semester,unit,lesson,subject")
+        if grade.strip():
+            query = query.eq("grade", grade.strip())
+        if semester.strip():
+            query = query.eq("semester", semester.strip())
+        if unit.strip():
+            query = query.eq("unit", unit.strip())
+        if lesson.strip():
+            query = query.eq("lesson", lesson.strip())
+        if q_type.strip():
+            query = query.eq("q_type", q_type.strip())
+        
+        # نجلب أكثر من المطلوب للسماح بالخلط
+        fetch_limit = min(500, limit * 3) if random_order else limit
+        res = query.limit(fetch_limit).execute()
+        rows = res.data or []
+        
+        # خلط عشوائي
+        if random_order:
+            import random as _random
+            _random.shuffle(rows)
+        
+        # نأخذ أول N
+        rows = rows[:limit]
+        
+        # تحويل options من string إلى list (لو كانت محفوظة كنص)
+        for r in rows:
+            opts = r.get("options", "")
+            if isinstance(opts, str) and opts.strip():
+                # نقسّمها بـ | أو ; أو \n
+                for sep in ['|', ';', '\n', ',']:
+                    if sep in opts:
+                        r["options"] = [o.strip() for o in opts.split(sep) if o.strip()]
+                        break
+                else:
+                    r["options"] = [opts.strip()] if opts.strip() else []
+            elif not isinstance(opts, list):
+                r["options"] = []
+        
+        return {
+            "status": "ok",
+            "count": len(rows),
+            "questions": rows
+        }
+    except Exception as e:
+        print(f"[games/bank] error: {e}")
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/games/ai_generate")
+async def games_ai_generate(
+    request: Request,
+    grade: str        = Form(default=""),
+    lesson: str       = Form(default=""),
+    topic: str        = Form(...),                  # الموضوع (إجباري)
+    count: int        = Form(default=10),           # عدد الأسئلة
+    difficulty: str   = Form(default="medium"),     # easy / medium / hard
+    q_format: str     = Form(default="mcq"),        # mcq (4 خيارات) / short (إجابة قصيرة) / pairs (سؤال↔جواب)
+    language: str     = Form(default="ar")          # ar / en
+):
+    """
+    🤖 توليد أسئلة بالذكاء الاصطناعي للألعاب التعليمية
+    
+    q_format:
+    - mcq:   4 خيارات (مناسب لـ Quiz Battle)
+    - short: سؤال + إجابة قصيرة (مناسب لـ Lucky Wheel, Beat the Clock, Team Battle)
+    - pairs: سؤال + جواب (مناسب لـ Memory Match)
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=10, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    if not topic.strip():
+        raise HTTPException(status_code=400, detail="الموضوع مطلوب")
+    
+    count = max(3, min(40, count))  # بين 3 و 40 سؤال
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ خدمة AI غير مُهيّأة (GEMINI_API_KEY مفقود)")
+    
+    # بناء الـ prompt حسب الـ format
+    diff_ar = {"easy": "سهل", "medium": "متوسط", "hard": "صعب"}.get(difficulty, "متوسط")
+    
+    context_parts = []
+    if grade.strip():
+        context_parts.append(f"الصف: {grade.strip()}")
+    if lesson.strip():
+        context_parts.append(f"الدرس: {lesson.strip()}")
+    context_parts.append(f"الموضوع: {topic.strip()}")
+    context_parts.append(f"المستوى: {diff_ar}")
+    context = "\n".join(context_parts)
+    
+    if q_format == "mcq":
+        format_instructions = f"""
+أنشئ {count} سؤال اختيار من متعدد (٤ خيارات) عن الموضوع التالي:
+
+{context}
+
+أعد النتيجة كـ JSON صحيح فقط (بدون أي شرح) بالشكل:
+{{
+  "questions": [
+    {{
+      "q": "نص السؤال",
+      "a": ["الخيار الأول", "الخيار الثاني", "الخيار الثالث", "الخيار الرابع"],
+      "correct": 0,
+      "points": 10
+    }}
+  ]
+}}
+
+⚠️ قواعد مهمة:
+- correct رقم من ٠ إلى ٣ (موقع الإجابة الصحيحة)
+- اجعل الخيارات الخاطئة معقولة (errors شائعة) ليست عشوائية
+- استخدم اللغة العربية الفصحى
+- اجعل الأسئلة متنوعة وغير مكررة
+- استخدم الأرقام العربية (٠١٢٣٤٥٦٧٨٩) في النص
+- points = 10 لكل سؤال (المعلم يعدّلها لاحقاً)
+"""
+    elif q_format == "short":
+        format_instructions = f"""
+أنشئ {count} سؤال بإجابة قصيرة عن الموضوع التالي:
+
+{context}
+
+أعد النتيجة كـ JSON صحيح فقط (بدون أي شرح) بالشكل:
+{{
+  "questions": [
+    {{ "q": "نص السؤال", "a": "الإجابة القصيرة" }}
+  ]
+}}
+
+⚠️ قواعد مهمة:
+- الإجابة كلمة أو عدد أو جملة قصيرة جداً (للحساب الذهني والمراجعة السريعة)
+- الأسئلة قصيرة وواضحة
+- استخدم الأرقام العربية (٠١٢٣٤٥٦٧٨٩)
+- تنوّع في الأسئلة (جمع، طرح، ضرب، قسمة، كسور، نسب...)
+"""
+    else:  # pairs
+        format_instructions = f"""
+أنشئ {count} زوج (سؤال ↔ جواب) للمطابقة عن الموضوع التالي:
+
+{context}
+
+أعد النتيجة كـ JSON صحيح فقط (بدون أي شرح) بالشكل:
+{{
+  "questions": [
+    {{ "a": "العنصر الأول (سؤال أو عملية)", "b": "العنصر الثاني (الجواب أو الناتج)" }}
+  ]
+}}
+
+⚠️ قواعد مهمة:
+- كل زوج يكون قصيراً جداً (يكتب على بطاقة صغيرة)
+- مناسب للعبة مطابقة الذاكرة
+- استخدم الأرقام العربية
+"""
+    
+    # استدعاء Gemini
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": format_instructions}]}],
+                "generationConfig": {
+                    "temperature": 0.85,
+                    "maxOutputTokens": 4000,
+                    "topP": 0.9,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=45.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    # تنظيف الـ markdown إن وجد
+                    if text.startswith("```"):
+                        text = text.split("\n", 1)[1] if "\n" in text else text
+                        text = text.rsplit("```", 1)[0] if "```" in text else text
+                    
+                    parsed = json_lib.loads(text)
+                    questions = parsed.get("questions", [])
+                    if not isinstance(questions, list) or len(questions) == 0:
+                        raise ValueError("استجابة AI فارغة")
+                    
+                    return {
+                        "status": "ok",
+                        "count": len(questions),
+                        "questions": questions,
+                        "model": model_name,
+                        "format": q_format
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON parse error: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:200]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد الأسئلة بعد محاولة كل النماذج. آخر خطأ: {last_error}")
+
+
 @app.post("/api/admin/update_password")
 async def update_admin_password(
     new_password: str = Form(...),
@@ -11301,31 +11591,13 @@ def _url_encode(s: str) -> str:
 # ════════════════════════════════════════════════════════════
 
 FORUM_CATEGORIES = {
-    # ════════ القسم العلوي: الإعلانات (للأدمن) ════════
-    "announcements": {"name": "📢 إعلانات الإدارة", "icon": "📢", "color": "#e74c3c", "admin_only": True, "order": 0, "group": "general"},
-
-    # ════════ الصفوف الدراسية (10 صفوف) ════════
-    "grade_5":             {"name": "5️⃣ الصف الخامس",                 "icon": "5️⃣",  "color": "#10b981", "order": 1,  "group": "grades", "grade_num": 5,  "level": "basic"},
-    "grade_6":             {"name": "6️⃣ الصف السادس",                 "icon": "6️⃣",  "color": "#059669", "order": 2,  "group": "grades", "grade_num": 6,  "level": "basic"},
-    "grade_7":             {"name": "7️⃣ الصف السابع",                 "icon": "7️⃣",  "color": "#06b6d4", "order": 3,  "group": "grades", "grade_num": 7,  "level": "basic"},
-    "grade_8":             {"name": "8️⃣ الصف الثامن",                 "icon": "8️⃣",  "color": "#0891b2", "order": 4,  "group": "grades", "grade_num": 8,  "level": "basic"},
-    "grade_9":             {"name": "9️⃣ الصف التاسع",                 "icon": "9️⃣",  "color": "#3b82f6", "order": 5,  "group": "grades", "grade_num": 9,  "level": "basic"},
-    "grade_10":            {"name": "🔟 الصف العاشر",                  "icon": "🔟",  "color": "#6366f1", "order": 6,  "group": "grades", "grade_num": 10, "level": "basic"},
-    "grade_11_basic":      {"name": "1️⃣1️⃣ الحادي عشر - أساسي",        "icon": "📘", "color": "#a855f7", "order": 7,  "group": "grades", "grade_num": 11, "level": "basic"},
-    "grade_11_advanced":   {"name": "🌟 الحادي عشر - متقدم",            "icon": "🌟", "color": "#9333ea", "order": 8,  "group": "grades", "grade_num": 11, "level": "advanced"},
-    "grade_12_basic":      {"name": "1️⃣2️⃣ الثاني عشر - أساسي",        "icon": "📕", "color": "#ec4899", "order": 9,  "group": "grades", "grade_num": 12, "level": "basic"},
-    "grade_12_advanced":   {"name": "💎 الثاني عشر - متقدم",            "icon": "💎", "color": "#be185d", "order": 10, "group": "grades", "grade_num": 12, "level": "advanced"},
-
-    # ════════ القسم العام ════════
-    "general": {"name": "☕ نقاش عام", "icon": "☕", "color": "#d4af37", "order": 11, "group": "general"},
-
-    # ════════ الفئات القديمة (مؤرشفة - مخفية عن المستخدم العادي) ════════
-    # ⚠️ لا تُحذف! المواضيع القديمة تستخدمها. is_hidden=True يخفيها من القوائم الجديدة
-    "ideas":         {"name": "💡 اقتراحات وأفكار",  "icon": "💡", "color": "#f1c40f", "order": 90, "group": "archived", "is_hidden": True},
-    "teaching":      {"name": "🎓 أساليب تدريس",      "icon": "🎓", "color": "#3498db", "order": 91, "group": "archived", "is_hidden": True},
-    "resources":     {"name": "📚 موارد ومصادر",      "icon": "📚", "color": "#2ecc71", "order": 92, "group": "archived", "is_hidden": True},
-    "questions":     {"name": "❓ أسئلة واستفسارات",  "icon": "❓", "color": "#9b59b6", "order": 93, "group": "archived", "is_hidden": True},
-    "collaboration": {"name": "🤝 تعاون ومشاركة",    "icon": "🤝", "color": "#e67e22", "order": 94, "group": "archived", "is_hidden": True},
+    "announcements": {"name": "📢 إعلانات الإدارة", "icon": "📢", "color": "#e74c3c", "admin_only": True},
+    "ideas": {"name": "💡 اقتراحات وأفكار", "icon": "💡", "color": "#f1c40f"},
+    "teaching": {"name": "🎓 أساليب تدريس", "icon": "🎓", "color": "#3498db"},
+    "resources": {"name": "📚 موارد ومصادر", "icon": "📚", "color": "#2ecc71"},
+    "questions": {"name": "❓ أسئلة واستفسارات", "icon": "❓", "color": "#9b59b6"},
+    "collaboration": {"name": "🤝 تعاون ومشاركة", "icon": "🤝", "color": "#e67e22"},
+    "general": {"name": "☕ نقاش عام", "icon": "☕", "color": "#7f8c8d"}
 }
 
 
@@ -11345,19 +11617,9 @@ async def _verify_teacher(teacher_id: int) -> dict:
 
 
 @app.get("/api/teachers/forum/categories")
-async def forum_get_categories(include_hidden: bool = False):
-    """📋 قائمة فئات المنتدى (الفئات المرئية فقط افتراضياً)
-    
-    include_hidden=True: يُرجع كل الفئات بما فيها المؤرشفة (للأدمن فقط)
-    """
-    if include_hidden:
-        # للأدمن: كل الفئات (بما فيها المؤرشفة للعرض/الإدارة)
-        return {"categories": FORUM_CATEGORIES}
-    # للمستخدم العادي: فقط الفئات غير المخفية، مُرتّبة
-    visible = {k: v for k, v in FORUM_CATEGORIES.items() if not v.get("is_hidden", False)}
-    # ترتيب حسب الـ order
-    ordered = dict(sorted(visible.items(), key=lambda x: x[1].get("order", 999)))
-    return {"categories": ordered}
+async def forum_get_categories():
+    """📋 قائمة فئات المنتدى"""
+    return {"categories": FORUM_CATEGORIES}
 
 
 @app.get("/api/teachers/forum/topics")
