@@ -3125,6 +3125,915 @@
             height: 4px;
             border-radius: 2px;
         }
+
+
+/* ════════════════════════════════════════════════════════════
+   🎓 PREMIUM TOUR — CSS احترافي بمستوى عالمي
+   ═══════════════════════════════════════════════════════════ */
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   شاشة الترحيب والختام - Premium Welcome
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#tour-welcome-overlay,
+#tour-completion-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease, visibility 0.5s ease;
+    overflow-y: auto;
+    background: 
+        radial-gradient(ellipse at 30% 40%, rgba(168, 85, 247, 0.15), transparent 60%),
+        radial-gradient(ellipse at 70% 60%, rgba(212, 175, 55, 0.15), transparent 60%),
+        radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.08), transparent 70%),
+        linear-gradient(135deg, rgba(5, 8, 20, 0.95), rgba(15, 23, 42, 0.97));
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+}
+#tour-welcome-overlay.tour-active,
+#tour-completion-overlay.tour-active {
+    opacity: 1;
+    visibility: visible;
+}
+#tour-welcome-overlay.tour-fade-out,
+#tour-completion-overlay.tour-fade-out {
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.97);
+}
+
+/* جسيمات متطايرة */
+.tour-welcome-particles {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+.tour-particle {
+    position: absolute;
+    top: 110%;
+    color: #fcd34d;
+    text-shadow: 0 0 8px rgba(252, 211, 77, 0.8);
+    animation: tourParticleFloat 12s linear infinite;
+    opacity: 0;
+}
+@keyframes tourParticleFloat {
+    0% {
+        top: 110%;
+        opacity: 0;
+        transform: translateX(0) rotate(0deg);
+    }
+    10% { opacity: 0.7; }
+    90% { opacity: 0.7; }
+    100% {
+        top: -10%;
+        opacity: 0;
+        transform: translateX(60px) rotate(360deg);
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   البطاقة الرئيسية
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-welcome-card {
+    position: relative;
+    background: linear-gradient(165deg, rgba(20, 25, 50, 0.95), rgba(30, 27, 75, 0.92));
+    border: 1px solid rgba(212, 175, 55, 0.25);
+    border-radius: 28px;
+    padding: 36px 32px 28px;
+    max-width: 720px;
+    width: 100%;
+    text-align: center;
+    color: #fff;
+    box-shadow: 
+        0 30px 80px rgba(0, 0, 0, 0.7),
+        0 0 100px rgba(212, 175, 55, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    animation: tourCardEnter 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tourCardEnter {
+    from {
+        transform: scale(0.85) translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* توهج خلفي للبطاقة */
+.tour-welcome-glow {
+    position: absolute;
+    inset: -50%;
+    background: 
+        radial-gradient(circle at 20% 20%, rgba(168, 85, 247, 0.25), transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(212, 175, 55, 0.2), transparent 50%);
+    filter: blur(40px);
+    pointer-events: none;
+    z-index: 0;
+}
+.tour-welcome-shine {
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, 0.08) 50%, transparent 60%);
+    animation: tourShineSweep 5s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 1;
+}
+@keyframes tourShineSweep {
+    0%, 100% { left: -100%; }
+    50% { left: 100%; }
+}
+
+.tour-welcome-card > * {
+    position: relative;
+    z-index: 2;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   التاج والإشعاع
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-crown-container {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 8px;
+}
+.tour-crown-rays {
+    position: absolute;
+    inset: 0;
+    background: 
+        conic-gradient(from 0deg,
+            transparent 0deg,
+            rgba(252, 211, 77, 0.4) 15deg,
+            transparent 30deg,
+            transparent 60deg,
+            rgba(252, 211, 77, 0.4) 75deg,
+            transparent 90deg,
+            transparent 120deg,
+            rgba(252, 211, 77, 0.4) 135deg,
+            transparent 150deg,
+            transparent 180deg,
+            rgba(252, 211, 77, 0.4) 195deg,
+            transparent 210deg,
+            transparent 240deg,
+            rgba(252, 211, 77, 0.4) 255deg,
+            transparent 270deg,
+            transparent 300deg,
+            rgba(252, 211, 77, 0.4) 315deg,
+            transparent 330deg);
+    border-radius: 50%;
+    animation: tourRaysSpin 20s linear infinite;
+    filter: blur(8px);
+}
+.tour-trophy-rays {
+    background: 
+        conic-gradient(from 0deg,
+            transparent 0deg,
+            rgba(252, 211, 77, 0.5) 15deg,
+            transparent 30deg,
+            transparent 60deg,
+            rgba(255, 215, 0, 0.6) 75deg,
+            transparent 90deg,
+            transparent 120deg,
+            rgba(252, 211, 77, 0.5) 135deg,
+            transparent 150deg,
+            transparent 180deg,
+            rgba(255, 215, 0, 0.6) 195deg,
+            transparent 210deg,
+            transparent 240deg,
+            rgba(252, 211, 77, 0.5) 255deg,
+            transparent 270deg,
+            transparent 300deg,
+            rgba(255, 215, 0, 0.6) 315deg,
+            transparent 330deg);
+    animation: tourRaysSpin 15s linear infinite;
+}
+@keyframes tourRaysSpin {
+    to { transform: rotate(360deg); }
+}
+.tour-crown {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5rem;
+    filter: drop-shadow(0 0 20px rgba(252, 211, 77, 0.8));
+    animation: tourCrownBob 3s ease-in-out infinite;
+}
+@keyframes tourCrownBob {
+    0%, 100% { transform: translateY(0) rotate(-4deg); }
+    50% { transform: translateY(-10px) rotate(4deg); }
+}
+.tour-trophy {
+    font-size: 5rem;
+    animation: tourTrophyPulse 2s ease-in-out infinite;
+}
+@keyframes tourTrophyPulse {
+    0%, 100% {
+        transform: scale(1);
+        filter: drop-shadow(0 0 20px rgba(252, 211, 77, 0.8));
+    }
+    50% {
+        transform: scale(1.1);
+        filter: drop-shadow(0 0 35px rgba(255, 215, 0, 1));
+    }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   النصوص
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-welcome-greeting {
+    font-family: 'Amiri', serif;
+    font-size: 1.1rem;
+    color: rgba(252, 211, 77, 0.85);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+}
+.tour-welcome-title {
+    font-family: 'Amiri', serif;
+    font-size: 2.6rem;
+    margin: 0 0 12px;
+    background: linear-gradient(135deg, #fef3c7, #fcd34d, #d4af37, #fcd34d, #fef3c7);
+    background-size: 200% auto;
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: tourTitleShimmer 5s linear infinite;
+    line-height: 1.2;
+    font-weight: 700;
+}
+@keyframes tourTitleShimmer {
+    to { background-position: 200% center; }
+}
+.tour-welcome-divider {
+    width: 60px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #d4af37, transparent);
+    margin: 0 auto 14px;
+    border-radius: 2px;
+}
+.tour-welcome-subtitle {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 1.02rem;
+    margin: 0 0 22px;
+    line-height: 1.8;
+}
+.tour-welcome-highlight {
+    color: #fcd34d;
+    font-weight: 600;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   الإحصاءات
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 0 0 26px;
+    flex-wrap: wrap;
+}
+.tour-stat {
+    text-align: center;
+    min-width: 70px;
+}
+.tour-stat-num {
+    font-family: 'Amiri', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: #fcd34d;
+    line-height: 1;
+    text-shadow: 0 0 20px rgba(252, 211, 77, 0.4);
+}
+.tour-stat-lbl {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+    margin-top: 4px;
+}
+.tour-stat-divider {
+    width: 1px;
+    height: 36px;
+    background: linear-gradient(180deg, transparent, rgba(212, 175, 55, 0.4), transparent);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   شارات الميزات
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-features-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-bottom: 26px;
+}
+.tour-feature-pill {
+    background: linear-gradient(135deg, color-mix(in srgb, var(--c) 15%, transparent), color-mix(in srgb, var(--c) 8%, transparent));
+    background: rgba(255, 255, 255, 0.05); /* fallback */
+    border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+    color: var(--c);
+    padding: 7px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s;
+}
+.tour-feature-pill:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--c) 30%, transparent);
+}
+.tour-feature-pill span {
+    font-size: 1rem;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   الأزرار
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-welcome-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.tour-btn-cta {
+    background: linear-gradient(135deg, #d4af37, #f59e0b, #d4af37);
+    background-size: 200% auto;
+    color: #1a1a2e;
+    border: none;
+    padding: 16px 36px;
+    border-radius: 16px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 1.05rem;
+    box-shadow: 
+        0 10px 30px rgba(212, 175, 55, 0.5),
+        0 0 0 1px rgba(212, 175, 55, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.tour-btn-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(105deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+    transition: left 0.6s;
+}
+.tour-btn-cta:hover {
+    background-position: right center;
+    transform: translateY(-3px);
+    box-shadow: 
+        0 15px 40px rgba(212, 175, 55, 0.6),
+        0 0 0 1px rgba(212, 175, 55, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+.tour-btn-cta:hover::before {
+    left: 100%;
+}
+.tour-btn-icon {
+    font-size: 1.3rem;
+}
+.tour-btn-label {
+    font-size: 1.05rem;
+}
+.tour-btn-meta {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+}
+
+.tour-btn-skip-welcome {
+    background: transparent;
+    color: rgba(255, 255, 255, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 10px 24px;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 500;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+.tour-btn-skip-welcome:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.85);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.tour-welcome-hint {
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.82rem;
+    margin-top: 4px;
+}
+.tour-welcome-hint b {
+    color: #fcd34d;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   صندوق النصائح (شاشة الختام)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-tips-card {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(252, 211, 77, 0.25);
+    border-radius: 18px;
+    padding: 20px 24px;
+    margin: 0 0 24px;
+    text-align: right;
+}
+.tour-tips-header {
+    color: #fcd34d;
+    font-family: 'Amiri', serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 14px;
+    text-align: center;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(252, 211, 77, 0.2);
+}
+.tour-tips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.tour-tip {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+.tour-tip-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--c) 18%, transparent);
+    border: 1px solid color-mix(in srgb, var(--c) 35%, transparent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    flex-shrink: 0;
+}
+.tour-tip-text {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.95rem;
+    line-height: 1.7;
+}
+.tour-tip-text b {
+    color: #fcd34d;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📍 خطوات الجولة - Clone & Lift + بطاقة احترافية
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+#tour-step-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999990;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+#tour-step-overlay.tour-step-active {
+    opacity: 1;
+}
+#tour-step-overlay.tour-step-fading {
+    opacity: 0;
+}
+
+/* الخلفية المعتمة - clickable */
+.tour-bg-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5, 8, 20, 0.78);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    pointer-events: auto;
+    cursor: pointer;
+    animation: tourBgFadeIn 0.4s ease forwards;
+    z-index: 1;
+}
+@keyframes tourBgFadeIn {
+    from { background: rgba(5, 8, 20, 0); backdrop-filter: blur(0); }
+    to { background: rgba(5, 8, 20, 0.78); backdrop-filter: blur(2px); }
+}
+
+/* ✨ النسخة المرفوعة (Clone) */
+.tour-cloned-element {
+    pointer-events: none !important;
+    cursor: default !important;
+}
+.tour-cloned-element.tour-clone-fading {
+    opacity: 0 !important;
+    transform: scale(0.95) !important;
+}
+@keyframes tourCloneEnter {
+    from {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 0 var(--accent, #d4af37);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+/* الهالة المتوهجة حول النسخة */
+.tour-glow-effect {
+    pointer-events: none;
+}
+@keyframes tourGlowPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.03); }
+}
+
+/* الزوايا الزخرفية */
+@keyframes tourCornerIn {
+    from { opacity: 0; transform: scale(0.5); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   بطاقة الخطوة الاحترافية
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-card {
+    position: fixed;
+    background: linear-gradient(165deg, rgba(15, 23, 42, 0.97), rgba(30, 27, 75, 0.95));
+    border: 1px solid color-mix(in srgb, var(--accent, #d4af37) 35%, transparent);
+    border-radius: 20px;
+    color: #fff;
+    box-shadow: 
+        0 25px 70px rgba(0, 0, 0, 0.7),
+        0 0 60px color-mix(in srgb, var(--accent, #d4af37) 25%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    overflow: hidden;
+    pointer-events: auto;
+    z-index: 999991;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    animation: tourCardSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes tourCardSlideIn {
+    from {
+        transform: scale(0.9) translateY(15px);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+/* السهم */
+.tour-card.tour-arrow-top::before,
+.tour-card.tour-arrow-bottom::before {
+    content: '';
+    position: absolute;
+    left: var(--arrow-x, 50%);
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 12px solid transparent;
+    border-right: 12px solid transparent;
+}
+.tour-card.tour-arrow-top::before {
+    top: -12px;
+    border-bottom: 12px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.tour-card.tour-arrow-bottom::before {
+    bottom: -12px;
+    border-top: 12px solid color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+/* Header */
+.tour-card-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 16px 18px;
+    background: linear-gradient(135deg, 
+        color-mix(in srgb, var(--accent) 18%, transparent),
+        color-mix(in srgb, var(--accent) 8%, transparent));
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+
+.tour-card-emoji-wrapper {
+    position: relative;
+    width: 50px;
+    height: 50px;
+    flex-shrink: 0;
+}
+.tour-progress-ring {
+    position: absolute;
+    inset: 0;
+    transform: rotate(-90deg);
+}
+.tour-ring-bg {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.1);
+    stroke-width: 3;
+}
+.tour-ring-fg {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 3;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.6s ease;
+    filter: drop-shadow(0 0 6px var(--accent));
+}
+.tour-card-emoji {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.4));
+}
+
+.tour-card-meta {
+    flex: 1;
+    text-align: right;
+}
+.tour-card-category {
+    display: inline-block;
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--accent-light, var(--accent));
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    border: 1px solid color-mix(in srgb, var(--accent) 35%, transparent);
+    margin-bottom: 4px;
+}
+.tour-card-step-num {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.55);
+}
+.tour-card-step-num b {
+    color: var(--accent-light, var(--accent));
+}
+
+.tour-card-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    flex-shrink: 0;
+}
+.tour-card-close:hover {
+    background: rgba(239, 68, 68, 0.25);
+    border-color: rgba(239, 68, 68, 0.5);
+    color: #fff;
+}
+
+/* Body */
+.tour-card-body {
+    padding: 18px 22px;
+}
+.tour-card-title {
+    margin: 0 0 10px;
+    font-family: 'Amiri', serif;
+    font-size: 1.45rem;
+    font-weight: 700;
+    color: var(--accent-light, var(--accent));
+    line-height: 1.3;
+}
+.tour-card-text {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 0.94rem;
+    line-height: 1.8;
+}
+.tour-card-text b {
+    color: var(--accent-light, var(--accent));
+    font-weight: 700;
+}
+
+/* Footer */
+.tour-card-footer {
+    padding: 14px 18px;
+    background: rgba(0, 0, 0, 0.3);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Dots indicator */
+.tour-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-bottom: 12px;
+}
+.tour-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s;
+    padding: 0;
+}
+.tour-dot:hover {
+    background: rgba(255, 255, 255, 0.35);
+    transform: scale(1.3);
+}
+.tour-dot-done {
+    background: color-mix(in srgb, var(--accent) 60%, transparent);
+}
+.tour-dot-active {
+    background: var(--accent);
+    width: 22px;
+    border-radius: 4px;
+    box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+/* أزرار التنقل */
+.tour-card-nav {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+}
+.tour-btn-prev,
+.tour-btn-next {
+    border: none;
+    padding: 9px 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 0.88rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.tour-btn-prev {
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+.tour-btn-prev:hover {
+    background: rgba(255, 255, 255, 0.12);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.tour-btn-next {
+    background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 80%, black));
+    color: #fff;
+    box-shadow: 
+        0 4px 14px color-mix(in srgb, var(--accent) 40%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+.tour-btn-next:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 8px 22px color-mix(in srgb, var(--accent) 50%, transparent),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.tour-btn-finish {
+    background: linear-gradient(135deg, #d4af37, #f59e0b);
+    color: #1a1a2e;
+}
+.tour-btn-arrow {
+    font-size: 1.1rem;
+    transition: transform 0.2s;
+}
+.tour-btn-next:hover .tour-btn-arrow {
+    transform: translateX(-3px);
+}
+.tour-btn-prev:hover .tour-btn-arrow {
+    transform: translateX(3px);
+}
+
+/* keyboard hint */
+.tour-keyboard-hint {
+    text-align: center;
+    padding: 8px;
+    color: rgba(255, 255, 255, 0.35);
+    font-size: 0.72rem;
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+.tour-keyboard-hint kbd {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+    margin: 0 2px;
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   زر إعادة الجولة في القائمة العلوية
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+.tour-restart-btn {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.15), rgba(252, 211, 77, 0.08));
+    color: #fcd34d;
+    border: 1px solid rgba(212, 175, 55, 0.35);
+    padding: 7px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: 'Cairo', sans-serif;
+    font-weight: 700;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+.tour-restart-btn:hover {
+    background: linear-gradient(135deg, rgba(212, 175, 55, 0.3), rgba(252, 211, 77, 0.15));
+    border-color: rgba(212, 175, 55, 0.6);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+}
+
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   📱 الاستجابة للموبايل
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+@media (max-width: 640px) {
+    .tour-welcome-card {
+        padding: 26px 20px 20px;
+        max-height: 95vh;
+        overflow-y: auto;
+    }
+    .tour-welcome-title { font-size: 1.8rem; }
+    .tour-welcome-subtitle { font-size: 0.92rem; }
+    .tour-crown-container { width: 90px; height: 90px; }
+    .tour-crown { font-size: 3.5rem; }
+    .tour-trophy { font-size: 4rem; }
+    
+    .tour-stats-row {
+        gap: 8px;
+    }
+    .tour-stat-num { font-size: 1.6rem; }
+    .tour-stat-lbl { font-size: 0.7rem; }
+    
+    .tour-features-row {
+        gap: 6px;
+    }
+    .tour-feature-pill {
+        font-size: 0.74rem;
+        padding: 6px 10px;
+    }
+    
+    .tour-btn-cta {
+        padding: 14px 24px;
+        font-size: 0.95rem;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    /* بطاقة الخطوة على الموبايل = bottom sheet */
+    .tour-card {
+        left: 10px !important;
+        right: 10px !important;
+        width: calc(100vw - 20px) !important;
+        max-width: none !important;
+    }
+    .tour-card-title { font-size: 1.2rem; }
+    .tour-card-text { font-size: 0.88rem; }
+    
+    .tour-tips-card {
+        padding: 16px 18px;
+    }
+    .tour-tip-text {
+        font-size: 0.88rem;
+    }
+}
+
 </style>
 </head>
 <body>
@@ -3613,6 +4522,11 @@
             <span class="btn-icon">🛠️</span> <span>أدوات المعلم</span>
         </button>
         
+        <!-- 🎓 زر إعادة الجولة التوضيحية -->
+        <button class="tour-restart-btn" onclick="tourRestart()" title="إعادة تشغيل الجولة التوضيحية" style="margin:0 6px;">
+            <span>🎓</span> <span>الجولة</span>
+        </button>
+        
         <!-- 📊 الهَب الجديد: سجلاتي -->
         <button class="nav-btn nav-royal btn-records-hub" onclick="showSection('records-hub',this)" style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(245,158,11,0.08));border:1px solid rgba(212,175,55,0.4);">
             <span class="btn-icon">📊</span> <span style="background:linear-gradient(135deg,#fbbf24,#f59e0b);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;font-weight:900;">سجلاتي</span>
@@ -3982,6 +4896,94 @@
         #section-gradebook .gb-table tr:hover td{background:rgba(212,175,55,0.06)!important;}
         #section-gradebook .gb-cell-input{width:55px;background:transparent;border:1px solid rgba(212,175,55,0.2);color:#fff;padding:5px 4px;border-radius:5px;font-family:Cairo;text-align:center;font-size:.85rem;}
         #section-gradebook .gb-cell-input:focus{outline:none;border-color:#d4af37;background:rgba(212,175,55,0.08);}
+        
+        /* 🎯 SMART FILL — مقبض السحب والتأثيرات */
+        #section-gradebook .gb-fillable-cell {
+            position: relative;
+        }
+        #section-gradebook .gb-fill-handle {
+            position: absolute;
+            bottom: 2px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 10px;
+            height: 10px;
+            background: #d4af37;
+            border: 2px solid rgba(0,0,0,0.5);
+            border-radius: 2px;
+            cursor: crosshair;
+            opacity: 0;
+            transition: opacity 0.15s, transform 0.15s;
+            z-index: 5;
+        }
+        #section-gradebook .gb-fillable-cell:hover .gb-fill-handle,
+        #section-gradebook .gb-cell-selected .gb-fill-handle {
+            opacity: 1;
+        }
+        #section-gradebook .gb-fill-handle:hover {
+            transform: translateX(-50%) scale(1.4);
+            background: #fcd34d;
+            box-shadow: 0 0 8px rgba(252, 211, 77, 0.6);
+        }
+        
+        /* الخلية المُحدّدة */
+        #section-gradebook .gb-cell-selected {
+            outline: 2px solid #d4af37;
+            outline-offset: -2px;
+            background: rgba(212,175,55,0.05);
+        }
+        
+        /* خلية المصدر أثناء السحب */
+        #section-gradebook .gb-fill-source {
+            outline: 2px dashed #d4af37 !important;
+            outline-offset: -2px;
+            background: rgba(212,175,55,0.15) !important;
+        }
+        
+        /* خلايا الهدف (المُحدّدة بالسحب) */
+        #section-gradebook .gb-fill-target {
+            outline: 1px dashed #fcd34d;
+            outline-offset: -1px;
+            background: rgba(252, 211, 77, 0.12) !important;
+        }
+        
+        /* تأثير الفلاش عند الملء */
+        @keyframes gbFillFlash {
+            0%   { background: rgba(16, 185, 129, 0.5); }
+            100% { background: transparent; }
+        }
+        #section-gradebook .gb-cell-filled-flash {
+            animation: gbFillFlash 0.6s ease-out;
+        }
+        
+        /* أثناء السحب — تغيير المؤشر العام */
+        body.gb-fill-dragging {
+            cursor: crosshair !important;
+        }
+        body.gb-fill-dragging * {
+            cursor: crosshair !important;
+            user-select: none !important;
+        }
+        
+        /* زر ملء العمود */
+        #section-gradebook .gb-fill-col-btn {
+            background: rgba(212,175,55,0.15);
+            border: 1px solid rgba(212,175,55,0.3);
+            color: #fcd34d;
+            width: 22px;
+            height: 22px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            margin-right: 4px;
+            transition: all 0.2s;
+            padding: 0;
+            line-height: 1;
+        }
+        #section-gradebook .gb-fill-col-btn:hover {
+            background: rgba(212,175,55,0.35);
+            transform: scale(1.15);
+        }
         #section-gradebook .gb-cell-name{min-width:140px;}
         #section-gradebook .gb-cell-name input{width:100%;background:transparent;border:none;color:#fff;padding:4px 6px;font-family:Cairo;font-size:.88rem;text-align:right;}
         #section-gradebook .gb-cell-name input:focus{outline:1px solid #d4af37;background:rgba(212,175,55,0.05);}
@@ -4278,6 +5280,19 @@
                 <button class="gb-btn" style="background:linear-gradient(135deg,#ec4899,#f43f5e);color:#fff;" onclick="gbOpenTemplateModal()">🎨 تغيير القالب</button>
                 <button class="gb-btn gb-btn-blue" onclick="gbPrint()">🖨️ طباعة</button>
                 <button class="gb-btn gb-btn-green" onclick="gbExportExcel()">📎 تصدير Excel</button>
+            </div>
+            
+            <!-- 🎯 شريط تلميحي عن Smart Fill (مثل Excel) -->
+            <div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(252,211,77,0.04));border:1px solid rgba(212,175,55,0.25);border-radius:10px;padding:10px 14px;margin:12px 0 8px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;font-size:0.82rem;">
+                <span style="font-size:1.3rem;">⚡</span>
+                <div style="flex:1;min-width:240px;color:rgba(255,255,255,0.8);line-height:1.5;">
+                    <b style="color:#fcd34d;">ميزة الملء الذكي (مثل Excel):</b>
+                    <span style="margin-right:6px;">🖱️ اسحب المقبض <span style="display:inline-block;width:10px;height:10px;background:#d4af37;border-radius:2px;vertical-align:middle;border:1px solid rgba(0,0,0,0.5);"></span> من زاوية أي خلية لأسفل لنسخها</span>
+                    <span style="color:rgba(255,255,255,0.5);margin:0 6px;">·</span>
+                    <span>⌨️ <kbd style="background:rgba(0,0,0,0.4);padding:2px 6px;border-radius:4px;border:1px solid rgba(255,255,255,0.1);font-family:monospace;font-size:0.78rem;">Ctrl + D</kbd> نسخ من الخلية الأعلى</span>
+                    <span style="color:rgba(255,255,255,0.5);margin:0 6px;">·</span>
+                    <span>📥 زر "ملء العمود" بجانب اسم العمود</span>
+                </div>
             </div>
             
             <!-- 📊 الجدول -->
@@ -17615,6 +18630,7 @@ document.addEventListener('click', function(e) {
 ════════════════════════════════════════════════════════════ -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ════════════════════════════════════════════════════════════
 // 📝 EXAM EDITOR
@@ -19813,36 +20829,255 @@ function gbExportExcel() {
         return;
     }
     
-    // BOM للعربية + CSV
-    var BOM = '\uFEFF';
-    var headers = ['م','اسم الطالب','شفوي1','شفوي2','واجب1','واجب2','سؤال1','سؤال2','اختبار1','مستوى1','اختبار2','مستوى2','مشروع','المجموع (60)','المستوى','نهاية الفصل','الكلي (100)','المستوى الكلي'];
-    var rows = [headers.join(',')];
+    // 🔒 التحقق من وجود SheetJS
+    if (typeof XLSX === 'undefined') {
+        alert('⚠️ مكتبة Excel غير محمّلة. جاري إعادة المحاولة...');
+        // محاولة احتياطية - تحميل ديناميكي
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = function(){ gbExportExcel(); };
+        document.head.appendChild(s);
+        return;
+    }
     
-    cls.students.forEach(function(s, i) {
-        var c = gbCompute(s);
-        rows.push([
-            i+1,
-            '"' + (s.name||'').replace(/"/g,'""') + '"',
-            s.oral1, s.oral2,
-            s.hw1, s.hw2,
-            s.quiz1, s.quiz2,
-            s.shortExam1, c.level1,
-            s.shortExam2, c.level2,
-            s.project,
-            c.sum60.toFixed(1), c.overall,
-            s.finalExam,
-            c.total100.toFixed(1), c.totalLvl
-        ].join(','));
-    });
-    
-    var csv = BOM + rows.join('\n');
-    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'سجل_درجات_' + cls.name + '.xls';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+        // ════════════════════════════════════════════════════════
+        // 🏗️ بناء بيانات الورقة (Array of Arrays)
+        // ════════════════════════════════════════════════════════
+        var rows = [];
+        var className = cls.name || 'الفصل';
+        var teacherName = (window._currentUser && window._currentUser.full_name) || '';
+        var todayStr = new Date().toLocaleDateString('ar-OM');
+        
+        // الصف 1: العنوان الرئيسي
+        rows.push(['سجل درجات - ' + className]);
+        // الصف 2: بيانات إضافية
+        rows.push(['المعلم: ' + teacherName + '   |   التاريخ: ' + todayStr + '   |   عدد الطلاب: ' + cls.students.length]);
+        // الصف 3: فارغ
+        rows.push([]);
+        
+        // الصف 4: رؤوس الأعمدة
+        var headers = [
+            'م', 'اسم الطالب', 
+            'شفوي 1', 'شفوي 2', 
+            'واجب 1', 'واجب 2', 
+            'سؤال قصير 1', 'سؤال قصير 2',
+            'اختبار قصير 1', 'مستوى 1',
+            'اختبار قصير 2', 'مستوى 2',
+            'المشروع',
+            'المجموع (60)', 'المستوى الإجمالي',
+            'اختبار النهاية', 'الكلي (100)', 'المستوى الكلي'
+        ];
+        rows.push(headers);
+        
+        // صفوف الطلاب - الأرقام كأرقام حقيقية (وليس نصوص)
+        cls.students.forEach(function(s, i) {
+            var c = gbCompute(s);
+            rows.push([
+                i + 1,
+                s.name || '',
+                _gbN(s.oral1), _gbN(s.oral2),
+                _gbN(s.hw1), _gbN(s.hw2),
+                _gbN(s.quiz1), _gbN(s.quiz2),
+                _gbN(s.shortExam1), c.level1 || '',
+                _gbN(s.shortExam2), c.level2 || '',
+                _gbN(s.project),
+                parseFloat(c.sum60.toFixed(1)), c.overall || '',
+                _gbN(s.finalExam),
+                parseFloat(c.total100.toFixed(1)), c.totalLvl || ''
+            ]);
+        });
+        
+        // صف فارغ ثم صف الإحصاءات
+        rows.push([]);
+        
+        // حساب المتوسطات
+        var totalSum = 0, totalCount = 0, maxScore = 0, minScore = 100, passed = 0;
+        cls.students.forEach(function(s){
+            var c = gbCompute(s);
+            if (c.total100 > 0) {
+                totalSum += c.total100;
+                totalCount++;
+                if (c.total100 > maxScore) maxScore = c.total100;
+                if (c.total100 < minScore) minScore = c.total100;
+                if (c.total100 >= 50) passed++;
+            }
+        });
+        var avg = totalCount ? (totalSum / totalCount).toFixed(2) : 0;
+        var passRate = totalCount ? ((passed / totalCount) * 100).toFixed(1) : 0;
+        
+        rows.push(['📊 الإحصاءات']);
+        rows.push(['المتوسط العام:', parseFloat(avg)]);
+        rows.push(['أعلى درجة:', maxScore]);
+        rows.push(['أدنى درجة:', minScore]);
+        rows.push(['عدد الناجحين:', passed, 'من', totalCount]);
+        rows.push(['نسبة النجاح %:', parseFloat(passRate)]);
+        
+        // ════════════════════════════════════════════════════════
+        // 🎨 بناء ورقة Excel من المصفوفة
+        // ════════════════════════════════════════════════════════
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        
+        // 📐 عرض الأعمدة (حساب تلقائي ذكي)
+        ws['!cols'] = [
+            { wch: 5  },  // م
+            { wch: 35 },  // اسم الطالب (واسع للأسماء الطويلة)
+            { wch: 9 },   // شفوي 1
+            { wch: 9 },   // شفوي 2
+            { wch: 8 },   // واجب 1
+            { wch: 8 },   // واجب 2
+            { wch: 13 },  // سؤال قصير 1
+            { wch: 13 },  // سؤال قصير 2
+            { wch: 14 },  // اختبار قصير 1
+            { wch: 9 },   // مستوى 1
+            { wch: 14 },  // اختبار قصير 2
+            { wch: 9 },   // مستوى 2
+            { wch: 10 },  // المشروع
+            { wch: 13 },  // المجموع 60
+            { wch: 16 },  // المستوى الإجمالي
+            { wch: 14 },  // اختبار النهاية
+            { wch: 13 },  // الكلي 100
+            { wch: 13 }   // المستوى الكلي
+        ];
+        
+        // 🔗 دمج خلايا العنوان
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 17 } },  // العنوان
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 17 } }   // البيانات
+        ];
+        
+        // 🎨 تنسيق ألوان احترافي - إمبراطورية الرياضيات
+        var titleStyle = {
+            font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' }, name: 'Arial' },
+            fill: { fgColor: { rgb: '0C447C' }, patternType: 'solid' },
+            alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 },
+            border: { 
+                top: { style: 'medium', color: { rgb: 'D4AF37' } },
+                bottom: { style: 'medium', color: { rgb: 'D4AF37' } }
+            }
+        };
+        var subtitleStyle = {
+            font: { bold: true, sz: 11, color: { rgb: '0C447C' }, name: 'Arial' },
+            fill: { fgColor: { rgb: 'FEF3C7' }, patternType: 'solid' },
+            alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 }
+        };
+        var headerStyle = {
+            font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' }, name: 'Arial' },
+            fill: { fgColor: { rgb: 'D4AF37' }, patternType: 'solid' },
+            alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 },
+            border: {
+                top: { style: 'thin', color: { rgb: '000000' } },
+                bottom: { style: 'thin', color: { rgb: '000000' } },
+                left: { style: 'thin', color: { rgb: '000000' } },
+                right: { style: 'thin', color: { rgb: '000000' } }
+            }
+        };
+        var cellStyle = {
+            font: { sz: 10, name: 'Arial' },
+            alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 },
+            border: {
+                top: { style: 'thin', color: { rgb: 'CCCCCC' } },
+                bottom: { style: 'thin', color: { rgb: 'CCCCCC' } },
+                left: { style: 'thin', color: { rgb: 'CCCCCC' } },
+                right: { style: 'thin', color: { rgb: 'CCCCCC' } }
+            }
+        };
+        var nameStyle = JSON.parse(JSON.stringify(cellStyle));
+        nameStyle.alignment.horizontal = 'right';
+        nameStyle.font.bold = true;
+        var altRowStyle = JSON.parse(JSON.stringify(cellStyle));
+        altRowStyle.fill = { fgColor: { rgb: 'F8F9FA' }, patternType: 'solid' };
+        var altRowNameStyle = JSON.parse(JSON.stringify(nameStyle));
+        altRowNameStyle.fill = { fgColor: { rgb: 'F8F9FA' }, patternType: 'solid' };
+        var totalsStyle = JSON.parse(JSON.stringify(cellStyle));
+        totalsStyle.font.bold = true;
+        totalsStyle.fill = { fgColor: { rgb: 'DCFCE7' }, patternType: 'solid' };
+        
+        // تطبيق العنوان (الصف 0)
+        if (ws['A1']) ws['A1'].s = titleStyle;
+        if (ws['A2']) ws['A2'].s = subtitleStyle;
+        
+        // تطبيق الرؤوس (الصف 3 = index 3)
+        var headerRow = 3;
+        for (var col = 0; col < 18; col++) {
+            var cellRef = XLSX.utils.encode_cell({ r: headerRow, c: col });
+            if (ws[cellRef]) ws[cellRef].s = headerStyle;
+        }
+        
+        // تطبيق صفوف الطلاب
+        for (var i = 0; i < cls.students.length; i++) {
+            var rowIdx = 4 + i;
+            var isAlt = i % 2 === 1;
+            for (var col = 0; col < 18; col++) {
+                var cellRef = XLSX.utils.encode_cell({ r: rowIdx, c: col });
+                if (ws[cellRef]) {
+                    if (col === 1) {
+                        ws[cellRef].s = isAlt ? altRowNameStyle : nameStyle;
+                    } else {
+                        ws[cellRef].s = isAlt ? altRowStyle : cellStyle;
+                    }
+                }
+            }
+        }
+        
+        // تطبيق صف الإحصاءات
+        var statsStart = 4 + cls.students.length + 1; // بعد الصف الفارغ
+        for (var r = statsStart; r < rows.length; r++) {
+            for (var col = 0; col < 4; col++) {
+                var cellRef = XLSX.utils.encode_cell({ r: r, c: col });
+                if (ws[cellRef]) ws[cellRef].s = totalsStyle;
+            }
+        }
+        
+        // 🔒 ارتفاع الصفوف
+        ws['!rows'] = [
+            { hpt: 30 },  // عنوان
+            { hpt: 22 },  // بيانات
+            { hpt: 8  },  // فارغ
+            { hpt: 36 }   // رؤوس
+        ];
+        // باقي الصفوف ارتفاع طبيعي
+        for (var i = 4; i < rows.length; i++) {
+            ws['!rows'][i] = { hpt: 22 };
+        }
+        
+        // 🌐 RTL للورقة
+        if (!ws['!sheetView']) ws['!sheetView'] = [];
+        ws['!sheetView'][0] = { rightToLeft: true };
+        
+        // ❄️ تجميد الصفوف (Freeze Panes) - بعد صف الرؤوس
+        ws['!freeze'] = { xSplit: 2, ySplit: 4, topLeftCell: 'C5' };
+        
+        // ════════════════════════════════════════════════════════
+        // 💾 إنشاء الـ workbook وتنزيله
+        // ════════════════════════════════════════════════════════
+        var wb = XLSX.utils.book_new();
+        // RTL على مستوى الـ workbook
+        if (!wb.Workbook) wb.Workbook = {};
+        if (!wb.Workbook.Views) wb.Workbook.Views = [];
+        wb.Workbook.Views[0] = { RTL: true };
+        
+        XLSX.utils.book_append_sheet(wb, ws, 'سجل الدرجات');
+        
+        // اسم الملف بتاريخ
+        var fname = 'سجل_درجات_' + (className.replace(/[<>:"\/\\|?*]/g, '_')) + '.xlsx';
+        XLSX.writeFile(wb, fname);
+        
+        // toast نجاح
+        if (typeof showToast === 'function') {
+            showToast('✅ تم تصدير ' + cls.students.length + ' طالب بنجاح', 'success');
+        }
+    } catch (err) {
+        console.error('Export error:', err);
+        alert('❌ خطأ في التصدير: ' + (err.message || err));
+    }
+}
+
+// مساعدة: تحويل القيم إلى أرقام (أو فراغ)
+function _gbN(v) {
+    if (v === null || v === undefined || v === '') return '';
+    var n = parseFloat(v);
+    return isNaN(n) ? v : n;
 }
 
 function gbEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -20065,29 +21300,96 @@ function wsUpdateStats() {
 
 function wsExport() {
     if (!WS_DATA.students.length) { alert('⚠️ لا توجد بيانات'); return; }
-    var BOM = '\uFEFF';
-    var headers = ['الاسم','الصف','المواضيع الضعيفة','البداية','الحالي','الهدف','التشخيص','الخطة','تاريخ البدء','تحسّن','ولي الأمر','ملاحظات'];
-    var rows = [headers.join(',')];
-    WS_DATA.students.forEach(function(s){
-        rows.push([
-            '"' + (s.name||'').replace(/"/g,'""') + '"',
-            '"' + (s.class||'').replace(/"/g,'""') + '"',
-            '"' + (s.weakSubjects||'').replace(/"/g,'""') + '"',
-            s.initialScore, s.currentScore, s.targetScore,
-            '"' + (s.diagnosis||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            '"' + (s.plan||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            s.startDate || '',
-            s.improved ? 'نعم' : 'لا',
-            '"' + (s.parentContact||'').replace(/"/g,'""') + '"',
-            '"' + (s.notes||'').replace(/"/g,'""').replace(/\n/g,' ') + '"'
-        ].join(','));
-    });
-    var csv = BOM + rows.join('\n');
-    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'سجل_الضعاف.xls';
-    a.click();
+    
+    if (typeof XLSX === 'undefined') {
+        alert('⚠️ مكتبة Excel غير محمّلة. جاري إعادة المحاولة...');
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = function(){ wsExport(); };
+        document.head.appendChild(s);
+        return;
+    }
+    
+    try {
+        var teacherName = (window._currentUser && window._currentUser.full_name) || '';
+        var todayStr = new Date().toLocaleDateString('ar-OM');
+        
+        var rows = [];
+        rows.push(['سجل الطلاب الضعاف - المتابعة والعلاج']);
+        rows.push(['المعلم: ' + teacherName + '   |   التاريخ: ' + todayStr + '   |   عدد الطلاب: ' + WS_DATA.students.length]);
+        rows.push([]);
+        var headers = ['م','الاسم','الصف','المواضيع الضعيفة','الدرجة الأولى','الدرجة الحالية','الهدف','التشخيص','الخطة العلاجية','تاريخ البدء','تحسّن','ولي الأمر','ملاحظات'];
+        rows.push(headers);
+        
+        WS_DATA.students.forEach(function(s, i){
+            rows.push([
+                i+1,
+                s.name || '',
+                s.class || '',
+                s.weakSubjects || '',
+                _gbN(s.initialScore),
+                _gbN(s.currentScore),
+                _gbN(s.targetScore),
+                (s.diagnosis || '').replace(/\n/g, ' '),
+                (s.plan || '').replace(/\n/g, ' '),
+                s.startDate || '',
+                s.improved ? 'نعم' : 'لا',
+                s.parentContact || '',
+                (s.notes || '').replace(/\n/g, ' ')
+            ]);
+        });
+        
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [
+            { wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 28 },
+            { wch: 12 }, { wch: 12 }, { wch: 10 },
+            { wch: 35 }, { wch: 35 }, { wch: 12 }, { wch: 10 },
+            { wch: 20 }, { wch: 30 }
+        ];
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } }
+        ];
+        
+        // التنسيق
+        var titleStyle = { font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' }, name: 'Arial' }, fill: { fgColor: { rgb: 'B91C1C' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var subStyle = { font: { bold: true, sz: 11, color: { rgb: 'B91C1C' }, name: 'Arial' }, fill: { fgColor: { rgb: 'FEE2E2' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var headerStyle = { font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' }, name: 'Arial' }, fill: { fgColor: { rgb: 'EF4444' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: '000000' } }, bottom: { style: 'thin', color: { rgb: '000000' } }, left: { style: 'thin', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } } };
+        var cellStyle = { font: { sz: 10, name: 'Arial' }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: 'CCCCCC' } }, bottom: { style: 'thin', color: { rgb: 'CCCCCC' } }, left: { style: 'thin', color: { rgb: 'CCCCCC' } }, right: { style: 'thin', color: { rgb: 'CCCCCC' } } } };
+        var altStyle = JSON.parse(JSON.stringify(cellStyle));
+        altStyle.fill = { fgColor: { rgb: 'FEF7F7' }, patternType: 'solid' };
+        
+        if (ws['A1']) ws['A1'].s = titleStyle;
+        if (ws['A2']) ws['A2'].s = subStyle;
+        for (var col = 0; col < 13; col++) {
+            var ref = XLSX.utils.encode_cell({ r: 3, c: col });
+            if (ws[ref]) ws[ref].s = headerStyle;
+        }
+        for (var i = 0; i < WS_DATA.students.length; i++) {
+            var rowIdx = 4 + i;
+            for (var col = 0; col < 13; col++) {
+                var ref = XLSX.utils.encode_cell({ r: rowIdx, c: col });
+                if (ws[ref]) ws[ref].s = i % 2 === 1 ? altStyle : cellStyle;
+            }
+        }
+        
+        ws['!rows'] = [{ hpt: 30 }, { hpt: 22 }, { hpt: 8 }, { hpt: 36 }];
+        for (var i = 4; i < rows.length; i++) ws['!rows'][i] = { hpt: 28 };
+        ws['!sheetView'] = [{ rightToLeft: true }];
+        ws['!freeze'] = { xSplit: 2, ySplit: 4, topLeftCell: 'C5' };
+        
+        var wb = XLSX.utils.book_new();
+        wb.Workbook = { Views: [{ RTL: true }] };
+        XLSX.utils.book_append_sheet(wb, ws, 'الطلاب الضعاف');
+        XLSX.writeFile(wb, 'سجل_الطلاب_الضعاف.xlsx');
+        
+        if (typeof showToast === 'function') {
+            showToast('✅ تم تصدير ' + WS_DATA.students.length + ' طالب', 'success');
+        }
+    } catch (err) {
+        console.error('Export error:', err);
+        alert('❌ خطأ في التصدير: ' + (err.message || err));
+    }
 }
 
 
@@ -20541,31 +21843,95 @@ function gsUpdateStats() {
 
 function gsExport() {
     if (!GS_DATA.students.length) { alert('⚠️ لا توجد بيانات'); return; }
-    var BOM = '\uFEFF';
-    var headers = ['الاسم','الصف','المتوسط','مجال الموهبة','المستوى','نقاط القوة','البرنامج الإثرائي','مشاريع التحدي','المسابقات','المرشد','عدد الإنجازات','تاريخ البدء'];
-    var rows = [headers.join(',')];
-    GS_DATA.students.forEach(function(s){
-        rows.push([
-            '"' + (s.name||'').replace(/"/g,'""') + '"',
-            '"' + (s.class||'').replace(/"/g,'""') + '"',
-            s.avgScore,
-            '"' + (s.talentArea||'').replace(/"/g,'""') + '"',
-            s.talentLevel,
-            '"' + (s.strengths||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            '"' + (s.enrichmentProgram||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            '"' + (s.challengeProjects||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            '"' + (s.competitions||'').replace(/"/g,'""').replace(/\n/g,' ') + '"',
-            '"' + (s.mentor||'').replace(/"/g,'""') + '"',
-            (s.achievements||[]).length,
-            s.startDate || ''
-        ].join(','));
-    });
-    var csv = BOM + rows.join('\n');
-    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    var a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'سجل_الموهوبين.xls';
-    a.click();
+    
+    if (typeof XLSX === 'undefined') {
+        alert('⚠️ مكتبة Excel غير محمّلة. جاري إعادة المحاولة...');
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = function(){ gsExport(); };
+        document.head.appendChild(s);
+        return;
+    }
+    
+    try {
+        var teacherName = (window._currentUser && window._currentUser.full_name) || '';
+        var todayStr = new Date().toLocaleDateString('ar-OM');
+        
+        var rows = [];
+        rows.push(['سجل الطلاب الموهوبين - الإثراء والتميّز']);
+        rows.push(['المعلم: ' + teacherName + '   |   التاريخ: ' + todayStr + '   |   عدد الطلاب: ' + GS_DATA.students.length]);
+        rows.push([]);
+        var headers = ['م','الاسم','الصف','المتوسط','مجال الموهبة','المستوى','نقاط القوة','البرنامج الإثرائي','مشاريع التحدي','المسابقات','المرشد','عدد الإنجازات','تاريخ البدء'];
+        rows.push(headers);
+        
+        GS_DATA.students.forEach(function(s, i){
+            rows.push([
+                i+1,
+                s.name || '',
+                s.class || '',
+                _gbN(s.avgScore),
+                s.talentArea || '',
+                s.talentLevel || '',
+                (s.strengths || '').replace(/\n/g, ' '),
+                (s.enrichmentProgram || '').replace(/\n/g, ' '),
+                (s.challengeProjects || '').replace(/\n/g, ' '),
+                (s.competitions || '').replace(/\n/g, ' '),
+                s.mentor || '',
+                (s.achievements || []).length,
+                s.startDate || ''
+            ]);
+        });
+        
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        ws['!cols'] = [
+            { wch: 5 }, { wch: 28 }, { wch: 14 }, { wch: 10 },
+            { wch: 18 }, { wch: 12 }, { wch: 30 }, { wch: 30 },
+            { wch: 25 }, { wch: 25 }, { wch: 18 }, { wch: 12 }, { wch: 12 }
+        ];
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: 12 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: 12 } }
+        ];
+        
+        // 🌟 تنسيق ذهبي للموهوبين
+        var titleStyle = { font: { bold: true, sz: 16, color: { rgb: '1A1A2E' }, name: 'Arial' }, fill: { fgColor: { rgb: 'D4AF37' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var subStyle = { font: { bold: true, sz: 11, color: { rgb: '8B6914' }, name: 'Arial' }, fill: { fgColor: { rgb: 'FEF3C7' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var headerStyle = { font: { bold: true, sz: 11, color: { rgb: '1A1A2E' }, name: 'Arial' }, fill: { fgColor: { rgb: 'FCD34D' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: '000000' } }, bottom: { style: 'thin', color: { rgb: '000000' } }, left: { style: 'thin', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } } };
+        var cellStyle = { font: { sz: 10, name: 'Arial' }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: 'CCCCCC' } }, bottom: { style: 'thin', color: { rgb: 'CCCCCC' } }, left: { style: 'thin', color: { rgb: 'CCCCCC' } }, right: { style: 'thin', color: { rgb: 'CCCCCC' } } } };
+        var altStyle = JSON.parse(JSON.stringify(cellStyle));
+        altStyle.fill = { fgColor: { rgb: 'FFFBEB' }, patternType: 'solid' };
+        
+        if (ws['A1']) ws['A1'].s = titleStyle;
+        if (ws['A2']) ws['A2'].s = subStyle;
+        for (var col = 0; col < 13; col++) {
+            var ref = XLSX.utils.encode_cell({ r: 3, c: col });
+            if (ws[ref]) ws[ref].s = headerStyle;
+        }
+        for (var i = 0; i < GS_DATA.students.length; i++) {
+            var rowIdx = 4 + i;
+            for (var col = 0; col < 13; col++) {
+                var ref = XLSX.utils.encode_cell({ r: rowIdx, c: col });
+                if (ws[ref]) ws[ref].s = i % 2 === 1 ? altStyle : cellStyle;
+            }
+        }
+        
+        ws['!rows'] = [{ hpt: 30 }, { hpt: 22 }, { hpt: 8 }, { hpt: 36 }];
+        for (var i = 4; i < rows.length; i++) ws['!rows'][i] = { hpt: 28 };
+        ws['!sheetView'] = [{ rightToLeft: true }];
+        ws['!freeze'] = { xSplit: 2, ySplit: 4, topLeftCell: 'C5' };
+        
+        var wb = XLSX.utils.book_new();
+        wb.Workbook = { Views: [{ RTL: true }] };
+        XLSX.utils.book_append_sheet(wb, ws, 'الموهوبين');
+        XLSX.writeFile(wb, 'سجل_الطلاب_الموهوبين.xlsx');
+        
+        if (typeof showToast === 'function') {
+            showToast('✅ تم تصدير ' + GS_DATA.students.length + ' طالب', 'success');
+        }
+    } catch (err) {
+        console.error('Export error:', err);
+        alert('❌ خطأ في التصدير: ' + (err.message || err));
+    }
 }
 </script>
 
@@ -20866,7 +22232,12 @@ function gbRebuildTableHeader() {
     visibleCols.forEach(function(col) {
         var max = col.max > 0 ? '<br><small>(' + col.max + ')</small>' : '';
         var icon = col.type === 'computed' ? '🧮 ' : col.type === 'name' ? '' : '';
-        html += '<th>' + icon + gbEsc(col.label) + max + '</th>';
+        // 🆕 نضيف زر "ملء العمود" للأعمدة من نوع input فقط
+        var fillBtn = '';
+        if (col.type === 'input') {
+            fillBtn = ' <button class="gb-fill-col-btn" onclick="event.stopPropagation();gbFillColumnAll(\'' + col.id + '\')" title="ملء كل خلايا هذا العمود بقيمة واحدة">📥</button>';
+        }
+        html += '<th>' + icon + gbEsc(col.label) + max + fillBtn + '</th>';
     });
     
     html += '<th>⚙️</th></tr>';
@@ -20937,18 +22308,23 @@ function gbRenderTableV2() {
     
     tbody.innerHTML = cls.students.map(function(s, i) {
         var c = gbComputeV2(s);
-        var html = '<tr data-sid="' + s.id + '">';
+        var html = '<tr data-sid="' + s.id + '" data-row-idx="' + i + '">';
         html += '<td>' + (i+1) + '</td>';
         
-        visibleCols.forEach(function(col) {
+        visibleCols.forEach(function(col, colIdx) {
             if (col.type === 'name') {
                 html += '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>';
             } else if (col.type === 'input') {
                 var val = s[col.id] !== undefined ? s[col.id] : 0;
                 var max = col.max || 100;
-                html += '<td><input type="number" class="gb-cell-input" value="' + val + '" min="0" max="' + max + '" step="0.5" onchange="gbUpdateField(' + s.id + ',\'' + col.id + '\',this.value)"></td>';
+                // 🆕 نضيف data attrs للـ Smart Fill
+                html += '<td class="gb-fillable-cell" data-col-id="' + col.id + '" data-col-idx="' + colIdx + '">' +
+                    '<input type="number" class="gb-cell-input gb-fillable-input" value="' + val + '" min="0" max="' + max + '" step="0.5" ' +
+                    'data-sid="' + s.id + '" data-col-id="' + col.id + '" data-row-idx="' + i + '" ' +
+                    'onchange="gbUpdateField(' + s.id + ',\'' + col.id + '\',this.value)">' +
+                    '<div class="gb-fill-handle" title="اسحب لأسفل لنسخ القيمة"></div>' +
+                    '</td>';
             } else if (col.type === 'computed') {
-                // حسب نوع الحساب
                 var cv = c[col.computeFrom];
                 if (cv === undefined) cv = '-';
                 
@@ -20969,6 +22345,268 @@ function gbRenderTableV2() {
         html += '</tr>';
         return html;
     }).join('');
+    
+    // 🆕 تفعيل Smart Fill بعد الـ render
+    setTimeout(gbSmartFillInit, 50);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎯 SMART FILL — ملء الخلايا بالسحب + Ctrl+D + ملء عمود (مثل Excel)
+// ════════════════════════════════════════════════════════════
+
+var _gbSmartFill = {
+    activeCell: null,
+    isDragging: false,
+    startRowIdx: -1,
+    colId: '',
+    sourceValue: null,
+    highlightedCells: []
+};
+
+function gbSmartFillInit() {
+    // 1️⃣ تفعيل تحديد الخلية بالنقر
+    document.querySelectorAll('.gb-fillable-input').forEach(function(input){
+        // إزالة listeners قديمة (تجنب التكرار)
+        var newInput = input.cloneNode(true);
+        // نُحافظ على القيم
+        input.parentNode.replaceChild(newInput, input);
+    });
+    
+    // الآن نضيف listeners على النسخ الجديدة
+    document.querySelectorAll('.gb-fillable-input').forEach(function(input){
+        input.addEventListener('focus', function(){
+            gbSmartFillSelectCell(this);
+        });
+        input.addEventListener('change', function(){
+            var sid = parseInt(this.dataset.sid);
+            var colId = this.dataset.colId;
+            gbUpdateField(sid, colId, this.value);
+        });
+    });
+    
+    // 2️⃣ تفعيل السحب من المقبض
+    document.querySelectorAll('.gb-fill-handle').forEach(function(handle){
+        handle.addEventListener('mousedown', gbSmartFillStartDrag);
+        handle.addEventListener('touchstart', gbSmartFillStartDrag, { passive: false });
+    });
+    
+    // 3️⃣ Ctrl+D = نسخ من الأعلى (مثل Excel)
+    document.removeEventListener('keydown', gbSmartFillKeydown);
+    document.addEventListener('keydown', gbSmartFillKeydown);
+}
+
+function gbSmartFillSelectCell(input) {
+    // إزالة التمييز من السابق
+    document.querySelectorAll('.gb-cell-selected').forEach(function(c){
+        c.classList.remove('gb-cell-selected');
+    });
+    
+    var td = input.closest('td');
+    if (td) {
+        td.classList.add('gb-cell-selected');
+        _gbSmartFill.activeCell = input;
+    }
+}
+
+function gbSmartFillKeydown(e) {
+    // Ctrl+D = ملء من الأعلى (مثل Excel)
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'd') {
+        var active = document.activeElement;
+        if (active && active.classList.contains('gb-fillable-input')) {
+            e.preventDefault();
+            gbSmartFillFromAbove(active);
+        }
+    }
+}
+
+function gbSmartFillFromAbove(input) {
+    var rowIdx = parseInt(input.dataset.rowIdx);
+    var colId = input.dataset.colId;
+    if (rowIdx <= 0) {
+        if (typeof showToast === 'function') showToast('⚠️ لا توجد خلية أعلى منها', 'warning');
+        return;
+    }
+    
+    // نجد الخلية أعلاها
+    var above = document.querySelector('.gb-fillable-input[data-row-idx="' + (rowIdx - 1) + '"][data-col-id="' + colId + '"]');
+    if (above) {
+        var val = above.value;
+        input.value = val;
+        // تطبيق التحديث
+        var sid = parseInt(input.dataset.sid);
+        gbUpdateField(sid, colId, val);
+        
+        // تأثير بصري
+        input.parentElement.classList.add('gb-cell-filled-flash');
+        setTimeout(function(){ input.parentElement.classList.remove('gb-cell-filled-flash'); }, 600);
+        
+        if (typeof showToast === 'function') showToast('✅ تم النسخ من الخلية الأعلى', 'success');
+    }
+}
+
+function gbSmartFillStartDrag(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    var handle = e.target;
+    var td = handle.closest('td.gb-fillable-cell');
+    if (!td) return;
+    
+    var input = td.querySelector('.gb-fillable-input');
+    if (!input) return;
+    
+    _gbSmartFill.isDragging = true;
+    _gbSmartFill.startRowIdx = parseInt(input.dataset.rowIdx);
+    _gbSmartFill.colId = input.dataset.colId;
+    _gbSmartFill.sourceValue = input.value;
+    _gbSmartFill.highlightedCells = [];
+    
+    // إضافة class مرئي للجدول
+    document.body.classList.add('gb-fill-dragging');
+    td.classList.add('gb-fill-source');
+    
+    // الـ listeners للسحب
+    if (e.type === 'touchstart') {
+        document.addEventListener('touchmove', gbSmartFillMove, { passive: false });
+        document.addEventListener('touchend', gbSmartFillEnd);
+    } else {
+        document.addEventListener('mousemove', gbSmartFillMove);
+        document.addEventListener('mouseup', gbSmartFillEnd);
+    }
+}
+
+function gbSmartFillMove(e) {
+    if (!_gbSmartFill.isDragging) return;
+    e.preventDefault();
+    
+    // نجد العنصر تحت المؤشر
+    var clientX = e.clientX || (e.touches && e.touches[0].clientX);
+    var clientY = e.clientY || (e.touches && e.touches[0].clientY);
+    if (!clientX) return;
+    
+    var elem = document.elementFromPoint(clientX, clientY);
+    if (!elem) return;
+    
+    var targetCell = elem.closest('td.gb-fillable-cell');
+    if (!targetCell) return;
+    
+    var targetInput = targetCell.querySelector('.gb-fillable-input');
+    if (!targetInput) return;
+    
+    // نتأكد من أنها في نفس العمود
+    if (targetInput.dataset.colId !== _gbSmartFill.colId) return;
+    
+    var targetRow = parseInt(targetInput.dataset.rowIdx);
+    var startRow = _gbSmartFill.startRowIdx;
+    
+    // نُزيل التمييز القديم
+    _gbSmartFill.highlightedCells.forEach(function(c){
+        c.classList.remove('gb-fill-target');
+    });
+    _gbSmartFill.highlightedCells = [];
+    
+    // نُمَيِّز كل الخلايا من startRow إلى targetRow
+    var minRow = Math.min(startRow, targetRow);
+    var maxRow = Math.max(startRow, targetRow);
+    
+    for (var r = minRow; r <= maxRow; r++) {
+        if (r === startRow) continue; // المصدر نفسه
+        var cell = document.querySelector('.gb-fillable-input[data-row-idx="' + r + '"][data-col-id="' + _gbSmartFill.colId + '"]');
+        if (cell) {
+            var td = cell.closest('td');
+            td.classList.add('gb-fill-target');
+            _gbSmartFill.highlightedCells.push(td);
+        }
+    }
+}
+
+function gbSmartFillEnd(e) {
+    if (!_gbSmartFill.isDragging) return;
+    
+    document.removeEventListener('mousemove', gbSmartFillMove);
+    document.removeEventListener('mouseup', gbSmartFillEnd);
+    document.removeEventListener('touchmove', gbSmartFillMove);
+    document.removeEventListener('touchend', gbSmartFillEnd);
+    document.body.classList.remove('gb-fill-dragging');
+    
+    var filledCount = 0;
+    
+    // نطبّق القيم على كل الخلايا المُحدّدة
+    _gbSmartFill.highlightedCells.forEach(function(td){
+        td.classList.remove('gb-fill-target');
+        var input = td.querySelector('.gb-fillable-input');
+        if (input) {
+            input.value = _gbSmartFill.sourceValue;
+            // تطبيق التحديث
+            var sid = parseInt(input.dataset.sid);
+            var colId = input.dataset.colId;
+            gbUpdateField(sid, colId, _gbSmartFill.sourceValue);
+            // تأثير الملء
+            td.classList.add('gb-cell-filled-flash');
+            setTimeout((function(t){ return function(){ t.classList.remove('gb-cell-filled-flash'); }; })(td), 600);
+            filledCount++;
+        }
+    });
+    
+    // إزالة العلامات
+    document.querySelectorAll('.gb-fill-source').forEach(function(c){
+        c.classList.remove('gb-fill-source');
+    });
+    
+    // إعادة الضبط
+    _gbSmartFill.isDragging = false;
+    _gbSmartFill.startRowIdx = -1;
+    _gbSmartFill.colId = '';
+    _gbSmartFill.sourceValue = null;
+    _gbSmartFill.highlightedCells = [];
+    
+    if (filledCount > 0 && typeof showToast === 'function') {
+        showToast('✅ تم ملء ' + filledCount + ' خلية', 'success');
+    }
+}
+
+// 🎯 ملء عمود كامل بقيمة واحدة (زر منفصل)
+function gbFillColumnAll(colId) {
+    var cls = gbGetCurrentClass();
+    if (!cls || !cls.students.length) {
+        alert('⚠️ لا يوجد طلاب');
+        return;
+    }
+    
+    // نجد اسم العمود
+    var col = GB_DATA.columns.find(function(c){ return c.id === colId; });
+    if (!col) return;
+    
+    var val = prompt('ما الدرجة التي تريد ملء كل خلايا "' + col.label + '" بها؟\n(الحد الأقصى: ' + (col.max || 100) + ')');
+    if (val === null) return;
+    
+    var num = parseFloat(val);
+    if (isNaN(num) || num < 0) {
+        alert('⚠️ أدخل رقماً صحيحاً');
+        return;
+    }
+    if (num > (col.max || 100)) {
+        if (!confirm('⚠️ القيمة (' + num + ') أكبر من الحد الأقصى (' + col.max + '). متابعة؟')) return;
+    }
+    
+    var count = 0;
+    cls.students.forEach(function(s){
+        s[colId] = num;
+        count++;
+    });
+    
+    gbSave();
+    gbRenderTable();
+    gbUpdateStats();
+    
+    if (typeof showToast === 'function') {
+        showToast('✅ تم ملء ' + count + ' خلية في عمود "' + col.label + '"', 'success');
+    }
+}
+
+// زر "ملء عمود" في رأس كل عمود (يُضاف لاحقاً في header)
+function gbBuildFillButton(colId, label) {
+    return '<button class="gb-fill-col-btn" onclick="event.stopPropagation();gbFillColumnAll(\'' + colId + '\')" title="ملء كل خلايا هذا العمود">📥</button>';
 }
 
 // نستبدل دالة gbRenderTable الأصلية
@@ -21013,46 +22651,197 @@ window.gbAddStudent = function() {
     gbUpdateStats();
 };
 
-// تحديث gbExportExcel للأعمدة الديناميكية
+// تحديث gbExportExcel للأعمدة الديناميكية - يستخدم SheetJS لإنشاء XLSX حقيقي
 var _gbExportExcelOriginal = window.gbExportExcel;
 window.gbExportExcel = function() {
     gbEnsureTemplate();
     var cls = gbGetCurrentClass();
     if (!cls || !cls.students.length) { alert('⚠️ لا يوجد بيانات للتصدير'); return; }
     
-    var BOM = '\uFEFF';
-    var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+    if (typeof XLSX === 'undefined') {
+        alert('⚠️ مكتبة Excel غير محمّلة. جاري إعادة المحاولة...');
+        var s = document.createElement('script');
+        s.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+        s.onload = function(){ window.gbExportExcel(); };
+        document.head.appendChild(s);
+        return;
+    }
     
-    var headers = ['م'].concat(visibleCols.map(function(c){return c.label;}));
-    var rows = [headers.join(',')];
-    
-    cls.students.forEach(function(s, i) {
-        var computed = gbComputeV2(s);
-        var row = [i+1];
+    try {
+        var visibleCols = GB_DATA.columns.filter(function(c){return c.visible !== false;});
+        var teacherName = (window._currentUser && window._currentUser.full_name) || '';
+        var todayStr = new Date().toLocaleDateString('ar-OM');
+        var className = cls.name || 'الفصل';
+        var totalCols = 1 + visibleCols.length;
         
-        visibleCols.forEach(function(col) {
-            if (col.type === 'name') {
-                row.push('"' + (s.name||'').replace(/"/g,'""') + '"');
-            } else if (col.type === 'input') {
-                row.push(s[col.id] !== undefined ? s[col.id] : 0);
-            } else if (col.type === 'computed') {
-                var v = computed[col.computeFrom];
-                if (typeof v === 'number') row.push(v.toFixed(1));
-                else row.push(v || '-');
-            }
+        // ════════════════════════════════════════════════════════
+        // 🏗️ بناء البيانات
+        // ════════════════════════════════════════════════════════
+        var rows = [];
+        rows.push(['سجل درجات - ' + className]);
+        rows.push(['المعلم: ' + teacherName + '   |   التاريخ: ' + todayStr + '   |   عدد الطلاب: ' + cls.students.length]);
+        rows.push([]);
+        
+        // الرؤوس
+        var headers = ['م'].concat(visibleCols.map(function(c){ return c.label; }));
+        rows.push(headers);
+        
+        // البيانات
+        cls.students.forEach(function(s, i) {
+            var computed = gbComputeV2(s);
+            var row = [i+1];
+            visibleCols.forEach(function(col) {
+                if (col.type === 'name') {
+                    row.push(s.name || '');
+                } else if (col.type === 'input') {
+                    row.push(_gbN(s[col.id]));
+                } else if (col.type === 'computed') {
+                    var v = computed[col.computeFrom];
+                    if (typeof v === 'number') row.push(parseFloat(v.toFixed(1)));
+                    else row.push(v || '');
+                }
+            });
+            rows.push(row);
         });
         
-        rows.push(row.join(','));
-    });
-    
-    var csv = BOM + rows.join('\n');
-    var blob = new Blob([csv], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    var url = URL.createObjectURL(blob);
-    var a = document.createElement('a');
-    a.href = url;
-    a.download = 'سجل_درجات_' + cls.name + '.xls';
-    a.click();
-    URL.revokeObjectURL(url);
+        // الإحصاءات إن كان فيه عمود "computed" للمجموع
+        var hasTotal = visibleCols.some(function(c){ return c.type === 'computed' && (c.computeFrom === 'total100' || c.computeFrom === 'sum_all'); });
+        if (hasTotal) {
+            var totalCol = visibleCols.find(function(c){ return c.type === 'computed' && (c.computeFrom === 'total100' || c.computeFrom === 'sum_all'); });
+            var totalSum = 0, totalCount = 0, maxScore = 0, minScore = 999, passed = 0;
+            cls.students.forEach(function(s){
+                var c = gbComputeV2(s);
+                var v = c[totalCol.computeFrom];
+                if (typeof v === 'number' && v > 0) {
+                    totalSum += v;
+                    totalCount++;
+                    if (v > maxScore) maxScore = v;
+                    if (v < minScore) minScore = v;
+                    if (v >= 50) passed++;
+                }
+            });
+            var avg = totalCount ? (totalSum / totalCount).toFixed(2) : 0;
+            var passRate = totalCount ? ((passed / totalCount) * 100).toFixed(1) : 0;
+            rows.push([]);
+            rows.push(['📊 الإحصاءات']);
+            rows.push(['المتوسط العام:', parseFloat(avg)]);
+            rows.push(['أعلى درجة:', maxScore]);
+            rows.push(['أدنى درجة:', minScore]);
+            rows.push(['عدد الناجحين:', passed, 'من', totalCount]);
+            rows.push(['نسبة النجاح %:', parseFloat(passRate)]);
+        }
+        
+        // ════════════════════════════════════════════════════════
+        // 🎨 الورقة + التنسيق
+        // ════════════════════════════════════════════════════════
+        var ws = XLSX.utils.aoa_to_sheet(rows);
+        
+        // عرض الأعمدة الديناميكي
+        var cols = [{ wch: 5 }]; // م
+        visibleCols.forEach(function(c){
+            var w = 12;
+            if (c.type === 'name') w = 35;
+            else if (c.label.length > 12) w = 14;
+            cols.push({ wch: w });
+        });
+        ws['!cols'] = cols;
+        
+        // دمج العنوان والبيانات
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: totalCols - 1 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: totalCols - 1 } }
+        ];
+        
+        // التنسيقات
+        var titleStyle = { font: { bold: true, sz: 16, color: { rgb: 'FFFFFF' }, name: 'Arial' }, fill: { fgColor: { rgb: '0C447C' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var subStyle = { font: { bold: true, sz: 11, color: { rgb: '0C447C' }, name: 'Arial' }, fill: { fgColor: { rgb: 'FEF3C7' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 } };
+        var headerStyle = { font: { bold: true, sz: 11, color: { rgb: 'FFFFFF' }, name: 'Arial' }, fill: { fgColor: { rgb: 'D4AF37' }, patternType: 'solid' }, alignment: { horizontal: 'center', vertical: 'center', wrapText: true, readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: '000000' } }, bottom: { style: 'thin', color: { rgb: '000000' } }, left: { style: 'thin', color: { rgb: '000000' } }, right: { style: 'thin', color: { rgb: '000000' } } } };
+        var cellStyle = { font: { sz: 10, name: 'Arial' }, alignment: { horizontal: 'center', vertical: 'center', readingOrder: 2 }, border: { top: { style: 'thin', color: { rgb: 'CCCCCC' } }, bottom: { style: 'thin', color: { rgb: 'CCCCCC' } }, left: { style: 'thin', color: { rgb: 'CCCCCC' } }, right: { style: 'thin', color: { rgb: 'CCCCCC' } } } };
+        var nameStyle = JSON.parse(JSON.stringify(cellStyle));
+        nameStyle.alignment.horizontal = 'right';
+        nameStyle.font.bold = true;
+        var altStyle = JSON.parse(JSON.stringify(cellStyle));
+        altStyle.fill = { fgColor: { rgb: 'F8F9FA' }, patternType: 'solid' };
+        var altNameStyle = JSON.parse(JSON.stringify(nameStyle));
+        altNameStyle.fill = { fgColor: { rgb: 'F8F9FA' }, patternType: 'solid' };
+        var totalsStyle = JSON.parse(JSON.stringify(cellStyle));
+        totalsStyle.font.bold = true;
+        totalsStyle.fill = { fgColor: { rgb: 'DCFCE7' }, patternType: 'solid' };
+        var computedStyle = JSON.parse(JSON.stringify(cellStyle));
+        computedStyle.fill = { fgColor: { rgb: 'EFF6FF' }, patternType: 'solid' };
+        computedStyle.font.bold = true;
+        var altComputedStyle = JSON.parse(JSON.stringify(computedStyle));
+        altComputedStyle.fill = { fgColor: { rgb: 'E0EAFE' }, patternType: 'solid' };
+        
+        // تطبيق العنوان
+        if (ws['A1']) ws['A1'].s = titleStyle;
+        if (ws['A2']) ws['A2'].s = subStyle;
+        
+        // تطبيق الرؤوس
+        for (var col = 0; col < totalCols; col++) {
+            var ref = XLSX.utils.encode_cell({ r: 3, c: col });
+            if (ws[ref]) ws[ref].s = headerStyle;
+        }
+        
+        // تطبيق صفوف الطلاب مع تمييز الأعمدة المحسوبة
+        for (var i = 0; i < cls.students.length; i++) {
+            var rowIdx = 4 + i;
+            var isAlt = i % 2 === 1;
+            for (var col = 0; col < totalCols; col++) {
+                var ref = XLSX.utils.encode_cell({ r: rowIdx, c: col });
+                if (!ws[ref]) continue;
+                
+                if (col === 0) {
+                    ws[ref].s = isAlt ? altStyle : cellStyle;
+                } else {
+                    var colDef = visibleCols[col - 1];
+                    if (colDef && colDef.type === 'name') {
+                        ws[ref].s = isAlt ? altNameStyle : nameStyle;
+                    } else if (colDef && colDef.type === 'computed') {
+                        ws[ref].s = isAlt ? altComputedStyle : computedStyle;
+                    } else {
+                        ws[ref].s = isAlt ? altStyle : cellStyle;
+                    }
+                }
+            }
+        }
+        
+        // تطبيق صفوف الإحصاءات
+        if (hasTotal) {
+            var statsStart = 4 + cls.students.length + 1;
+            for (var r = statsStart; r < rows.length; r++) {
+                for (var col = 0; col < 4; col++) {
+                    var ref = XLSX.utils.encode_cell({ r: r, c: col });
+                    if (ws[ref]) ws[ref].s = totalsStyle;
+                }
+            }
+        }
+        
+        // ارتفاع الصفوف
+        ws['!rows'] = [{ hpt: 30 }, { hpt: 22 }, { hpt: 8 }, { hpt: 36 }];
+        for (var i = 4; i < rows.length; i++) ws['!rows'][i] = { hpt: 24 };
+        
+        // RTL + Freeze
+        ws['!sheetView'] = [{ rightToLeft: true }];
+        ws['!freeze'] = { xSplit: 2, ySplit: 4, topLeftCell: 'C5' };
+        
+        // ════════════════════════════════════════════════════════
+        // 💾 Workbook + تنزيل
+        // ════════════════════════════════════════════════════════
+        var wb = XLSX.utils.book_new();
+        wb.Workbook = { Views: [{ RTL: true }] };
+        XLSX.utils.book_append_sheet(wb, ws, 'سجل الدرجات');
+        
+        var fname = 'سجل_درجات_' + className.replace(/[<>:"\/\\|?*]/g, '_') + '.xlsx';
+        XLSX.writeFile(wb, fname);
+        
+        if (typeof showToast === 'function') {
+            showToast('✅ تم تصدير ' + cls.students.length + ' طالب بنجاح', 'success');
+        }
+    } catch (err) {
+        console.error('Export error:', err);
+        alert('❌ خطأ في التصدير: ' + (err.message || err));
+    }
 };
 
 // تحديث gbInit للتأكد من تحميل القالب
@@ -21741,5 +23530,656 @@ function renderAttachments(attachments, containerId) {
 </script>
 
 
+
+<script>
+
+// ════════════════════════════════════════════════════════════
+// 🎓 PREMIUM ONBOARDING TOUR — جولة توضيحية احترافية بمستوى عالمي
+// مستوى: Stripe / Linear / Notion
+// ════════════════════════════════════════════════════════════
+
+var TOUR_STORAGE_KEY = 'math_empire_tour_completed_v1';
+var _tour = {
+    currentStep: 0,
+    totalSteps: 0,
+    overlay: null,
+    keyHandler: null,
+    resizeHandler: null,
+    isTransitioning: false
+};
+
+function tourHasSeenBefore() {
+    try { return localStorage.getItem(TOUR_STORAGE_KEY) === 'yes'; }
+    catch(e) { return false; }
+}
+function tourMarkSeen() {
+    try { localStorage.setItem(TOUR_STORAGE_KEY, 'yes'); } catch(e) {}
+}
+function tourReset() {
+    try { localStorage.removeItem(TOUR_STORAGE_KEY); } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// 📋 خطوات الجولة
+// ════════════════════════════════════════════════════════════
+var TOUR_STEPS = [
+    {
+        target: '.qa-card.qa-emerald',
+        title: 'محرر الاختبارات الذكي',
+        body: 'صانع المسائل البصرية الأقوى: <b>دباجة احترافية</b> + ١٥ شكل هندسي + رفع صور + سحب وإفلات. يولّد ملفات <b>PDF جاهزة للطباعة</b> بأعلى جودة.',
+        emoji: '🎯',
+        accent: '#10b981',
+        accentLight: '#6ee7b7',
+        category: 'الأقوى'
+    },
+    {
+        target: '.qa-card.qa-violet',
+        title: 'ورشة الألعاب التعليمية',
+        body: '<b>٦ ألعاب تفاعلية</b>: Quiz Battle، عجلة الحظ، مطابقة الذاكرة، Jeopardy، Beat the Clock، مسابقة الفرق. كلها تدعم <b>البنك + AI + الصوت + التنزيل والمشاركة</b>!',
+        emoji: '🎮',
+        accent: '#a855f7',
+        accentLight: '#d8b4fe',
+        category: 'جديد'
+    },
+    {
+        target: '.qa-card.qa-orange',
+        title: 'حزمة كاملة بـ AI',
+        body: 'في دقيقة واحدة، الذكاء الاصطناعي يولّد لك <b>٨ مواد جاهزة</b> لأي درس: شرح، أمثلة، تمارين، خطة، أسئلة، أنشطة، تقييم، ملخص.',
+        emoji: '🚀',
+        accent: '#f97316',
+        accentLight: '#fdba74',
+        category: 'AI'
+    },
+    {
+        target: '.qa-card.qa-red',
+        title: 'مولّد الاختبارات بـ AI',
+        body: 'يولّد <b>اختبارات كاملة</b> من المنهج الرسمي مع إجاباتها — جاهزة للطباعة أو إرسالها للطلاب رقمياً.',
+        emoji: '📝',
+        accent: '#ef4444',
+        accentLight: '#fca5a5',
+        category: 'AI'
+    },
+    {
+        target: '.qa-card.qa-gold',
+        title: 'الشهادات والإنجازات',
+        body: 'قوالب شهادات <b>احترافية</b> للطلاب المتميزين، الناجحين، المشاركين في المسابقات. طباعة فاخرة أو حفظ PDF.',
+        emoji: '🏆',
+        accent: '#d4af37',
+        accentLight: '#fcd34d',
+        category: 'إبداع'
+    },
+    {
+        target: '.qa-card.qa-cyan',
+        title: 'شُعَبي وطلابي',
+        body: 'إدارة كاملة لشعبك: <b>إضافة طلاب</b>، اختبارات مباشرة، متابعة الأداء، تواصل مع أولياء الأمور.',
+        emoji: '🏫',
+        accent: '#06b6d4',
+        accentLight: '#67e8f9',
+        category: 'إدارة'
+    },
+    {
+        target: '.qa-card.qa-teal',
+        title: 'المساعد الذكي التربوي',
+        body: 'مساعدك التربوي الشخصي: <b>اسأله أي شيء</b> عن المنهج، التدريس، المشاكل التعليمية، وسيجاوبك فوراً.',
+        emoji: '🤖',
+        accent: '#14b8a6',
+        accentLight: '#5eead4',
+        category: 'AI'
+    },
+    {
+        target: 'button[onclick*="tools-hub"]',
+        title: 'مركز أدوات المعلم',
+        body: 'كل الأدوات في مكان واحد: <b>سجل الدرجات</b> (مع Smart Fill!)، سجل الضعاف، الموهوبين، خطط الدروس، الجداول، الإحصاءات وأكثر...',
+        emoji: '🛠️',
+        accent: '#3b82f6',
+        accentLight: '#93c5fd',
+        category: 'أدوات',
+        position: 'bottom'
+    }
+];
+
+// ════════════════════════════════════════════════════════════
+// 🎬 شاشة الترحيب الافتتاحية الفاخرة
+// ════════════════════════════════════════════════════════════
+function tourShowWelcome() {
+    var overlay = document.createElement('div');
+    overlay.id = 'tour-welcome-overlay';
+    overlay.innerHTML = 
+        '<div class="tour-welcome-particles" id="tour-particles"></div>' +
+        '<div class="tour-welcome-card">' +
+            '<div class="tour-welcome-glow"></div>' +
+            '<div class="tour-welcome-shine"></div>' +
+            
+            // التاج مع الإشعاع
+            '<div class="tour-crown-container">' +
+                '<div class="tour-crown-rays"></div>' +
+                '<div class="tour-crown">👑</div>' +
+            '</div>' +
+            
+            // العنوان
+            '<div class="tour-welcome-greeting">أهلاً بك في</div>' +
+            '<h1 class="tour-welcome-title">إمبراطورية الرياضيات</h1>' +
+            '<div class="tour-welcome-divider"></div>' +
+            '<p class="tour-welcome-subtitle">منصتك التعليمية الذكية الكاملة<br>' +
+                '<span class="tour-welcome-highlight">١٠ أدوات قوية في مكان واحد</span></p>' +
+            
+            // إحصاءات سريعة
+            '<div class="tour-stats-row">' +
+                '<div class="tour-stat"><div class="tour-stat-num">10+</div><div class="tour-stat-lbl">أدوات</div></div>' +
+                '<div class="tour-stat-divider"></div>' +
+                '<div class="tour-stat"><div class="tour-stat-num">6</div><div class="tour-stat-lbl">ألعاب</div></div>' +
+                '<div class="tour-stat-divider"></div>' +
+                '<div class="tour-stat"><div class="tour-stat-num">∞</div><div class="tour-stat-lbl">AI</div></div>' +
+                '<div class="tour-stat-divider"></div>' +
+                '<div class="tour-stat"><div class="tour-stat-num">2</div><div class="tour-stat-lbl">دقائق</div></div>' +
+            '</div>' +
+            
+            // الميزات السريعة
+            '<div class="tour-features-row">' +
+                '<div class="tour-feature-pill" style="--c:#10b981;"><span>🎯</span> محرر اختبارات</div>' +
+                '<div class="tour-feature-pill" style="--c:#a855f7;"><span>🎮</span> ٦ ألعاب</div>' +
+                '<div class="tour-feature-pill" style="--c:#f97316;"><span>🚀</span> AI كامل</div>' +
+                '<div class="tour-feature-pill" style="--c:#d4af37;"><span>🏆</span> شهادات</div>' +
+                '<div class="tour-feature-pill" style="--c:#06b6d4;"><span>🏫</span> إدارة شُعب</div>' +
+                '<div class="tour-feature-pill" style="--c:#3b82f6;"><span>📊</span> سجل ذكي</div>' +
+            '</div>' +
+            
+            // الأزرار
+            '<div class="tour-welcome-actions">' +
+                '<button class="tour-btn-cta" onclick="tourStartGuide()">' +
+                    '<span class="tour-btn-icon">🎓</span>' +
+                    '<span class="tour-btn-label">ابدأ الجولة التفاعلية</span>' +
+                    '<span class="tour-btn-meta">٢ دقيقة فقط</span>' +
+                '</button>' +
+                '<button class="tour-btn-skip-welcome" onclick="tourSkipAll()">⏭️ أعرف اللوحة، اتخطّى</button>' +
+            '</div>' +
+            
+            '<div class="tour-welcome-hint">💡 يمكنك إعادة الجولة لاحقاً من زر <b>"🎓 الجولة"</b> في القائمة العلوية</div>' +
+        '</div>';
+    document.body.appendChild(overlay);
+    
+    // إنشاء الجسيمات
+    tourCreateParticles();
+    
+    // animation entrance
+    setTimeout(function(){ overlay.classList.add('tour-active'); }, 50);
+}
+
+// 🌟 إنشاء جسيمات ذهبية متطايرة
+function tourCreateParticles() {
+    var container = document.getElementById('tour-particles');
+    if (!container) return;
+    var count = 15;
+    for (var i = 0; i < count; i++) {
+        var p = document.createElement('div');
+        p.className = 'tour-particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDelay = Math.random() * 8 + 's';
+        p.style.animationDuration = (8 + Math.random() * 6) + 's';
+        p.style.fontSize = (10 + Math.random() * 12) + 'px';
+        p.textContent = ['✦', '✧', '⋆', '✨', '💫'][Math.floor(Math.random() * 5)];
+        container.appendChild(p);
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎯 بدء الجولة (بعد الترحيب)
+// ════════════════════════════════════════════════════════════
+function tourStartGuide() {
+    var welcome = document.getElementById('tour-welcome-overlay');
+    if (welcome) {
+        welcome.classList.add('tour-fade-out');
+        setTimeout(function(){ welcome.remove(); }, 500);
+    }
+    
+    _tour.currentStep = 0;
+    _tour.totalSteps = TOUR_STEPS.length;
+    
+    // تفعيل keyboard navigation
+    _tour.keyHandler = function(e) {
+        if (!document.getElementById('tour-step-overlay')) return;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') {
+            e.preventDefault();
+            // RTL: السهم الأيمن = السابق، الأيسر = التالي
+            tourShowStep(_tour.currentStep + (e.key === 'ArrowLeft' ? 1 : -1));
+        } else if (e.key === 'Escape') {
+            e.preventDefault();
+            tourSkipAll();
+        } else if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            tourShowStep(_tour.currentStep + 1);
+        }
+    };
+    document.addEventListener('keydown', _tour.keyHandler);
+    
+    setTimeout(function(){ tourShowStep(0); }, 600);
+}
+
+// ════════════════════════════════════════════════════════════
+// 📍 عرض خطوة - النظام الاحترافي
+// ════════════════════════════════════════════════════════════
+function tourShowStep(stepIdx) {
+    if (_tour.isTransitioning) return;
+    
+    if (stepIdx < 0) return;
+    if (stepIdx >= TOUR_STEPS.length) {
+        tourShowCompletion();
+        return;
+    }
+    
+    var step = TOUR_STEPS[stepIdx];
+    _tour.currentStep = stepIdx;
+    _tour.isTransitioning = true;
+    
+    // إزالة الـ overlay السابق + النسخة (clone) بـ fade-out ناعم
+    var oldOverlay = document.getElementById('tour-step-overlay');
+    var oldClone = _tour.clone;
+    if (oldOverlay) {
+        oldOverlay.classList.add('tour-step-fading');
+        if (oldClone) oldClone.classList.add('tour-clone-fading');
+        setTimeout(function() {
+            if (oldOverlay.parentNode) oldOverlay.remove();
+            if (oldClone && oldClone.parentNode) oldClone.remove();
+            _tour.overlay = null;
+            _tour.clone = null;
+            tourBuildStep(stepIdx, step);
+        }, 250);
+    } else {
+        tourBuildStep(stepIdx, step);
+    }
+}
+
+function tourBuildStep(stepIdx, step) {
+    var target = document.querySelector(step.target);
+    if (!target) {
+        console.warn('Tour: target not found:', step.target);
+        _tour.isTransitioning = false;
+        setTimeout(function(){ tourShowStep(stepIdx + 1); }, 100);
+        return;
+    }
+    
+    // تمرير ناعم إلى العنصر
+    var rect = target.getBoundingClientRect();
+    var isInView = rect.top >= 50 && rect.bottom <= window.innerHeight - 50;
+    
+    if (!isInView) {
+        target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(function(){ tourRenderOverlay(target, step, stepIdx); }, 600);
+    } else {
+        tourRenderOverlay(target, step, stepIdx);
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎨 رسم الـ overlay الاحترافي (Glow Spotlight + Premium Card)
+// ════════════════════════════════════════════════════════════
+function tourRenderOverlay(target, step, stepIdx) {
+    var rect = target.getBoundingClientRect();
+    
+    if (rect.width === 0 || rect.height === 0) {
+        _tour.isTransitioning = false;
+        tourShowStep(stepIdx + 1);
+        return;
+    }
+    
+    var vw = window.innerWidth;
+    var vh = window.innerHeight;
+    var padding = 12;
+    var spotX = rect.left - padding;
+    var spotY = rect.top - padding;
+    var spotW = rect.width + (padding * 2);
+    var spotH = rect.height + (padding * 2);
+    var borderRadius = 18;
+    
+    // ════════════════════════════════════════════════════
+    // إنشاء الـ overlay الرئيسي
+    // ════════════════════════════════════════════════════
+    var overlay = document.createElement('div');
+    overlay.id = 'tour-step-overlay';
+    overlay.style.cssText = '--accent:' + step.accent + ';--accent-light:' + step.accentLight + ';';
+    
+    // ════════════════════════════════════════════════════
+    // 1️⃣ خلفية معتمة بسيطة (بدون SVG mask معقد)
+    // ════════════════════════════════════════════════════
+    var bgOverlay = '<div class="tour-bg-overlay"></div>';
+    
+    // ════════════════════════════════════════════════════
+    // 2️⃣ ★ التقنية الجديدة: Clone & Lift ★
+    // نأخذ نسخة من العنصر ونضعها بالموضع الدقيق فوق الـ overlay
+    // ════════════════════════════════════════════════════
+    var clone = target.cloneNode(true);
+    clone.classList.add('tour-cloned-element');
+    
+    // إزالة أي event handlers من النسخة
+    clone.removeAttribute('onclick');
+    clone.querySelectorAll('[onclick]').forEach(function(el){ el.removeAttribute('onclick'); });
+    
+    // وضع النسخة في الموقع الدقيق
+    clone.style.cssText += ';' +
+        'position:fixed !important;' +
+        'top:' + rect.top + 'px !important;' +
+        'left:' + rect.left + 'px !important;' +
+        'width:' + rect.width + 'px !important;' +
+        'height:' + rect.height + 'px !important;' +
+        'margin:0 !important;' +
+        'z-index:999992 !important;' +
+        'pointer-events:none !important;' +
+        'transform:none !important;' +
+        'box-shadow:0 0 0 3px ' + step.accent + ',' +
+                  '0 0 0 6px rgba(255,255,255,0.1),' +
+                  '0 0 40px 12px ' + step.accent + 'aa,' +
+                  '0 15px 50px rgba(0,0,0,0.6) !important;' +
+        'border-radius:' + borderRadius + 'px !important;' +
+        'transition:all 0.5s cubic-bezier(0.4, 0, 0.2, 1) !important;' +
+        'animation:tourCloneEnter 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) !important;';
+    
+    // ════════════════════════════════════════════════════
+    // 3️⃣ إضافة هالة متوهجة حول النسخة (decorative)
+    // ════════════════════════════════════════════════════
+    var glowEffect = '<div class="tour-glow-effect" style="' +
+        'position:fixed;' +
+        'top:' + (spotY - 20) + 'px;' +
+        'left:' + (spotX - 20) + 'px;' +
+        'width:' + (spotW + 40) + 'px;' +
+        'height:' + (spotH + 40) + 'px;' +
+        'border-radius:' + (borderRadius + 8) + 'px;' +
+        'pointer-events:none;' +
+        'z-index:999991;' +
+        'background:radial-gradient(circle at center, ' + step.accent + '33, transparent 70%);' +
+        'animation:tourGlowPulse 2s ease-in-out infinite;' +
+    '"></div>';
+    
+    // ════════════════════════════════════════════════════
+    // 4️⃣ Corner brackets زخرفية حول النسخة
+    // ════════════════════════════════════════════════════
+    var cornerBrackets = tourBuildCornerBracketsHTML(spotX, spotY, spotW, spotH, step.accent);
+    
+    // ════════════════════════════════════════════════════
+    // 5️⃣ حساب موضع البطاقة الذكي
+    // ════════════════════════════════════════════════════
+    var cardWidth = Math.min(440, vw - 32);
+    var cardEstHeight = 320;
+    var spaceBelow = vh - (rect.top + rect.height);
+    var spaceAbove = rect.top;
+    var cardTop, cardLeft, arrowSide, arrowOffset;
+    
+    if (step.position === 'bottom' || (step.position !== 'top' && spaceBelow >= 260)) {
+        cardTop = rect.top + rect.height + 32;
+        arrowSide = 'top';
+    } else if (spaceAbove >= 260) {
+        cardTop = rect.top - cardEstHeight - 32;
+        arrowSide = 'bottom';
+    } else {
+        cardTop = Math.max(20, Math.min(rect.top, vh - cardEstHeight - 20));
+        arrowSide = 'none';
+    }
+    
+    cardLeft = rect.left + (rect.width / 2) - (cardWidth / 2);
+    if (cardLeft < 16) cardLeft = 16;
+    if (cardLeft + cardWidth > vw - 16) cardLeft = vw - cardWidth - 16;
+    if (cardTop < 16) cardTop = 16;
+    if (cardTop + cardEstHeight > vh - 16) cardTop = vh - cardEstHeight - 16;
+    
+    arrowOffset = (rect.left + rect.width / 2) - cardLeft;
+    if (arrowOffset < 40) arrowOffset = 40;
+    if (arrowOffset > cardWidth - 40) arrowOffset = cardWidth - 40;
+    
+    // ════════════════════════════════════════════════════
+    // 6️⃣ بناء البطاقة الاحترافية
+    // ════════════════════════════════════════════════════
+    var progress = ((stepIdx + 1) / _tour.totalSteps) * 100;
+    var ringCircumference = 2 * Math.PI * 22;
+    var ringOffset = ringCircumference - (progress / 100) * ringCircumference;
+    
+    var card = '<div class="tour-card tour-arrow-' + arrowSide + '" style="' +
+        'top:' + cardTop + 'px;' +
+        'left:' + cardLeft + 'px;' +
+        'width:' + cardWidth + 'px;' +
+        '--arrow-x:' + arrowOffset + 'px;' +
+        '">';
+    
+    card += '<div class="tour-card-header">';
+    card +=     '<div class="tour-card-emoji-wrapper">';
+    card +=         '<svg class="tour-progress-ring" width="50" height="50">';
+    card +=             '<circle class="tour-ring-bg" cx="25" cy="25" r="22"/>';
+    card +=             '<circle class="tour-ring-fg" cx="25" cy="25" r="22" stroke-dasharray="' + ringCircumference + '" stroke-dashoffset="' + ringOffset + '"/>';
+    card +=         '</svg>';
+    card +=         '<div class="tour-card-emoji">' + step.emoji + '</div>';
+    card +=     '</div>';
+    card +=     '<div class="tour-card-meta">';
+    card +=         '<div class="tour-card-category">' + step.category + '</div>';
+    card +=         '<div class="tour-card-step-num">الخطوة <b>' + (stepIdx + 1) + '</b> من <b>' + _tour.totalSteps + '</b></div>';
+    card +=     '</div>';
+    card +=     '<button class="tour-card-close" onclick="tourSkipAll()" title="إغلاق (Esc)">✕</button>';
+    card += '</div>';
+    
+    card += '<div class="tour-card-body">';
+    card +=     '<h3 class="tour-card-title">' + step.title + '</h3>';
+    card +=     '<p class="tour-card-text">' + step.body + '</p>';
+    card += '</div>';
+    
+    card += '<div class="tour-card-footer">';
+    card += '<div class="tour-dots">';
+    for (var d = 0; d < _tour.totalSteps; d++) {
+        var dotClass = 'tour-dot';
+        if (d === stepIdx) dotClass += ' tour-dot-active';
+        else if (d < stepIdx) dotClass += ' tour-dot-done';
+        card += '<button class="' + dotClass + '" onclick="tourShowStep(' + d + ')" title="الخطوة ' + (d + 1) + '"></button>';
+    }
+    card += '</div>';
+    
+    card += '<div class="tour-card-nav">';
+    if (stepIdx > 0) {
+        card += '<button class="tour-btn-prev" onclick="tourShowStep(' + (stepIdx - 1) + ')">' +
+            '<span class="tour-btn-arrow">→</span> السابق' +
+        '</button>';
+    }
+    if (stepIdx === TOUR_STEPS.length - 1) {
+        card += '<button class="tour-btn-next tour-btn-finish" onclick="tourShowStep(' + (stepIdx + 1) + ')">' +
+            '🎉 إنهاء الجولة' +
+        '</button>';
+    } else {
+        card += '<button class="tour-btn-next" onclick="tourShowStep(' + (stepIdx + 1) + ')">' +
+            'التالي <span class="tour-btn-arrow">←</span>' +
+        '</button>';
+    }
+    card += '</div>';
+    card += '</div>';
+    
+    card += '<div class="tour-keyboard-hint">' +
+        '<kbd>←</kbd> <kbd>→</kbd> للتنقل · <kbd>Esc</kbd> للإغلاق' +
+    '</div>';
+    card += '</div>';
+    
+    // ════════════════════════════════════════════════════
+    // ✨ تجميع كل العناصر
+    // ════════════════════════════════════════════════════
+    overlay.innerHTML = bgOverlay + glowEffect + cornerBrackets + card;
+    document.body.appendChild(overlay);
+    
+    // إدراج النسخة بعد إنشاء الـ overlay (مهم: خارج innerHTML لأنها node فعلي)
+    document.body.appendChild(clone);
+    
+    _tour.overlay = overlay;
+    _tour.clone = clone;
+    
+    // النقر على الخلفية = التالي
+    var bgEl = overlay.querySelector('.tour-bg-overlay');
+    if (bgEl) {
+        bgEl.addEventListener('click', function(){
+            tourShowStep(stepIdx + 1);
+        });
+    }
+    
+    requestAnimationFrame(function(){
+        overlay.classList.add('tour-step-active');
+        _tour.isTransitioning = false;
+    });
+    
+    if (_tour.resizeHandler) window.removeEventListener('resize', _tour.resizeHandler);
+    _tour.resizeHandler = function() {
+        if (_tour.isTransitioning) return;
+        tourShowStep(_tour.currentStep);
+    };
+    window.addEventListener('resize', _tour.resizeHandler);
+}
+
+// 🎨 بناء corner brackets كـ HTML divs (لا SVG)
+function tourBuildCornerBracketsHTML(x, y, w, h, color) {
+    var size = 18;
+    var thick = 3;
+    var base = 'position:fixed;width:' + size + 'px;height:' + size + 'px;border-color:' + color + ';pointer-events:none;z-index:999993;animation:tourCornerIn 0.5s ease-out forwards;opacity:0;';
+    return [
+        // أعلى يسار
+        '<div style="' + base + 'top:' + (y - 6) + 'px;left:' + (x - 6) + 'px;border-top:' + thick + 'px solid;border-left:' + thick + 'px solid;border-radius:6px 0 0 0;animation-delay:0.1s;"></div>',
+        // أعلى يمين
+        '<div style="' + base + 'top:' + (y - 6) + 'px;left:' + (x + w - size + 6) + 'px;border-top:' + thick + 'px solid;border-right:' + thick + 'px solid;border-radius:0 6px 0 0;animation-delay:0.2s;"></div>',
+        // أسفل يسار
+        '<div style="' + base + 'top:' + (y + h - size + 6) + 'px;left:' + (x - 6) + 'px;border-bottom:' + thick + 'px solid;border-left:' + thick + 'px solid;border-radius:0 0 0 6px;animation-delay:0.3s;"></div>',
+        // أسفل يمين
+        '<div style="' + base + 'top:' + (y + h - size + 6) + 'px;left:' + (x + w - size + 6) + 'px;border-bottom:' + thick + 'px solid;border-right:' + thick + 'px solid;border-radius:0 0 6px 0;animation-delay:0.4s;"></div>'
+    ].join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// 🏆 شاشة الختام الفاخرة
+// ════════════════════════════════════════════════════════════
+function tourShowCompletion() {
+    var oldOverlay = document.getElementById('tour-step-overlay');
+    if (oldOverlay) oldOverlay.remove();
+    if (_tour.clone) {
+        _tour.clone.remove();
+        _tour.clone = null;
+    }
+    if (_tour.keyHandler) document.removeEventListener('keydown', _tour.keyHandler);
+    if (_tour.resizeHandler) window.removeEventListener('resize', _tour.resizeHandler);
+    
+    tourMarkSeen();
+    
+    var overlay = document.createElement('div');
+    overlay.id = 'tour-completion-overlay';
+    overlay.innerHTML = 
+        '<div class="tour-welcome-particles" id="tour-particles-end"></div>' +
+        '<div class="tour-welcome-card tour-completion-card">' +
+            '<div class="tour-welcome-glow"></div>' +
+            '<div class="tour-welcome-shine"></div>' +
+            
+            // الكأس مع الإشعاع
+            '<div class="tour-crown-container">' +
+                '<div class="tour-crown-rays tour-trophy-rays"></div>' +
+                '<div class="tour-crown tour-trophy">🏆</div>' +
+            '</div>' +
+            
+            '<div class="tour-welcome-greeting">مبروك يا قائد</div>' +
+            '<h1 class="tour-welcome-title">جاهز لقيادة الإمبراطورية!</h1>' +
+            '<div class="tour-welcome-divider"></div>' +
+            '<p class="tour-welcome-subtitle">أكملت الجولة بنجاح. الآن أنت تعرف كل الأدوات الأساسية لبداية رحلتك التعليمية الذكية.</p>' +
+            
+            // نصائح ذهبية
+            '<div class="tour-tips-card">' +
+                '<div class="tour-tips-header">💎 نصائح لبداية قوية</div>' +
+                '<div class="tour-tips-list">' +
+                    '<div class="tour-tip"><span class="tour-tip-icon" style="--c:#06b6d4;">📚</span><span class="tour-tip-text">ابدأ بـ <b>إضافة شعبتك الأولى</b> من قسم "شعبي وطلابي"</span></div>' +
+                    '<div class="tour-tip"><span class="tour-tip-icon" style="--c:#a855f7;">🎮</span><span class="tour-tip-text">جرّب <b>ورشة الألعاب</b> لإضفاء المتعة على حصصك</span></div>' +
+                    '<div class="tour-tip"><span class="tour-tip-icon" style="--c:#d4af37;">📊</span><span class="tour-tip-text">استخدم <b>Smart Fill</b> في سجل الدرجات (المقبض الذهبي)</span></div>' +
+                    '<div class="tour-tip"><span class="tour-tip-icon" style="--c:#14b8a6;">🤖</span><span class="tour-tip-text">لا تتردد في استخدام <b>المساعد الذكي</b> لأي سؤال</span></div>' +
+                '</div>' +
+            '</div>' +
+            
+            // زر النهاية
+            '<div class="tour-welcome-actions">' +
+                '<button class="tour-btn-cta tour-btn-finish-cta" onclick="tourClose()">' +
+                    '<span class="tour-btn-icon">👑</span>' +
+                    '<span class="tour-btn-label">ابدأ بإمبراطوريتك</span>' +
+                '</button>' +
+            '</div>' +
+            
+            '<div class="tour-welcome-hint">💡 يمكنك إعادة الجولة في أي وقت من زر <b>"🎓 الجولة"</b></div>' +
+        '</div>';
+    
+    document.body.appendChild(overlay);
+    tourCreateParticlesIn('tour-particles-end');
+    setTimeout(function(){ overlay.classList.add('tour-active'); }, 50);
+}
+
+function tourCreateParticlesIn(id) {
+    var container = document.getElementById(id);
+    if (!container) return;
+    for (var i = 0; i < 20; i++) {
+        var p = document.createElement('div');
+        p.className = 'tour-particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.animationDelay = Math.random() * 8 + 's';
+        p.style.animationDuration = (8 + Math.random() * 6) + 's';
+        p.style.fontSize = (10 + Math.random() * 14) + 'px';
+        p.textContent = ['✦', '✧', '⋆', '✨', '💫', '⭐'][Math.floor(Math.random() * 6)];
+        container.appendChild(p);
+    }
+}
+
+function tourSkipAll() {
+    if (!confirm('هل تريد تخطّي الجولة؟ يمكنك إعادتها لاحقاً من زر "🎓 الجولة"')) return;
+    tourMarkSeen();
+    tourClose();
+}
+
+function tourClose() {
+    if (_tour.keyHandler) {
+        document.removeEventListener('keydown', _tour.keyHandler);
+        _tour.keyHandler = null;
+    }
+    if (_tour.resizeHandler) {
+        window.removeEventListener('resize', _tour.resizeHandler);
+        _tour.resizeHandler = null;
+    }
+    
+    // إزالة الـ clone
+    if (_tour.clone && _tour.clone.parentNode) {
+        _tour.clone.classList.add('tour-clone-fading');
+        var c = _tour.clone;
+        setTimeout(function(){ if (c.parentNode) c.remove(); }, 500);
+        _tour.clone = null;
+    }
+    
+    ['tour-welcome-overlay', 'tour-step-overlay', 'tour-completion-overlay'].forEach(function(id){
+        var el = document.getElementById(id);
+        if (el) {
+            el.classList.add('tour-fade-out');
+            setTimeout(function(){ if (el.parentNode) el.remove(); }, 500);
+        }
+    });
+    _tour.overlay = null;
+}
+
+// ════════════════════════════════════════════════════════════
+// 🔄 إعادة تشغيل
+// ════════════════════════════════════════════════════════════
+function tourRestart() {
+    tourReset();
+    if (typeof showSection === 'function') {
+        showSection('home', null);
+    }
+    setTimeout(function(){ tourShowWelcome(); }, 600);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🚀 التشغيل التلقائي
+// ════════════════════════════════════════════════════════════
+function tourAutoStart() {
+    if (tourHasSeenBefore()) return;
+    setTimeout(function(){
+        if (document.querySelector('.qa-card.qa-emerald')) {
+            tourShowWelcome();
+        }
+    }, 1500);
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', tourAutoStart);
+} else {
+    tourAutoStart();
+}
+
+</script>
 </body>
 </html>
