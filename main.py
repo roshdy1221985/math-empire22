@@ -13,7 +13,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.base import BaseHTTPMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, HTMLResponse
 from passlib.context import CryptContext
 from jose import JWTError, jwt
 
@@ -198,6 +198,12 @@ async def security_headers(request: Request, call_next):
             "https://unpkg.com "
             "https://generativelanguage.googleapis.com "
             "https://api.x.ai",
+        # 🆕 السماح بـ Web Workers (لـ pdf.js والمكتبات الأخرى)
+        "worker-src 'self' blob: "
+            "https://cdnjs.cloudflare.com "
+            "https://cdn.jsdelivr.net "
+            "https://unpkg.com",
+        "child-src 'self' blob:",
         "style-src 'self' 'unsafe-inline' "
             "https://fonts.googleapis.com "
             "https://cdnjs.cloudflare.com",
@@ -9607,6 +9613,912 @@ async def games_ai_generate(
             continue
     
     raise HTTPException(status_code=502, detail=f"❌ فشل توليد الأسئلة بعد محاولة كل النماذج. آخر خطأ: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🏭 PREP EXTRACTOR — مصنع الأسئلة الشخصي (Personal Question Factory)
+# ════════════════════════════════════════════════════════════════════════════
+# استخدام شخصي للمدير: استخراج PDF + Gemini + ربط بالمنهج + حفظ في البنك
+# ════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/prep/pdf_info")
+async def prep_pdf_info(
+    pdf_file: UploadFile = File(...),
+    admin = Depends(get_current_admin)
+):
+    """
+    📄 معلومات الـ PDF: عدد الصفحات + معاينة سريعة لأول صفحة
+    """
+    try:
+        content = await pdf_file.read()
+        if len(content) > 50 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
+        
+        try:
+            from pypdf import PdfReader
+        except ImportError:
+            try:
+                from PyPDF2 import PdfReader  # type: ignore
+            except ImportError:
+                raise HTTPException(status_code=503, detail="❌ مكتبة PDF غير مثبتة. ثبّتها: pip install pypdf")
+        
+        import io
+        reader = PdfReader(io.BytesIO(content))
+        page_count = len(reader.pages)
+        
+        # معاينة أول صفحة
+        preview = ""
+        try:
+            if page_count > 0:
+                preview = (reader.pages[0].extract_text() or "")[:500]
+        except Exception:
+            pass
+        
+        return {
+            "status": "ok",
+            "page_count": page_count,
+            "file_size": len(content),
+            "filename": pdf_file.filename,
+            "preview": preview
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ في قراءة PDF: {str(e)[:200]}")
+
+
+@app.post("/api/prep/extract_text")
+async def prep_extract_text(
+    pdf_file: UploadFile = File(...),
+    page_start: int = Form(default=1),
+    page_end: int = Form(default=15),
+    admin = Depends(get_current_admin)
+):
+    """
+    📖 استخراج النص من نطاق صفحات محدد في PDF
+    معالجة قوية مع بدائل لـ PDF العربية والمعقدة
+    """
+    try:
+        content = await pdf_file.read()
+        if not content or len(content) == 0:
+            raise HTTPException(status_code=400, detail="الملف فارغ أو لم يُرفع")
+        
+        if len(content) > 50 * 1024 * 1024:
+            raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
+        
+        # محاولة استيراد المكتبات
+        try:
+            from pypdf import PdfReader
+            pdf_lib = "pypdf"
+        except ImportError:
+            try:
+                from PyPDF2 import PdfReader  # type: ignore
+                pdf_lib = "PyPDF2"
+            except ImportError:
+                raise HTTPException(
+                    status_code=503,
+                    detail="❌ مكتبة PDF غير مثبتة. شغّل: pip install pypdf"
+                )
+        
+        import io
+        
+        # قراءة الـ PDF مع معالجة الـ encryption
+        try:
+            reader = PdfReader(io.BytesIO(content))
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"❌ فشل قراءة PDF: قد يكون الملف تالفاً. ({str(e)[:100]})"
+            )
+        
+        # فحص التشفير
+        if hasattr(reader, 'is_encrypted') and reader.is_encrypted:
+            try:
+                reader.decrypt("")
+            except Exception:
+                raise HTTPException(
+                    status_code=400,
+                    detail="❌ هذا الـ PDF مُشفّر بكلمة مرور. يرجى فك التشفير أولاً."
+                )
+        
+        try:
+            total_pages = len(reader.pages)
+        except Exception as e:
+            raise HTTPException(
+                status_code=400,
+                detail=f"❌ تعذّر قراءة عدد الصفحات: {str(e)[:100]}"
+            )
+        
+        if total_pages == 0:
+            raise HTTPException(status_code=400, detail="❌ الـ PDF لا يحتوي على صفحات")
+        
+        # تنظيف الحدود
+        p_start = max(1, min(page_start, total_pages))
+        p_end = max(p_start, min(page_end, total_pages))
+        
+        parts = []
+        failed_pages = []
+        empty_pages = []
+        
+        for i in range(p_start - 1, p_end):
+            try:
+                page = reader.pages[i]
+                
+                # محاولة استخراج النص بطرق مختلفة
+                text = None
+                
+                # الطريقة 1: extract_text العادية
+                try:
+                    text = page.extract_text()
+                except Exception:
+                    pass
+                
+                # الطريقة 2: extract_text بـ extraction_mode='layout' (للـ pypdf الحديث)
+                if not text or len(text.strip()) < 10:
+                    try:
+                        text = page.extract_text(extraction_mode="layout")
+                    except Exception:
+                        pass
+                
+                # الطريقة 3: تجاهل أخطاء التشفير
+                if not text or len(text.strip()) < 10:
+                    try:
+                        text = page.extract_text(0)  # mode 0 = افتراضي بدون layout
+                    except Exception:
+                        pass
+                
+                # تنظيف النص
+                if text:
+                    text = text.strip()
+                    # إزالة المسافات الزائدة المتتالية
+                    import re
+                    text = re.sub(r'\n{3,}', '\n\n', text)
+                    text = re.sub(r' {2,}', ' ', text)
+                
+                if text and len(text) >= 5:
+                    parts.append(f"[صفحة {i + 1}]\n{text}")
+                else:
+                    empty_pages.append(i + 1)
+            except Exception as e:
+                failed_pages.append(i + 1)
+                print(f"[prep_extract] فشل في صفحة {i+1}: {str(e)[:100]}")
+                continue
+        
+        full_text = "\n\n".join(parts)
+        
+        # رسائل تشخيصية مفيدة
+        if not full_text or len(full_text) < 30:
+            # محاولة فهم السبب
+            diagnostics = []
+            if empty_pages:
+                diagnostics.append(f"الصفحات {empty_pages[:5]} لا تحتوي نصاً")
+            if failed_pages:
+                diagnostics.append(f"فشلت قراءة الصفحات {failed_pages[:5]}")
+            
+            diag_msg = " | ".join(diagnostics) if diagnostics else "النص الناتج فارغ"
+            
+            raise HTTPException(
+                status_code=422,
+                detail=(
+                    f"❌ لم نتمكن من استخراج نص من النطاق المحدد ({diag_msg}). "
+                    f"الأسباب المحتملة:\n"
+                    f"1. الـ PDF عبارة عن صور ممسوحة ضوئياً (يحتاج OCR)\n"
+                    f"2. الـ PDF يستخدم خطوطاً غير قياسية\n"
+                    f"3. المحتوى كله صور بدون نص\n\n"
+                    f"💡 جرّب: صفحات أخرى أو ملف PDF آخر"
+                )
+            )
+        
+        return {
+            "status": "ok",
+            "text": full_text,
+            "char_count": len(full_text),
+            "pages_extracted": len(parts),
+            "pages_requested": p_end - p_start + 1,
+            "empty_pages": empty_pages,
+            "failed_pages": failed_pages,
+            "page_start": p_start,
+            "page_end": p_end,
+            "total_pages": total_pages,
+            "pdf_library": pdf_lib
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        # خطأ غير متوقع - نطبع تفاصيل أكثر
+        import traceback
+        print(f"[prep_extract] خطأ غير متوقع:\n{traceback.format_exc()}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"❌ خطأ في استخراج النص: {str(e)[:200]}"
+        )
+
+
+@app.post("/api/prep/ai_generate")
+async def prep_ai_generate(
+    request: Request,
+    text: str = Form(...),
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    n_mcq: int = Form(default=5),
+    n_tf: int = Form(default=3),
+    n_short: int = Form(default=2),
+    difficulty: str = Form(default="medium"),
+    admin = Depends(get_current_admin)
+):
+    """
+    🤖 توليد أسئلة بـ Gemini من نص PDF مستخرج
+    أنواع: اختياري (mcq) + صواب/خطأ (tf) + إجابة قصيرة (short)
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=15, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    text = text.strip()
+    if not text or len(text) < 50:
+        raise HTTPException(status_code=400, detail="النص قصير جداً (أقل من 50 حرف)")
+    
+    total = n_mcq + n_tf + n_short
+    if total < 1:
+        raise HTTPException(status_code=400, detail="حدد عدداً للأسئلة")
+    if total > 50:
+        raise HTTPException(status_code=400, detail="الحد الأقصى 50 سؤال في المرة الواحدة")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    diff_ar = {"easy": "سهلة ومباشرة", "medium": "متوسطة الصعوبة", "hard": "تحليلية وتطبيقية"}.get(difficulty, "متوسطة")
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "غير محدد"
+    
+    prompt = f"""أنت خبير في تعليم الرياضيات للمرحلة الأساسية في سلطنة عُمان.
+
+المهمة: أنشئ {total} سؤالاً من محتوى الدرس التالي.
+
+السياق: {context}
+الصعوبة: {diff_ar}
+التوزيع المطلوب:
+- {n_mcq} سؤال اختياري (4 خيارات)
+- {n_tf} سؤال صواب/خطأ
+- {n_short} سؤال إجابة قصيرة
+
+محتوى الدرس:
+---
+{text[:5000]}
+---
+
+قواعد صارمة:
+- العربية الفصحى، أرقام عربية (٠١٢٣٤٥٦٧٨٩)
+- للاختياري: 4 خيارات، الإجابة تطابق أحد الخيارات نصاً
+- للصواب/خطأ: الإجابة "صواب" أو "خطأ" فقط
+- للإجابة القصيرة: إجابة مختصرة (كلمة أو رقم أو جملة قصيرة)
+- الأسئلة متنوعة وغير مكررة
+- ربط الأسئلة بمحتوى الدرس الفعلي
+
+أخرج JSON فقط بهذا الشكل بدون أي نص آخر:
+{{
+  "questions": [
+    {{"type": "mcq", "q": "نص السؤال", "options": ["خيار1", "خيار2", "خيار3", "خيار4"], "answer": "خيار1"}},
+    {{"type": "tf", "q": "نص السؤال", "options": [], "answer": "صواب"}},
+    {{"type": "short", "q": "نص السؤال", "options": [], "answer": "الإجابة"}}
+  ]
+}}"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.8,
+                    "maxOutputTokens": 6000,
+                    "topP": 0.9,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=60.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    
+                    if raw_text.startswith("```"):
+                        raw_text = raw_text.split("\n", 1)[1] if "\n" in raw_text else raw_text
+                        raw_text = raw_text.rsplit("```", 1)[0] if "```" in raw_text else raw_text
+                    
+                    parsed = json_lib.loads(raw_text)
+                    questions = parsed.get("questions", [])
+                    if not isinstance(questions, list) or len(questions) == 0:
+                        raise ValueError("استجابة AI فارغة")
+                    
+                    # تعديل صيغة الأنواع للتوافق العربي
+                    type_map = {"mcq": "اختياري", "tf": "صواب/خطأ", "short": "إجابة قصيرة"}
+                    for q in questions:
+                        q["type"] = type_map.get(q.get("type", "mcq"), q.get("type", "اختياري"))
+                        # تأكيد أن options قائمة
+                        if not isinstance(q.get("options"), list):
+                            q["options"] = []
+                    
+                    return {
+                        "status": "ok",
+                        "count": len(questions),
+                        "questions": questions,
+                        "model": model_name,
+                        "context": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON parse: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:200]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل التوليد. آخر خطأ: {last_error}")
+
+
+@app.post("/api/prep/save_to_bank")
+async def prep_save_to_bank(
+    questions_json: str = Form(...),
+    grade: str = Form(...),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    subject: str = Form(default="الرياضيات"),
+    admin = Depends(get_current_admin)
+):
+    """
+    💾 حفظ مباشر للأسئلة المُولَّدة في بنك الأسئلة الرسمي للمنصة
+    """
+    try:
+        import json as json_lib
+        questions = json_lib.loads(questions_json)
+        if not isinstance(questions, list) or len(questions) == 0:
+            raise HTTPException(status_code=400, detail="لا توجد أسئلة لحفظها")
+        
+        if not grade.strip():
+            raise HTTPException(status_code=400, detail="الصف مطلوب")
+        
+        # تحويل الصيغ
+        type_reverse = {"اختياري": "multiple_choice", "صواب/خطأ": "true_false", "إجابة قصيرة": "short_answer"}
+        
+        rows = []
+        for q in questions:
+            q_text = (q.get("q") or q.get("question") or "").strip()
+            if not q_text:
+                continue
+            
+            q_type_ar = q.get("type", "اختياري")
+            q_type_en = type_reverse.get(q_type_ar, "multiple_choice")
+            
+            options = q.get("options", [])
+            if isinstance(options, list):
+                options_str = " | ".join(str(o) for o in options if o)
+            else:
+                options_str = str(options)
+            
+            row = {
+                "question": q_text,
+                "answer": str(q.get("answer") or q.get("correct") or "").strip(),
+                "options": options_str,
+                "q_type": q_type_en,
+                "grade": grade.strip(),
+                "subject": subject.strip(),
+            }
+            if semester.strip(): row["semester"] = semester.strip()
+            if unit.strip(): row["unit"] = unit.strip()
+            if lesson.strip(): row["lesson"] = lesson.strip()
+            
+            rows.append(row)
+        
+        if not rows:
+            raise HTTPException(status_code=400, detail="لا توجد أسئلة صالحة بعد التحقق")
+        
+        # حفظ في Supabase
+        res = supabase.table("questions").insert(rows).execute()
+        saved_count = len(res.data or [])
+        
+        return {
+            "status": "ok",
+            "saved": saved_count,
+            "total_attempted": len(questions),
+            "message": f"✅ تم حفظ {saved_count} سؤال في بنك الأسئلة"
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ في الحفظ: {str(e)[:200]}")
+
+
+@app.get("/api/prep/sessions_history")
+async def prep_sessions_history(admin = Depends(get_current_admin)):
+    """
+    📊 إحصاءات استخدام المصنع (آخر الأسئلة المضافة من المدير)
+    """
+    try:
+        # نجلب آخر 50 سؤال أضافه المدير
+        res = supabase.table("questions").select("id,question,grade,subject,unit,lesson,q_type,created_at").order("created_at", desc=True).limit(50).execute()
+        rows = res.data or []
+        
+        # إحصاءات
+        total_count_res = supabase.table("questions").select("id", count="exact").execute()
+        total_count = total_count_res.count or 0
+        
+        return {
+            "status": "ok",
+            "total_in_bank": total_count,
+            "recent": rows[:20]
+        }
+    except Exception as e:
+        return {"status": "ok", "total_in_bank": 0, "recent": [], "warning": str(e)[:100]}
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 💾 SESSIONS — سجل جلسات المصنع + الاستئناف
+# ════════════════════════════════════════════════════════════════════════════
+# نستخدم جدول prep_sessions (يُنشأ تلقائياً إن لم يكن موجوداً)
+# الـ schema المتوقع:
+#   id (uuid, primary key)
+#   admin_id (text, default 'admin')
+#   title (text)
+#   pdf_filename (text)
+#   grade, semester, unit, lesson (text)
+#   extracted_text (text, nullable)
+#   questions (jsonb) - مصفوفة الأسئلة
+#   meta (jsonb) - إعدادات (n_mcq, n_tf, n_short, difficulty)
+#   created_at (timestamp default now())
+#   updated_at (timestamp)
+#   status (text: 'draft' | 'completed' | 'saved')
+# ════════════════════════════════════════════════════════════════════════════
+
+@app.post("/api/prep/session/save")
+async def prep_session_save(
+    title: str = Form(...),
+    pdf_filename: str = Form(default=""),
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    extracted_text: str = Form(default=""),
+    questions_json: str = Form(default="[]"),
+    meta_json: str = Form(default="{}"),
+    status: str = Form(default="draft"),
+    session_id: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """
+    💾 حفظ/تحديث جلسة مصنع. إذا session_id موجود → تحديث، وإلا → إنشاء جديد
+    """
+    try:
+        import json as json_lib
+        from datetime import datetime
+        
+        try:
+            questions = json_lib.loads(questions_json) if questions_json else []
+            meta = json_lib.loads(meta_json) if meta_json else {}
+        except json_lib.JSONDecodeError:
+            questions = []
+            meta = {}
+        
+        # نختصر النص للحفظ (أول 50KB)
+        extracted_short = extracted_text[:50000] if extracted_text else ""
+        
+        row = {
+            "title": title.strip()[:200] or f"جلسة {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+            "pdf_filename": pdf_filename[:200],
+            "grade": grade,
+            "semester": semester,
+            "unit": unit,
+            "lesson": lesson,
+            "extracted_text": extracted_short,
+            "questions": questions,
+            "meta": meta,
+            "status": status,
+            "updated_at": datetime.utcnow().isoformat()
+        }
+        
+        if session_id and session_id.strip():
+            # تحديث
+            res = supabase.table("prep_sessions").update(row).eq("id", session_id.strip()).execute()
+            if not res.data:
+                # إذا فشل التحديث، نُنشئ جديد
+                res = supabase.table("prep_sessions").insert(row).execute()
+        else:
+            # إنشاء جديد
+            res = supabase.table("prep_sessions").insert(row).execute()
+        
+        new_id = (res.data[0]["id"] if res.data else None)
+        return {
+            "status": "ok",
+            "session_id": new_id,
+            "message": "✅ حُفظت الجلسة"
+        }
+    except Exception as e:
+        # ربما الجدول غير موجود - نعطي رسالة واضحة
+        err_msg = str(e)[:300]
+        if "does not exist" in err_msg or "relation" in err_msg.lower():
+            return {
+                "status": "error",
+                "needs_table": True,
+                "message": "⚠️ جدول prep_sessions غير موجود. يجب إنشاؤه أولاً.",
+                "sql_to_run": """CREATE TABLE IF NOT EXISTS prep_sessions (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  title text,
+  pdf_filename text,
+  grade text,
+  semester text,
+  unit text,
+  lesson text,
+  extracted_text text,
+  questions jsonb DEFAULT '[]'::jsonb,
+  meta jsonb DEFAULT '{}'::jsonb,
+  status text DEFAULT 'draft',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);"""
+            }
+        raise HTTPException(status_code=500, detail=f"خطأ في الحفظ: {err_msg}")
+
+
+@app.get("/api/prep/session/list")
+async def prep_session_list(limit: int = 20, admin = Depends(get_current_admin)):
+    """
+    📋 قائمة الجلسات السابقة (أحدثها أولاً)
+    """
+    try:
+        limit = max(1, min(50, limit))
+        res = supabase.table("prep_sessions").select("id,title,pdf_filename,grade,semester,unit,lesson,status,created_at,updated_at,questions").order("updated_at", desc=True).limit(limit).execute()
+        rows = res.data or []
+        
+        # نُلخّص: عدد الأسئلة فقط (لا نُرسل المحتوى كاملاً)
+        for r in rows:
+            qs = r.get("questions") or []
+            if isinstance(qs, list):
+                r["questions_count"] = len(qs)
+            else:
+                r["questions_count"] = 0
+            # نُزيل المحتوى الثقيل من القائمة
+            r.pop("questions", None)
+        
+        return {"status": "ok", "sessions": rows, "count": len(rows)}
+    except Exception as e:
+        err = str(e)[:200]
+        if "does not exist" in err or "relation" in err.lower():
+            return {"status": "ok", "sessions": [], "count": 0, "warning": "جدول الجلسات غير موجود"}
+        return {"status": "ok", "sessions": [], "count": 0, "warning": err}
+
+
+@app.get("/api/prep/session/{session_id}")
+async def prep_session_get(session_id: str, admin = Depends(get_current_admin)):
+    """
+    📖 جلب جلسة كاملة بالـ id (للاستئناف)
+    """
+    try:
+        res = supabase.table("prep_sessions").select("*").eq("id", session_id).single().execute()
+        if not res.data:
+            raise HTTPException(status_code=404, detail="الجلسة غير موجودة")
+        return {"status": "ok", "session": res.data}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.delete("/api/prep/session/{session_id}")
+async def prep_session_delete(session_id: str, admin = Depends(get_current_admin)):
+    """
+    🗑️ حذف جلسة
+    """
+    try:
+        supabase.table("prep_sessions").delete().eq("id", session_id).execute()
+        return {"status": "ok", "message": "✅ حُذفت الجلسة"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 📊 BATCH PROCESSING — معالجة دفعات (100+ سؤال تلقائياً)
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/prep/ai_generate_batch")
+async def prep_ai_generate_batch(
+    request: Request,
+    text: str = Form(...),
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    target_total: int = Form(default=100),
+    n_mcq_per_batch: int = Form(default=10),
+    n_tf_per_batch: int = Form(default=5),
+    n_short_per_batch: int = Form(default=5),
+    difficulty: str = Form(default="medium"),
+    batch_num: int = Form(default=1),
+    already_generated: int = Form(default=0),
+    admin = Depends(get_current_admin)
+):
+    """
+    🔄 توليد دفعة واحدة من ضمن مهمة كبيرة (يُستدعى عدة مرات من الـ frontend)
+    
+    الـ frontend يُكرّر النداء حتى يصل لـ target_total، مع زيادة batch_num وdifferent random_seed.
+    
+    نستخدم variation_seed في الـ prompt لضمان تنوع الدفعات.
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=30, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    text = text.strip()
+    if not text or len(text) < 50:
+        raise HTTPException(status_code=400, detail="النص قصير جداً")
+    
+    batch_size = n_mcq_per_batch + n_tf_per_batch + n_short_per_batch
+    if batch_size < 1 or batch_size > 30:
+        raise HTTPException(status_code=400, detail="حجم الدفعة بين 1 و 30")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    diff_ar = {"easy": "سهلة ومباشرة", "medium": "متوسطة الصعوبة", "hard": "تحليلية وتطبيقية"}.get(difficulty, "متوسطة")
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "غير محدد"
+    
+    # variation hints لضمان تنوع الدفعات
+    variation_hints = [
+        "ركّز على الأسئلة المباشرة والتعريفات",
+        "ركّز على الأمثلة التطبيقية والمسائل العملية",
+        "ركّز على التحليل والمقارنة والاستنتاج",
+        "ركّز على المهارات الحسابية والعمليات",
+        "ركّز على الفهم والإدراك المفاهيمي",
+        "ركّز على حل المشكلات المركّبة",
+        "ركّز على التطبيقات الحياتية اليومية",
+        "ركّز على الأسئلة العكسية (من الإجابة للسؤال)",
+        "ركّز على الأسئلة التي تختبر سوء الفهم الشائع",
+        "ركّز على المفاهيم المتقاطعة بين الوحدات"
+    ]
+    variation = variation_hints[(batch_num - 1) % len(variation_hints)]
+    
+    prompt = f"""أنت خبير في تعليم الرياضيات للمرحلة الأساسية في سلطنة عُمان.
+
+المهمة: أنشئ دفعة {batch_num} من الأسئلة ({batch_size} سؤال) من محتوى الدرس.
+
+⚠️ مهم: سبق توليد {already_generated} سؤال من نفس المحتوى. تجنّب التكرار تماماً.
+🎯 توجيه الدفعة الحالية: {variation}
+
+السياق: {context}
+الصعوبة: {diff_ar}
+التوزيع:
+- {n_mcq_per_batch} اختياري (4 خيارات)
+- {n_tf_per_batch} صواب/خطأ
+- {n_short_per_batch} إجابة قصيرة
+
+محتوى الدرس:
+---
+{text[:5000]}
+---
+
+قواعد:
+- العربية الفصحى، أرقام عربية (٠-٩)
+- الإجابة للاختياري تطابق أحد الخيارات نصاً
+- الإجابة لصواب/خطأ: "صواب" أو "خطأ" فقط
+- أسئلة جديدة كلياً، غير مكررة من الدفعات السابقة
+
+أخرج JSON فقط:
+{{"questions":[{{"type":"mcq","q":"...","options":["...","...","...","..."],"answer":"..."}},...]}}"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.85 + (batch_num % 3) * 0.03,  # تغيير الإبداع بين الدفعات
+                    "maxOutputTokens": 4000,
+                    "topP": 0.9,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=45.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw_text = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    
+                    if raw_text.startswith("```"):
+                        raw_text = raw_text.split("\n", 1)[1] if "\n" in raw_text else raw_text
+                        raw_text = raw_text.rsplit("```", 1)[0] if "```" in raw_text else raw_text
+                    
+                    parsed = json_lib.loads(raw_text)
+                    questions = parsed.get("questions", [])
+                    if not isinstance(questions, list) or len(questions) == 0:
+                        raise ValueError("استجابة فارغة")
+                    
+                    type_map = {"mcq": "اختياري", "tf": "صواب/خطأ", "short": "إجابة قصيرة"}
+                    for q in questions:
+                        q["type"] = type_map.get(q.get("type", "mcq"), q.get("type", "اختياري"))
+                        if not isinstance(q.get("options"), list):
+                            q["options"] = []
+                        q["_batch"] = batch_num  # نُعلّم الدفعة
+                    
+                    return {
+                        "status": "ok",
+                        "count": len(questions),
+                        "questions": questions,
+                        "model": model_name,
+                        "batch_num": batch_num,
+                        "variation": variation
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:150]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشلت الدفعة {batch_num}: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 💬 AI CHAT — شات تفاعلي لتعديل/تحسين الأسئلة
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/prep/ai_chat_modify")
+async def prep_ai_chat_modify(
+    request: Request,
+    questions_json: str = Form(...),
+    instruction: str = Form(...),
+    selected_indices: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """
+    💬 المعلم يعطي تعليمات لتعديل الأسئلة:
+    - "حسّن السؤال 3"
+    - "اجعل كل الأسئلة أصعب"
+    - "غيّر صياغة الأسئلة 1، 5، 7"
+    - "أضف تنوّعاً في الأسئلة"
+    - "صحّح الإملاء"
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=20, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة")
+    
+    if not instruction.strip():
+        raise HTTPException(status_code=400, detail="لا توجد تعليمات")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="GEMINI_API_KEY مفقود")
+    
+    import json as json_lib
+    
+    try:
+        all_questions = json_lib.loads(questions_json)
+    except json_lib.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="JSON غير صحيح")
+    
+    if not isinstance(all_questions, list) or len(all_questions) == 0:
+        raise HTTPException(status_code=400, detail="لا توجد أسئلة")
+    
+    # نحدد الأسئلة المستهدفة
+    target_indices = []
+    if selected_indices.strip():
+        try:
+            target_indices = [int(i) for i in selected_indices.split(",") if i.strip().isdigit()]
+            target_indices = [i for i in target_indices if 0 <= i < len(all_questions)]
+        except Exception:
+            target_indices = []
+    
+    # إذا لم تُحدد أسئلة، نطبّق على الكل (حتى 30 سؤال كحد أقصى)
+    if not target_indices:
+        target_indices = list(range(min(len(all_questions), 30)))
+    
+    target_questions = [all_questions[i] for i in target_indices]
+    
+    prompt = f"""أنت محرّر خبير لأسئلة الرياضيات. مهمتك تعديل الأسئلة التالية حسب تعليمات المعلم.
+
+📋 تعليمات المعلم:
+"{instruction.strip()}"
+
+🎯 الأسئلة المستهدفة ({len(target_questions)} سؤال):
+{json_lib.dumps(target_questions, ensure_ascii=False, indent=2)}
+
+⚠️ قواعد صارمة:
+- أعد نفس عدد الأسئلة بنفس الترتيب
+- حافظ على نفس البنية (type, q, options, answer)
+- طبّق التعليمات بدقة
+- العربية الفصحى، أرقام عربية (٠-٩)
+- الإجابة تطابق أحد الخيارات (للاختياري)
+
+أخرج JSON فقط بهذا الشكل:
+{{"questions": [{{...}}, {{...}}, ...]}}"""
+    
+    import httpx
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.7,
+                    "maxOutputTokens": 6000,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=60.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    modified = parsed.get("questions", [])
+                    if len(modified) != len(target_questions):
+                        # اختلاف العدد - نعطي تحذير لكن نقبل
+                        pass
+                    
+                    return {
+                        "status": "ok",
+                        "modified_count": len(modified),
+                        "indices": target_indices,
+                        "questions": modified,
+                        "model": model_name
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}"
+        except json_lib.JSONDecodeError:
+            last_error = "JSON parse error"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل التعديل: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🎨 صفحة المصنع - تقديم HTML المخصص
+# ════════════════════════════════════════════════════════════════════════════
+@app.get("/prep", response_class=HTMLResponse)
+async def prep_page():
+    """
+    🏭 صفحة مصنع الأسئلة الشخصي
+    تتطلب تسجيل دخول بصلاحيات الأدمن (يتم التحقق client-side)
+    """
+    try:
+        with open("templates/prep_factory.html", "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    except FileNotFoundError:
+        return HTMLResponse(content="<h1>صفحة المصنع غير موجودة. أضف templates/prep_factory.html</h1>", status_code=404)
 
 
 @app.post("/api/admin/update_password")

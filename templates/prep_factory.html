@@ -1,0 +1,2906 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مصنع الأسئلة الشخصي 🏭 — إمبراطورية الرياضيات</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+// إعداد PDF.js worker مع fallback آمن
+if (typeof pdfjsLib !== 'undefined') {
+    try {
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    } catch(e) {
+        console.warn('PDF.js worker setup failed, will use fake worker:', e);
+    }
+}
+</script>
+
+<style>
+:root {
+  --navy:    #040d21;
+  --navy2:   #071433;
+  --navy3:   #0a1f4d;
+  --gold:    #d4af37;
+  --gold2:   #f5d77e;
+  --gold3:   #aa771c;
+  --green:   #00c896;
+  --red:     #ff4d6d;
+  --blue:    #3b82f6;
+  --purple:  #a855f7;
+  --white:   #f0ead6;
+  --dim:     rgba(240,234,214,0.55);
+  --border:  rgba(212,175,55,0.22);
+  --glass:   rgba(212,175,55,0.06);
+  --mcq-bg:  rgba(59,130,246,0.08);
+  --tf-bg:   rgba(255,77,109,0.08);
+  --sh-bg:   rgba(0,200,150,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ══ STARS BG ══ */
+#stars { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.star { position: absolute; border-radius: 50%; background: #fff; animation: twinkle var(--d,3s) ease-in-out infinite var(--delay,0s); }
+@keyframes twinkle { 0%,100%{opacity:.1} 50%{opacity:.7} }
+
+/* ══ LAYOUT ══ */
+.app {
+  position: relative; z-index: 1;
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  min-height: 100vh;
+}
+
+/* ══ SIDEBAR ══ */
+.sidebar {
+  background: rgba(4,13,33,0.97);
+  border-left: 1px solid var(--border);
+  padding: 24px 18px;
+  display: flex; flex-direction: column; gap: 18px;
+  position: sticky; top: 0; height: 100vh;
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar { width: 5px; }
+.sidebar::-webkit-scrollbar-thumb { background: var(--gold3); border-radius: 3px; }
+
+.sidebar-crown {
+  text-align: center; padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+}
+.crown-icon {
+  font-size: 2.8rem;
+  filter: drop-shadow(0 0 18px rgba(212,175,55,0.7));
+  animation: crown-bob 3s ease-in-out infinite;
+}
+@keyframes crown-bob {
+  0%,100%{ transform: translateY(0) rotate(-3deg) }
+  50%{ transform: translateY(-6px) rotate(3deg) }
+}
+.sidebar-title {
+  font-family: 'Amiri', serif;
+  background: linear-gradient(135deg, var(--gold2), var(--gold), var(--gold2));
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 6px;
+}
+.sidebar-subtitle {
+  color: var(--dim); font-size: 0.78rem; margin-top: 4px;
+}
+@keyframes shimmer { to { background-position: 200% center; } }
+
+/* الحقول */
+.field-group { display: flex; flex-direction: column; gap: 6px; }
+.field-label {
+  font-size: 0.78rem; color: var(--gold2); font-weight: 600;
+  display: flex; align-items: center; gap: 6px;
+}
+.field-input, .field-select {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-family: 'Cairo'; font-size: 0.88rem;
+  transition: all 0.2s;
+}
+.field-input:focus, .field-select:focus {
+  outline: none; border-color: var(--gold);
+  background: rgba(212,175,55,0.08);
+  box-shadow: 0 0 0 3px rgba(212,175,55,0.15);
+}
+.field-select option { background: var(--navy2); color: var(--white); }
+.field-select:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Slider */
+.slider-wrap { display: flex; flex-direction: column; gap: 6px; }
+.slider-row { display: flex; align-items: center; gap: 10px; }
+.slider {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 5px; background: rgba(212,175,55,0.2);
+  border-radius: 3px; outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 0 8px rgba(212,175,55,0.5);
+}
+.slider-value {
+  min-width: 30px; text-align: center;
+  font-weight: 700; color: var(--gold);
+  background: rgba(212,175,55,0.1);
+  padding: 2px 8px; border-radius: 6px;
+  font-size: 0.85rem;
+}
+
+/* Radio chips */
+.radio-group { display: flex; gap: 6px; flex-wrap: wrap; }
+.radio-item {
+  flex: 1; min-width: 70px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 8px 6px; border-radius: 8px;
+  font-family: 'Cairo'; font-weight: 600; font-size: 0.78rem;
+  cursor: pointer; transition: all 0.2s;
+  text-align: center;
+}
+.radio-item:hover { background: rgba(212,175,55,0.1); }
+.radio-item.selected {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  color: var(--navy); border-color: var(--gold);
+  box-shadow: 0 4px 12px rgba(212,175,55,0.35);
+}
+
+/* بطاقة الإحصاءات */
+.stats-card {
+  background: linear-gradient(135deg, rgba(212,175,55,0.08), rgba(0,200,150,0.04));
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stat-item { text-align: center; }
+.stat-num { font-size: 1.3rem; font-weight: 700; color: var(--gold); font-family: 'Amiri'; }
+.stat-lbl { font-size: 0.7rem; color: var(--dim); margin-top: 2px; }
+
+/* زر التوليد */
+.gen-btn {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  background-size: 200% auto;
+  color: var(--navy);
+  border: none;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-family: 'Cairo';
+  font-weight: 800;
+  font-size: 1.02rem;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(212,175,55,0.35);
+  transition: all 0.3s;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.gen-btn:hover:not(:disabled) {
+  background-position: right center;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(212,175,55,0.5);
+}
+.gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ══ MAIN AREA ══ */
+.main {
+  padding: 26px 30px;
+  display: flex; flex-direction: column; gap: 22px;
+  max-height: 100vh; overflow-y: auto;
+}
+
+/* رأس الصفحة */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 14px;
+}
+.header-title {
+  font-family: 'Amiri';
+  font-size: 1.7rem;
+  background: linear-gradient(135deg, var(--gold2), var(--gold));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-back {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 8px 14px; border-radius: 8px;
+  cursor: pointer; font-family: 'Cairo'; font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.btn-back:hover { background: rgba(212,175,55,0.15); }
+
+/* رفع الملف */
+.upload-zone {
+  background: linear-gradient(135deg, rgba(212,175,55,0.04), rgba(255,255,255,0.02));
+  border: 2px dashed var(--border);
+  border-radius: 16px;
+  padding: 32px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.upload-zone:hover, .upload-zone.drag-over {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(212,175,55,0.1), rgba(212,175,55,0.04));
+}
+.upload-icon { font-size: 3rem; margin-bottom: 10px; }
+.upload-text { font-size: 1rem; color: var(--white); margin-bottom: 4px; font-weight: 600; }
+.upload-hint { font-size: 0.82rem; color: var(--dim); }
+
+.file-info {
+  display: none;
+  background: rgba(0,200,150,0.08);
+  border: 1px solid rgba(0,200,150,0.3);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 12px;
+  align-items: center; gap: 14px;
+}
+.file-info.show { display: flex; }
+.file-info-icon { font-size: 2rem; }
+.file-info-text { flex: 1; }
+.file-name { font-weight: 700; color: var(--white); margin-bottom: 2px; }
+.file-meta { font-size: 0.78rem; color: var(--dim); }
+
+/* نطاق الصفحات */
+.page-range {
+  display: none;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+  margin-top: 12px;
+}
+.page-range.show { display: grid; }
+
+/* معاينة النص */
+.text-preview {
+  display: none;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-top: 12px;
+}
+.text-preview.show { display: block; }
+.text-preview-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.text-preview-title { color: var(--gold2); font-weight: 700; font-size: 0.9rem; }
+.text-preview-content {
+  font-size: 0.84rem; color: var(--dim);
+  line-height: 1.7;
+  max-height: 200px;
+  overflow-y: auto;
+  white-space: pre-wrap;
+}
+
+/* شريط التقدم */
+.progress-wrap {
+  display: none;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 20px;
+}
+.progress-wrap.show { display: block; }
+.progress-label {
+  color: var(--gold2); font-weight: 600;
+  margin-bottom: 10px; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.progress-bar-track {
+  width: 100%; height: 8px;
+  background: rgba(212,175,55,0.15);
+  border-radius: 4px; overflow: hidden;
+}
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--gold), var(--gold2), var(--gold));
+  background-size: 200% 100%;
+  width: 0%;
+  border-radius: 4px;
+  transition: width 0.4s ease;
+  animation: progress-shine 2s linear infinite;
+}
+@keyframes progress-shine { to { background-position: 200% center; } }
+
+/* قسم الأسئلة */
+.questions-wrap {
+  display: none;
+  background: rgba(0,0,0,0.25);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
+}
+.questions-wrap.show { display: block; }
+.section-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap: 12px;
+}
+.section-title {
+  font-family: 'Amiri';
+  font-size: 1.3rem;
+  color: var(--gold2);
+  display: flex; align-items: center; gap: 10px;
+  font-weight: 700;
+}
+.section-count {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  color: var(--navy);
+  font-size: 0.82rem;
+  padding: 3px 12px;
+  border-radius: 20px;
+  font-weight: 800;
+}
+.action-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.act-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-family: 'Cairo'; font-weight: 600; font-size: 0.83rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.act-btn:hover { background: rgba(212,175,55,0.15); border-color: var(--gold); }
+.act-btn.primary {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  color: var(--navy); border-color: var(--gold);
+}
+.act-btn.success {
+  background: linear-gradient(135deg, var(--green), #00a874);
+  color: #fff; border-color: var(--green);
+}
+
+/* بطاقة السؤال */
+.q-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  margin-bottom: 12px;
+  overflow: hidden;
+  transition: all 0.2s;
+  animation: qcard-in 0.4s ease-out backwards;
+}
+.q-card:hover { border-color: rgba(212,175,55,0.4); }
+@keyframes qcard-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.q-card.type-mcq { border-right: 3px solid var(--blue); }
+.q-card.type-tf { border-right: 3px solid var(--red); }
+.q-card.type-sh { border-right: 3px solid var(--green); }
+
+.q-card-top {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px;
+  background: rgba(0,0,0,0.2);
+}
+.q-num {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  color: var(--navy);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.q-text-area {
+  flex: 1;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--white);
+  padding: 6px 8px;
+  border-radius: 6px;
+  font-family: 'Cairo'; font-size: 0.95rem;
+  resize: vertical;
+  transition: all 0.2s;
+}
+.q-text-area:focus {
+  outline: none;
+  border-color: var(--gold);
+  background: rgba(212,175,55,0.05);
+}
+.q-type-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.q-type-badge.badge-mcq { background: var(--mcq-bg); color: var(--blue); border: 1px solid rgba(59,130,246,0.3); }
+.q-type-badge.badge-tf { background: var(--tf-bg); color: var(--red); border: 1px solid rgba(255,77,109,0.3); }
+.q-type-badge.badge-sh { background: var(--sh-bg); color: var(--green); border: 1px solid rgba(0,200,150,0.3); }
+
+.q-card-body {
+  padding: 12px 16px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.q-field-label {
+  font-size: 0.7rem;
+  color: var(--gold2);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+  font-weight: 700;
+}
+.q-field-input {
+  width: 100%;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-family: 'Cairo'; font-size: 0.85rem;
+}
+.q-field-input:focus {
+  outline: none; border-color: var(--gold);
+  background: rgba(212,175,55,0.05);
+}
+
+.q-card-footer {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 16px;
+  background: rgba(0,0,0,0.15);
+  border-top: 1px solid var(--border);
+}
+.q-del-btn {
+  background: rgba(255,77,109,0.1);
+  border: 1px solid rgba(255,77,109,0.3);
+  color: var(--red);
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-weight: 600;
+  font-size: 0.78rem;
+  transition: all 0.2s;
+}
+.q-del-btn:hover { background: rgba(255,77,109,0.2); }
+.q-correct-label {
+  color: var(--green); font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* الـ toast */
+.toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100px);
+  background: rgba(4,13,33,0.95);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 12px 22px;
+  border-radius: 12px;
+  font-family: 'Cairo'; font-weight: 600;
+  z-index: 9999;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s;
+  max-width: 90%;
+  text-align: center;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+.toast.success { border-color: rgba(0,200,150,0.5); background: rgba(0,40,30,0.95); }
+.toast.error { border-color: rgba(255,77,109,0.5); background: rgba(40,10,15,0.95); }
+
+/* الحالة الفارغة */
+.empty-state {
+  text-align: center;
+  padding: 50px 20px;
+  color: var(--dim);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+.empty-icon { font-size: 3.5rem; display: block; margin-bottom: 14px; opacity: 0.4; }
+
+/* لوحة الإحصاءات العلوية */
+.top-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+}
+.top-stat-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.top-stat-icon {
+  font-size: 1.8rem;
+}
+.top-stat-info { flex: 1; }
+.top-stat-num {
+  font-family: 'Amiri';
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--gold);
+  line-height: 1;
+}
+.top-stat-lbl { font-size: 0.72rem; color: var(--dim); margin-top: 3px; }
+
+/* الموبايل */
+@media (max-width: 980px) {
+  .app { grid-template-columns: 1fr; }
+  .sidebar { position: relative; height: auto; }
+  .main { padding: 18px; max-height: none; }
+  .q-card-body { grid-template-columns: 1fr; }
+  .page-range { grid-template-columns: 1fr 1fr; }
+}
+
+/* ════════════════════════════════════════════════════════════
+   🆕 ميزات احترافية جديدة
+   ════════════════════════════════════════════════════════════ */
+
+/* 📖 معاينة PDF مرئية */
+.pdf-preview-wrap {
+  display: none;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-top: 12px;
+}
+.pdf-preview-wrap.show { display: block; }
+.pdf-preview-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px; padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+.pdf-preview-title {
+  color: var(--gold2); font-weight: 700; font-size: 0.9rem;
+}
+.pdf-preview-nav { display: flex; gap: 6px; align-items: center; }
+.pdf-nav-btn {
+  background: rgba(212,175,55,0.1);
+  border: 1px solid var(--border);
+  color: var(--gold);
+  padding: 5px 10px; border-radius: 6px;
+  cursor: pointer; font-family: 'Cairo';
+  font-size: 0.78rem; transition: all 0.2s;
+}
+.pdf-nav-btn:hover:not(:disabled) {
+  background: rgba(212,175,55,0.25);
+}
+.pdf-nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.pdf-page-num {
+  color: var(--white);
+  font-weight: 700;
+  padding: 4px 12px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 6px;
+  font-size: 0.82rem;
+  min-width: 70px;
+  text-align: center;
+}
+.pdf-canvas-wrap {
+  text-align: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px;
+  overflow: auto;
+  max-height: 500px;
+}
+.pdf-canvas-wrap canvas {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+}
+.pdf-range-quick {
+  display: flex; gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.pdf-range-btn {
+  background: rgba(212,175,55,0.08);
+  border: 1px solid var(--border);
+  color: var(--gold2);
+  padding: 5px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-size: 0.76rem;
+  transition: all 0.2s;
+}
+.pdf-range-btn:hover {
+  background: rgba(212,175,55,0.2);
+}
+.pdf-range-btn.active {
+  background: linear-gradient(135deg, var(--gold), var(--gold3));
+  color: var(--navy); border-color: var(--gold);
+}
+
+/* 📊 معالجة دفعات - شريط تقدم متقدم */
+.batch-mode {
+  background: linear-gradient(135deg, rgba(168,85,247,0.1), rgba(59,130,246,0.05));
+  border: 1px solid rgba(168,85,247,0.3);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+  display: none;
+}
+.batch-mode.show { display: block; }
+.batch-mode-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.batch-mode-title {
+  color: var(--purple); font-weight: 700; font-size: 0.9rem;
+  display: flex; align-items: center; gap: 6px;
+}
+.batch-toggle {
+  position: relative; width: 40px; height: 22px;
+  background: rgba(0,0,0,0.4);
+  border-radius: 12px; cursor: pointer;
+  transition: background 0.3s;
+}
+.batch-toggle.on { background: var(--purple); }
+.batch-toggle-knob {
+  position: absolute; top: 3px; right: 3px;
+  width: 16px; height: 16px;
+  background: var(--white);
+  border-radius: 50%;
+  transition: right 0.3s;
+}
+.batch-toggle.on .batch-toggle-knob {
+  right: 21px;
+}
+.batch-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+.batch-target-field { display: flex; flex-direction: column; gap: 4px; }
+.batch-target-field label { color: var(--dim); font-size: 0.75rem; }
+.batch-target-field input {
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 7px 10px;
+  border-radius: 6px;
+  font-family: 'Cairo'; font-size: 0.85rem;
+}
+
+/* شريط تقدم الدفعات المتقدم */
+.batch-progress {
+  display: none;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.batch-progress.show { display: block; }
+.batch-progress-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.batch-progress-stats {
+  font-family: 'Amiri'; font-size: 1.1rem; color: var(--gold2);
+  font-weight: 700;
+}
+.batch-progress-percent {
+  font-family: 'Amiri'; font-size: 1.4rem;
+  background: linear-gradient(135deg, var(--gold), var(--gold2));
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+}
+.batch-progress-bar-track {
+  width: 100%; height: 12px;
+  background: rgba(0,0,0,0.5);
+  border-radius: 6px; overflow: hidden;
+}
+.batch-progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--purple), var(--gold), var(--green));
+  background-size: 200% 100%;
+  border-radius: 6px;
+  transition: width 0.5s ease;
+  animation: progress-shine 2s linear infinite;
+}
+.batch-current-action {
+  font-size: 0.82rem; color: var(--dim);
+  margin-top: 10px;
+  display: flex; align-items: center; gap: 8px;
+}
+.batch-current-action .spinner {
+  width: 14px; height: 14px;
+  border: 2px solid var(--gold);
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.batch-stop-btn {
+  background: rgba(255,77,109,0.15);
+  border: 1px solid rgba(255,77,109,0.4);
+  color: var(--red);
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-family: 'Cairo'; font-weight: 600;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.batch-stop-btn:hover {
+  background: rgba(255,77,109,0.25);
+}
+
+/* 💾 سجل الجلسات */
+.sessions-trigger {
+  background: rgba(168,85,247,0.1);
+  border: 1px solid rgba(168,85,247,0.3);
+  color: var(--purple);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-weight: 600; font-size: 0.83rem;
+  transition: all 0.2s;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.sessions-trigger:hover {
+  background: rgba(168,85,247,0.2);
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.8);
+  z-index: 9999;
+  backdrop-filter: blur(8px);
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.show { display: flex; }
+.modal-box {
+  background: linear-gradient(160deg, var(--navy2), var(--navy3));
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 700px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: modal-in 0.3s ease;
+}
+@keyframes modal-in {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+.modal-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  font-family: 'Amiri'; color: var(--gold2);
+  font-size: 1.3rem; font-weight: 700;
+  display: flex; align-items: center; gap: 10px;
+}
+.modal-close {
+  background: rgba(255,77,109,0.15);
+  border: 1px solid rgba(255,77,109,0.3);
+  color: var(--red);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  cursor: pointer; font-weight: 700;
+  transition: all 0.2s;
+}
+.modal-close:hover { background: rgba(255,77,109,0.3); }
+
+/* قائمة الجلسات */
+.session-item {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+  gap: 12px;
+  transition: all 0.2s;
+}
+.session-item:hover {
+  background: rgba(212,175,55,0.06);
+  border-color: rgba(212,175,55,0.4);
+}
+.session-info { flex: 1; min-width: 0; }
+.session-title {
+  color: var(--white); font-weight: 700; font-size: 0.92rem;
+  margin-bottom: 3px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.session-meta {
+  font-size: 0.74rem; color: var(--dim);
+  display: flex; gap: 10px; flex-wrap: wrap;
+}
+.session-meta-tag {
+  padding: 1px 8px;
+  background: rgba(212,175,55,0.1);
+  border-radius: 10px;
+}
+.session-actions { display: flex; gap: 6px; flex-shrink: 0; }
+.session-btn {
+  background: rgba(0,200,150,0.15);
+  border: 1px solid rgba(0,200,150,0.3);
+  color: var(--green);
+  padding: 6px 12px;
+  border-radius: 7px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-weight: 600; font-size: 0.78rem;
+  transition: all 0.2s;
+}
+.session-btn:hover { background: rgba(0,200,150,0.25); }
+.session-btn.danger {
+  background: rgba(255,77,109,0.1);
+  border-color: rgba(255,77,109,0.3);
+  color: var(--red);
+}
+.session-btn.danger:hover { background: rgba(255,77,109,0.2); }
+
+.session-status-badge {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+}
+.session-status-badge.draft {
+  background: rgba(245,158,11,0.15);
+  color: #f59e0b;
+}
+.session-status-badge.completed {
+  background: rgba(0,200,150,0.15);
+  color: var(--green);
+}
+.session-status-badge.saved {
+  background: rgba(168,85,247,0.15);
+  color: var(--purple);
+}
+
+/* مؤشر الحفظ التلقائي */
+.autosave-indicator {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  background: rgba(0,0,0,0.85);
+  border: 1px solid var(--border);
+  color: var(--green);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  gap: 6px;
+  backdrop-filter: blur(8px);
+}
+.autosave-indicator.show {
+  display: inline-flex;
+  animation: autosave-pulse 2s ease;
+}
+@keyframes autosave-pulse {
+  0% { opacity: 0; transform: translateY(20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+/* 💬 شات AI */
+.ai-chat-wrap {
+  display: none;
+  background: linear-gradient(135deg, rgba(20,184,166,0.08), rgba(168,85,247,0.04));
+  border: 1px solid rgba(20,184,166,0.3);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+.ai-chat-wrap.show { display: block; }
+.ai-chat-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 12px;
+}
+.ai-chat-title {
+  color: #14b8a6; font-weight: 700; font-size: 0.95rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.ai-chat-history {
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 8px;
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ai-chat-history:empty::before {
+  content: '💭 لم تطلب أي تعديل بعد. اكتب تعليماتك أدناه...';
+  color: var(--dim);
+  font-size: 0.82rem;
+  text-align: center;
+  padding: 14px;
+  display: block;
+}
+.chat-msg {
+  padding: 8px 12px;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  max-width: 90%;
+  word-wrap: break-word;
+}
+.chat-msg.user {
+  background: rgba(212,175,55,0.15);
+  color: var(--white);
+  border: 1px solid rgba(212,175,55,0.3);
+  align-self: flex-end;
+}
+.chat-msg.ai {
+  background: rgba(20,184,166,0.15);
+  color: var(--white);
+  border: 1px solid rgba(20,184,166,0.3);
+  align-self: flex-start;
+}
+.chat-msg .chat-msg-meta {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.ai-chat-input-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+.ai-chat-input {
+  flex: 1;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid var(--border);
+  color: var(--white);
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-family: 'Cairo'; font-size: 0.88rem;
+  resize: vertical;
+  min-height: 42px;
+}
+.ai-chat-input:focus {
+  outline: none;
+  border-color: #14b8a6;
+  box-shadow: 0 0 0 3px rgba(20,184,166,0.15);
+}
+.ai-chat-send {
+  background: linear-gradient(135deg, #14b8a6, #0f766e);
+  color: #fff;
+  border: none;
+  padding: 0 20px;
+  border-radius: 10px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-weight: 700; font-size: 0.88rem;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.ai-chat-send:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 15px rgba(20,184,166,0.4);
+}
+.ai-chat-send:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ai-chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.ai-chat-suggestion {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border);
+  color: var(--dim);
+  padding: 4px 10px;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.ai-chat-suggestion:hover {
+  background: rgba(20,184,166,0.15);
+  color: #14b8a6;
+  border-color: rgba(20,184,166,0.4);
+}
+</style>
+</head>
+<body>
+
+<!-- خلفية النجوم -->
+<div id="stars"></div>
+
+<!-- الـ Toast -->
+<div class="toast" id="toast"></div>
+
+<div class="app">
+  <!-- ══════════ SIDEBAR ══════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-crown">
+      <div class="crown-icon">👑</div>
+      <div class="sidebar-title">مصنع الأسئلة</div>
+      <div class="sidebar-subtitle">الإعداد الشخصي للبنك</div>
+    </div>
+
+    <!-- 🗺️ الربط بالمنهج -->
+    <div class="field-group">
+      <label class="field-label">🎓 الصف</label>
+      <select class="field-select" id="cr-grade" onchange="loadSemesters()">
+        <option value="">— اختر الصف —</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">📅 الفصل</label>
+      <select class="field-select" id="cr-semester" onchange="loadUnits()" disabled>
+        <option value="">— اختر الفصل —</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">📦 الوحدة</label>
+      <select class="field-select" id="cr-unit" onchange="loadLessons()" disabled>
+        <option value="">— اختر الوحدة —</option>
+      </select>
+    </div>
+    <div class="field-group">
+      <label class="field-label">📖 الدرس</label>
+      <select class="field-select" id="cr-lesson" disabled>
+        <option value="">— اختر الدرس —</option>
+      </select>
+    </div>
+
+    <!-- نوع الأسئلة وعددها -->
+    <div class="field-group">
+      <label class="field-label">🔵 اختياري (MCQ)</label>
+      <div class="slider-row">
+        <input type="range" class="slider" id="n-mcq" min="0" max="20" value="5" oninput="updateSlider('n-mcq','v-mcq')">
+        <span class="slider-value" id="v-mcq">5</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">🔴 صواب/خطأ</label>
+      <div class="slider-row">
+        <input type="range" class="slider" id="n-tf" min="0" max="20" value="3" oninput="updateSlider('n-tf','v-tf')">
+        <span class="slider-value" id="v-tf">3</span>
+      </div>
+    </div>
+    <div class="field-group">
+      <label class="field-label">🟢 إجابة قصيرة</label>
+      <div class="slider-row">
+        <input type="range" class="slider" id="n-sh" min="0" max="20" value="2" oninput="updateSlider('n-sh','v-sh')">
+        <span class="slider-value" id="v-sh">2</span>
+      </div>
+    </div>
+
+    <!-- الصعوبة -->
+    <div class="field-group">
+      <label class="field-label">📈 الصعوبة</label>
+      <div class="radio-group">
+        <div class="radio-item" onclick="selectDiff(this,'easy')">🟢 سهل</div>
+        <div class="radio-item selected" onclick="selectDiff(this,'medium')">🟡 متوسط</div>
+        <div class="radio-item" onclick="selectDiff(this,'hard')">🔴 صعب</div>
+      </div>
+    </div>
+
+    <!-- بطاقة الإحصاءات -->
+    <div class="stats-card">
+      <div class="stat-item">
+        <div class="stat-num" id="total-count">10</div>
+        <div class="stat-lbl">إجمالي الأسئلة</div>
+      </div>
+      <div class="stat-item">
+        <div class="stat-num" id="stat-q-generated">0</div>
+        <div class="stat-lbl">مولّدة الآن</div>
+      </div>
+    </div>
+
+    <!-- زر التوليد -->
+    <button class="gen-btn" id="gen-btn" onclick="startGeneration()">
+      ✨ توليد الأسئلة
+    </button>
+  </aside>
+
+  <!-- ══════════ MAIN ══════════ -->
+  <main class="main">
+    <!-- الرأس -->
+    <div class="header">
+      <h1 class="header-title">🏭 مصنع الأسئلة الشخصي</h1>
+      <div class="header-actions">
+        <button class="sessions-trigger" onclick="manualSave()" style="background:rgba(0,200,150,0.1);border-color:rgba(0,200,150,0.3);color:var(--green);" title="حفظ فوري (Ctrl+S)">💾 حفظ الآن</button>
+        <button class="sessions-trigger" onclick="showShortcutsHelp()" style="background:rgba(212,175,55,0.1);border-color:rgba(212,175,55,0.3);color:var(--gold);" title="عرض الاختصارات (?)">⌨️ الاختصارات</button>
+        <button class="sessions-trigger" onclick="openSessionsModal()" title="الجلسات السابقة (Ctrl+L)">📚 الجلسات</button>
+        <button class="btn-back" onclick="window.location.href='/admin'">⬅️ العودة للوحة الأدمن</button>
+      </div>
+    </div>
+    
+    <!-- 💡 شريط تلميحي ذكي -->
+    <div id="tips-bar" style="background:linear-gradient(135deg,rgba(168,85,247,0.08),rgba(20,184,166,0.04));border:1px solid rgba(168,85,247,0.25);border-radius:12px;padding:10px 16px;display:flex;align-items:center;gap:12px;font-size:0.83rem;color:var(--dim);">
+      <span style="font-size:1.3rem;">💡</span>
+      <div style="flex:1;line-height:1.6;" id="tip-text">
+        <b style="color:var(--gold2);">نصيحة:</b> اضغط <kbd style="background:rgba(212,175,55,0.15);padding:1px 6px;border-radius:4px;font-family:monospace;">?</kbd> لعرض كل الاختصارات السريعة · 
+        <b style="color:#14b8a6;">Ctrl+S</b> للحفظ · <b style="color:var(--purple);">Ctrl+G</b> للتوليد · <b style="color:var(--green);">Ctrl+B</b> للبنك
+      </div>
+      <button onclick="this.parentElement.style.display='none'" style="background:transparent;border:none;color:var(--dim);cursor:pointer;font-size:1rem;padding:4px 8px;" title="إخفاء">✕</button>
+    </div>
+
+    <!-- إحصاءات سريعة -->
+    <div class="top-stats">
+      <div class="top-stat-card">
+        <div class="top-stat-icon">📚</div>
+        <div class="top-stat-info">
+          <div class="top-stat-num" id="bank-total">—</div>
+          <div class="top-stat-lbl">إجمالي البنك</div>
+        </div>
+      </div>
+      <div class="top-stat-card">
+        <div class="top-stat-icon">📄</div>
+        <div class="top-stat-info">
+          <div class="top-stat-num" id="stat-pages">0</div>
+          <div class="top-stat-lbl">صفحات المعالجة</div>
+        </div>
+      </div>
+      <div class="top-stat-card">
+        <div class="top-stat-icon">⚡</div>
+        <div class="top-stat-info">
+          <div class="top-stat-num" id="stat-saved">0</div>
+          <div class="top-stat-lbl">محفوظة في البنك</div>
+        </div>
+      </div>
+      <div class="top-stat-card">
+        <div class="top-stat-icon">🎯</div>
+        <div class="top-stat-info">
+          <div class="top-stat-num" id="stat-status-label">جاهز</div>
+          <div class="top-stat-lbl">الحالة</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- رفع PDF -->
+    <div>
+      <div class="upload-zone" id="upload-zone"
+           onclick="document.getElementById('file-input').click()"
+           ondragover="handleDragOver(event)"
+           ondragleave="handleDragLeave()"
+           ondrop="handleDrop(event)">
+        <div class="upload-icon">📚</div>
+        <div class="upload-text">اسحب PDF هنا أو انقر للاختيار</div>
+        <div class="upload-hint">الحد الأقصى: 50 ميجابايت</div>
+      </div>
+      <input type="file" id="file-input" accept="application/pdf" style="display:none" onchange="handleFileSelect(event)">
+
+      <div class="file-info" id="file-info">
+        <span class="file-info-icon">📗</span>
+        <div class="file-info-text">
+          <div class="file-name" id="file-name">—</div>
+          <div class="file-meta" id="file-meta">—</div>
+        </div>
+      </div>
+
+      <div class="page-range" id="page-range">
+        <div class="field-group">
+          <label class="field-label">📖 من صفحة</label>
+          <input class="field-input" type="number" id="page-start" value="1" min="1">
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 إلى صفحة</label>
+          <input class="field-input" type="number" id="page-end" value="15" min="1">
+        </div>
+        <div class="field-group">
+          <label class="field-label">&nbsp;</label>
+          <button class="act-btn primary" onclick="extractAndPreview()" id="extract-btn">📖 استخراج النص</button>
+        </div>
+      </div>
+
+      <!-- 🆕 معاينة PDF مرئية -->
+      <div class="pdf-preview-wrap" id="pdf-preview-wrap">
+        <div class="pdf-preview-header">
+          <div class="pdf-preview-title">🖼️ معاينة الصفحات</div>
+          <div class="pdf-preview-nav">
+            <button class="pdf-nav-btn" id="pdf-prev-btn" onclick="pdfPrevPage()">⬅️ السابقة</button>
+            <span class="pdf-page-num" id="pdf-page-num">— / —</span>
+            <button class="pdf-nav-btn" id="pdf-next-btn" onclick="pdfNextPage()">التالية ➡️</button>
+          </div>
+        </div>
+        <div class="pdf-canvas-wrap">
+          <canvas id="pdf-canvas"></canvas>
+        </div>
+        <div class="pdf-range-quick">
+          <span style="color:var(--dim);font-size:0.78rem;margin-left:8px;">📌 نطاقات سريعة:</span>
+          <button class="pdf-range-btn" onclick="pdfSetRange(1, 10)">١-١٠</button>
+          <button class="pdf-range-btn" onclick="pdfSetRange(11, 25)">١١-٢٥</button>
+          <button class="pdf-range-btn" onclick="pdfSetRange(26, 50)">٢٦-٥٠</button>
+          <button class="pdf-range-btn" onclick="pdfSetRangeFromCurrent()">📍 من الصفحة الحالية + ١٥</button>
+          <button class="pdf-range-btn" onclick="pdfSetRangeAll()">📑 كل الصفحات</button>
+        </div>
+      </div>
+
+      <!-- معاينة النص -->
+      <div class="text-preview" id="text-preview">
+        <div class="text-preview-header">
+          <div class="text-preview-title">📄 معاينة النص المستخرج</div>
+          <div style="color:var(--dim);font-size:0.78rem;" id="text-info">—</div>
+        </div>
+        <div class="text-preview-content" id="text-preview-content">—</div>
+      </div>
+    </div>
+
+    <!-- 🆕 وضع المعالجة بالدفعات -->
+    <div class="batch-mode" id="batch-mode">
+      <div class="batch-mode-header">
+        <div class="batch-mode-title">
+          📊 وضع المعالجة بالدفعات
+        </div>
+        <div class="batch-toggle" id="batch-toggle" onclick="toggleBatchMode()">
+          <div class="batch-toggle-knob"></div>
+        </div>
+      </div>
+      <div style="color:var(--dim);font-size:0.8rem;line-height:1.6;">
+        ولّد ١٠٠+ سؤال تلقائياً في دفعات متتالية، مع تنوّع في كل دفعة.
+      </div>
+      <div class="batch-controls" id="batch-controls" style="display:none;">
+        <div class="batch-target-field">
+          <label>🎯 العدد المستهدف</label>
+          <input type="number" id="batch-target" value="100" min="20" max="500" step="10">
+        </div>
+        <div class="batch-target-field">
+          <label>📦 حجم الدفعة الواحدة</label>
+          <input type="number" id="batch-size" value="20" min="10" max="30">
+        </div>
+      </div>
+    </div>
+
+    <!-- 🆕 شريط تقدم الدفعات -->
+    <div class="batch-progress" id="batch-progress">
+      <div class="batch-progress-header">
+        <div>
+          <div class="batch-progress-stats" id="batch-stats">٠ / ١٠٠ سؤال</div>
+          <div style="color:var(--dim);font-size:0.78rem;margin-top:2px;" id="batch-batch-num">الدفعة ١</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="batch-progress-percent" id="batch-percent">٠٪</div>
+          <button class="batch-stop-btn" onclick="stopBatch()">⏹️ إيقاف</button>
+        </div>
+      </div>
+      <div class="batch-progress-bar-track">
+        <div class="batch-progress-bar-fill" id="batch-bar"></div>
+      </div>
+      <div class="batch-current-action" id="batch-action">
+        <div class="spinner"></div>
+        <span>جارٍ التحضير...</span>
+      </div>
+    </div>
+
+    <!-- شريط التقدم العادي -->
+    <div class="progress-wrap" id="progress-wrap">
+      <div class="progress-label" id="progress-label">جارٍ معالجة PDF...</div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="progress-fill"></div>
+      </div>
+    </div>
+
+    <!-- الأسئلة -->
+    <div class="questions-wrap" id="questions-wrap">
+      <div class="section-header">
+        <div class="section-title">
+          ✏️ الأسئلة المولّدة
+          <span class="section-count" id="q-count-badge">0</span>
+        </div>
+        <div class="action-btns">
+          <button class="act-btn" onclick="addQuestion()">➕ إضافة سؤال</button>
+          <button class="act-btn" onclick="toggleAIChat()" style="background:linear-gradient(135deg,rgba(20,184,166,0.15),rgba(20,184,166,0.05));border-color:rgba(20,184,166,0.4);color:#14b8a6;">💬 شات AI</button>
+          <button class="act-btn" onclick="clearAll()">🗑️ مسح الكل</button>
+          <button class="act-btn" onclick="downloadExcel()">⬇️ تصدير Excel</button>
+          <button class="act-btn success" onclick="saveToBank()">💾 حفظ في البنك</button>
+        </div>
+      </div>
+      <div id="questions-list">
+        <!-- يُحقن ديناميكياً -->
+      </div>
+    </div>
+
+    <!-- الحالة الفارغة -->
+    <div class="empty-state" id="empty-state">
+      <span class="empty-icon">👆</span>
+      ١. اختر الصف والدرس من القائمة الجانبية<br>
+      ٢. ارفع ملف PDF واختر نطاق الصفحات<br>
+      ٣. اضغط "استخراج النص" ثم "توليد الأسئلة"
+    </div>
+
+    <!-- 🆕 شات AI لتعديل الأسئلة -->
+    <div class="ai-chat-wrap" id="ai-chat-wrap">
+      <div class="ai-chat-header">
+        <div class="ai-chat-title">💬 شات AI لتحسين الأسئلة</div>
+        <button class="modal-close" onclick="toggleAIChat()" style="width:28px;height:28px;font-size:0.85rem;">✕</button>
+      </div>
+      <div class="ai-chat-history" id="ai-chat-history"></div>
+      <div class="ai-chat-input-row">
+        <textarea class="ai-chat-input" id="ai-chat-input" rows="2"
+                  placeholder="اكتب طلبك... مثلاً: حسّن السؤال رقم 3، أو اجعل كل الأسئلة أصعب"></textarea>
+        <button class="ai-chat-send" id="ai-chat-send" onclick="sendChatRequest()">إرسال</button>
+      </div>
+      <div class="ai-chat-suggestions">
+        <span style="color:var(--dim);font-size:0.74rem;margin-left:6px;">💡 اقتراحات:</span>
+        <button class="ai-chat-suggestion" onclick="setChatInput('اجعل كل الأسئلة أكثر دقّة وصياغة احترافية')">صياغة احترافية</button>
+        <button class="ai-chat-suggestion" onclick="setChatInput('أضف تنوعاً في صياغة الأسئلة')">تنوع</button>
+        <button class="ai-chat-suggestion" onclick="setChatInput('تحقق من الإملاء والقواعد')">إملاء وقواعد</button>
+        <button class="ai-chat-suggestion" onclick="setChatInput('اجعل الأسئلة أصعب وأكثر تحليلاً')">أصعب</button>
+        <button class="ai-chat-suggestion" onclick="setChatInput('بسّط الأسئلة لتكون أوضح')">بسّط</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- 🆕 مؤشر الحفظ التلقائي -->
+<div class="autosave-indicator" id="autosave-indicator">
+  <span>✅</span>
+  <span id="autosave-text">حُفظت تلقائياً</span>
+</div>
+
+<!-- 🆕 Modal: قائمة الجلسات السابقة -->
+<div class="modal-overlay" id="sessions-modal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">📚 الجلسات السابقة</div>
+      <button class="modal-close" onclick="closeSessionsModal()">✕</button>
+    </div>
+    <div id="sessions-list">
+      <div style="text-align:center;padding:30px;color:var(--dim);">جارٍ التحميل...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// STATE
+// ════════════════════════════════════════════════════════════
+let state = {
+  pdfFile:   null,
+  pdfText:   '',
+  pageCount: 0,
+  questions: [],
+  difficulty:'medium',
+  curriculum: null,  // هرمية المنهج
+};
+
+// ════════════════════════════════════════════════════════════
+// STARS BG
+// ════════════════════════════════════════════════════════════
+(function(){
+  const c = document.getElementById('stars');
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div'); s.className='star';
+    const sz=Math.random()*2+.5;
+    s.style.cssText=`width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;--d:${(Math.random()*4+2).toFixed(1)}s;--delay:-${(Math.random()*5).toFixed(1)}s;opacity:${Math.random()*.5+.1}`;
+    c.appendChild(s);
+  }
+})();
+
+// ════════════════════════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════════════════════════
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent=msg; t.className=`toast ${type} show`;
+  setTimeout(()=>t.classList.remove('show'), 3000);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🗺️ تحميل هرمية المنهج
+// ════════════════════════════════════════════════════════════
+async function loadCurriculum() {
+  try {
+    const res = await apiCall('/api/curriculum/structure');
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    state.curriculum = await res.json();
+    if (!Array.isArray(state.curriculum)) state.curriculum = [];
+    
+    const gradeSel = document.getElementById('cr-grade');
+    gradeSel.innerHTML = '<option value="">— كل الصفوف —</option>';
+    state.curriculum.forEach(g => {
+      const opt = document.createElement('option');
+      opt.value = g.name;
+      opt.textContent = g.name;
+      gradeSel.appendChild(opt);
+    });
+  } catch(e) {
+    toast('⚠️ فشل تحميل المنهج: ' + e.message, 'error');
+  }
+}
+
+function loadSemesters() {
+  const grade = document.getElementById('cr-grade').value;
+  const semSel = document.getElementById('cr-semester');
+  const unitSel = document.getElementById('cr-unit');
+  const lessSel = document.getElementById('cr-lesson');
+  
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+  unitSel.innerHTML = '<option value="">— اختر الفصل أولاً —</option>';
+  lessSel.innerHTML = '<option value="">— اختر الوحدة أولاً —</option>';
+  
+  if (!grade) {
+    semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true;
+    return;
+  }
+  
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  if (gradeObj && gradeObj.semesters) {
+    gradeObj.semesters.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name; opt.textContent = s.name;
+      semSel.appendChild(opt);
+    });
+  }
+  semSel.disabled = false;
+  unitSel.disabled = true;
+  lessSel.disabled = true;
+}
+
+function loadUnits() {
+  const grade = document.getElementById('cr-grade').value;
+  const sem = document.getElementById('cr-semester').value;
+  const unitSel = document.getElementById('cr-unit');
+  const lessSel = document.getElementById('cr-lesson');
+  
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+  lessSel.innerHTML = '<option value="">— اختر الوحدة أولاً —</option>';
+  
+  if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+  
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  if (gradeObj && gradeObj.semesters) {
+    const semObj = gradeObj.semesters.find(s => s.name === sem);
+    if (semObj && semObj.units) {
+      semObj.units.forEach(u => {
+        const opt = document.createElement('option');
+        opt.value = u.name; opt.textContent = u.name;
+        unitSel.appendChild(opt);
+      });
+    }
+  }
+  unitSel.disabled = false;
+  lessSel.disabled = true;
+}
+
+function loadLessons() {
+  const grade = document.getElementById('cr-grade').value;
+  const sem = document.getElementById('cr-semester').value;
+  const unit = document.getElementById('cr-unit').value;
+  const lessSel = document.getElementById('cr-lesson');
+  
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  const semObj = gradeObj?.semesters?.find(s => s.name === sem);
+  const unitObj = semObj?.units?.find(u => u.name === unit);
+  if (unitObj && unitObj.lessons) {
+    unitObj.lessons.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.name; opt.textContent = l.name;
+      lessSel.appendChild(opt);
+    });
+  }
+  lessSel.disabled = false;
+  
+  // 🆕 autosave عند تغيير
+  lessSel.onchange = scheduleAutosave;
+  scheduleAutosave();
+}
+
+// ════════════════════════════════════════════════════════════
+// SLIDERS / DIFFICULTY
+// ════════════════════════════════════════════════════════════
+function updateSlider(id, vid) {
+  const v=document.getElementById(id).value;
+  document.getElementById(vid).textContent=v;
+  updateTotal();
+}
+function updateTotal() {
+  const t = +document.getElementById('n-mcq').value
+         + +document.getElementById('n-tf').value
+         + +document.getElementById('n-sh').value;
+  document.getElementById('total-count').textContent=t;
+}
+function selectDiff(el, val) {
+  document.querySelectorAll('.radio-group .radio-item').forEach(r=>{
+    if(r.closest('.field-group')===el.closest('.field-group')) r.classList.remove('selected');
+  });
+  el.classList.add('selected'); state.difficulty=val;
+}
+
+// ════════════════════════════════════════════════════════════
+// FILE HANDLING
+// ════════════════════════════════════════════════════════════
+function handleFileSelect(e) { processFile(e.target.files[0]); }
+function handleDragOver(e) { e.preventDefault(); document.getElementById('upload-zone').classList.add('drag-over'); }
+function handleDragLeave()  { document.getElementById('upload-zone').classList.remove('drag-over'); }
+function handleDrop(e) {
+  e.preventDefault(); handleDragLeave();
+  const f = e.dataTransfer.files[0];
+  if (f && f.type==='application/pdf') processFile(f);
+  else toast('يرجى رفع ملف PDF فقط', 'error');
+}
+
+async function processFile(file) {
+  if(!file) return;
+  if(file.size > 50*1024*1024) { toast('حجم الملف أكبر من 50MB', 'error'); return; }
+  state.pdfFile = file;
+  document.getElementById('file-name').textContent = file.name;
+  document.getElementById('file-meta').textContent = `${(file.size/1024/1024).toFixed(2)} MB`;
+  document.getElementById('file-info').classList.add('show');
+  document.getElementById('page-range').classList.add('show');
+  toast('⏳ جاري قراءة الـ PDF...', 'info');
+  
+  // 🆕 معاينة PDF مرئية موازية (لا تنتظر الـ backend)
+  loadPdfForPreview(file).catch(e => console.warn('PDF preview failed:', e));
+  
+  // الاتصال بـ backend للحصول على عدد الصفحات + إعداد batch mode
+  try {
+    const fd = new FormData();
+    fd.append('pdf_file', file);
+    const res = await apiCall('/api/prep/pdf_info', { method: 'POST', body: fd });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    state.pageCount = data.page_count;
+    document.getElementById('stat-pages').textContent = data.page_count;
+    document.getElementById('page-end').value = Math.min(15, data.page_count);
+    document.getElementById('page-end').max = data.page_count;
+    document.getElementById('page-start').max = data.page_count;
+    document.getElementById('stat-status-label').textContent = 'PDF جاهز';
+    
+    // 🆕 إظهار batch mode
+    document.getElementById('batch-mode').classList.add('show');
+    
+    toast(`✅ ${data.page_count} صفحة - جاهز للاستخراج`, 'success');
+    scheduleAutosave();
+  } catch(e) {
+    toast('❌ خطأ في قراءة الملف: ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 📖 استخراج النص (Real PDF extraction via backend)
+// ════════════════════════════════════════════════════════════
+async function extractAndPreview() {
+  if (!state.pdfFile) { toast('⚠️ ارفع PDF أولاً', 'error'); return; }
+  
+  const pStart = parseInt(document.getElementById('page-start').value) || 1;
+  const pEnd = parseInt(document.getElementById('page-end').value) || 15;
+  
+  if (pStart > pEnd) { toast('⚠️ البداية أكبر من النهاية', 'error'); return; }
+  
+  const btn = document.getElementById('extract-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري الاستخراج...';
+  
+  try {
+    const fd = new FormData();
+    fd.append('pdf_file', state.pdfFile);
+    fd.append('page_start', String(pStart));
+    fd.append('page_end', String(pEnd));
+    
+    const res = await apiCall('/api/prep/extract_text', { method: 'POST', body: fd });
+    
+    if (!res.ok) {
+      let errMsg = 'HTTP ' + res.status;
+      try {
+        const err = await res.json();
+        errMsg = err.detail || errMsg;
+      } catch(_) {
+        try {
+          errMsg = await res.text();
+        } catch(_) {}
+      }
+      
+      // 🆕 عرض رسالة الخطأ في نافذة كاملة (لرسائل طويلة)
+      if (errMsg.length > 80) {
+        showDetailedError('فشل استخراج النص', errMsg);
+      } else {
+        toast('❌ ' + errMsg, 'error');
+      }
+      throw new Error(errMsg);
+    }
+    
+    const data = await res.json();
+    
+    if (!data.text || data.text.length < 30) {
+      throw new Error('النص المستخرج قصير جداً أو فارغ');
+    }
+    
+    state.pdfText = data.text;
+    document.getElementById('text-preview').classList.add('show');
+    document.getElementById('text-preview-content').textContent = data.text.slice(0, 2000) + (data.text.length > 2000 ? '\n\n... (المزيد محفوظ داخلياً)' : '');
+    
+    // 🆕 معلومات أكثر تفصيلاً
+    let info = `${data.pages_extracted} صفحة · ${data.char_count.toLocaleString('ar-EG')} حرف`;
+    if (data.empty_pages && data.empty_pages.length > 0) {
+      info += ` · ⚠️ ${data.empty_pages.length} فارغة`;
+    }
+    if (data.failed_pages && data.failed_pages.length > 0) {
+      info += ` · ❌ ${data.failed_pages.length} فشلت`;
+    }
+    document.getElementById('text-info').textContent = info;
+    
+    toast(`✅ تم استخراج ${data.pages_extracted} صفحة`, 'success');
+  } catch(e) {
+    console.error('Extract error:', e);
+    // toast لرسائل قصيرة فقط (الطويلة عُرضت في modal)
+    if (e.message && e.message.length <= 80) {
+      toast('❌ ' + e.message, 'error');
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '📖 استخراج النص';
+  }
+}
+
+// 🆕 modal لعرض الأخطاء التفصيلية
+function showDetailedError(title, message) {
+  const existing = document.getElementById('detailed-error-modal');
+  if (existing) existing.remove();
+  
+  // تحويل النص الطويل لـ HTML مع الحفاظ على الأسطر
+  const messageHtml = _esc(message).replace(/\n/g, '<br>');
+  
+  const html = `
+    <div class="modal-overlay show" id="detailed-error-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal-box" style="max-width:560px;border-color:rgba(255,77,109,0.4);">
+        <div class="modal-header" style="border-bottom-color:rgba(255,77,109,0.3);">
+          <div class="modal-title" style="color:#ff8a9b;">⚠️ ${_esc(title)}</div>
+          <button class="modal-close" onclick="document.getElementById('detailed-error-modal').remove()">✕</button>
+        </div>
+        <div style="background:rgba(255,77,109,0.05);border:1px solid rgba(255,77,109,0.2);border-radius:12px;padding:18px;color:rgba(240,234,214,0.9);font-size:0.92rem;line-height:1.9;text-align:right;">
+          ${messageHtml}
+        </div>
+        <div style="margin-top:16px;display:flex;gap:10px;justify-content:flex-end;">
+          <button class="act-btn primary" onclick="document.getElementById('detailed-error-modal').remove()">حسناً</button>
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ════════════════════════════════════════════════════════════
+// ✨ التوليد
+// ════════════════════════════════════════════════════════════
+async function startGeneration() {
+  // 🆕 إذا batch mode مفعّل، نستخدم الدفعات
+  if (document.getElementById('batch-toggle').classList.contains('on')) {
+    return startBatchGeneration();
+  }
+  
+  if (!state.pdfText || state.pdfText.length < 50) {
+    toast('⚠️ استخرج النص من PDF أولاً', 'error');
+    return;
+  }
+  
+  const nMcq = +document.getElementById('n-mcq').value;
+  const nTf = +document.getElementById('n-tf').value;
+  const nSh = +document.getElementById('n-sh').value;
+  const total = nMcq + nTf + nSh;
+  
+  if (total === 0) { toast('⚠️ حدد عدداً من الأسئلة', 'error'); return; }
+  if (total > 50) { toast('⚠️ الحد الأقصى 50 سؤال (استخدم وضع الدفعات للأكثر)', 'error'); return; }
+  
+  const btn = document.getElementById('gen-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+  
+  showProgress(true);
+  setProgress(20, 'جاري إرسال الطلب إلى Gemini...');
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('stat-status-label').textContent = 'يعمل...';
+  trackGenerationStart();
+  
+  try {
+    const fd = new FormData();
+    fd.append('text', state.pdfText);
+    fd.append('grade', document.getElementById('cr-grade').value || '');
+    fd.append('semester', document.getElementById('cr-semester').value || '');
+    fd.append('unit', document.getElementById('cr-unit').value || '');
+    fd.append('lesson', document.getElementById('cr-lesson').value || '');
+    fd.append('n_mcq', String(nMcq));
+    fd.append('n_tf', String(nTf));
+    fd.append('n_short', String(nSh));
+    fd.append('difficulty', state.difficulty);
+    
+    setProgress(50, 'جارٍ توليد الأسئلة بـ Gemini AI...');
+    
+    const res = await apiCall('/api/prep/ai_generate', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    
+    setProgress(90, 'جارٍ عرض النتائج...');
+    state.questions = data.questions || [];
+    renderQuestions();
+    
+    setTimeout(() => {
+      setProgress(100, 'اكتمل!');
+      setTimeout(() => showProgress(false), 600);
+    }, 400);
+    
+    document.getElementById('stat-q-generated').textContent = state.questions.length;
+    document.getElementById('stat-status-label').textContent = 'اكتمل ✅';
+    trackGenerationEnd(state.questions.length);
+    const perfMsg = _stats.questionsPerMinute > 0 ? ` (${_stats.questionsPerMinute} سؤال/دقيقة)` : '';
+    toast(`✅ تم توليد ${state.questions.length} سؤال (${data.model || 'Gemini'})${perfMsg}`, 'success');
+    scheduleAutosave();
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    showProgress(false);
+    document.getElementById('stat-status-label').textContent = 'خطأ';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ توليد الأسئلة';
+    if (document.getElementById('batch-toggle').classList.contains('on')) {
+      btn.innerHTML = '🚀 بدء التوليد بالدفعات';
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎨 RENDER
+// ════════════════════════════════════════════════════════════
+function renderQuestions() {
+  const wrap = document.getElementById('questions-wrap');
+  const list = document.getElementById('questions-list');
+  const qs = state.questions;
+  
+  if (!qs.length) {
+    wrap.classList.remove('show');
+    document.getElementById('empty-state').style.display = 'block';
+    return;
+  }
+  
+  wrap.classList.add('show');
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('q-count-badge').textContent = qs.length;
+  
+  list.innerHTML = qs.map((q, i) => {
+    const badgeCls = q.type==='اختياري' ? 'badge-mcq' : q.type==='صواب/خطأ' ? 'badge-tf' : 'badge-sh';
+    const cardCls = q.type==='اختياري' ? 'type-mcq' : q.type==='صواب/خطأ' ? 'type-tf' : 'type-sh';
+    const opts = (q.options || []).join(' | ');
+    const optsField = q.type==='اختياري' ? `
+      <div>
+        <div class="q-field-label">الخيارات (مفصولة بـ |)</div>
+        <input class="q-field-input" value="${_esc(opts)}" placeholder="خيار١ | خيار٢ | خيار٣ | خيار٤"
+               onchange="updateQ(${i},'options',this.value)">
+      </div>` : '<div></div>';
+    
+    return `
+    <div class="q-card ${cardCls}" style="animation-delay:${i*60}ms">
+      <div class="q-card-top">
+        <div class="q-num">${i+1}</div>
+        <textarea class="q-text-area" rows="2"
+          onchange="updateQ(${i},'q',this.value)">${_esc(q.q || q.question || '')}</textarea>
+        <span class="q-type-badge ${badgeCls}">${q.type}</span>
+      </div>
+      <div class="q-card-body">
+        ${optsField}
+        <div>
+          <div class="q-field-label">الإجابة الصحيحة</div>
+          <input class="q-field-input" value="${_esc(q.answer || q.correct || '')}"
+                 onchange="updateQ(${i},'answer',this.value)">
+        </div>
+      </div>
+      <div class="q-card-footer">
+        <button class="q-del-btn" onclick="deleteQ(${i})">🗑️ حذف</button>
+        <span class="q-correct-label">✓ الإجابة: ${_esc(q.answer || q.correct || '—')}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function updateQ(idx, field, val) {
+  if (!state.questions[idx]) return;
+  if (field==='options') {
+    state.questions[idx].options = val.split('|').map(s=>s.trim()).filter(Boolean);
+  } else {
+    state.questions[idx][field] = val;
+  }
+  scheduleAutosave();
+}
+
+function deleteQ(idx) {
+  state.questions.splice(idx, 1);
+  renderQuestions();
+  document.getElementById('stat-q-generated').textContent = state.questions.length;
+  scheduleAutosave();
+}
+
+function clearAll() {
+  if (!confirm('مسح جميع الأسئلة؟')) return;
+  state.questions = [];
+  renderQuestions();
+  document.getElementById('stat-q-generated').textContent = 0;
+  scheduleAutosave();
+}
+
+function addQuestion() {
+  state.questions.push({type:'اختياري', q:'سؤال جديد', options:['أ','ب','ج','د'], answer:'أ'});
+  renderQuestions();
+  scheduleAutosave();
+}
+
+// ════════════════════════════════════════════════════════════
+// PROGRESS
+// ════════════════════════════════════════════════════════════
+function showProgress(show) {
+  document.getElementById('progress-wrap').classList.toggle('show', show);
+}
+function setProgress(pct, label) {
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = label;
+}
+
+// ════════════════════════════════════════════════════════════
+// 💾 الحفظ في بنك المنصة (مباشر)
+// ════════════════════════════════════════════════════════════
+async function saveToBank() {
+  if (!state.questions.length) { toast('لا توجد أسئلة للحفظ', 'error'); return; }
+  
+  const grade = document.getElementById('cr-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف من القائمة الجانبية أولاً', 'error'); return; }
+  
+  if (!confirm(`حفظ ${state.questions.length} سؤال في بنك المنصة؟\n\nالصف: ${grade}\nسيتم التصنيف تلقائياً بالمنهج المحدد.`)) return;
+  
+  try {
+    const fd = new FormData();
+    fd.append('questions_json', JSON.stringify(state.questions));
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('cr-semester').value || '');
+    fd.append('unit', document.getElementById('cr-unit').value || '');
+    fd.append('lesson', document.getElementById('cr-lesson').value || '');
+    
+    const res = await apiCall('/api/prep/save_to_bank', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    
+    document.getElementById('stat-saved').textContent = 
+      (parseInt(document.getElementById('stat-saved').textContent) || 0) + data.saved;
+    
+    toast(`✅ ${data.message}`, 'success');
+    refreshStats();
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// ⬇️ تصدير Excel حقيقي (XLSX)
+// ════════════════════════════════════════════════════════════
+function downloadExcel() {
+  if (!state.questions.length) { toast('لا توجد أسئلة', 'error'); return; }
+  if (typeof XLSX === 'undefined') {
+    toast('❌ مكتبة Excel لم تُحمّل', 'error');
+    return;
+  }
+  
+  try {
+    const grade = document.getElementById('cr-grade').value || '';
+    const semester = document.getElementById('cr-semester').value || '';
+    const unit = document.getElementById('cr-unit').value || '';
+    const lesson = document.getElementById('cr-lesson').value || '';
+    
+    // بناء الصفوف
+    const rows = [];
+    rows.push(['مصنع الأسئلة الشخصي - إمبراطورية الرياضيات']);
+    rows.push([`${grade || ''} ${semester || ''} ${unit || ''} ${lesson || ''}`.trim() || 'غير محدد']);
+    rows.push([]);
+    rows.push(['م', 'الصف', 'الفصل', 'الوحدة', 'الدرس', 'النوع', 'السؤال', 'الخيارات', 'الإجابة']);
+    
+    state.questions.forEach((q, i) => {
+      rows.push([
+        i + 1,
+        grade,
+        semester,
+        unit,
+        lesson,
+        q.type || 'اختياري',
+        q.q || q.question || '',
+        (q.options || []).join(' | '),
+        q.answer || q.correct || ''
+      ]);
+    });
+    
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    ws['!cols'] = [
+      {wch:5}, {wch:14}, {wch:12}, {wch:18}, {wch:18},
+      {wch:12}, {wch:50}, {wch:35}, {wch:20}
+    ];
+    ws['!merges'] = [
+      { s:{r:0,c:0}, e:{r:0,c:8} },
+      { s:{r:1,c:0}, e:{r:1,c:8} }
+    ];
+    
+    // التنسيق
+    const titleStyle = { font:{bold:true,sz:16,color:{rgb:'FFFFFF'},name:'Arial'}, fill:{fgColor:{rgb:'040d21'},patternType:'solid'}, alignment:{horizontal:'center',vertical:'center',readingOrder:2} };
+    const subStyle = { font:{bold:true,sz:11,color:{rgb:'d4af37'},name:'Arial'}, fill:{fgColor:{rgb:'FEF3C7'},patternType:'solid'}, alignment:{horizontal:'center',vertical:'center',readingOrder:2} };
+    const headerStyle = { font:{bold:true,sz:11,color:{rgb:'FFFFFF'},name:'Arial'}, fill:{fgColor:{rgb:'D4AF37'},patternType:'solid'}, alignment:{horizontal:'center',vertical:'center',wrapText:true,readingOrder:2}, border:{top:{style:'thin',color:{rgb:'000'}},bottom:{style:'thin',color:{rgb:'000'}},left:{style:'thin',color:{rgb:'000'}},right:{style:'thin',color:{rgb:'000'}}} };
+    const cellStyle = { font:{sz:10,name:'Arial'}, alignment:{horizontal:'right',vertical:'center',wrapText:true,readingOrder:2}, border:{top:{style:'thin',color:{rgb:'CCC'}},bottom:{style:'thin',color:{rgb:'CCC'}},left:{style:'thin',color:{rgb:'CCC'}},right:{style:'thin',color:{rgb:'CCC'}}} };
+    
+    if (ws['A1']) ws['A1'].s = titleStyle;
+    if (ws['A2']) ws['A2'].s = subStyle;
+    for (let c=0; c<9; c++) {
+      const ref = XLSX.utils.encode_cell({r:3,c:c});
+      if (ws[ref]) ws[ref].s = headerStyle;
+    }
+    for (let i=0; i<state.questions.length; i++) {
+      for (let c=0; c<9; c++) {
+        const ref = XLSX.utils.encode_cell({r:4+i,c:c});
+        if (ws[ref]) ws[ref].s = cellStyle;
+      }
+    }
+    
+    ws['!rows'] = [{hpt:30},{hpt:22},{hpt:8},{hpt:32}];
+    for (let i=4; i<rows.length; i++) ws['!rows'][i] = {hpt:30};
+    ws['!sheetView'] = [{rightToLeft:true}];
+    ws['!freeze'] = {xSplit:1, ySplit:4, topLeftCell:'B5'};
+    
+    const wb = XLSX.utils.book_new();
+    wb.Workbook = { Views:[{RTL:true}] };
+    XLSX.utils.book_append_sheet(wb, ws, 'الأسئلة');
+    
+    const fname = `أسئلة_${lesson || grade || 'مولّدة'}_${new Date().toISOString().slice(0,10)}.xlsx`.replace(/[<>:"/\\|?*]/g,'_');
+    XLSX.writeFile(wb, fname);
+    toast(`✅ تم تنزيل ${state.questions.length} سؤال`, 'success');
+  } catch(e) {
+    toast('❌ خطأ في التصدير: ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 📊 إحصاءات البنك
+// ════════════════════════════════════════════════════════════
+async function refreshStats() {
+  try {
+    const res = await apiCall('/api/prep/sessions_history');
+    if (!res.ok) return;
+    const data = await res.json();
+    document.getElementById('bank-total').textContent = (data.total_in_bank || 0).toLocaleString('ar-EG');
+  } catch(e) {}
+}
+
+// ════════════════════════════════════════════════════════════
+// UTILS
+// ════════════════════════════════════════════════════════════
+function _esc(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ════════════════════════════════════════════════════════════
+// 🔐 التحقق من صلاحيات الأدمن (Client-side check)
+// ════════════════════════════════════════════════════════════
+
+// 🆕 جلب admin token من localStorage
+function getAdminToken() {
+  return localStorage.getItem('adminToken') 
+      || localStorage.getItem('admin_token') 
+      || sessionStorage.getItem('adminToken')
+      || sessionStorage.getItem('admin_token')
+      || '';
+}
+
+// 🆕 دالة fetch موحّدة ترسل الـ token إذا كان متوفراً
+async function apiCall(url, options = {}) {
+  const token = getAdminToken();
+  options.headers = options.headers || {};
+  if (token) {
+    options.headers['Authorization'] = 'Bearer ' + token;
+  }
+  return fetch(url, options);
+}
+
+async function verifyAdmin() {
+  // 🆕 نتحقق أولاً من وجود token
+  const token = getAdminToken();
+  if (!token) {
+    showAuthError();
+    return false;
+  }
+  
+  try {
+    const res = await apiCall('/api/prep/sessions_history');
+    if (res.status === 401 || res.status === 403) {
+      // التوكن غير صالح
+      showAuthError();
+      return false;
+    }
+    return true;
+  } catch(e) {
+    console.warn('Admin verification failed:', e.message);
+    if (e.message === 'UNAUTHORIZED') {
+      showAuthError();
+    }
+    return false;
+  }
+}
+
+function showAuthError() {
+  document.body.innerHTML = `
+    <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;background:#040d21;color:#f0ead6;font-family:'Cairo',sans-serif;text-align:center;padding:20px;">
+      <div style="max-width:520px;background:linear-gradient(160deg,rgba(20,25,50,.95),rgba(30,27,75,.92));border:1px solid rgba(212,175,55,.3);border-radius:20px;padding:36px;">
+        <div style="font-size:4rem;margin-bottom:14px;">🔐</div>
+        <h1 style="font-family:'Amiri';color:#fcd34d;margin-bottom:14px;font-size:1.8rem;">يلزم تسجيل الدخول</h1>
+        <p style="color:rgba(240,234,214,.8);margin-bottom:20px;line-height:1.8;">
+          مصنع الأسئلة الشخصي مخصص لمدير المنصة فقط.
+        </p>
+        <div style="background:rgba(212,175,55,.08);border:1px solid rgba(212,175,55,.25);border-radius:12px;padding:14px;margin-bottom:24px;text-align:right;font-size:0.88rem;color:rgba(240,234,214,.85);line-height:1.9;">
+          💡 <b style="color:#fcd34d;">طريقة الدخول الصحيحة:</b><br>
+          1. سجّل دخول كأدمن من لوحة الأدمن أولاً<br>
+          2. من القائمة الجانبية، اضغط: 🏭 مصنع الأسئلة<br>
+          3. سيُفتح المصنع في تبويب جديد
+        </div>
+        <a href="/admin" style="display:inline-block;background:linear-gradient(135deg,#d4af37,#aa771c);color:#040d21;padding:12px 28px;border-radius:10px;font-weight:700;text-decoration:none;font-size:1rem;">🔑 الذهاب للوحة الأدمن</a>
+      </div>
+    </div>`;
+}
+
+// ════════════════════════════════════════════════════════════
+// 🆕📖 معاينة PDF مرئية (PDF.js)
+// ════════════════════════════════════════════════════════════
+let _pdf = {
+  doc: null,
+  currentPage: 1,
+  totalPages: 0,
+  scale: 1.4,
+  rendering: false
+};
+
+async function loadPdfForPreview(file) {
+  if (typeof pdfjsLib === 'undefined') {
+    console.warn('pdf.js not loaded');
+    return;
+  }
+  
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    _pdf.doc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    _pdf.totalPages = _pdf.doc.numPages;
+    _pdf.currentPage = 1;
+    
+    document.getElementById('pdf-preview-wrap').classList.add('show');
+    renderPdfPage(1);
+  } catch(e) {
+    console.error('PDF load error:', e);
+    toast('تعذّر تحميل معاينة PDF', 'error');
+  }
+}
+
+async function renderPdfPage(pageNum) {
+  if (!_pdf.doc || _pdf.rendering) return;
+  if (pageNum < 1 || pageNum > _pdf.totalPages) return;
+  
+  _pdf.rendering = true;
+  _pdf.currentPage = pageNum;
+  
+  try {
+    const page = await _pdf.doc.getPage(pageNum);
+    const viewport = page.getViewport({ scale: _pdf.scale });
+    
+    const canvas = document.getElementById('pdf-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    
+    await page.render({
+      canvasContext: ctx,
+      viewport: viewport
+    }).promise;
+    
+    // تحديث UI
+    document.getElementById('pdf-page-num').textContent = `${arabicNum(pageNum)} / ${arabicNum(_pdf.totalPages)}`;
+    document.getElementById('pdf-prev-btn').disabled = pageNum <= 1;
+    document.getElementById('pdf-next-btn').disabled = pageNum >= _pdf.totalPages;
+  } catch(e) {
+    console.error('Render error:', e);
+  } finally {
+    _pdf.rendering = false;
+  }
+}
+
+function pdfPrevPage() { renderPdfPage(_pdf.currentPage - 1); }
+function pdfNextPage() { renderPdfPage(_pdf.currentPage + 1); }
+
+function pdfSetRange(start, end) {
+  if (!_pdf.doc) return;
+  const s = Math.max(1, Math.min(start, _pdf.totalPages));
+  const e = Math.max(s, Math.min(end, _pdf.totalPages));
+  document.getElementById('page-start').value = s;
+  document.getElementById('page-end').value = e;
+  toast(`📌 النطاق: ${arabicNum(s)} → ${arabicNum(e)}`, 'success');
+  scheduleAutosave();
+}
+
+function pdfSetRangeFromCurrent() {
+  if (!_pdf.doc) return;
+  pdfSetRange(_pdf.currentPage, _pdf.currentPage + 15);
+}
+
+function pdfSetRangeAll() {
+  if (!_pdf.doc) return;
+  pdfSetRange(1, _pdf.totalPages);
+}
+
+function arabicNum(n) {
+  return String(n).replace(/[0-9]/g, d => '٠١٢٣٤٥٦٧٨٩'[d]);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🆕📊 معالجة الدفعات (Batch Processing)
+// ════════════════════════════════════════════════════════════
+let _batch = {
+  active: false,
+  stopped: false,
+  current: 0,
+  total: 0,
+  batchNum: 0,
+  generated: []
+};
+
+function toggleBatchMode() {
+  const toggle = document.getElementById('batch-toggle');
+  const controls = document.getElementById('batch-controls');
+  toggle.classList.toggle('on');
+  const on = toggle.classList.contains('on');
+  controls.style.display = on ? 'grid' : 'none';
+  
+  if (on) {
+    document.getElementById('gen-btn').innerHTML = '🚀 بدء التوليد بالدفعات';
+  } else {
+    document.getElementById('gen-btn').innerHTML = '✨ توليد الأسئلة';
+  }
+  scheduleAutosave();
+}
+
+async function startBatchGeneration() {
+  if (!state.pdfText || state.pdfText.length < 50) {
+    toast('⚠️ استخرج النص من PDF أولاً', 'error');
+    return;
+  }
+  
+  const targetTotal = parseInt(document.getElementById('batch-target').value) || 100;
+  const batchSize = parseInt(document.getElementById('batch-size').value) || 20;
+  
+  if (targetTotal < 20 || targetTotal > 500) { toast('الحد بين ٢٠ و ٥٠٠', 'error'); return; }
+  if (batchSize < 10 || batchSize > 30) { toast('حجم الدفعة بين ١٠ و ٣٠', 'error'); return; }
+  
+  // توزيع داخل الدفعة (60% mcq, 25% tf, 15% short)
+  const nMcq = Math.round(batchSize * 0.6);
+  const nTf = Math.round(batchSize * 0.25);
+  const nShort = batchSize - nMcq - nTf;
+  
+  // إعادة ضبط الحالة
+  _batch.active = true;
+  _batch.stopped = false;
+  _batch.current = 0;
+  _batch.total = targetTotal;
+  _batch.batchNum = 0;
+  _batch.generated = [];
+  state.questions = [];
+  
+  document.getElementById('batch-progress').classList.add('show');
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('gen-btn').disabled = true;
+  document.getElementById('stat-status-label').textContent = 'يعمل...';
+  trackGenerationStart();
+  
+  updateBatchUI();
+  
+  try {
+    while (_batch.current < _batch.total && !_batch.stopped) {
+      _batch.batchNum++;
+      const remaining = _batch.total - _batch.current;
+      const thisBatchSize = Math.min(batchSize, remaining);
+      const ratio = thisBatchSize / batchSize;
+      
+      updateBatchAction(`جارٍ توليد الدفعة ${arabicNum(_batch.batchNum)} (${arabicNum(thisBatchSize)} سؤال)...`);
+      
+      const fd = new FormData();
+      fd.append('text', state.pdfText);
+      fd.append('grade', document.getElementById('cr-grade').value || '');
+      fd.append('semester', document.getElementById('cr-semester').value || '');
+      fd.append('unit', document.getElementById('cr-unit').value || '');
+      fd.append('lesson', document.getElementById('cr-lesson').value || '');
+      fd.append('target_total', String(_batch.total));
+      fd.append('n_mcq_per_batch', String(Math.round(nMcq * ratio)));
+      fd.append('n_tf_per_batch', String(Math.round(nTf * ratio)));
+      fd.append('n_short_per_batch', String(Math.max(1, Math.round(nShort * ratio))));
+      fd.append('difficulty', state.difficulty);
+      fd.append('batch_num', String(_batch.batchNum));
+      fd.append('already_generated', String(_batch.current));
+      
+      try {
+        const res = await apiCall('/api/prep/ai_generate_batch', { method: 'POST', body: fd });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || ('HTTP ' + res.status));
+        }
+        const data = await res.json();
+        const newQs = data.questions || [];
+        
+        // إضافة للقائمة
+        state.questions = state.questions.concat(newQs);
+        _batch.current += newQs.length;
+        _batch.generated.push({ batch: _batch.batchNum, count: newQs.length, variation: data.variation });
+        
+        renderQuestions();
+        updateBatchUI();
+        document.getElementById('stat-q-generated').textContent = state.questions.length;
+        
+        scheduleAutosave();
+        
+        // فاصل صغير بين الدفعات (لتجنب rate limit)
+        if (_batch.current < _batch.total && !_batch.stopped) {
+          updateBatchAction(`انتهت الدفعة ${arabicNum(_batch.batchNum)} ✓ — استراحة ٢ ثانية...`);
+          await sleep(2000);
+        }
+      } catch(e) {
+        toast(`⚠️ فشل دفعة ${arabicNum(_batch.batchNum)}: ${e.message}`, 'error');
+        // نتابع مع الدفعة التالية بعد استراحة
+        await sleep(3000);
+      }
+    }
+    
+    if (_batch.stopped) {
+      toast(`⏹️ تم الإيقاف عند ${arabicNum(state.questions.length)} سؤال`, 'info');
+    } else {
+      trackGenerationEnd(state.questions.length);
+      const perfMsg = _stats.questionsPerMinute > 0 ? ` بسرعة ${_stats.questionsPerMinute} سؤال/دقيقة` : '';
+      toast(`🎉 اكتمل التوليد: ${arabicNum(state.questions.length)} سؤال${perfMsg}!`, 'success');
+    }
+    
+    document.getElementById('stat-status-label').textContent = _batch.stopped ? 'متوقف' : 'اكتمل ✅';
+  } finally {
+    _batch.active = false;
+    document.getElementById('gen-btn').disabled = false;
+    setTimeout(() => {
+      document.getElementById('batch-progress').classList.remove('show');
+    }, 3000);
+  }
+}
+
+function updateBatchUI() {
+  const pct = _batch.total > 0 ? Math.min(100, (_batch.current / _batch.total) * 100) : 0;
+  document.getElementById('batch-bar').style.width = pct + '%';
+  document.getElementById('batch-percent').textContent = `${arabicNum(Math.round(pct))}٪`;
+  document.getElementById('batch-stats').textContent = `${arabicNum(_batch.current)} / ${arabicNum(_batch.total)} سؤال`;
+  document.getElementById('batch-batch-num').textContent = `الدفعة ${arabicNum(_batch.batchNum)}`;
+}
+
+function updateBatchAction(txt) {
+  const el = document.getElementById('batch-action');
+  el.innerHTML = `<div class="spinner"></div><span>${txt}</span>`;
+}
+
+function stopBatch() {
+  _batch.stopped = true;
+  toast('⏹️ سيتم الإيقاف بعد الدفعة الحالية...', 'info');
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ════════════════════════════════════════════════════════════
+// 🆕💾 سجل الجلسات + الحفظ التلقائي
+// ════════════════════════════════════════════════════════════
+let _autosaveTimer = null;
+let _currentSessionId = '';
+const AUTOSAVE_DELAY = 4000;  // 4 ثوان بعد آخر تغيير
+const LOCAL_BACKUP_KEY = 'prep_factory_backup_v1';
+
+function scheduleAutosave() {
+  if (_autosaveTimer) clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(autoSaveSession, AUTOSAVE_DELAY);
+}
+
+async function autoSaveSession() {
+  // نحفظ فقط إذا فيه شيء يستحق
+  if (!state.pdfText && state.questions.length === 0) return;
+  
+  // نسخة محلية احتياطية أولاً (سريعة)
+  try {
+    const backup = {
+      session_id: _currentSessionId,
+      pdf_filename: state.pdfFile ? state.pdfFile.name : '',
+      pdf_text: state.pdfText.substring(0, 30000),  // حد أقصى للتخزين المحلي
+      questions: state.questions,
+      curriculum: {
+        grade: document.getElementById('cr-grade').value,
+        semester: document.getElementById('cr-semester').value,
+        unit: document.getElementById('cr-unit').value,
+        lesson: document.getElementById('cr-lesson').value
+      },
+      meta: {
+        n_mcq: +document.getElementById('n-mcq').value,
+        n_tf: +document.getElementById('n-tf').value,
+        n_short: +document.getElementById('n-sh').value,
+        difficulty: state.difficulty,
+        batch_mode: document.getElementById('batch-toggle').classList.contains('on')
+      },
+      timestamp: Date.now()
+    };
+    localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(backup));
+  } catch(e) { console.warn('Local backup failed:', e); }
+  
+  // حفظ على السيرفر
+  try {
+    const grade = document.getElementById('cr-grade').value || '';
+    const lesson = document.getElementById('cr-lesson').value || '';
+    const title = lesson || grade || (state.pdfFile ? state.pdfFile.name : 'جلسة بدون عنوان');
+    
+    const meta = {
+      n_mcq: +document.getElementById('n-mcq').value,
+      n_tf: +document.getElementById('n-tf').value,
+      n_short: +document.getElementById('n-sh').value,
+      difficulty: state.difficulty
+    };
+    
+    const fd = new FormData();
+    fd.append('title', title);
+    fd.append('pdf_filename', state.pdfFile ? state.pdfFile.name : '');
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('cr-semester').value || '');
+    fd.append('unit', document.getElementById('cr-unit').value || '');
+    fd.append('lesson', lesson);
+    fd.append('extracted_text', state.pdfText.substring(0, 50000));
+    fd.append('questions_json', JSON.stringify(state.questions));
+    fd.append('meta_json', JSON.stringify(meta));
+    fd.append('status', state.questions.length > 0 ? 'draft' : 'draft');
+    if (_currentSessionId) fd.append('session_id', _currentSessionId);
+    
+    const res = await apiCall('/api/prep/session/save', { method: 'POST', body: fd });
+    if (res.ok) {
+      const data = await res.json();
+      if (data.session_id) _currentSessionId = data.session_id;
+      showAutosaveIndicator('✅ حُفظت تلقائياً');
+    }
+  } catch(e) {
+    console.warn('Autosave failed:', e);
+    showAutosaveIndicator('💾 احتياطي محلي', 'warning');
+  }
+}
+
+function showAutosaveIndicator(text) {
+  const ind = document.getElementById('autosave-indicator');
+  document.getElementById('autosave-text').textContent = text;
+  ind.classList.add('show');
+  setTimeout(() => ind.classList.remove('show'), 2000);
+}
+
+// استئناف من localStorage عند التحميل
+function tryRestoreFromBackup() {
+  try {
+    const raw = localStorage.getItem(LOCAL_BACKUP_KEY);
+    if (!raw) return false;
+    const backup = JSON.parse(raw);
+    const ageMins = (Date.now() - (backup.timestamp || 0)) / 60000;
+    
+    if (ageMins > 60) return false;  // قديم جداً
+    if (!backup.questions || backup.questions.length === 0) return false;
+    
+    // نسأل المستخدم
+    const confirmMsg = `🔄 وجدنا جلسة سابقة:\n` +
+      `📝 ${backup.questions.length} سؤال\n` +
+      `📄 ${backup.pdf_filename || 'بدون PDF'}\n` +
+      `⏱️ منذ ${Math.round(ageMins)} دقيقة\n\n` +
+      `هل تريد استئنافها؟`;
+    
+    if (confirm(confirmMsg)) {
+      // استرجاع
+      state.questions = backup.questions || [];
+      state.pdfText = backup.pdf_text || '';
+      _currentSessionId = backup.session_id || '';
+      
+      if (backup.curriculum) {
+        if (backup.curriculum.grade) {
+          document.getElementById('cr-grade').value = backup.curriculum.grade;
+          loadSemesters();
+          setTimeout(() => {
+            if (backup.curriculum.semester) {
+              document.getElementById('cr-semester').value = backup.curriculum.semester;
+              loadUnits();
+              setTimeout(() => {
+                if (backup.curriculum.unit) {
+                  document.getElementById('cr-unit').value = backup.curriculum.unit;
+                  loadLessons();
+                  setTimeout(() => {
+                    if (backup.curriculum.lesson) {
+                      document.getElementById('cr-lesson').value = backup.curriculum.lesson;
+                    }
+                  }, 200);
+                }
+              }, 200);
+            }
+          }, 200);
+        }
+      }
+      
+      if (backup.meta) {
+        document.getElementById('n-mcq').value = backup.meta.n_mcq || 5;
+        document.getElementById('n-tf').value = backup.meta.n_tf || 3;
+        document.getElementById('n-sh').value = backup.meta.n_short || 2;
+        document.getElementById('v-mcq').textContent = document.getElementById('n-mcq').value;
+        document.getElementById('v-tf').textContent = document.getElementById('n-tf').value;
+        document.getElementById('v-sh').textContent = document.getElementById('n-sh').value;
+        state.difficulty = backup.meta.difficulty || 'medium';
+        updateTotal();
+      }
+      
+      if (state.pdfText) {
+        document.getElementById('text-preview').classList.add('show');
+        document.getElementById('text-preview-content').textContent = state.pdfText.slice(0, 2000);
+        document.getElementById('text-info').textContent = `نص محفوظ · ${state.pdfText.length.toLocaleString('ar-EG')} حرف`;
+      }
+      
+      renderQuestions();
+      document.getElementById('stat-q-generated').textContent = state.questions.length;
+      toast(`✅ تم استئناف الجلسة (${state.questions.length} سؤال)`, 'success');
+      return true;
+    }
+  } catch(e) {
+    console.warn('Restore failed:', e);
+  }
+  return false;
+}
+
+// ═══ Modal الجلسات السابقة ═══
+async function openSessionsModal() {
+  document.getElementById('sessions-modal').classList.add('show');
+  document.getElementById('sessions-list').innerHTML = '<div style="text-align:center;padding:30px;color:var(--dim);">جارٍ التحميل...</div>';
+  
+  try {
+    const res = await apiCall('/api/prep/session/list?limit=30');
+    const data = await res.json();
+    renderSessionsList(data.sessions || []);
+  } catch(e) {
+    document.getElementById('sessions-list').innerHTML = `<div style="text-align:center;padding:30px;color:var(--red);">❌ ${e.message}</div>`;
+  }
+}
+
+function closeSessionsModal() {
+  document.getElementById('sessions-modal').classList.remove('show');
+}
+
+function renderSessionsList(sessions) {
+  const list = document.getElementById('sessions-list');
+  if (!sessions.length) {
+    list.innerHTML = '<div style="text-align:center;padding:40px;color:var(--dim);">📂 لا توجد جلسات سابقة</div>';
+    return;
+  }
+  
+  list.innerHTML = sessions.map(s => {
+    const statusCls = s.status || 'draft';
+    const statusTxt = s.status === 'saved' ? 'محفوظة' : (s.status === 'completed' ? 'مكتملة' : 'مسودة');
+    const meta = [];
+    if (s.grade) meta.push(`🎓 ${_esc(s.grade)}`);
+    if (s.unit) meta.push(`📦 ${_esc(s.unit)}`);
+    if (s.lesson) meta.push(`📖 ${_esc(s.lesson)}`);
+    if (s.pdf_filename) meta.push(`📄 ${_esc(s.pdf_filename.substring(0, 25))}`);
+    const date = s.updated_at ? new Date(s.updated_at).toLocaleString('ar-EG', {dateStyle:'short', timeStyle:'short'}) : '';
+    
+    return `
+      <div class="session-item">
+        <div class="session-info">
+          <div class="session-title">${_esc(s.title || 'بدون عنوان')}
+            <span class="session-status-badge ${statusCls}">${statusTxt}</span>
+          </div>
+          <div class="session-meta">
+            ${meta.map(m => `<span class="session-meta-tag">${m}</span>`).join('')}
+            <span style="color:var(--gold2);">📝 ${arabicNum(s.questions_count || 0)} سؤال</span>
+            <span>⏱️ ${_esc(date)}</span>
+          </div>
+        </div>
+        <div class="session-actions">
+          <button class="session-btn" onclick="loadSession('${s.id}')">🔄 استئناف</button>
+          <button class="session-btn danger" onclick="deleteSession('${s.id}', this)">🗑️</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function loadSession(sid) {
+  try {
+    const res = await apiCall(`/api/prep/session/${sid}`);
+    if (!res.ok) throw new Error('فشل التحميل');
+    const data = await res.json();
+    const s = data.session;
+    
+    // تطبيق البيانات
+    state.questions = s.questions || [];
+    state.pdfText = s.extracted_text || '';
+    _currentSessionId = s.id;
+    
+    if (s.grade) {
+      document.getElementById('cr-grade').value = s.grade;
+      loadSemesters();
+      setTimeout(() => {
+        if (s.semester) { document.getElementById('cr-semester').value = s.semester; loadUnits(); }
+        setTimeout(() => {
+          if (s.unit) { document.getElementById('cr-unit').value = s.unit; loadLessons(); }
+          setTimeout(() => {
+            if (s.lesson) document.getElementById('cr-lesson').value = s.lesson;
+          }, 200);
+        }, 200);
+      }, 200);
+    }
+    
+    if (s.meta) {
+      document.getElementById('n-mcq').value = s.meta.n_mcq || 5;
+      document.getElementById('n-tf').value = s.meta.n_tf || 3;
+      document.getElementById('n-sh').value = s.meta.n_short || 2;
+      document.getElementById('v-mcq').textContent = document.getElementById('n-mcq').value;
+      document.getElementById('v-tf').textContent = document.getElementById('n-tf').value;
+      document.getElementById('v-sh').textContent = document.getElementById('n-sh').value;
+      state.difficulty = s.meta.difficulty || 'medium';
+      updateTotal();
+    }
+    
+    if (state.pdfText) {
+      document.getElementById('text-preview').classList.add('show');
+      document.getElementById('text-preview-content').textContent = state.pdfText.slice(0, 2000);
+      document.getElementById('text-info').textContent = `محمّل من الجلسة · ${state.pdfText.length.toLocaleString('ar-EG')} حرف`;
+    }
+    
+    renderQuestions();
+    document.getElementById('stat-q-generated').textContent = state.questions.length;
+    
+    closeSessionsModal();
+    toast(`✅ تم استئناف "${s.title}"`, 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+async function deleteSession(sid, btn) {
+  if (!confirm('حذف الجلسة نهائياً؟')) return;
+  try {
+    const res = await apiCall(`/api/prep/session/${sid}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error('فشل الحذف');
+    btn.closest('.session-item').remove();
+    toast('✅ حُذفت', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🆕💬 شات AI لتعديل الأسئلة
+// ════════════════════════════════════════════════════════════
+function toggleAIChat() {
+  const wrap = document.getElementById('ai-chat-wrap');
+  wrap.classList.toggle('show');
+  if (wrap.classList.contains('show')) {
+    setTimeout(() => document.getElementById('ai-chat-input').focus(), 100);
+  }
+}
+
+function setChatInput(txt) {
+  document.getElementById('ai-chat-input').value = txt;
+  document.getElementById('ai-chat-input').focus();
+}
+
+function addChatMsg(text, who) {
+  const history = document.getElementById('ai-chat-history');
+  const msg = document.createElement('div');
+  msg.className = `chat-msg ${who}`;
+  msg.innerHTML = `<div>${_esc(text)}</div><div class="chat-msg-meta">${new Date().toLocaleTimeString('ar-EG', {hour:'2-digit', minute:'2-digit'})}</div>`;
+  history.appendChild(msg);
+  history.scrollTop = history.scrollHeight;
+}
+
+async function sendChatRequest() {
+  const input = document.getElementById('ai-chat-input');
+  const instruction = input.value.trim();
+  if (!instruction) { toast('اكتب طلباً أولاً', 'error'); return; }
+  if (state.questions.length === 0) { toast('لا توجد أسئلة لتعديلها', 'error'); return; }
+  
+  addChatMsg(instruction, 'user');
+  input.value = '';
+  
+  const sendBtn = document.getElementById('ai-chat-send');
+  sendBtn.disabled = true;
+  sendBtn.textContent = '⏳ يعمل...';
+  
+  addChatMsg('🤖 جارٍ المعالجة...', 'ai');
+  const loadingMsg = document.querySelector('.ai-chat-history .chat-msg.ai:last-child');
+  
+  try {
+    // نحدد الأسئلة المستهدفة من تعليمات المستخدم (إذا ذُكر رقم)
+    const numbers = instruction.match(/\d+/g) || instruction.match(/[٠-٩]+/g) || [];
+    let selectedIndices = '';
+    if (numbers.length > 0) {
+      const indices = numbers.map(n => {
+        // تحويل عربي → إنجليزي
+        const eng = n.replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+        return parseInt(eng) - 1;  // 1-based → 0-based
+      }).filter(i => i >= 0 && i < state.questions.length);
+      selectedIndices = indices.join(',');
+    }
+    
+    const fd = new FormData();
+    fd.append('questions_json', JSON.stringify(state.questions));
+    fd.append('instruction', instruction);
+    fd.append('selected_indices', selectedIndices);
+    
+    const res = await apiCall('/api/prep/ai_chat_modify', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    
+    // تطبيق التعديلات
+    if (data.questions && data.indices) {
+      data.indices.forEach((origIdx, i) => {
+        if (data.questions[i] && state.questions[origIdx]) {
+          state.questions[origIdx] = data.questions[i];
+        }
+      });
+      renderQuestions();
+      scheduleAutosave();
+      
+      if (loadingMsg) loadingMsg.remove();
+      addChatMsg(`✅ تم تعديل ${arabicNum(data.modified_count)} سؤال بنجاح`, 'ai');
+      toast(`✅ تم تعديل ${data.modified_count} سؤال`, 'success');
+    } else {
+      if (loadingMsg) loadingMsg.remove();
+      addChatMsg('⚠️ لم أتمكن من معالجة طلبك', 'ai');
+    }
+  } catch(e) {
+    if (loadingMsg) loadingMsg.remove();
+    addChatMsg(`❌ خطأ: ${e.message}`, 'ai');
+    toast('❌ ' + e.message, 'error');
+  } finally {
+    sendBtn.disabled = false;
+    sendBtn.textContent = 'إرسال';
+  }
+}
+
+// Enter في الـ chat input = إرسال (Shift+Enter = سطر جديد)
+document.addEventListener('DOMContentLoaded', function() {
+  const chatInput = document.getElementById('ai-chat-input');
+  if (chatInput) {
+    chatInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendChatRequest();
+      }
+    });
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// ⌨️ اختصارات لوحة المفاتيح للأدمن المحترف
+// ════════════════════════════════════════════════════════════
+document.addEventListener('keydown', function(e) {
+  // تجاهل إذا كان المستخدم يكتب في input/textarea
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+    // استثناء: Ctrl+S يعمل دائماً
+    if (!((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's')) return;
+  }
+  
+  // Ctrl+S = حفظ يدوي فوري
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's') {
+    e.preventDefault();
+    manualSave();
+    return;
+  }
+  
+  // Ctrl+G = بدء التوليد
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'g') {
+    e.preventDefault();
+    startGeneration();
+    return;
+  }
+  
+  // Ctrl+E = تصدير Excel
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'e') {
+    e.preventDefault();
+    if (state.questions.length > 0) downloadExcel();
+    return;
+  }
+  
+  // Ctrl+B = حفظ في البنك
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'b') {
+    e.preventDefault();
+    if (state.questions.length > 0) saveToBank();
+    return;
+  }
+  
+  // Ctrl+H = فتح/إغلاق الشات (Help)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'h') {
+    e.preventDefault();
+    toggleAIChat();
+    return;
+  }
+  
+  // Ctrl+L = فتح قائمة الجلسات (List)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'l') {
+    e.preventDefault();
+    openSessionsModal();
+    return;
+  }
+  
+  // ? = عرض قائمة الاختصارات
+  if (e.key === '?' && !e.ctrlKey && !e.altKey) {
+    e.preventDefault();
+    showShortcutsHelp();
+    return;
+  }
+  
+  // Esc = إغلاق modals
+  if (e.key === 'Escape') {
+    const modal = document.querySelector('.modal-overlay.show');
+    if (modal) {
+      modal.classList.remove('show');
+      e.preventDefault();
+    }
+  }
+});
+
+// 💾 حفظ يدوي مع feedback واضح
+async function manualSave() {
+  if (!state.pdfText && state.questions.length === 0) {
+    toast('⚠️ لا يوجد شيء للحفظ', 'info');
+    return;
+  }
+  
+  showAutosaveIndicator('⏳ جاري الحفظ...');
+  
+  // إلغاء الـ autosave المعلق
+  if (_autosaveTimer) clearTimeout(_autosaveTimer);
+  
+  await autoSaveSession();
+  toast(`💾 حُفظت ${state.questions.length} سؤال يدوياً`, 'success');
+}
+
+// 📖 عرض قائمة الاختصارات
+function showShortcutsHelp() {
+  const html = `
+    <div class="modal-overlay show" id="shortcuts-modal" onclick="if(event.target===this)this.remove()">
+      <div class="modal-box" style="max-width:520px;">
+        <div class="modal-header">
+          <div class="modal-title">⌨️ اختصارات لوحة المفاتيح</div>
+          <button class="modal-close" onclick="document.getElementById('shortcuts-modal').remove()">✕</button>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          ${[
+            ['Ctrl+S', '💾 حفظ يدوي فوري'],
+            ['Ctrl+G', '✨ بدء التوليد'],
+            ['Ctrl+E', '⬇️ تصدير Excel'],
+            ['Ctrl+B', '🏦 حفظ في البنك'],
+            ['Ctrl+H', '💬 فتح/إغلاق الشات'],
+            ['Ctrl+L', '📚 الجلسات السابقة'],
+            ['Esc', '✕ إغلاق النافذة'],
+            ['?', '⌨️ هذه القائمة']
+          ].map(([key, desc]) => `
+            <div style="display:flex;align-items:center;gap:10px;padding:10px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;">
+              <kbd style="background:linear-gradient(135deg,var(--gold),var(--gold3));color:var(--navy);padding:4px 10px;border-radius:6px;font-family:monospace;font-weight:700;font-size:0.78rem;min-width:60px;text-align:center;">${key}</kbd>
+              <span style="font-size:0.85rem;color:var(--white);">${desc}</span>
+            </div>
+          `).join('')}
+        </div>
+        <div style="margin-top:14px;padding:10px;background:rgba(212,175,55,0.08);border-radius:8px;color:var(--dim);font-size:0.78rem;text-align:center;">
+          💡 الاختصارات تعمل في أي مكان بالصفحة
+        </div>
+      </div>
+    </div>`;
+  document.body.insertAdjacentHTML('beforeend', html);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🛡️ حماية من الإغلاق العرضي
+// ════════════════════════════════════════════════════════════
+window.addEventListener('beforeunload', function(e) {
+  // فقط إذا فيه أسئلة غير محفوظة
+  if (state.questions.length > 0 || _batch.active) {
+    const msg = _batch.active 
+      ? 'هناك توليد جاري! إذا أغلقت الصفحة ستفقد التقدم.'
+      : 'هناك أسئلة لم تُحفظ في البنك. هل تريد المغادرة؟';
+    e.preventDefault();
+    e.returnValue = msg;
+    return msg;
+  }
+});
+
+// ════════════════════════════════════════════════════════════
+// 📊 إحصاءات حية ذكية
+// ════════════════════════════════════════════════════════════
+let _stats = {
+  generationStartTime: 0,
+  totalGenerationTime: 0,
+  sessionsCount: 0,
+  questionsPerMinute: 0
+};
+
+function trackGenerationStart() {
+  _stats.generationStartTime = Date.now();
+}
+
+function trackGenerationEnd(count) {
+  if (!_stats.generationStartTime) return;
+  const elapsed = (Date.now() - _stats.generationStartTime) / 1000;
+  _stats.totalGenerationTime += elapsed;
+  if (elapsed > 0) {
+    _stats.questionsPerMinute = Math.round((count / elapsed) * 60);
+  }
+  console.log(`📊 ${count} سؤال في ${elapsed.toFixed(1)} ثانية (${_stats.questionsPerMinute} سؤال/دقيقة)`);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🚀 INIT
+// ════════════════════════════════════════════════════════════
+(async function init() {
+  const isAdmin = await verifyAdmin();
+  if (!isAdmin) return;
+  loadCurriculum();
+  refreshStats();
+  updateTotal();
+  
+  // محاولة استئناف من localStorage بعد ثانية
+  setTimeout(() => {
+    tryRestoreFromBackup();
+  }, 1000);
+})();
+</script>
+</body>
+</html>
