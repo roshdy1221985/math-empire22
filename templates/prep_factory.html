@@ -1055,6 +1055,259 @@ body {
   color: #14b8a6;
   border-color: rgba(20,184,166,0.4);
 }
+
+/* ════════════════════════════════════════════════════════════
+   📑 نظام التبويبات (مصنع الأسئلة | أوراق العمل)
+   ════════════════════════════════════════════════════════════ */
+.factory-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  border-bottom: 2px solid var(--border);
+  padding-bottom: 0;
+}
+.factory-tab {
+  background: transparent;
+  border: none;
+  color: var(--dim);
+  padding: 12px 22px;
+  font-family: 'Cairo'; font-weight: 700; font-size: 0.95rem;
+  cursor: pointer;
+  border-bottom: 3px solid transparent;
+  margin-bottom: -2px;
+  transition: all 0.25s;
+  display: flex; align-items: center; gap: 8px;
+}
+.factory-tab:hover {
+  color: var(--gold2);
+}
+.factory-tab.active {
+  color: var(--gold);
+  border-bottom-color: var(--gold);
+}
+.factory-tab .tab-icon { font-size: 1.2rem; }
+
+.tab-content { display: none; }
+.tab-content.active { display: block; animation: fadeInTab 0.3s ease; }
+@keyframes fadeInTab {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ════════════════════════════════════════════════════════════
+   📝 مولّد أوراق العمل
+   ════════════════════════════════════════════════════════════ */
+.ws-config {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.ws-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.ws-type-card {
+  background: rgba(255,255,255,0.03);
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-align: center;
+}
+.ws-type-card:hover {
+  background: rgba(212,175,55,0.06);
+  border-color: rgba(212,175,55,0.4);
+}
+.ws-type-card.selected {
+  background: linear-gradient(135deg, rgba(212,175,55,0.15), rgba(212,175,55,0.05));
+  border-color: var(--gold);
+}
+.ws-type-icon { font-size: 2rem; margin-bottom: 6px; }
+.ws-type-title { font-weight: 700; color: var(--white); font-size: 0.92rem; }
+.ws-type-desc { font-size: 0.72rem; color: var(--dim); margin-top: 3px; }
+
+/* معاينة ورقة العمل */
+.ws-preview {
+  display: none;
+  background: #fff;
+  color: #1a1a2e;
+  border-radius: 12px;
+  padding: 36px 40px;
+  margin-top: 18px;
+  font-family: 'Cairo';
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  direction: rtl;
+}
+.ws-preview.show { display: block; }
+.ws-preview-header {
+  text-align: center;
+  border-bottom: 3px double #d4af37;
+  padding-bottom: 16px;
+  margin-bottom: 20px;
+}
+.ws-preview-school {
+  font-size: 0.9rem; color: #666;
+  margin-bottom: 4px;
+}
+.ws-preview-title {
+  font-family: 'Amiri'; font-size: 1.6rem;
+  color: #1a1a2e; font-weight: 700;
+  margin: 8px 0;
+}
+.ws-preview-meta {
+  display: flex; justify-content: space-between;
+  font-size: 0.85rem; color: #444;
+  margin-top: 12px;
+  flex-wrap: wrap; gap: 8px;
+}
+.ws-preview-meta-item {
+  background: #f5f0e0;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid #e0d5b0;
+}
+.ws-student-info {
+  display: flex; gap: 20px;
+  margin: 16px 0;
+  padding: 12px;
+  background: #faf8f0;
+  border-radius: 8px;
+  flex-wrap: wrap;
+}
+.ws-student-field {
+  flex: 1; min-width: 140px;
+  font-size: 0.9rem;
+  display: flex; align-items: center; gap: 8px;
+}
+.ws-student-field .line {
+  flex: 1;
+  border-bottom: 1.5px solid #999;
+  height: 1px;
+  margin-top: 12px;
+}
+.ws-instructions {
+  background: #fef9e7;
+  border-right: 4px solid #d4af37;
+  padding: 12px 16px;
+  margin: 16px 0;
+  border-radius: 6px;
+  font-size: 0.92rem;
+  color: #333;
+}
+.ws-objective {
+  font-size: 0.82rem; color: #666;
+  font-style: italic;
+  margin-bottom: 16px;
+}
+.ws-question {
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed #ddd;
+}
+.ws-q-header {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 8px;
+}
+.ws-q-num {
+  background: #d4af37;
+  color: #fff;
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem;
+  flex-shrink: 0;
+}
+.ws-q-text {
+  flex: 1;
+  font-size: 0.98rem;
+  color: #1a1a2e;
+  line-height: 1.6;
+  padding-top: 3px;
+}
+.ws-q-marks {
+  background: #f0f0f0;
+  color: #666;
+  font-size: 0.72rem;
+  padding: 2px 8px;
+  border-radius: 10px;
+  white-space: nowrap;
+}
+.ws-q-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 38px;
+}
+.ws-q-option {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 0.9rem; color: #333;
+}
+.ws-q-option .circle {
+  width: 16px; height: 16px;
+  border: 1.5px solid #999;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.ws-q-answer-space {
+  margin: 8px 38px;
+  border-bottom: 1px solid #ccc;
+  min-height: 28px;
+}
+.ws-q-answer-space.solve {
+  min-height: 60px;
+  border: 1px dashed #ccc;
+  border-radius: 6px;
+  background: #fafafa;
+}
+.ws-answer-key {
+  margin: 6px 38px;
+  padding: 6px 12px;
+  background: #e8f5e9;
+  border-right: 3px solid #4caf50;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #2e7d32;
+}
+.ws-answer-key b { color: #1b5e20; }
+.ws-footer {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid #d4af37;
+  font-size: 0.85rem;
+  color: #888;
+}
+.ws-total-marks {
+  display: inline-block;
+  background: #d4af37;
+  color: #fff;
+  padding: 6px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+/* أزرار التحكم بالورقة */
+.ws-toolbar {
+  display: flex; gap: 10px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ws-toggle-answers {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(76,175,80,0.15);
+  border: 1px solid rgba(76,175,80,0.4);
+  color: #4caf50;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: 'Cairo'; font-weight: 600; font-size: 0.85rem;
+}
 </style>
 </head>
 <body>
@@ -1173,6 +1426,22 @@ body {
       </div>
       <button onclick="this.parentElement.style.display='none'" style="background:transparent;border:none;color:var(--dim);cursor:pointer;font-size:1rem;padding:4px 8px;" title="إخفاء">✕</button>
     </div>
+
+    <!-- 📑 نظام التبويبات -->
+    <div class="factory-tabs">
+      <button class="factory-tab active" id="tab-btn-questions" onclick="switchTab('questions')">
+        <span class="tab-icon">🏭</span> مصنع الأسئلة
+      </button>
+      <button class="factory-tab" id="tab-btn-worksheet" onclick="switchTab('worksheet')">
+        <span class="tab-icon">📝</span> أوراق العمل
+      </button>
+      <button class="factory-tab" id="tab-btn-slides" onclick="switchTab('slides')">
+        <span class="tab-icon">🎬</span> العروض التقديمية
+      </button>
+    </div>
+
+    <!-- ═══════════ تبويب: مصنع الأسئلة ═══════════ -->
+    <div class="tab-content active" id="tab-questions">
 
     <!-- إحصاءات سريعة -->
     <div class="top-stats">
@@ -1378,6 +1647,182 @@ body {
         <button class="ai-chat-suggestion" onclick="setChatInput('بسّط الأسئلة لتكون أوضح')">بسّط</button>
       </div>
     </div>
+    </div>
+    <!-- ═══════════ نهاية تبويب: مصنع الأسئلة ═══════════ -->
+
+    <!-- ═══════════ تبويب: أوراق العمل ═══════════ -->
+    <div class="tab-content" id="tab-worksheet">
+      
+      <!-- نوع ورقة العمل -->
+      <div style="margin-bottom:6px;color:var(--gold2);font-weight:700;font-size:0.92rem;">📋 نوع ورقة العمل</div>
+      <div class="ws-type-grid">
+        <div class="ws-type-card selected" data-wstype="practice" onclick="selectWsType(this,'practice')">
+          <div class="ws-type-icon">✏️</div>
+          <div class="ws-type-title">ورقة تدريب</div>
+          <div class="ws-type-desc">تمارين لترسيخ المفهوم</div>
+        </div>
+        <div class="ws-type-card" data-wstype="review" onclick="selectWsType(this,'review')">
+          <div class="ws-type-icon">🔄</div>
+          <div class="ws-type-title">ورقة مراجعة</div>
+          <div class="ws-type-desc">مراجعة شاملة للوحدة</div>
+        </div>
+        <div class="ws-type-card" data-wstype="homework" onclick="selectWsType(this,'homework')">
+          <div class="ws-type-icon">🏠</div>
+          <div class="ws-type-title">واجب منزلي</div>
+          <div class="ws-type-desc">أسئلة للحل في المنزل</div>
+        </div>
+        <div class="ws-type-card" data-wstype="quiz" onclick="selectWsType(this,'quiz')">
+          <div class="ws-type-icon">📊</div>
+          <div class="ws-type-title">اختبار قصير</div>
+          <div class="ws-type-desc">تقييم سريع بدرجات</div>
+        </div>
+      </div>
+
+      <!-- إعدادات -->
+      <div class="ws-config">
+        <div class="field-group">
+          <label class="field-label">🎓 الصف</label>
+          <select class="field-select" id="ws-grade" onchange="wsLoadSemesters()">
+            <option value="">— اختر الصف —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📅 الفصل</label>
+          <select class="field-select" id="ws-semester" onchange="wsLoadUnits()" disabled>
+            <option value="">— الفصل —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📦 الوحدة</label>
+          <select class="field-select" id="ws-unit" onchange="wsLoadLessons()" disabled>
+            <option value="">— الوحدة —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 الدرس</label>
+          <select class="field-select" id="ws-lesson" disabled>
+            <option value="">— الدرس —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">🔢 عدد الأسئلة</label>
+          <input class="field-input" type="number" id="ws-count" value="10" min="1" max="30">
+        </div>
+        <div class="field-group">
+          <label class="field-label">📈 الصعوبة</label>
+          <select class="field-select" id="ws-difficulty">
+            <option value="easy">🟢 سهل</option>
+            <option value="medium" selected>🟡 متوسط</option>
+            <option value="hard">🔴 صعب</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- زر التوليد -->
+      <button class="gen-btn" id="ws-gen-btn" onclick="generateWorksheet()" style="width:100%;margin-bottom:16px;">
+        ✨ توليد ورقة العمل
+      </button>
+
+      <!-- شريط تقدم -->
+      <div class="progress-wrap" id="ws-progress">
+        <div class="progress-label" id="ws-progress-label">جارٍ التوليد...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="ws-progress-fill"></div></div>
+      </div>
+
+      <!-- معاينة ورقة العمل -->
+      <div class="ws-preview" id="ws-preview">
+        <!-- يُحقن ديناميكياً -->
+      </div>
+
+      <!-- أزرار التحكم -->
+      <div class="ws-toolbar" id="ws-toolbar" style="display:none;">
+        <button class="ws-toggle-answers" onclick="toggleAnswers()">
+          <span id="ws-answers-label">👁️ إظهار الإجابات</span>
+        </button>
+        <button class="act-btn primary" onclick="printWorksheet()">🖨️ طباعة / PDF</button>
+        <button class="act-btn" onclick="generateWorksheet()">🔄 توليد جديد</button>
+      </div>
+
+      <!-- حالة فارغة -->
+      <div class="empty-state" id="ws-empty">
+        <span class="empty-icon">📝</span>
+        ١. اختر نوع ورقة العمل<br>
+        ٢. حدد الصف والدرس وعدد الأسئلة<br>
+        ٣. اضغط "توليد ورقة العمل"
+      </div>
+
+    </div>
+    <!-- ═══════════ نهاية تبويب: أوراق العمل ═══════════ -->
+
+    <!-- ═══════════ تبويب: العروض التقديمية ═══════════ -->
+    <div class="tab-content" id="tab-slides">
+
+      <!-- إعدادات العرض -->
+      <div class="ws-config">
+        <div class="field-group">
+          <label class="field-label">🎓 الصف</label>
+          <select class="field-select" id="sl-grade" onchange="slLoadSemesters()">
+            <option value="">— اختر الصف —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📅 الفصل</label>
+          <select class="field-select" id="sl-semester" onchange="slLoadUnits()" disabled>
+            <option value="">— الفصل —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📦 الوحدة</label>
+          <select class="field-select" id="sl-unit" onchange="slLoadLessons()" disabled>
+            <option value="">— الوحدة —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 الدرس</label>
+          <select class="field-select" id="sl-lesson" disabled>
+            <option value="">— الدرس —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">🎬 عدد الشرائح</label>
+          <input class="field-input" type="number" id="sl-count" value="8" min="4" max="20">
+        </div>
+        <div class="field-group">
+          <label class="field-label">❓ أسئلة تفاعلية</label>
+          <input class="field-input" type="number" id="sl-questions" value="3" min="0" max="10">
+        </div>
+      </div>
+
+      <!-- زر التوليد -->
+      <button class="gen-btn" id="sl-gen-btn" onclick="generateSlides()" style="width:100%;margin-bottom:16px;">
+        ✨ توليد العرض التقديمي
+      </button>
+
+      <!-- شريط تقدم -->
+      <div class="progress-wrap" id="sl-progress">
+        <div class="progress-label" id="sl-progress-label">جارٍ التوليد...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="sl-progress-fill"></div></div>
+      </div>
+
+      <!-- أزرار التحكم -->
+      <div id="sl-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
+        <button class="act-btn primary" onclick="slPresent()">▶️ عرض ملء الشاشة</button>
+        <button class="act-btn" onclick="generateSlides()">🔄 توليد جديد</button>
+      </div>
+
+      <!-- معاينة الشرائح -->
+      <div id="sl-preview" style="display:none;"></div>
+
+      <!-- حالة فارغة -->
+      <div class="empty-state" id="sl-empty">
+        <span class="empty-icon">🎬</span>
+        ١. اختر الصف والدرس<br>
+        ٢. حدد عدد الشرائح والأسئلة التفاعلية<br>
+        ٣. اضغط "توليد العرض التقديمي"
+      </div>
+
+    </div>
+    <!-- ═══════════ نهاية تبويب: العروض التقديمية ═══════════ -->
   </main>
 </div>
 
@@ -2888,6 +3333,553 @@ function trackGenerationEnd(count) {
 }
 
 // ════════════════════════════════════════════════════════════
+// 📑 نظام التبويبات
+// ════════════════════════════════════════════════════════════
+function switchTab(tab) {
+  document.getElementById('tab-btn-questions').classList.toggle('active', tab === 'questions');
+  document.getElementById('tab-btn-worksheet').classList.toggle('active', tab === 'worksheet');
+  document.getElementById('tab-btn-slides').classList.toggle('active', tab === 'slides');
+  document.getElementById('tab-questions').classList.toggle('active', tab === 'questions');
+  document.getElementById('tab-worksheet').classList.toggle('active', tab === 'worksheet');
+  document.getElementById('tab-slides').classList.toggle('active', tab === 'slides');
+  if (tab === 'worksheet' && !_wsInitialized) {
+    wsInitCurriculum();
+    _wsInitialized = true;
+  }
+  if (tab === 'slides' && !_slInitialized) {
+    slInitCurriculum();
+    _slInitialized = true;
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 📝 مولّد أوراق العمل
+// ════════════════════════════════════════════════════════════
+let _wsInitialized = false;
+let _wsType = 'practice';
+let _wsData = null;
+let _wsShowAnswers = false;
+
+function selectWsType(el, type) {
+  document.querySelectorAll('.ws-type-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  _wsType = type;
+}
+
+function wsInitCurriculum() {
+  if (!state.curriculum || !Array.isArray(state.curriculum)) return;
+  const gradeSel = document.getElementById('ws-grade');
+  gradeSel.innerHTML = '<option value="">— اختر الصف —</option>';
+  state.curriculum.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.name; opt.textContent = g.name;
+    gradeSel.appendChild(opt);
+  });
+}
+
+function wsLoadSemesters() {
+  const grade = document.getElementById('ws-grade').value;
+  const semSel = document.getElementById('ws-semester');
+  const unitSel = document.getElementById('ws-unit');
+  const lessSel = document.getElementById('ws-lesson');
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+  unitSel.innerHTML = '<option value="">— الوحدة —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  if (gradeObj && gradeObj.semesters) {
+    gradeObj.semesters.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name; opt.textContent = s.name;
+      semSel.appendChild(opt);
+    });
+  }
+  semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function wsLoadUnits() {
+  const grade = document.getElementById('ws-grade').value;
+  const sem = document.getElementById('ws-semester').value;
+  const unitSel = document.getElementById('ws-unit');
+  const lessSel = document.getElementById('ws-lesson');
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  const semObj = gradeObj?.semesters?.find(s => s.name === sem);
+  if (semObj && semObj.units) {
+    semObj.units.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.name; opt.textContent = u.name;
+      unitSel.appendChild(opt);
+    });
+  }
+  unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function wsLoadLessons() {
+  const grade = document.getElementById('ws-grade').value;
+  const sem = document.getElementById('ws-semester').value;
+  const unit = document.getElementById('ws-unit').value;
+  const lessSel = document.getElementById('ws-lesson');
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  const semObj = gradeObj?.semesters?.find(s => s.name === sem);
+  const unitObj = semObj?.units?.find(u => u.name === unit);
+  if (unitObj && unitObj.lessons) {
+    unitObj.lessons.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.name; opt.textContent = l.name;
+      lessSel.appendChild(opt);
+    });
+  }
+  lessSel.disabled = false;
+}
+
+async function generateWorksheet() {
+  const grade = document.getElementById('ws-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف أولاً', 'error'); return; }
+  const count = parseInt(document.getElementById('ws-count').value) || 10;
+  if (count < 1 || count > 30) { toast('عدد الأسئلة بين ١ و ٣٠', 'error'); return; }
+  
+  const btn = document.getElementById('ws-gen-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+  document.getElementById('ws-empty').style.display = 'none';
+  document.getElementById('ws-progress').classList.add('show');
+  document.getElementById('ws-progress-fill').style.width = '30%';
+  document.getElementById('ws-progress-label').textContent = 'جارٍ توليد ورقة العمل بـ Gemini...';
+  
+  try {
+    const fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('ws-semester').value || '');
+    fd.append('unit', document.getElementById('ws-unit').value || '');
+    fd.append('lesson', document.getElementById('ws-lesson').value || '');
+    fd.append('worksheet_type', _wsType);
+    fd.append('difficulty', document.getElementById('ws-difficulty').value);
+    fd.append('n_questions', String(count));
+    if (state.pdfText) fd.append('extra_text', state.pdfText.substring(0, 3000));
+    
+    document.getElementById('ws-progress-fill').style.width = '60%';
+    const res = await apiCall('/api/prep/worksheet_generate', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    _wsData = data.worksheet;
+    _wsData._context = { 
+      grade, 
+      semester: document.getElementById('ws-semester').value,
+      unit: document.getElementById('ws-unit').value,
+      lesson: document.getElementById('ws-lesson').value 
+    };
+    document.getElementById('ws-progress-fill').style.width = '100%';
+    renderWorksheet();
+    setTimeout(() => document.getElementById('ws-progress').classList.remove('show'), 500);
+    toast(`✅ تم توليد ورقة العمل (${data.model || 'Gemini'})`, 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    document.getElementById('ws-progress').classList.remove('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ توليد ورقة العمل';
+  }
+}
+
+function renderWorksheet() {
+  if (!_wsData) return;
+  const w = _wsData;
+  const ctx = w._context || {};
+  const typeLabels = { practice:'ورقة تدريب', review:'ورقة مراجعة', homework:'واجب منزلي', quiz:'اختبار قصير' };
+  const typeLabel = typeLabels[_wsType] || 'ورقة عمل';
+  
+  let html = `
+    <div class="ws-preview-header">
+      <div class="ws-preview-school">سلطنة عُمان · وزارة التربية والتعليم</div>
+      <div class="ws-preview-school">إمبراطورية الرياضيات 👑</div>
+      <div class="ws-preview-title">${_esc(w.title || typeLabel)}</div>
+      <div class="ws-preview-meta">
+        <span class="ws-preview-meta-item">📋 ${typeLabel}</span>
+        ${ctx.grade ? `<span class="ws-preview-meta-item">🎓 ${_esc(ctx.grade)}</span>` : ''}
+        ${ctx.unit ? `<span class="ws-preview-meta-item">📦 ${_esc(ctx.unit)}</span>` : ''}
+        ${ctx.lesson ? `<span class="ws-preview-meta-item">📖 ${_esc(ctx.lesson)}</span>` : ''}
+        ${w.estimated_time ? `<span class="ws-preview-meta-item">⏱️ ${_esc(String(w.estimated_time))} دقيقة</span>` : ''}
+      </div>
+    </div>
+    <div class="ws-student-info">
+      <div class="ws-student-field">الاسم: <span class="line"></span></div>
+      <div class="ws-student-field">الصف: <span class="line"></span></div>
+      <div class="ws-student-field">التاريخ: <span class="line"></span></div>
+    </div>`;
+  
+  if (w.learning_objective) {
+    html += `<div class="ws-objective">🎯 الهدف: ${_esc(w.learning_objective)}</div>`;
+  }
+  if (w.instructions) {
+    html += `<div class="ws-instructions">📌 <b>التعليمات:</b> ${_esc(w.instructions)}</div>`;
+  }
+  
+  (w.questions || []).forEach((q, i) => {
+    const num = q.num || (i + 1);
+    const marks = q.marks ? `<span class="ws-q-marks">${arabicNum(q.marks)} ${q.marks === 1 ? 'درجة' : 'درجات'}</span>` : '';
+    html += `<div class="ws-question">
+      <div class="ws-q-header">
+        <div class="ws-q-num">${arabicNum(num)}</div>
+        <div class="ws-q-text">${_esc(q.q || q.question || '')}</div>
+        ${marks}
+      </div>`;
+    if (q.type === 'mcq' && q.options && q.options.length) {
+      html += '<div class="ws-q-options">';
+      const letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
+      q.options.forEach((opt, oi) => {
+        html += `<div class="ws-q-option"><span class="circle"></span> ${letters[oi] || ''}) ${_esc(opt)}</div>`;
+      });
+      html += '</div>';
+    } else if (q.type === 'solve') {
+      html += '<div class="ws-q-answer-space solve"></div>';
+    } else {
+      html += '<div class="ws-q-answer-space"></div>';
+    }
+    if (q.answer) {
+      html += `<div class="ws-answer-key answer-only" style="display:${_wsShowAnswers ? 'block' : 'none'};">
+        <b>✓ الإجابة:</b> ${_esc(q.answer)}
+      </div>`;
+    }
+    html += '</div>';
+  });
+  
+  html += `<div class="ws-footer">`;
+  if (w.total_marks) {
+    html += `<div class="ws-total-marks">المجموع: ${arabicNum(w.total_marks)} درجة</div><br>`;
+  }
+  html += `مع تمنياتنا بالتوفيق والنجاح 🌟</div>`;
+  
+  const preview = document.getElementById('ws-preview');
+  preview.innerHTML = html;
+  preview.classList.add('show');
+  document.getElementById('ws-toolbar').style.display = 'flex';
+}
+
+function toggleAnswers() {
+  _wsShowAnswers = !_wsShowAnswers;
+  document.querySelectorAll('.answer-only').forEach(el => {
+    el.style.display = _wsShowAnswers ? 'block' : 'none';
+  });
+  document.getElementById('ws-answers-label').textContent = 
+    _wsShowAnswers ? '🙈 إخفاء الإجابات' : '👁️ إظهار الإجابات';
+}
+
+function printWorksheet() {
+  if (!_wsData) { toast('لا توجد ورقة للطباعة', 'error'); return; }
+  const preview = document.getElementById('ws-preview');
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(`<!DOCTYPE html>
+    <html lang="ar" dir="rtl"><head><meta charset="UTF-8">
+    <title>${_esc(_wsData.title || 'ورقة عمل')}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+      * { margin:0; padding:0; box-sizing:border-box; }
+      body { font-family:'Cairo',sans-serif; padding:30px; color:#1a1a2e; direction:rtl; }
+      .ws-preview-header { text-align:center; border-bottom:3px double #d4af37; padding-bottom:16px; margin-bottom:20px; }
+      .ws-preview-school { font-size:0.9rem; color:#666; margin-bottom:4px; }
+      .ws-preview-title { font-family:'Amiri'; font-size:1.6rem; font-weight:700; margin:8px 0; }
+      .ws-preview-meta { display:flex; justify-content:center; gap:10px; font-size:0.85rem; margin-top:12px; flex-wrap:wrap; }
+      .ws-preview-meta-item { background:#f5f0e0; padding:4px 12px; border-radius:6px; border:1px solid #e0d5b0; }
+      .ws-student-info { display:flex; gap:20px; margin:16px 0; padding:12px; background:#faf8f0; border-radius:8px; }
+      .ws-student-field { flex:1; font-size:0.9rem; display:flex; align-items:center; gap:8px; }
+      .ws-student-field .line { flex:1; border-bottom:1.5px solid #999; height:1px; margin-top:12px; }
+      .ws-instructions { background:#fef9e7; border-right:4px solid #d4af37; padding:12px 16px; margin:16px 0; border-radius:6px; font-size:0.92rem; }
+      .ws-objective { font-size:0.82rem; color:#666; font-style:italic; margin-bottom:16px; }
+      .ws-question { margin-bottom:18px; padding-bottom:14px; border-bottom:1px dashed #ddd; }
+      .ws-q-header { display:flex; align-items:flex-start; gap:10px; margin-bottom:8px; }
+      .ws-q-num { background:#d4af37; color:#fff; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.85rem; flex-shrink:0; }
+      .ws-q-text { flex:1; font-size:0.98rem; line-height:1.6; padding-top:3px; }
+      .ws-q-marks { background:#f0f0f0; color:#666; font-size:0.72rem; padding:2px 8px; border-radius:10px; white-space:nowrap; }
+      .ws-q-options { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin:8px 38px; }
+      .ws-q-option { display:flex; align-items:center; gap:8px; font-size:0.9rem; }
+      .ws-q-option .circle { width:16px; height:16px; border:1.5px solid #999; border-radius:50%; flex-shrink:0; }
+      .ws-q-answer-space { margin:8px 38px; border-bottom:1px solid #ccc; min-height:28px; }
+      .ws-q-answer-space.solve { min-height:60px; border:1px dashed #ccc; border-radius:6px; background:#fafafa; }
+      .ws-answer-key { margin:6px 38px; padding:6px 12px; background:#e8f5e9; border-right:3px solid #4caf50; border-radius:4px; font-size:0.85rem; color:#2e7d32; }
+      .ws-footer { text-align:center; margin-top:24px; padding-top:16px; border-top:2px solid #d4af37; font-size:0.85rem; color:#888; }
+      .ws-total-marks { display:inline-block; background:#d4af37; color:#fff; padding:6px 16px; border-radius:8px; font-weight:700; margin-bottom:8px; }
+      @media print { body { padding:15px; } .ws-question { page-break-inside:avoid; } }
+    </style></head>
+    <body>${preview.innerHTML}</body></html>`);
+  printWindow.document.close();
+  setTimeout(() => { printWindow.print(); }, 500);
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎬 مولّد العروض التقديمية
+// ════════════════════════════════════════════════════════════
+let _slInitialized = false;
+let _slData = null;
+
+function slInitCurriculum() {
+  if (!state.curriculum || !Array.isArray(state.curriculum)) return;
+  const gradeSel = document.getElementById('sl-grade');
+  gradeSel.innerHTML = '<option value="">— اختر الصف —</option>';
+  state.curriculum.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.name; opt.textContent = g.name;
+    gradeSel.appendChild(opt);
+  });
+}
+
+function slLoadSemesters() {
+  const grade = document.getElementById('sl-grade').value;
+  const semSel = document.getElementById('sl-semester');
+  const unitSel = document.getElementById('sl-unit');
+  const lessSel = document.getElementById('sl-lesson');
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+  unitSel.innerHTML = '<option value="">— الوحدة —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  if (gradeObj && gradeObj.semesters) {
+    gradeObj.semesters.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.name; opt.textContent = s.name;
+      semSel.appendChild(opt);
+    });
+  }
+  semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function slLoadUnits() {
+  const grade = document.getElementById('sl-grade').value;
+  const sem = document.getElementById('sl-semester').value;
+  const unitSel = document.getElementById('sl-unit');
+  const lessSel = document.getElementById('sl-lesson');
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  const semObj = gradeObj?.semesters?.find(s => s.name === sem);
+  if (semObj && semObj.units) {
+    semObj.units.forEach(u => {
+      const opt = document.createElement('option');
+      opt.value = u.name; opt.textContent = u.name;
+      unitSel.appendChild(opt);
+    });
+  }
+  unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function slLoadLessons() {
+  const grade = document.getElementById('sl-grade').value;
+  const sem = document.getElementById('sl-semester').value;
+  const unit = document.getElementById('sl-unit').value;
+  const lessSel = document.getElementById('sl-lesson');
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  const gradeObj = state.curriculum.find(g => g.name === grade);
+  const semObj = gradeObj?.semesters?.find(s => s.name === sem);
+  const unitObj = semObj?.units?.find(u => u.name === unit);
+  if (unitObj && unitObj.lessons) {
+    unitObj.lessons.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l.name; opt.textContent = l.name;
+      lessSel.appendChild(opt);
+    });
+  }
+  lessSel.disabled = false;
+}
+
+async function generateSlides() {
+  const grade = document.getElementById('sl-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف أولاً', 'error'); return; }
+  const nSlides = parseInt(document.getElementById('sl-count').value) || 8;
+  const nQuestions = parseInt(document.getElementById('sl-questions').value) || 0;
+  
+  const btn = document.getElementById('sl-gen-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ جاري التوليد...';
+  document.getElementById('sl-empty').style.display = 'none';
+  document.getElementById('sl-progress').classList.add('show');
+  document.getElementById('sl-progress-fill').style.width = '35%';
+  document.getElementById('sl-progress-label').textContent = 'جارٍ توليد العرض بـ Gemini...';
+  
+  try {
+    const fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('sl-semester').value || '');
+    fd.append('unit', document.getElementById('sl-unit').value || '');
+    fd.append('lesson', document.getElementById('sl-lesson').value || '');
+    fd.append('n_slides', String(nSlides));
+    fd.append('n_questions', String(nQuestions));
+    if (state.pdfText) fd.append('extra_text', state.pdfText.substring(0, 3000));
+    
+    document.getElementById('sl-progress-fill').style.width = '65%';
+    const res = await apiCall('/api/prep/slides_generate', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    _slData = data.presentation;
+    _slData._context = {
+      grade,
+      semester: document.getElementById('sl-semester').value,
+      unit: document.getElementById('sl-unit').value,
+      lesson: document.getElementById('sl-lesson').value
+    };
+    document.getElementById('sl-progress-fill').style.width = '100%';
+    renderSlidesPreview();
+    setTimeout(() => document.getElementById('sl-progress').classList.remove('show'), 500);
+    toast(`✅ تم توليد ${(_slData.slides || []).length} شريحة`, 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    document.getElementById('sl-progress').classList.remove('show');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ توليد العرض التقديمي';
+  }
+}
+
+function renderSlidesPreview() {
+  if (!_slData) return;
+  const slides = _slData.slides || [];
+  const preview = document.getElementById('sl-preview');
+  
+  let html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">';
+  slides.forEach((s, i) => {
+    html += '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;" onclick="slPresent(' + i + ')" onmouseover="this.style.borderColor=\'var(--gold)\'" onmouseout="this.style.borderColor=\'var(--border)\'">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+    html += '<span style="background:var(--gold);color:var(--navy);width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;">' + arabicNum(i+1) + '</span>';
+    html += '<span style="font-size:0.7rem;color:var(--dim);">' + slTypeName(s.type) + '</span>';
+    html += '</div>';
+    html += '<div style="font-weight:700;color:var(--gold2);font-size:0.92rem;margin-bottom:4px;">' + _esc(s.title || '') + '</div>';
+    const preview_text = s.subtitle || s.problem || s.question || (s.points ? s.points[0] : '') || '';
+    if (preview_text) html += '<div style="font-size:0.78rem;color:var(--dim);line-height:1.5;">' + _esc(String(preview_text).substring(0, 60)) + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+  document.getElementById('sl-toolbar').style.display = 'flex';
+}
+
+function slTypeName(type) {
+  const names = { title:'🎬 عنوان', objectives:'🎯 أهداف', content:'📚 شرح', example:'✏️ مثال', question:'❓ سؤال', closing:'🏁 ختام' };
+  return names[type] || type;
+}
+
+function slPresent(startIndex) {
+  if (!_slData) { toast('لا يوجد عرض', 'error'); return; }
+  const slides = _slData.slides || [];
+  const ctx = _slData._context || {};
+  const start = (typeof startIndex === 'number') ? startIndex : 0;
+  
+  const win = window.open('', '_blank');
+  win.document.write(slPresentHTML(slides, ctx, start));
+  win.document.close();
+}
+
+function slPresentHTML(slides, ctx, startIndex) {
+  // نبني الشرائح كـ HTML
+  const slidesJson = JSON.stringify(slides).replace(/<\/script>/g, '<\\/script>');
+  const ctxJson = JSON.stringify(ctx);
+  
+  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+    '<title>' + _esc(_slData.title || 'عرض تقديمي') + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+    '<style>' + slPresentCSS() + '</style></head><body>' +
+    '<div id="slide-stage"></div>' +
+    '<div class="sl-nav">' +
+      '<button onclick="slPrev()" id="sl-prev">◀ السابقة</button>' +
+      '<span id="sl-counter">١ / ١</span>' +
+      '<button onclick="slNext()" id="sl-next">التالية ▶</button>' +
+      '<button onclick="slFull()" class="sl-full-btn">⛶ ملء الشاشة</button>' +
+    '</div>' +
+    '<script>' +
+    'var SLIDES=' + slidesJson + ';' +
+    'var CTX=' + ctxJson + ';' +
+    'var cur=' + startIndex + ';' +
+    'function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d];});}' +
+    'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}' +
+    'function renderSlide(){' +
+      'var s=SLIDES[cur];if(!s)return;' +
+      'var h="";' +
+      'if(s.type==="title"){' +
+        'h+="<div class=\\"slide slide-title\\"><div class=\\"crown\\">👑</div><h1>"+esc(s.title)+"</h1>";' +
+        'if(s.subtitle)h+="<div class=\\"subtitle\\">"+esc(s.subtitle)+"</div>";' +
+        'h+="<div class=\\"brand\\">إمبراطورية الرياضيات</div></div>";' +
+      '}else if(s.type==="question"){' +
+        'h+="<div class=\\"slide slide-question\\"><div class=\\"q-badge\\">❓ سؤال تفاعلي</div><h2>"+esc(s.title)+"</h2>";' +
+        'h+="<div class=\\"q-text\\">"+esc(s.question)+"</div>";' +
+        'h+="<button class=\\"reveal-btn\\" onclick=\\"document.getElementById(\\x27ans\\x27).style.display=\\x27block\\x27;this.style.display=\\x27none\\x27\\">💡 كشف الإجابة</button>";' +
+        'h+="<div class=\\"answer\\" id=\\"ans\\"><b>الإجابة:</b> "+esc(s.answer)+"</div></div>";' +
+      '}else if(s.type==="example"){' +
+        'h+="<div class=\\"slide slide-example\\"><div class=\\"ex-badge\\">✏️ مثال محلول</div><h2>"+esc(s.title)+"</h2>";' +
+        'if(s.problem)h+="<div class=\\"problem\\">"+esc(s.problem)+"</div>";' +
+        'if(s.steps){h+="<div class=\\"steps\\">";s.steps.forEach(function(st,i){h+="<div class=\\"step\\"><span class=\\"step-num\\">"+ar(i+1)+"</span>"+esc(st)+"</div>";});h+="</div>";}' +
+        'if(s.result)h+="<div class=\\"result\\">✓ "+esc(s.result)+"</div>";' +
+        'h+="</div>";' +
+      '}else{' +
+        'var icon=s.type==="objectives"?"🎯":s.type==="closing"?"🏁":"📚";' +
+        'h+="<div class=\\"slide slide-content\\"><div class=\\"c-icon\\">"+icon+"</div><h2>"+esc(s.title)+"</h2>";' +
+        'if(s.points){h+="<ul>";s.points.forEach(function(p){h+="<li>"+esc(p)+"</li>";});h+="</ul>";}' +
+        'h+="</div>";' +
+      '}' +
+      'document.getElementById("slide-stage").innerHTML=h;' +
+      'document.getElementById("sl-counter").textContent=ar(cur+1)+" / "+ar(SLIDES.length);' +
+      'document.getElementById("sl-prev").disabled=(cur===0);' +
+      'document.getElementById("sl-next").disabled=(cur===SLIDES.length-1);' +
+    '}' +
+    'function slNext(){if(cur<SLIDES.length-1){cur++;renderSlide();}}' +
+    'function slPrev(){if(cur>0){cur--;renderSlide();}}' +
+    'function slFull(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();}else{document.exitFullscreen();}}' +
+    'document.addEventListener("keydown",function(e){if(e.key==="ArrowLeft"||e.key===" ")slNext();else if(e.key==="ArrowRight")slPrev();else if(e.key==="f"||e.key==="F")slFull();});' +
+    'renderSlide();' +
+    '</' + 'script></body></html>';
+}
+
+function slPresentCSS() {
+  return '*{margin:0;padding:0;box-sizing:border-box;}' +
+    'body{font-family:Cairo,sans-serif;background:#040d21;overflow:hidden;height:100vh;}' +
+    '#slide-stage{height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px;}' +
+    '.slide{width:100%;max-width:1000px;min-height:70vh;border-radius:24px;padding:60px;display:flex;flex-direction:column;justify-content:center;animation:slideIn 0.4s ease;}' +
+    '@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
+    '.slide-title{background:linear-gradient(160deg,#0a1f4d,#040d21);text-align:center;align-items:center;border:2px solid rgba(212,175,55,0.4);}' +
+    '.slide-title .crown{font-size:5rem;margin-bottom:20px;}' +
+    '.slide-title h1{font-family:Amiri,serif;font-size:3.5rem;color:#fcd34d;margin-bottom:16px;}' +
+    '.slide-title .subtitle{font-size:1.4rem;color:rgba(240,234,214,0.7);margin-bottom:30px;}' +
+    '.slide-title .brand{font-size:1rem;color:#d4af37;letter-spacing:2px;}' +
+    '.slide-content{background:linear-gradient(160deg,rgba(20,25,50,0.95),rgba(10,20,40,0.9));border:1px solid rgba(212,175,55,0.25);}' +
+    '.slide-content .c-icon{font-size:3rem;margin-bottom:20px;}' +
+    '.slide-content h2{font-family:Amiri,serif;font-size:2.4rem;color:#fcd34d;margin-bottom:30px;border-bottom:2px solid rgba(212,175,55,0.3);padding-bottom:14px;}' +
+    '.slide-content ul{list-style:none;}' +
+    '.slide-content li{font-size:1.5rem;color:#f0ead6;margin-bottom:18px;padding-right:36px;position:relative;line-height:1.6;}' +
+    '.slide-content li:before{content:"◆";color:#d4af37;position:absolute;right:0;}' +
+    '.slide-example{background:linear-gradient(160deg,rgba(15,40,30,0.95),rgba(10,30,20,0.9));border:1px solid rgba(46,204,113,0.3);}' +
+    '.slide-example .ex-badge{background:rgba(46,204,113,0.2);color:#7fffd4;padding:6px 18px;border-radius:20px;font-weight:700;align-self:flex-start;margin-bottom:20px;}' +
+    '.slide-example h2{font-family:Amiri,serif;font-size:2.2rem;color:#7fffd4;margin-bottom:20px;}' +
+    '.slide-example .problem{font-size:1.6rem;color:#fff;background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin-bottom:20px;text-align:center;}' +
+    '.slide-example .steps{display:flex;flex-direction:column;gap:14px;}' +
+    '.slide-example .step{font-size:1.3rem;color:#f0ead6;display:flex;align-items:center;gap:14px;}' +
+    '.slide-example .step-num{background:#2ecc71;color:#fff;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}' +
+    '.slide-example .result{margin-top:24px;font-size:1.6rem;color:#7fffd4;font-weight:700;background:rgba(46,204,113,0.15);padding:16px;border-radius:12px;text-align:center;}' +
+    '.slide-question{background:linear-gradient(160deg,rgba(40,20,50,0.95),rgba(30,15,40,0.9));border:1px solid rgba(168,85,247,0.4);align-items:center;text-align:center;}' +
+    '.slide-question .q-badge{background:rgba(168,85,247,0.2);color:#c4a0ff;padding:6px 18px;border-radius:20px;font-weight:700;margin-bottom:20px;}' +
+    '.slide-question h2{font-family:Amiri,serif;font-size:2rem;color:#c4a0ff;margin-bottom:24px;}' +
+    '.slide-question .q-text{font-size:2rem;color:#fff;margin-bottom:30px;line-height:1.6;}' +
+    '.slide-question .reveal-btn{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:14px 32px;border-radius:12px;font-family:Cairo;font-weight:700;font-size:1.2rem;cursor:pointer;}' +
+    '.slide-question .answer{display:none;margin-top:24px;font-size:1.6rem;color:#7fffd4;background:rgba(46,204,113,0.15);padding:20px;border-radius:12px;}' +
+    '.sl-nav{height:70px;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;gap:16px;border-top:1px solid rgba(212,175,55,0.2);}' +
+    '.sl-nav button{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:#fcd34d;padding:10px 20px;border-radius:10px;font-family:Cairo;font-weight:600;cursor:pointer;font-size:1rem;}' +
+    '.sl-nav button:hover:not(:disabled){background:rgba(212,175,55,0.3);}' +
+    '.sl-nav button:disabled{opacity:0.4;cursor:not-allowed;}' +
+    '.sl-nav #sl-counter{color:#fff;font-weight:700;min-width:80px;text-align:center;}' +
+    '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}';
+}
+
+// ════════════════════════════════════════════════════════════
 // 🚀 INIT
 // ════════════════════════════════════════════════════════════
 (async function init() {
@@ -2901,6 +3893,21 @@ function trackGenerationEnd(count) {
   setTimeout(() => {
     tryRestoreFromBackup();
   }, 1000);
+  
+  // 🎬 فتح تبويب العروض تلقائياً إذا الرابط فيه #slides
+  if (window.location.hash === '#slides') {
+    setTimeout(() => {
+      // ننتظر تحميل المنهج أولاً
+      const tryOpen = () => {
+        if (state.curriculum) {
+          switchTab('slides');
+        } else {
+          setTimeout(tryOpen, 300);
+        }
+      };
+      tryOpen();
+    }, 500);
+  }
 })();
 </script>
 </body>

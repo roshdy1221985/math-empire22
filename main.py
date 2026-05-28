@@ -6022,7 +6022,655 @@ async def teacher_exam_build_pdf(
 # 🏆 CERTIFICATES & TEMPLATES — قوالب وشهادات للطباعة
 # ═══════════════════════════════════════════════════════════════
 
-@app.post("/api/teacher/certificate/build")
+@app.post("/api/teacher/exam_generator/build_pdf_v2")
+async def teacher_exam_build_pdf_v2(
+    title: str           = Form(default="اختبار رياضيات"),
+    school_name: str     = Form(default=""),
+    teacher_name: str    = Form(default=""),
+    class_name: str      = Form(default=""),
+    grade: str           = Form(...),
+    semester: str        = Form(default=""),
+    unit: str            = Form(default=""),
+    lesson: str          = Form(default=""),
+    lessons: str         = Form(default=""),
+    # 🆕 عدد كل نوع من الأسئلة
+    n_essay: int         = Form(default=3),   # ✍️ مقالي
+    n_tf: int            = Form(default=5),    # ✅ صواب/خطأ
+    n_match: int         = Form(default=1),    # 🔗 وصّل
+    n_mcq: int           = Form(default=4),    # 🔵 اختياري
+    include_answers: bool = Form(default=True),
+    show_marks: bool     = Form(default=True),
+    total_marks: int     = Form(default=20),
+    use_ai: bool         = Form(default=True),  # 🆕 توليد بالـ AI إذا لم يكف البنك
+):
+    """📄 مولّد اختبارات متنوع v2: مقالي + صواب/خطأ + وصّل + اختياري"""
+    try:
+        variants = _grade_variants(grade) or [grade.strip()]
+        
+        # 📖 الدروس
+        lessons_list = []
+        if lessons.strip():
+            lessons_list = [l.strip() for l in lessons.split("|") if l.strip()]
+        elif lesson.strip():
+            lessons_list = [lesson.strip()]
+        
+        # نجلب أسئلة البنك المتاحة
+        bank_questions = []
+        seen_ids = set()
+        for v in variants:
+            if lessons_list:
+                for L in lessons_list:
+                    res = supabase.table("questions").select("*").eq("grade", v.strip()).ilike("lesson", L).execute()
+                    for row in (res.data or []):
+                        if row.get("id") not in seen_ids:
+                            seen_ids.add(row.get("id"))
+                            bank_questions.append(row)
+            else:
+                res = supabase.table("questions").select("*").eq("grade", v.strip()).execute()
+                for row in (res.data or []):
+                    if row.get("id") not in seen_ids:
+                        seen_ids.add(row.get("id"))
+                        bank_questions.append(row)
+        
+        def _norm(s):
+            return str(s or "").strip().lower()
+        if semester.strip():
+            ns = _norm(semester)
+            bank_questions = [q for q in bank_questions if ns in _norm(q.get("semester")) or _norm(q.get("semester")) in ns]
+        if unit.strip():
+            nu = _norm(unit)
+            bank_questions = [q for q in bank_questions if nu in _norm(q.get("unit")) or _norm(q.get("unit")) in nu]
+        
+        import random
+        random.shuffle(bank_questions)
+        
+        # نصنّف أسئلة البنك حسب النوع
+        def detect_type(q):
+            t = _norm(q.get("q_type") or q.get("type"))
+            opts = q.get("options") or ""
+            ans = _norm(q.get("answer") or q.get("correct_answer") or q.get("correct"))
+            if "true_false" in t or "صواب" in t or ans in ("صواب", "خطأ", "true", "false"):
+                return "tf"
+            if "multiple" in t or "اختياري" in t or (opts and len(str(opts)) > 3):
+                return "mcq"
+            if "short" in t or "essay" in t or "مقالي" in t or "قصير" in t:
+                return "essay"
+            return "essay"  # افتراضي
+        
+        pools = {"essay": [], "tf": [], "mcq": [], "match": []}
+        for q in bank_questions:
+            pools[detect_type(q)].append(q)
+        
+        # نجمع المطلوب من كل نوع
+        selected = {"essay": [], "tf": [], "mcq": [], "match": []}
+        needs_ai = {}
+        for typ, want in [("essay", n_essay), ("tf", n_tf), ("mcq", n_mcq), ("match", n_match)]:
+            available = pools[typ][:want]
+            selected[typ] = available
+            shortage = want - len(available)
+            if shortage > 0:
+                needs_ai[typ] = shortage
+        
+        # 🤖 نولّد الناقص بالـ AI
+        ai_generated = {"essay": [], "tf": [], "mcq": [], "match": []}
+        if use_ai and needs_ai:
+            api_key = os.getenv("GEMINI_API_KEY", "").strip()
+            if api_key:
+                ctx = f"الصف: {grade}"
+                if unit: ctx += f" | الوحدة: {unit}"
+                if lessons_list: ctx += f" | الدروس: {'، '.join(lessons_list)}"
+                
+                type_names = {"essay": "مقالي (يتطلب شرح/حل)", "tf": "صواب أو خطأ", "mcq": "اختيار من متعدد (4 خيارات)", "match": "وصّل من عمودين"}
+                
+                for typ, cnt in needs_ai.items():
+                    prompt = f"""أنت معلم رياضيات خبير في سلطنة عُمان. أنشئ {cnt} سؤال من نوع "{type_names[typ]}".
+
+السياق: {ctx}
+
+أخرج JSON فقط:"""
+                    if typ == "match":
+                        prompt += """
+{"questions":[{"type":"match","q":"وصّل كل عبارة بما يناسبها","pairs":[{"left":"العمود أ","right":"العمود ب"}],"answer":"أ-1، ب-2"}]}"""
+                    elif typ == "tf":
+                        prompt += """
+{"questions":[{"type":"tf","q":"العبارة","answer":"صواب"}]}"""
+                    elif typ == "mcq":
+                        prompt += """
+{"questions":[{"type":"mcq","q":"السؤال","options":["أ","ب","ج","د"],"answer":"أ"}]}"""
+                    else:
+                        prompt += """
+{"questions":[{"type":"essay","q":"السؤال المقالي","answer":"نموذج الإجابة"}]}"""
+                    
+                    try:
+                        import httpx
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+                        with httpx.Client(timeout=45.0) as client:
+                            r = client.post(url, json={"contents":[{"parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.8,"maxOutputTokens":3000,"responseMimeType":"application/json"}})
+                            if r.status_code == 200:
+                                raw = r.json().get("candidates",[{}])[0].get("content",{}).get("parts",[{}])[0].get("text","").strip()
+                                if raw.startswith("```"):
+                                    raw = raw.split("\n",1)[1] if "\n" in raw else raw
+                                    raw = raw.rsplit("```",1)[0] if "```" in raw else raw
+                                import json as jl
+                                parsed = jl.loads(raw)
+                                ai_generated[typ] = parsed.get("questions", [])
+                    except Exception as e:
+                        print(f"[exam_v2 AI] {typ}: {str(e)[:100]}")
+        
+        # ندمج البنك + AI لكل نوع
+        def normalize_bank_q(q, typ):
+            opts = q.get("options") or ""
+            if isinstance(opts, str):
+                opts = [o.strip() for o in opts.replace("،", ",").replace("|", ",").split(",") if o.strip()]
+            return {
+                "type": typ,
+                "q": q.get("question") or "",
+                "options": opts,
+                "answer": q.get("answer") or q.get("correct_answer") or q.get("correct") or "",
+                "pairs": q.get("pairs") or []
+            }
+        
+        final = {"essay": [], "tf": [], "mcq": [], "match": []}
+        for typ in ["essay", "tf", "mcq", "match"]:
+            for q in selected[typ]:
+                final[typ].append(normalize_bank_q(q, typ))
+            for q in ai_generated[typ]:
+                final[typ].append(q)
+        
+        total_q = sum(len(final[t]) for t in final)
+        if total_q == 0:
+            raise HTTPException(status_code=404, detail="لا توجد أسئلة. تأكد من وجود أسئلة في البنك أو فعّل التوليد بالـ AI.")
+        
+        marks_per_q = round(total_marks / total_q, 2) if (show_marks and total_q > 0) else 0
+        
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y/%m/%d")
+        arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
+        
+        # نبني الأقسام
+        sections_html = ""
+        answers_html = ""
+        q_counter = [0]  # mutable
+        
+        def esc(s):
+            return str(s or "").replace("<", "&lt;").replace(">", "&gt;")
+        
+        section_defs = [
+            ("essay", "✍️ السؤال الأول: أجب عن الأسئلة التالية", "essay"),
+            ("tf", "✅ السؤال الثاني: ضع علامة (✓) أو (✗)", "tf"),
+            ("match", "🔗 السؤال الثالث: صِل من العمود (أ) ما يناسبه من العمود (ب)", "match"),
+            ("mcq", "🔵 السؤال الرابع: اختر الإجابة الصحيحة", "mcq"),
+        ]
+        
+        section_num = 0
+        for typ, sec_title, _ in section_defs:
+            qs = final[typ]
+            if not qs:
+                continue
+            section_num += 1
+            sections_html += '<div class="exam-section"><div class="section-title">' + sec_title + '</div>'
+            
+            for q in qs:
+                q_counter[0] += 1
+                n = q_counter[0]
+                qtext = esc(q.get("q") or q.get("question"))
+                mark_label = ('<span class="qmark">[' + str(marks_per_q) + ' د]</span>') if show_marks else ""
+                
+                blk = '<div class="question"><div class="q-header"><span class="q-num">' + str(n) + '.</span> <span class="q-text">' + qtext + '</span>' + mark_label + '</div>'
+                
+                if typ == "mcq":
+                    opts = q.get("options") or []
+                    blk += '<div class="q-options">'
+                    for idx, opt in enumerate(opts[:6]):
+                        letter = arabic_letters[idx] if idx < len(arabic_letters) else str(idx+1)
+                        blk += '<div class="q-option"><span class="q-circle">⃝</span> <span class="q-letter">(' + letter + ')</span> ' + esc(opt) + '</div>'
+                    blk += '</div>'
+                elif typ == "tf":
+                    blk += '<div class="tf-box"><span class="tf-opt">صواب ( )</span> <span class="tf-opt">خطأ ( )</span></div>'
+                elif typ == "match":
+                    pairs = q.get("pairs") or []
+                    if pairs:
+                        import random as rnd
+                        rights = [p.get("right","") for p in pairs]
+                        rnd.shuffle(rights)
+                        blk += '<table class="match-table"><tr><th>العمود (أ)</th><th>العمود (ب)</th></tr>'
+                        for pi, p in enumerate(pairs):
+                            r = rights[pi] if pi < len(rights) else ""
+                            blk += '<tr><td>' + str(pi+1) + '. ' + esc(p.get("left","")) + ' (....)</td><td>' + arabic_letters[pi] + '. ' + esc(r) + '</td></tr>'
+                        blk += '</table>'
+                else:  # essay
+                    blk += '<div class="q-answer-lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>'
+                
+                blk += '</div>'
+                sections_html += blk
+                
+                # الإجابات
+                ans = esc(q.get("answer") or q.get("correct"))
+                answers_html += '<div class="ans-item"><strong>' + str(n) + '.</strong> ' + ans + '</div>'
+            
+            sections_html += '</div>'
+        
+        css_styles = """
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 30px 25px; max-width: 800px; margin: 0 auto; line-height: 1.9; }
+            .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 18px; margin-bottom: 20px; }
+            .school { font-size: 18px; font-weight: 700; }
+            .title-main { font-family: 'Amiri', serif; font-size: 30px; font-weight: 700; margin: 8px 0; }
+            .meta-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 13px; }
+            .meta-item { background: #f5f5f5; padding: 5px 12px; border-radius: 4px; border: 1px solid #ddd; }
+            .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; padding: 14px; background: #fafafa; border: 1px solid #ddd; border-radius: 6px; }
+            .student-info > div { border-bottom: 1px dashed #999; padding-bottom: 4px; }
+            .instructions { background: #fff8e1; border-right: 4px solid #f9a825; padding: 10px 16px; margin: 14px 0; font-size: 14px; border-radius: 4px; }
+            .exam-section { margin: 24px 0; }
+            .section-title { font-size: 17px; font-weight: 700; color: #fff; background: linear-gradient(135deg,#1976d2,#1565c0); padding: 10px 16px; border-radius: 6px; margin-bottom: 14px; }
+            .question { margin: 16px 0; padding: 12px 14px; border-radius: 6px; border: 1px solid #eee; page-break-inside: avoid; }
+            .q-header { font-size: 15.5px; font-weight: 600; margin-bottom: 8px; }
+            .q-num { color: #1976d2; font-weight: 700; margin-left: 6px; }
+            .qmark { color: #d32f2f; font-size: 12px; font-weight: 600; background: #ffebee; padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
+            .q-options { padding-right: 24px; margin-top: 6px; }
+            .q-option { margin: 6px 0; font-size: 15px; }
+            .q-circle { color: #999; margin-left: 4px; }
+            .q-letter { color: #1976d2; font-weight: 700; }
+            .q-answer-lines { margin-top: 8px; padding-right: 12px; }
+            .line { border-bottom: 1px solid #999; height: 32px; margin: 8px 0; }
+            .tf-box { padding-right: 24px; margin-top: 6px; font-size: 15px; }
+            .tf-opt { display: inline-block; margin-left: 30px; font-weight: 600; }
+            .match-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+            .match-table th { background: #e3f2fd; padding: 8px; border: 1px solid #90caf9; font-size: 14px; }
+            .match-table td { padding: 10px 12px; border: 1px solid #ddd; font-size: 14px; }
+            .signature { display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px; }
+            .sign-block { text-align: center; min-width: 160px; }
+            .sign-line { border-top: 1px solid #000; margin-top: 36px; padding-top: 4px; }
+            .footer { margin-top: 30px; padding-top: 14px; border-top: 2px solid #000; text-align: center; font-size: 13px; color: #555; }
+            .answers-page { page-break-before: always; padding: 20px; }
+            .answers-title { text-align: center; font-size: 22px; font-weight: 700; background: #4caf50; color: #fff; padding: 12px; border-radius: 6px; margin-bottom: 18px; }
+            .ans-item { padding: 7px 14px; background: #f1f8e9; margin: 5px 0; border-right: 4px solid #4caf50; border-radius: 4px; font-size: 14px; }
+            .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 9999; }
+            .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: 600; }
+            .controls button.green { background: #43a047; }
+            @media print { .controls { display: none !important; } body { padding: 15px; } }
+        """
+        
+        meta_items = '<div class="meta-item">📚 ' + grade + '</div>'
+        if semester: meta_items += '<div class="meta-item">📅 ' + semester + '</div>'
+        if unit: meta_items += '<div class="meta-item">📦 ' + unit + '</div>'
+        meta_items += '<div class="meta-item">📅 ' + date_str + '</div>'
+        if show_marks: meta_items += '<div class="meta-item">⭐ الكلية: ' + str(total_marks) + '</div>'
+        
+        school_block = ('<div class="school">' + school_name + '</div>') if school_name else ''
+        class_text = class_name if class_name else "..................."
+        teacher_sign = "المعلم " + (teacher_name if teacher_name else "")
+        
+        # ملخص أنواع الأسئلة
+        type_summary = []
+        if final["essay"]: type_summary.append(str(len(final["essay"])) + " مقالي")
+        if final["tf"]: type_summary.append(str(len(final["tf"])) + " صواب/خطأ")
+        if final["match"]: type_summary.append(str(len(final["match"])) + " وصّل")
+        if final["mcq"]: type_summary.append(str(len(final["mcq"])) + " اختياري")
+        instructions_text = "اقرأ الأسئلة بعناية. الاختبار يحتوي: " + "، ".join(type_summary) + "."
+        
+        answers_block = ""
+        if include_answers:
+            answers_block = '<div class="answers-page"><div class="answers-title">📋 ورقة الإجابات النموذجية</div>' + answers_html + '</div>'
+        
+        full_html = (
+            '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n<meta charset="UTF-8">\n'
+            '<title>' + title + '</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+            '<style>' + css_styles + '</style>\n</head>\n<body>\n'
+            '<div class="controls"><button onclick="window.print()">🖨️ طباعة / PDF</button>'
+            '<button class="green" onclick="window.close()">✕ إغلاق</button></div>\n'
+            '<div class="header">' + school_block + '<div class="title-main">' + title + '</div>'
+            '<div class="meta-row">' + meta_items + '</div></div>\n'
+            '<div class="student-info">'
+            '<div><b>اسم الطالب:</b> ...........................</div>'
+            '<div><b>الفصل:</b> ' + class_text + '</div>'
+            '<div><b>رقم الجلوس:</b> ..................</div>'
+            '<div><b>الدرجة:</b> ......... من ' + str(total_marks) + '</div></div>\n'
+            '<div class="instructions"><b>📌 تعليمات:</b> ' + instructions_text + '</div>\n'
+            + sections_html +
+            '<div class="signature"><div class="sign-block"><div class="sign-line">' + teacher_sign + '</div></div>'
+            '<div class="sign-block"><div class="sign-line">المراجع</div></div></div>\n'
+            '<div class="footer">🎓 إمبراطورية الرياضيات &nbsp;·&nbsp; مع تمنياتي بالتوفيق</div>\n'
+            + answers_block + '\n</body>\n</html>'
+        )
+        
+        return HTMLResponse(content=full_html)
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🎛️ EXAM EDITOR — محرّر الاختبار التفاعلي (جمع → معاينة/تعديل → طباعة)
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/teacher/exam_generator/prepare_questions")
+async def teacher_exam_prepare_questions(
+    grade: str           = Form(...),
+    semester: str        = Form(default=""),
+    unit: str            = Form(default=""),
+    lesson: str          = Form(default=""),
+    lessons: str         = Form(default=""),
+    n_essay: int         = Form(default=3),
+    n_tf: int            = Form(default=5),
+    n_match: int         = Form(default=1),
+    n_mcq: int           = Form(default=4),
+    use_ai: bool         = Form(default=True),
+):
+    """🎛️ يجمع الأسئلة ويُرجعها JSON للمحرّر التفاعلي (قبل الطباعة)"""
+    try:
+        variants = _grade_variants(grade) or [grade.strip()]
+        lessons_list = []
+        if lessons.strip():
+            lessons_list = [l.strip() for l in lessons.split("|") if l.strip()]
+        elif lesson.strip():
+            lessons_list = [lesson.strip()]
+        
+        bank_questions = []
+        seen_ids = set()
+        for v in variants:
+            if lessons_list:
+                for L in lessons_list:
+                    res = supabase.table("questions").select("*").eq("grade", v.strip()).ilike("lesson", L).execute()
+                    for row in (res.data or []):
+                        if row.get("id") not in seen_ids:
+                            seen_ids.add(row.get("id"))
+                            bank_questions.append(row)
+            else:
+                res = supabase.table("questions").select("*").eq("grade", v.strip()).execute()
+                for row in (res.data or []):
+                    if row.get("id") not in seen_ids:
+                        seen_ids.add(row.get("id"))
+                        bank_questions.append(row)
+        
+        def _norm(s):
+            return str(s or "").strip().lower()
+        if semester.strip():
+            ns = _norm(semester)
+            bank_questions = [q for q in bank_questions if ns in _norm(q.get("semester")) or _norm(q.get("semester")) in ns]
+        if unit.strip():
+            nu = _norm(unit)
+            bank_questions = [q for q in bank_questions if nu in _norm(q.get("unit")) or _norm(q.get("unit")) in nu]
+        
+        import random
+        random.shuffle(bank_questions)
+        
+        def detect_type(q):
+            t = _norm(q.get("q_type") or q.get("type"))
+            opts = q.get("options") or ""
+            ans = _norm(q.get("answer") or q.get("correct_answer") or q.get("correct"))
+            if "true_false" in t or "صواب" in t or ans in ("صواب", "خطأ", "true", "false"):
+                return "tf"
+            if "multiple" in t or "اختياري" in t or (opts and len(str(opts)) > 3):
+                return "mcq"
+            return "essay"
+        
+        pools = {"essay": [], "tf": [], "mcq": [], "match": []}
+        for q in bank_questions:
+            pools[detect_type(q)].append(q)
+        
+        def normalize_bank_q(q, typ):
+            opts = q.get("options") or ""
+            if isinstance(opts, str):
+                opts = [o.strip() for o in opts.replace("،", ",").replace("|", ",").split(",") if o.strip()]
+            return {
+                "type": typ,
+                "q": q.get("question") or "",
+                "options": opts,
+                "answer": q.get("answer") or q.get("correct_answer") or q.get("correct") or "",
+                "pairs": q.get("pairs") or [],
+                "source": "bank"
+            }
+        
+        selected = {"essay": [], "tf": [], "mcq": [], "match": []}
+        needs_ai = {}
+        for typ, want in [("essay", n_essay), ("tf", n_tf), ("mcq", n_mcq), ("match", n_match)]:
+            available = [normalize_bank_q(q, typ) for q in pools[typ][:want]]
+            selected[typ] = available
+            shortage = want - len(available)
+            if shortage > 0:
+                needs_ai[typ] = shortage
+        
+        # توليد الناقص بالـ AI
+        if use_ai and needs_ai:
+            api_key = os.getenv("GEMINI_API_KEY", "").strip()
+            if api_key:
+                ctx = f"الصف: {grade}"
+                if unit: ctx += f" | الوحدة: {unit}"
+                if lessons_list: ctx += f" | الدروس: {'، '.join(lessons_list)}"
+                type_names = {"essay": "مقالي (يتطلب شرح/حل)", "tf": "صواب أو خطأ", "mcq": "اختيار من متعدد (4 خيارات)", "match": "وصّل من عمودين"}
+                
+                for typ, cnt in needs_ai.items():
+                    prompt = f"""أنت معلم رياضيات خبير في سلطنة عُمان. أنشئ {cnt} سؤال من نوع "{type_names[typ]}".\n\nالسياق: {ctx}\n\nأخرج JSON فقط:"""
+                    if typ == "match":
+                        prompt += """\n{"questions":[{"type":"match","q":"وصّل كل عبارة بما يناسبها","pairs":[{"left":"عبارة","right":"مقابلها"}],"answer":"1-أ"}]}"""
+                    elif typ == "tf":
+                        prompt += """\n{"questions":[{"type":"tf","q":"العبارة","answer":"صواب"}]}"""
+                    elif typ == "mcq":
+                        prompt += """\n{"questions":[{"type":"mcq","q":"السؤال","options":["أ","ب","ج","د"],"answer":"أ"}]}"""
+                    else:
+                        prompt += """\n{"questions":[{"type":"essay","q":"السؤال المقالي","answer":"نموذج الإجابة"}]}"""
+                    try:
+                        import httpx
+                        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+                        with httpx.Client(timeout=45.0) as client:
+                            r = client.post(url, json={"contents":[{"parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.8,"maxOutputTokens":3000,"responseMimeType":"application/json"}})
+                            if r.status_code == 200:
+                                raw = r.json().get("candidates",[{}])[0].get("content",{}).get("parts",[{}])[0].get("text","").strip()
+                                if raw.startswith("```"):
+                                    raw = raw.split("\n",1)[1] if "\n" in raw else raw
+                                    raw = raw.rsplit("```",1)[0] if "```" in raw else raw
+                                import json as jl
+                                parsed = jl.loads(raw)
+                                for q in parsed.get("questions", []):
+                                    q["source"] = "ai"
+                                    if not isinstance(q.get("options"), list):
+                                        q["options"] = []
+                                    if not isinstance(q.get("pairs"), list):
+                                        q["pairs"] = []
+                                    selected[typ].append(q)
+                    except Exception as e:
+                        print(f"[prepare AI] {typ}: {str(e)[:100]}")
+        
+        # دمج بترتيب: مقالي، صح/خطأ، وصّل، اختياري + درجة افتراضية
+        default_marks = {"essay": 3, "tf": 1, "match": 4, "mcq": 1}
+        ordered = []
+        for typ in ["essay", "tf", "match", "mcq"]:
+            for q in selected[typ]:
+                q["marks"] = default_marks.get(typ, 1)
+                ordered.append(q)
+        
+        return {
+            "status": "ok",
+            "questions": ordered,
+            "counts": {t: len(selected[t]) for t in selected},
+            "total": len(ordered)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+@app.post("/api/teacher/exam_generator/build_from_questions")
+async def teacher_exam_build_from_questions(
+    title: str           = Form(default="اختبار رياضيات"),
+    school_name: str     = Form(default=""),
+    teacher_name: str    = Form(default=""),
+    class_name: str      = Form(default=""),
+    grade: str           = Form(default=""),
+    semester: str        = Form(default=""),
+    unit: str            = Form(default=""),
+    questions_json: str  = Form(...),
+    include_answers: bool = Form(default=True),
+    show_marks: bool     = Form(default=True),
+):
+    """🖨️ يبني ورقة الاختبار من أسئلة جاهزة (بعد تعديل المعلم في المحرّر)"""
+    try:
+        import json as jl
+        questions = jl.loads(questions_json)
+        if not isinstance(questions, list) or not questions:
+            raise HTTPException(status_code=400, detail="لا توجد أسئلة")
+        
+        from datetime import datetime
+        date_str = datetime.now().strftime("%Y/%m/%d")
+        arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
+        
+        def esc(s):
+            return str(s or "").replace("<", "&lt;").replace(">", "&gt;")
+        
+        # المجموع الكلي = مجموع درجات الأسئلة
+        total_marks = sum(float(q.get("marks", 1) or 0) for q in questions)
+        
+        # نجمّع حسب النوع للأقسام
+        by_type = {"essay": [], "tf": [], "match": [], "mcq": []}
+        for q in questions:
+            t = q.get("type", "essay")
+            if t not in by_type: t = "essay"
+            by_type[t].append(q)
+        
+        section_defs = [
+            ("essay", "✍️ السؤال الأول: أجب عن الأسئلة التالية"),
+            ("tf", "✅ السؤال الثاني: ضع علامة (✓) أو (✗)"),
+            ("match", "🔗 السؤال الثالث: صِل من العمود (أ) ما يناسبه من العمود (ب)"),
+            ("mcq", "🔵 السؤال الرابع: اختر الإجابة الصحيحة"),
+        ]
+        
+        sections_html = ""
+        answers_html = ""
+        n = 0
+        for typ, sec_title in section_defs:
+            qs = by_type[typ]
+            if not qs:
+                continue
+            sections_html += '<div class="exam-section"><div class="section-title">' + sec_title + '</div>'
+            for q in qs:
+                n += 1
+                qtext = esc(q.get("q"))
+                marks = q.get("marks", 1)
+                mark_label = ('<span class="qmark">[' + str(marks) + ' د]</span>') if show_marks else ""
+                blk = '<div class="question"><div class="q-header"><span class="q-num">' + str(n) + '.</span> <span class="q-text">' + qtext + '</span>' + mark_label + '</div>'
+                
+                if typ == "mcq":
+                    opts = q.get("options") or []
+                    blk += '<div class="q-options">'
+                    for idx, opt in enumerate(opts[:6]):
+                        letter = arabic_letters[idx] if idx < len(arabic_letters) else str(idx+1)
+                        blk += '<div class="q-option"><span class="q-circle">⃝</span> <span class="q-letter">(' + letter + ')</span> ' + esc(opt) + '</div>'
+                    blk += '</div>'
+                elif typ == "tf":
+                    blk += '<div class="tf-box"><span class="tf-opt">صواب ( )</span> <span class="tf-opt">خطأ ( )</span></div>'
+                elif typ == "match":
+                    pairs = q.get("pairs") or []
+                    if pairs:
+                        import random as rnd
+                        rights = [p.get("right","") for p in pairs]
+                        rnd.shuffle(rights)
+                        blk += '<table class="match-table"><tr><th>العمود (أ)</th><th>العمود (ب)</th></tr>'
+                        for pi, p in enumerate(pairs):
+                            r = rights[pi] if pi < len(rights) else ""
+                            blk += '<tr><td>' + str(pi+1) + '. ' + esc(p.get("left","")) + ' (....)</td><td>' + (arabic_letters[pi] if pi < len(arabic_letters) else str(pi+1)) + '. ' + esc(r) + '</td></tr>'
+                        blk += '</table>'
+                else:
+                    blk += '<div class="q-answer-lines"><div class="line"></div><div class="line"></div><div class="line"></div></div>'
+                blk += '</div>'
+                sections_html += blk
+                answers_html += '<div class="ans-item"><strong>' + str(n) + '.</strong> ' + esc(q.get("answer")) + '</div>'
+            sections_html += '</div>'
+        
+        css_styles = """
+            * { box-sizing: border-box; margin: 0; padding: 0; }
+            body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 30px 25px; max-width: 800px; margin: 0 auto; line-height: 1.9; }
+            .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 18px; margin-bottom: 20px; }
+            .school { font-size: 18px; font-weight: 700; }
+            .title-main { font-family: 'Amiri', serif; font-size: 30px; font-weight: 700; margin: 8px 0; }
+            .meta-row { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin-top: 14px; font-size: 13px; }
+            .meta-item { background: #f5f5f5; padding: 5px 12px; border-radius: 4px; border: 1px solid #ddd; }
+            .student-info { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 18px 0; padding: 14px; background: #fafafa; border: 1px solid #ddd; border-radius: 6px; }
+            .student-info > div { border-bottom: 1px dashed #999; padding-bottom: 4px; }
+            .instructions { background: #fff8e1; border-right: 4px solid #f9a825; padding: 10px 16px; margin: 14px 0; font-size: 14px; border-radius: 4px; }
+            .exam-section { margin: 24px 0; }
+            .section-title { font-size: 17px; font-weight: 700; color: #fff; background: linear-gradient(135deg,#1976d2,#1565c0); padding: 10px 16px; border-radius: 6px; margin-bottom: 14px; }
+            .question { margin: 16px 0; padding: 12px 14px; border-radius: 6px; border: 1px solid #eee; page-break-inside: avoid; }
+            .q-header { font-size: 15.5px; font-weight: 600; margin-bottom: 8px; }
+            .q-num { color: #1976d2; font-weight: 700; margin-left: 6px; }
+            .qmark { color: #d32f2f; font-size: 12px; font-weight: 600; background: #ffebee; padding: 2px 8px; border-radius: 3px; margin-right: 8px; }
+            .q-options { padding-right: 24px; margin-top: 6px; }
+            .q-option { margin: 6px 0; font-size: 15px; }
+            .q-circle { color: #999; margin-left: 4px; }
+            .q-letter { color: #1976d2; font-weight: 700; }
+            .q-answer-lines { margin-top: 8px; padding-right: 12px; }
+            .line { border-bottom: 1px solid #999; height: 32px; margin: 8px 0; }
+            .tf-box { padding-right: 24px; margin-top: 6px; font-size: 15px; }
+            .tf-opt { display: inline-block; margin-left: 30px; font-weight: 600; }
+            .match-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+            .match-table th { background: #e3f2fd; padding: 8px; border: 1px solid #90caf9; font-size: 14px; }
+            .match-table td { padding: 10px 12px; border: 1px solid #ddd; font-size: 14px; }
+            .signature { display: flex; justify-content: space-between; margin-top: 30px; font-size: 14px; }
+            .sign-block { text-align: center; min-width: 160px; }
+            .sign-line { border-top: 1px solid #000; margin-top: 36px; padding-top: 4px; }
+            .footer { margin-top: 30px; padding-top: 14px; border-top: 2px solid #000; text-align: center; font-size: 13px; color: #555; }
+            .answers-page { page-break-before: always; padding: 20px; }
+            .answers-title { text-align: center; font-size: 22px; font-weight: 700; background: #4caf50; color: #fff; padding: 12px; border-radius: 6px; margin-bottom: 18px; }
+            .ans-item { padding: 7px 14px; background: #f1f8e9; margin: 5px 0; border-right: 4px solid #4caf50; border-radius: 4px; font-size: 14px; }
+            .controls { position: fixed; top: 12px; left: 12px; background: #fff; border: 1px solid #ccc; border-radius: 8px; padding: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.15); z-index: 9999; }
+            .controls button { background: #1976d2; color: #fff; border: none; padding: 8px 16px; margin: 0 4px; border-radius: 6px; cursor: pointer; font-family: 'Cairo'; font-weight: 600; }
+            .controls button.green { background: #43a047; }
+            @media print { .controls { display: none !important; } body { padding: 15px; } }
+        """
+        
+        meta_items = ''
+        if grade: meta_items += '<div class="meta-item">📚 ' + esc(grade) + '</div>'
+        if semester: meta_items += '<div class="meta-item">📅 ' + esc(semester) + '</div>'
+        if unit: meta_items += '<div class="meta-item">📦 ' + esc(unit) + '</div>'
+        meta_items += '<div class="meta-item">📅 ' + date_str + '</div>'
+        if show_marks: meta_items += '<div class="meta-item">⭐ الكلية: ' + str(int(total_marks)) + '</div>'
+        
+        school_block = ('<div class="school">' + esc(school_name) + '</div>') if school_name else ''
+        class_text = esc(class_name) if class_name else "..................."
+        teacher_sign = "المعلم " + esc(teacher_name)
+        
+        answers_block = ""
+        if include_answers:
+            answers_block = '<div class="answers-page"><div class="answers-title">📋 ورقة الإجابات النموذجية</div>' + answers_html + '</div>'
+        
+        full_html = (
+            '<!DOCTYPE html>\n<html lang="ar" dir="rtl">\n<head>\n<meta charset="UTF-8">\n'
+            '<title>' + esc(title) + '</title>\n'
+            '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">\n'
+            '<style>' + css_styles + '</style>\n</head>\n<body>\n'
+            '<div class="controls"><button onclick="window.print()">🖨️ طباعة / PDF</button>'
+            '<button class="green" onclick="window.close()">✕ إغلاق</button></div>\n'
+            '<div class="header">' + school_block + '<div class="title-main">' + esc(title) + '</div>'
+            '<div class="meta-row">' + meta_items + '</div></div>\n'
+            '<div class="student-info">'
+            '<div><b>اسم الطالب:</b> ...........................</div>'
+            '<div><b>الفصل:</b> ' + class_text + '</div>'
+            '<div><b>رقم الجلوس:</b> ..................</div>'
+            '<div><b>الدرجة:</b> ......... من ' + str(int(total_marks)) + '</div></div>\n'
+            '<div class="instructions"><b>📌 تعليمات:</b> اقرأ الأسئلة بعناية وأجب عن الجميع.</div>\n'
+            + sections_html +
+            '<div class="signature"><div class="sign-block"><div class="sign-line">' + teacher_sign + '</div></div>'
+            '<div class="sign-block"><div class="sign-line">المراجع</div></div></div>\n'
+            '<div class="footer">🎓 إمبراطورية الرياضيات &nbsp;·&nbsp; مع تمنياتي بالتوفيق</div>\n'
+            + answers_block + '\n</body>\n</html>'
+        )
+        return HTMLResponse(content=full_html)
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"خطأ: {str(e)[:200]}")
+
+
+
 async def teacher_certificate_build(
     template: str       = Form(default="gold"),     # gold | royal | modern | classic | floral
     student_name: str   = Form(...),
@@ -10503,6 +11151,344 @@ async def prep_ai_chat_modify(
             continue
     
     raise HTTPException(status_code=502, detail=f"❌ فشل التعديل: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 📝 WORKSHEET GENERATOR — مولّد أوراق العمل بـ AI
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/prep/worksheet_generate")
+async def prep_worksheet_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    worksheet_type: str = Form(default="practice"),
+    difficulty: str = Form(default="medium"),
+    n_questions: int = Form(default=10),
+    extra_text: str = Form(default=""),
+    include_instructions: bool = Form(default=True),
+    admin = Depends(get_current_admin)
+):
+    """
+    📝 توليد ورقة عمل كاملة بـ AI:
+    - عنوان + تعليمات + أسئلة متنوعة
+    - أنواع: practice (تدريب) / review (مراجعة) / homework (واجب) / quiz (اختبار قصير)
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=15, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    if n_questions < 1 or n_questions > 30:
+        raise HTTPException(status_code=400, detail="عدد الأسئلة بين 1 و 30")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    type_ar = {
+        "practice": "ورقة تدريب",
+        "review": "ورقة مراجعة",
+        "homework": "واجب منزلي",
+        "quiz": "اختبار قصير"
+    }.get(worksheet_type, "ورقة تدريب")
+    
+    diff_ar = {"easy": "سهلة", "medium": "متوسطة", "hard": "متقدمة"}.get(difficulty, "متوسطة")
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "رياضيات عامة"
+    
+    extra_context = f"\n\nمحتوى إضافي للاستناد إليه:\n{extra_text[:3000]}" if extra_text.strip() else ""
+    
+    prompt = f"""أنت خبير في إعداد أوراق العمل التعليمية للرياضيات في سلطنة عُمان.
+
+المهمة: أنشئ {type_ar} متكاملة.
+
+السياق: {context}
+نوع الورقة: {type_ar}
+الصعوبة: {diff_ar}
+عدد الأسئلة: {n_questions}{extra_context}
+
+أخرج JSON فقط بهذا الشكل:
+{{
+  "title": "عنوان ورقة العمل",
+  "instructions": "تعليمات واضحة للطالب",
+  "learning_objective": "الهدف التعليمي المختصر",
+  "estimated_time": "الزمن المقدّر بالدقائق",
+  "questions": [
+    {{"num": 1, "type": "mcq", "q": "نص السؤال", "options": ["أ","ب","ج","د"], "answer": "أ", "marks": 2}},
+    {{"num": 2, "type": "fill", "q": "أكمل: ... = ____", "answer": "الإجابة", "marks": 1}},
+    {{"num": 3, "type": "solve", "q": "مسألة تتطلب حلاً", "answer": "خطوات الحل", "marks": 3}}
+  ],
+  "total_marks": 20
+}}
+
+قواعد:
+- العربية الفصحى، أرقام عربية (٠-٩)
+- نوّع الأسئلة (mcq اختياري، fill إكمال، solve حل مسائل، tf صواب/خطأ)
+- لكل سؤال درجة (marks) مناسبة لصعوبته
+- أسئلة متدرّجة من السهل للصعب
+- مناسبة لنوع الورقة ({type_ar})"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {
+                    "temperature": 0.8,
+                    "maxOutputTokens": 6000,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=60.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    
+                    if not parsed.get("questions"):
+                        raise ValueError("لا توجد أسئلة")
+                    
+                    return {
+                        "status": "ok",
+                        "worksheet": parsed,
+                        "model": model_name,
+                        "type": worksheet_type,
+                        "context": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:150]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد ورقة العمل: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🎬 SLIDES GENERATOR — مولّد العروض التقديمية بـ AI
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/prep/slides_generate")
+async def prep_slides_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    n_slides: int = Form(default=8),
+    n_questions: int = Form(default=3),
+    extra_text: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """🎬 توليد عرض تقديمي كامل: عنوان + أهداف + شرح + أمثلة محلولة + أسئلة تفاعلية"""
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=15, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    if n_slides < 4 or n_slides > 20:
+        raise HTTPException(status_code=400, detail="عدد الشرائح بين 4 و 20")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "رياضيات عامة"
+    
+    extra_context = f"\n\nمحتوى الدرس للاستناد إليه:\n{extra_text[:3000]}" if extra_text.strip() else ""
+    
+    prompt = f"""أنت خبير في إعداد العروض التقديمية التعليمية للرياضيات في سلطنة عُمان.
+
+المهمة: أنشئ عرضاً تقديمياً من {n_slides} شريحة لدرس رياضيات، يتضمن {n_questions} سؤال تفاعلي.
+
+السياق: {context}{extra_context}
+
+أنواع الشرائح المطلوبة بالترتيب:
+1. شريحة عنوان (title): عنوان الدرس
+2. شريحة أهداف (objectives): أهداف الدرس كنقاط
+3-؟. شرائح شرح (content): المفاهيم كنقاط واضحة
+شرائح أمثلة (example): مثال محلول خطوة بخطوة
+{n_questions} شريحة سؤال تفاعلي (question): سؤال + إجابة مخفية
+شريحة ختام (closing): تلخيص
+
+أخرج JSON فقط بهذا الشكل:
+{{
+  "title": "عنوان الدرس",
+  "slides": [
+    {{"type": "title", "title": "عنوان الدرس", "subtitle": "الصف · الوحدة"}},
+    {{"type": "objectives", "title": "أهداف الدرس", "points": ["هدف 1", "هدف 2", "هدف 3"]}},
+    {{"type": "content", "title": "عنوان الفكرة", "points": ["نقطة 1", "نقطة 2"]}},
+    {{"type": "example", "title": "مثال محلول", "problem": "نص المسألة", "steps": ["الخطوة 1", "الخطوة 2"], "result": "النتيجة النهائية"}},
+    {{"type": "question", "title": "سؤال تفاعلي", "question": "نص السؤال", "answer": "الإجابة الصحيحة"}},
+    {{"type": "closing", "title": "الخلاصة", "points": ["ملخص 1", "ملخص 2"]}}
+  ]
+}}
+
+قواعد:
+- العربية الفصحى، أرقام عربية (٠-٩)
+- كل شريحة محتواها مركّز ومناسب للعرض (ليس نصاً طويلاً)
+- الأمثلة المحلولة واضحة خطوة بخطوة
+- الأسئلة التفاعلية مناسبة لمستوى الطلاب
+- المجموع {n_slides} شريحة بالضبط"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.8, "maxOutputTokens": 8000, "responseMimeType": "application/json"}
+            }
+            with httpx.Client(timeout=70.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    if not parsed.get("slides"):
+                        raise ValueError("لا توجد شرائح")
+                    return {
+                        "status": "ok",
+                        "presentation": parsed,
+                        "model": model_name,
+                        "context": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson}
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:150]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد العرض: {last_error}")
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 📊 STUDENT REPORT — توليد تعليق تربوي ذكي لتقرير الطالب
+# ════════════════════════════════════════════════════════════════════════════
+@app.post("/api/teacher/student_report_comment")
+async def teacher_student_report_comment(
+    request: Request,
+    student_name: str = Form(...),
+    grade: str = Form(default=""),
+    subject: str = Form(default="الرياضيات"),
+    scores_json: str = Form(...),
+    total_percent: float = Form(default=0),
+    admin = Depends(get_current_admin)
+):
+    """
+    📊 توليد تعليق تربوي مخصص لتقرير الطالب بناءً على درجاته
+    يحلل نقاط القوة والضعف ويقترح توصيات
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=30, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        # بديل بدون AI - تعليق تلقائي حسب النسبة
+        if total_percent >= 90:
+            comment = f"أداء متميز ورائع! {student_name} يُظهر تفوقاً واضحاً. نشجعه على الاستمرار في هذا المستوى المشرّف."
+        elif total_percent >= 80:
+            comment = f"أداء جيد جداً. {student_name} يمتلك أساساً قوياً، ومع المزيد من التركيز يمكنه بلوغ التميز."
+        elif total_percent >= 65:
+            comment = f"أداء جيد. ننصح {student_name} بمراجعة النقاط الصعبة وزيادة التدريب لتحسين مستواه."
+        elif total_percent >= 50:
+            comment = f"أداء مقبول. يحتاج {student_name} إلى دعم إضافي ومتابعة مستمرة لتطوير مهاراته."
+        else:
+            comment = f"يحتاج {student_name} إلى دعم مكثّف وخطة علاجية. ننصح بالتواصل لوضع برنامج تحسين مناسب."
+        return {"status": "ok", "comment": comment, "source": "auto"}
+    
+    import json as json_lib
+    try:
+        scores = json_lib.loads(scores_json)
+    except json_lib.JSONDecodeError:
+        scores = {}
+    
+    # بناء وصف الدرجات
+    scores_desc = "\n".join([f"- {k}: {v}" for k, v in scores.items()]) if isinstance(scores, dict) else str(scores)
+    
+    prompt = f"""أنت معلم رياضيات خبير في سلطنة عُمان. اكتب تعليقاً تربوياً مختصراً واحترافياً لتقرير الطالب.
+
+اسم الطالب: {student_name}
+الصف: {grade}
+المادة: {subject}
+النسبة الإجمالية: {total_percent}%
+
+تفاصيل الدرجات:
+{scores_desc}
+
+اكتب تعليقاً تربوياً:
+- مختصر (2-3 جمل)
+- إيجابي ومحفّز
+- يذكر نقطة قوة محددة
+- يقترح توصية عملية للتحسين
+- بصيغة رسمية مناسبة لولي الأمر
+- بالعربية الفصحى
+
+أخرج JSON فقط:
+{{"comment": "التعليق هنا"}}"""
+    
+    import httpx
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.7, "maxOutputTokens": 500, "responseMimeType": "application/json"}
+            }
+            with httpx.Client(timeout=30.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    return {"status": "ok", "comment": parsed.get("comment", ""), "source": model_name}
+                else:
+                    last_error = f"HTTP {resp.status_code}"
+        except Exception as e:
+            last_error = str(e)[:150]
+            continue
+    
+    # fallback لو فشل AI
+    comment = f"{student_name} حقق نسبة {total_percent}%. نتمنى له مزيداً من التقدم والتفوق."
+    return {"status": "ok", "comment": comment, "source": "fallback", "warning": last_error}
 
 
 # ════════════════════════════════════════════════════════════════════════════

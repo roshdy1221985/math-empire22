@@ -4882,6 +4882,31 @@
         #section-gradebook .gb-tab-mini-btn{background:transparent;border:none;color:inherit;font-size:.78rem;cursor:pointer;padding:1px 3px;opacity:0.5;}
         #section-gradebook .gb-tab-mini-btn:hover{opacity:1;}
         #section-gradebook .gb-actions{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+        /* 📊 مودال تقارير الطلاب */
+        .gbr-modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:99999;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);}
+        .gbr-modal-box{background:linear-gradient(160deg,#0a1f4d,#040d21);border:1px solid rgba(212,175,55,0.3);border-radius:18px;max-width:560px;width:100%;max-height:90vh;overflow-y:auto;animation:gbrIn 0.3s ease;}
+        @keyframes gbrIn{from{transform:scale(0.95);opacity:0;}to{transform:scale(1);opacity:1;}}
+        .gbr-modal-header{display:flex;justify-content:space-between;align-items:center;padding:18px 22px;border-bottom:1px solid rgba(212,175,55,0.2);}
+        .gbr-modal-title{font-family:Amiri,serif;color:#d4af37;font-size:1.3rem;font-weight:700;}
+        .gbr-modal-close{background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;width:32px;height:32px;border-radius:8px;cursor:pointer;font-weight:700;font-size:0.9rem;}
+        .gbr-modal-close:hover{background:rgba(255,77,109,0.3);}
+        .gbr-modal-body{padding:20px 22px;}
+        .gbr-options{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:18px;}
+        .gbr-opt-card{background:rgba(255,255,255,0.04);border:2px solid rgba(212,175,55,0.2);border-radius:12px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;}
+        .gbr-opt-card:hover{background:rgba(212,175,55,0.08);}
+        .gbr-opt-card.gbr-selected{background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.05));border-color:#d4af37;}
+        .gbr-opt-icon{font-size:2rem;margin-bottom:6px;}
+        .gbr-opt-title{font-weight:700;color:#fff;font-size:0.92rem;}
+        .gbr-opt-desc{font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:3px;}
+        .gbr-label{display:block;color:#fcd34d;font-size:0.85rem;font-weight:600;margin-bottom:6px;}
+        .gbr-select{width:100%;background:rgba(0,0,0,0.4);border:1px solid rgba(212,175,55,0.3);color:#fff;padding:10px 12px;border-radius:8px;font-family:Cairo;font-size:0.9rem;}
+        .gbr-select option{background:#0a1f4d;}
+        .gbr-ai-toggle{background:rgba(20,184,166,0.08);border:1px solid rgba(20,184,166,0.25);border-radius:10px;padding:12px 14px;color:#fff;font-size:0.88rem;}
+        .gbr-modal-footer{display:flex;justify-content:flex-end;gap:10px;padding:16px 22px;border-top:1px solid rgba(212,175,55,0.2);}
+        .gbr-btn-cancel{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 20px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:600;}
+        .gbr-btn-generate{background:linear-gradient(135deg,#0ea5e9,#06b6d4);border:none;color:#fff;padding:10px 24px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:700;}
+        .gbr-btn-generate:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(14,165,233,0.4);}
+        .gbr-btn-generate:disabled{opacity:0.5;cursor:not-allowed;}
         #section-gradebook .gb-btn{background:linear-gradient(135deg,#b38728,#d4af37);color:#000;border:none;padding:8px 16px;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:.82rem;display:inline-flex;align-items:center;gap:6px;transition:all 0.2s;}
         #section-gradebook .gb-btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(212,175,55,.4);}
         #section-gradebook .gb-btn-blue{background:linear-gradient(135deg,#2980b9,#3498db);color:#fff;}
@@ -5280,6 +5305,7 @@
                 <button class="gb-btn" style="background:linear-gradient(135deg,#ec4899,#f43f5e);color:#fff;" onclick="gbOpenTemplateModal()">🎨 تغيير القالب</button>
                 <button class="gb-btn gb-btn-blue" onclick="gbPrint()">🖨️ طباعة</button>
                 <button class="gb-btn gb-btn-green" onclick="gbExportExcel()">📎 تصدير Excel</button>
+                <button class="gb-btn" style="background:linear-gradient(135deg,#0ea5e9,#06b6d4);color:#fff;" onclick="gbrOpenReports()">📊 تقارير الطلاب</button>
             </div>
             
             <!-- 🎯 شريط تلميحي عن Smart Fill (مثل Excel) -->
@@ -5964,6 +5990,14 @@
                     <div class="qa-icon-box"><i class="fas fa-trophy"></i></div>
                     <div class="qa-title">الشهادات</div>
                     <div class="qa-sub">8 قوالب + صور</div>
+                </div>
+                
+                <!-- 🎬 العروض التقديمية (في المصنع) -->
+                <div onclick="window.open('/prep#slides', '_blank')" class="qa-card qa-violet" style="position:relative;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(124,58,237,0.06));border-color:rgba(168,85,247,0.35);">
+                    <div class="qa-icon-box" style="background:linear-gradient(135deg,#a855f7,#7c3aed);"><i class="fas fa-chalkboard"></i></div>
+                    <div class="qa-title">عروض تقديمية 🎬</div>
+                    <div class="qa-sub">AI → شرائح للعرض</div>
+                    <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:700;">جديد</span>
                 </div>
                 
                 <!-- 5. 📓 تحضير AI -->
@@ -7161,7 +7195,7 @@
                         <input type="number" id="exg-marks" value="20" min="5" max="200" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
                     </div>
                     <div>
-                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📌 نوع الأسئلة</label>
+                        <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📌 نوع الأسئلة (للنمط القديم)</label>
                         <select id="exg-types" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(231,76,60,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
                             <option value="all">كل الأنواع</option>
                             <option value="mcq">اختياري متعدد فقط</option>
@@ -7183,6 +7217,42 @@
                 </div>
             </div>
 
+            <!-- 🆕 اختبار متنوّع: تحديد عدد كل نوع -->
+            <div class="glass-card" style="padding:22px;margin-top:16px;border:2px solid rgba(46,204,113,0.3);background:linear-gradient(135deg,rgba(46,204,113,0.06),rgba(52,152,219,0.04));">
+                <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+                    <span style="font-size:1.6rem;">🎯</span>
+                    <div>
+                        <div style="font-family:'Amiri';font-size:1.3rem;color:#7fffd4;font-weight:700;">الاختبار المتنوّع الاحترافي</div>
+                        <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);">حدّد عدد كل نوع — يأخذ من البنك ويُكمل بالذكاء الاصطناعي عند الحاجة</div>
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;">
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:#ffd6a5;margin-bottom:6px;font-weight:600;">✍️ أسئلة مقالية</label>
+                        <input type="number" id="exg-n-essay" value="3" min="0" max="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.4);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:#caffbf;margin-bottom:6px;font-weight:600;">✅ صواب / خطأ</label>
+                        <input type="number" id="exg-n-tf" value="5" min="0" max="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(46,204,113,0.4);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:#a0c4ff;margin-bottom:6px;font-weight:600;">🔗 وصّل / طابِق</label>
+                        <input type="number" id="exg-n-match" value="1" min="0" max="10" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.4);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                    <div>
+                        <label style="display:block;font-size:0.85rem;color:#bdb2ff;margin-bottom:6px;font-weight:600;">🔵 اختيار متعدد</label>
+                        <input type="number" id="exg-n-mcq" value="4" min="0" max="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(155,89,182,0.4);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    </div>
+                </div>
+                <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;margin-top:14px;color:rgba(255,255,255,0.85);">
+                    <input type="checkbox" id="exg-v2-use-ai" checked style="width:16px;height:16px;accent-color:#2ecc71;">
+                    🤖 إكمال النقص بالذكاء الاصطناعي (إذا لم يكفِ البنك)
+                </label>
+                <button onclick="exgGenerateV2()" style="width:100%;margin-top:16px;background:linear-gradient(135deg,#27ae60,#16a085);color:#fff;border:none;padding:15px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.05rem;box-shadow:0 6px 18px rgba(46,204,113,0.4);">
+                    🎯 إنشاء الاختبار المتنوّع
+                </button>
+            </div>
+
             <!-- إحصاءات وأزرار -->
             <div class="glass-card" style="padding:22px;text-align:center;">
                 <div id="exg-stats" style="margin-bottom:16px;padding:14px;background:rgba(231,76,60,0.06);border:1px solid rgba(231,76,60,0.25);border-radius:12px;color:rgba(255,255,255,0.85);font-weight:600;display:none;">
@@ -7200,6 +7270,49 @@
 
             <!-- منطقة المعاينة -->
             <div id="exg-preview" style="display:none;"></div>
+
+            <!-- 🎛️ المحرّر التفاعلي للاختبار -->
+            <div id="exg-editor" style="display:none;margin-top:20px;">
+                <div class="glass-card" style="padding:22px;border:2px solid rgba(212,175,55,0.4);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid rgba(212,175,55,0.2);">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <span style="font-size:1.6rem;">🎛️</span>
+                            <div>
+                                <div style="font-family:'Amiri';font-size:1.3rem;color:#fcd34d;font-weight:700;">محرّر الاختبار</div>
+                                <div style="font-size:0.8rem;color:rgba(255,255,255,0.6);">راجع · عدّل · احذف · رتّب الدرجات قبل الطباعة</div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+                            <div style="text-align:center;background:rgba(212,175,55,0.1);padding:8px 16px;border-radius:10px;">
+                                <div id="exg-ed-count" style="font-family:'Amiri';font-size:1.4rem;color:#fcd34d;font-weight:700;">0</div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.6);">سؤال</div>
+                            </div>
+                            <div style="text-align:center;background:rgba(46,204,113,0.1);padding:8px 16px;border-radius:10px;">
+                                <div id="exg-ed-marks" style="font-family:'Amiri';font-size:1.4rem;color:#7fffd4;font-weight:700;">0</div>
+                                <div style="font-size:0.7rem;color:rgba(255,255,255,0.6);">مجموع الدرجات</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- أزرار إضافة سؤال -->
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+                        <span style="color:rgba(255,255,255,0.6);font-size:0.82rem;align-self:center;">➕ إضافة سؤال يدوي:</span>
+                        <button onclick="exgEdAddQuestion('essay')" style="background:rgba(243,156,18,0.15);border:1px solid rgba(243,156,18,0.4);color:#ffd6a5;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.8rem;">✍️ مقالي</button>
+                        <button onclick="exgEdAddQuestion('tf')" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#caffbf;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.8rem;">✅ صواب/خطأ</button>
+                        <button onclick="exgEdAddQuestion('match')" style="background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.4);color:#a0c4ff;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.8rem;">🔗 وصّل</button>
+                        <button onclick="exgEdAddQuestion('mcq')" style="background:rgba(155,89,182,0.15);border:1px solid rgba(155,89,182,0.4);color:#bdb2ff;padding:6px 14px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.8rem;">🔵 اختياري</button>
+                    </div>
+                    
+                    <!-- قائمة الأسئلة القابلة للتعديل -->
+                    <div id="exg-ed-list"></div>
+                    
+                    <!-- أزرار التحكم النهائية -->
+                    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:20px;padding-top:16px;border-top:1px solid rgba(212,175,55,0.2);">
+                        <button onclick="exgEdClose()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:12px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;">← رجوع</button>
+                        <button onclick="exgEdPrint()" style="background:linear-gradient(135deg,#d4af37,#aa771c);color:#040d21;border:none;padding:12px 32px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:700;font-size:1.02rem;box-shadow:0 6px 18px rgba(212,175,55,0.4);">🖨️ طباعة الاختبار النهائي</button>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -10264,6 +10377,230 @@ async function exgGenerate() {
         w.document.close();
         
         if (typeof showToast === 'function') showToast('✅ الاختبار جاهز للطباعة', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎯 الاختبار المتنوّع V2 — مقالي + صواب/خطأ + وصّل + اختياري
+// ════════════════════════════════════════════════════════════
+async function exgGenerateV2() {
+    var grade = document.getElementById('exg-grade').value;
+    if (!grade) {
+        if (typeof showToast === 'function') showToast('⚠️ اختر الصف أولاً', 'warning');
+        return;
+    }
+    
+    var nEssay = parseInt(document.getElementById('exg-n-essay').value) || 0;
+    var nTf = parseInt(document.getElementById('exg-n-tf').value) || 0;
+    var nMatch = parseInt(document.getElementById('exg-n-match').value) || 0;
+    var nMcq = parseInt(document.getElementById('exg-n-mcq').value) || 0;
+    
+    if (nEssay + nTf + nMatch + nMcq === 0) {
+        if (typeof showToast === 'function') showToast('⚠️ حدّد عدد سؤال واحد على الأقل', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('exg-semester').value);
+    fd.append('unit', document.getElementById('exg-unit').value);
+    
+    var lessonSelect = document.getElementById('exg-lesson');
+    var selectedLessons = [];
+    if (lessonSelect && lessonSelect.selectedOptions) {
+        for (var i = 0; i < lessonSelect.selectedOptions.length; i++) {
+            var v = lessonSelect.selectedOptions[i].value;
+            if (v) selectedLessons.push(v);
+        }
+    }
+    fd.append('lesson', selectedLessons[0] || '');
+    if (selectedLessons.length > 1) fd.append('lessons', selectedLessons.join('|'));
+    
+    fd.append('n_essay', String(nEssay));
+    fd.append('n_tf', String(nTf));
+    fd.append('n_match', String(nMatch));
+    fd.append('n_mcq', String(nMcq));
+    fd.append('use_ai', document.getElementById('exg-v2-use-ai').checked);
+    
+    if (typeof showToast === 'function') showToast('⏳ جارٍ جمع الأسئلة...', 'info');
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/exam_generator/prepare_questions', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var data = await res.json();
+        _exgEdQuestions = data.questions || [];
+        if (!_exgEdQuestions.length) {
+            if (typeof showToast === 'function') showToast('⚠️ لم نجد أسئلة. جرّب تفعيل AI أو غيّر الفلتر', 'warning');
+            return;
+        }
+        exgEdOpen();
+        if (typeof showToast === 'function') showToast('✅ تم جمع ' + _exgEdQuestions.length + ' سؤال — راجعها الآن', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎛️ محرّر الاختبار التفاعلي
+// ════════════════════════════════════════════════════════════
+var _exgEdQuestions = [];
+var _exgTypeNames = { essay: '✍️ مقالي', tf: '✅ صواب/خطأ', match: '🔗 وصّل', mcq: '🔵 اختياري' };
+var _exgTypeColors = { essay: '243,156,18', tf: '46,204,113', match: '52,152,219', mcq: '155,89,182' };
+
+function exgEdOpen() {
+    document.getElementById('exg-editor').style.display = 'block';
+    exgEdRender();
+    document.getElementById('exg-editor').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function exgEdClose() {
+    document.getElementById('exg-editor').style.display = 'none';
+}
+
+function exgEdRender() {
+    var list = document.getElementById('exg-ed-list');
+    if (!_exgEdQuestions.length) {
+        list.innerHTML = '<div style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">لا توجد أسئلة. أضف سؤالاً يدوياً من الأعلى.</div>';
+    } else {
+        list.innerHTML = _exgEdQuestions.map(function(q, i) { return exgEdCard(q, i); }).join('');
+    }
+    // تحديث الإحصاءات
+    document.getElementById('exg-ed-count').textContent = _exgEdQuestions.length;
+    var totalMarks = _exgEdQuestions.reduce(function(sum, q){ return sum + (parseFloat(q.marks) || 0); }, 0);
+    document.getElementById('exg-ed-marks').textContent = totalMarks;
+}
+
+function exgEdCard(q, i) {
+    var color = _exgTypeColors[q.type] || '212,175,55';
+    var typeName = _exgTypeNames[q.type] || q.type;
+    var srcBadge = q.source === 'ai' ? '<span style="background:rgba(168,85,247,0.2);color:#c4a0ff;font-size:0.65rem;padding:2px 8px;border-radius:8px;">🤖 AI</span>' : '<span style="background:rgba(212,175,55,0.2);color:#fcd34d;font-size:0.65rem;padding:2px 8px;border-radius:8px;">🏦 البنك</span>';
+    
+    var html = '<div class="exg-ed-card" style="background:rgba(255,255,255,0.03);border:1px solid rgba(' + color + ',0.3);border-right:3px solid rgb(' + color + ');border-radius:12px;padding:14px;margin-bottom:12px;">';
+    
+    // رأس البطاقة
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px;flex-wrap:wrap;">';
+    html += '<div style="display:flex;align-items:center;gap:8px;">';
+    html += '<span style="background:rgb(' + color + ');color:#fff;width:26px;height:26px;border-radius:7px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;">' + (i+1) + '</span>';
+    html += '<span style="font-size:0.8rem;color:rgb(' + color + ');font-weight:600;">' + typeName + '</span>';
+    html += srcBadge;
+    html += '</div>';
+    html += '<div style="display:flex;align-items:center;gap:6px;">';
+    html += '<label style="font-size:0.75rem;color:rgba(255,255,255,0.6);">الدرجة:</label>';
+    html += '<input type="number" value="' + (q.marks || 1) + '" min="0" max="50" step="0.5" onchange="exgEdSetMarks(' + i + ',this.value)" style="width:60px;background:rgba(0,0,0,0.3);border:1px solid rgba(' + color + ',0.4);color:#fff;padding:5px 8px;border-radius:6px;font-family:Cairo;text-align:center;">';
+    html += '<button onclick="exgEdMove(' + i + ',-1)" title="أعلى" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;">↑</button>';
+    html += '<button onclick="exgEdMove(' + i + ',1)" title="أسفل" style="background:rgba(255,255,255,0.08);border:none;color:#fff;width:28px;height:28px;border-radius:6px;cursor:pointer;">↓</button>';
+    html += '<button onclick="exgEdDelete(' + i + ')" title="حذف" style="background:rgba(255,77,109,0.15);border:1px solid rgba(255,77,109,0.3);color:#ff4d6d;width:28px;height:28px;border-radius:6px;cursor:pointer;">🗑️</button>';
+    html += '</div></div>';
+    
+    // نص السؤال
+    html += '<textarea onchange="exgEdSetText(' + i + ',this.value)" rows="2" style="width:100%;background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:8px 12px;border-radius:8px;font-family:Cairo;font-size:0.9rem;resize:vertical;margin-bottom:8px;">' + (q.q || '') + '</textarea>';
+    
+    // حقول حسب النوع
+    if (q.type === 'mcq') {
+        var opts = (q.options || []).join('، ');
+        html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">';
+        html += '<input value="' + opts.replace(/"/g,'&quot;') + '" onchange="exgEdSetOptions(' + i + ',this.value)" placeholder="الخيارات مفصولة بفاصلة" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:7px 10px;border-radius:6px;font-family:Cairo;font-size:0.82rem;">';
+        html += '<input value="' + (q.answer || '').replace(/"/g,'&quot;') + '" onchange="exgEdSetAnswer(' + i + ',this.value)" placeholder="الإجابة الصحيحة" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#caffbf;padding:7px 10px;border-radius:6px;font-family:Cairo;font-size:0.82rem;">';
+        html += '</div>';
+    } else if (q.type === 'tf') {
+        html += '<select onchange="exgEdSetAnswer(' + i + ',this.value)" style="background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#caffbf;padding:7px 12px;border-radius:6px;font-family:Cairo;font-size:0.85rem;">';
+        html += '<option value="صواب"' + (q.answer === 'صواب' ? ' selected' : '') + '>الإجابة: صواب</option>';
+        html += '<option value="خطأ"' + (q.answer === 'خطأ' ? ' selected' : '') + '>الإجابة: خطأ</option>';
+        html += '</select>';
+    } else if (q.type === 'match') {
+        html += '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">أزواج الوصل (عبارة = مقابلها):</div>';
+        var pairs = q.pairs || [];
+        pairs.forEach(function(p, pi) {
+            html += '<div style="display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;margin-bottom:5px;align-items:center;">';
+            html += '<input value="' + (p.left||'').replace(/"/g,'&quot;') + '" onchange="exgEdSetPair(' + i + ',' + pi + ',\'left\',this.value)" placeholder="العمود أ" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 10px;border-radius:6px;font-family:Cairo;font-size:0.8rem;">';
+            html += '<span style="color:rgba(255,255,255,0.4);">↔</span>';
+            html += '<input value="' + (p.right||'').replace(/"/g,'&quot;') + '" onchange="exgEdSetPair(' + i + ',' + pi + ',\'right\',this.value)" placeholder="العمود ب" style="background:rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.1);color:#fff;padding:6px 10px;border-radius:6px;font-family:Cairo;font-size:0.8rem;">';
+            html += '<button onclick="exgEdDelPair(' + i + ',' + pi + ')" style="background:rgba(255,77,109,0.15);border:none;color:#ff4d6d;width:26px;height:26px;border-radius:6px;cursor:pointer;">✕</button>';
+            html += '</div>';
+        });
+        html += '<button onclick="exgEdAddPair(' + i + ')" style="background:rgba(52,152,219,0.15);border:1px solid rgba(52,152,219,0.3);color:#a0c4ff;padding:5px 12px;border-radius:6px;cursor:pointer;font-family:Cairo;font-size:0.76rem;margin-top:4px;">➕ زوج</button>';
+    } else {
+        // essay
+        html += '<input value="' + (q.answer || '').replace(/"/g,'&quot;') + '" onchange="exgEdSetAnswer(' + i + ',this.value)" placeholder="نموذج الإجابة (يظهر في ورقة الإجابات)" style="width:100%;background:rgba(76,175,80,0.1);border:1px solid rgba(76,175,80,0.3);color:#caffbf;padding:7px 10px;border-radius:6px;font-family:Cairo;font-size:0.82rem;">';
+    }
+    
+    html += '</div>';
+    return html;
+}
+
+// عمليات التعديل
+function exgEdSetText(i, v) { if (_exgEdQuestions[i]) _exgEdQuestions[i].q = v; }
+function exgEdSetAnswer(i, v) { if (_exgEdQuestions[i]) _exgEdQuestions[i].answer = v; }
+function exgEdSetMarks(i, v) { if (_exgEdQuestions[i]) { _exgEdQuestions[i].marks = parseFloat(v) || 0; exgEdRender(); } }
+function exgEdSetOptions(i, v) { if (_exgEdQuestions[i]) _exgEdQuestions[i].options = v.split(/[,،]/).map(function(s){return s.trim();}).filter(Boolean); }
+function exgEdSetPair(i, pi, key, v) { if (_exgEdQuestions[i] && _exgEdQuestions[i].pairs[pi]) _exgEdQuestions[i].pairs[pi][key] = v; }
+function exgEdAddPair(i) { if (_exgEdQuestions[i]) { if (!_exgEdQuestions[i].pairs) _exgEdQuestions[i].pairs = []; _exgEdQuestions[i].pairs.push({left:'',right:''}); exgEdRender(); } }
+function exgEdDelPair(i, pi) { if (_exgEdQuestions[i] && _exgEdQuestions[i].pairs) { _exgEdQuestions[i].pairs.splice(pi,1); exgEdRender(); } }
+
+function exgEdDelete(i) {
+    _exgEdQuestions.splice(i, 1);
+    exgEdRender();
+}
+
+function exgEdMove(i, dir) {
+    var j = i + dir;
+    if (j < 0 || j >= _exgEdQuestions.length) return;
+    var tmp = _exgEdQuestions[i];
+    _exgEdQuestions[i] = _exgEdQuestions[j];
+    _exgEdQuestions[j] = tmp;
+    exgEdRender();
+}
+
+function exgEdAddQuestion(type) {
+    var newQ = { type: type, q: '', answer: '', options: [], pairs: [], marks: ({essay:3,tf:1,match:4,mcq:1}[type]||1), source: 'manual' };
+    if (type === 'mcq') newQ.options = ['', '', '', ''];
+    if (type === 'match') newQ.pairs = [{left:'',right:''},{left:'',right:''}];
+    if (type === 'tf') newQ.answer = 'صواب';
+    _exgEdQuestions.push(newQ);
+    exgEdRender();
+    // التمرير لآخر سؤال
+    setTimeout(function(){
+        var cards = document.querySelectorAll('.exg-ed-card');
+        if (cards.length) cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'center'});
+    }, 100);
+}
+
+async function exgEdPrint() {
+    if (!_exgEdQuestions.length) {
+        if (typeof showToast === 'function') showToast('⚠️ لا توجد أسئلة', 'warning');
+        return;
+    }
+    
+    var fd = new FormData();
+    fd.append('title', document.getElementById('exam-title').value || 'اختبار رياضيات');
+    fd.append('school_name', document.getElementById('exam-school').value);
+    fd.append('teacher_name', document.getElementById('exam-teacher').value);
+    fd.append('class_name', document.getElementById('exam-class').value);
+    fd.append('grade', document.getElementById('exg-grade').value);
+    fd.append('semester', document.getElementById('exg-semester').value);
+    fd.append('unit', document.getElementById('exg-unit').value);
+    fd.append('questions_json', JSON.stringify(_exgEdQuestions));
+    fd.append('show_marks', document.getElementById('exg-show-marks').checked);
+    fd.append('include_answers', document.getElementById('exg-include-answers').checked);
+    
+    try {
+        var res = await fetch(API_URL + '/api/teacher/exam_generator/build_from_questions', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'فشل');
+        }
+        var html = await res.text();
+        var w = window.open('', '_blank');
+        w.document.open();
+        w.document.write(html);
+        w.document.close();
+        if (typeof showToast === 'function') showToast('✅ الاختبار جاهز للطباعة!', 'success');
     } catch(e) {
         if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
     }
@@ -22353,6 +22690,349 @@ function gbRenderTableV2() {
 // ════════════════════════════════════════════════════════════
 // 🎯 SMART FILL — ملء الخلايا بالسحب + Ctrl+D + ملء عمود (مثل Excel)
 // ════════════════════════════════════════════════════════════
+
+// ════════════════════════════════════════════════════════════
+// 📊 STUDENT REPORTS — مولّد تقارير الطلاب الفردية (PDF)
+// ════════════════════════════════════════════════════════════
+var _gbrState = { generating: false, comments: {} };
+
+// فتح modal التقارير
+function gbrOpenReports() {
+    var cls = (typeof gbGetCurrentClass === 'function') ? gbGetCurrentClass() : null;
+    if (!cls || !cls.students || !cls.students.length) {
+        if (typeof gbToast === 'function') gbToast('لا يوجد طلاب في هذه الشعبة', 'error');
+        else alert('لا يوجد طلاب في هذه الشعبة');
+        return;
+    }
+    
+    var modal = document.getElementById('gbr-modal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'gbr-modal';
+        modal.className = 'gbr-modal-overlay';
+        document.body.appendChild(modal);
+    }
+    
+    var studentsOptions = cls.students.map(function(s, i) {
+        return '<option value="' + s.id + '">' + (i+1) + '. ' + gbEsc(s.name || 'طالب') + '</option>';
+    }).join('');
+    
+    modal.innerHTML = 
+        '<div class="gbr-modal-box">' +
+            '<div class="gbr-modal-header">' +
+                '<div class="gbr-modal-title">📊 تقارير الطلاب الفردية</div>' +
+                '<button class="gbr-modal-close" onclick="gbrCloseModal()">✕</button>' +
+            '</div>' +
+            '<div class="gbr-modal-body">' +
+                '<div class="gbr-options">' +
+                    '<div class="gbr-opt-card" onclick="gbrSelectMode(this,\'single\')">' +
+                        '<div class="gbr-opt-icon">👤</div>' +
+                        '<div class="gbr-opt-title">تقرير طالب واحد</div>' +
+                        '<div class="gbr-opt-desc">اختر طالباً محدداً</div>' +
+                    '</div>' +
+                    '<div class="gbr-opt-card gbr-selected" onclick="gbrSelectMode(this,\'all\')">' +
+                        '<div class="gbr-opt-icon">👥</div>' +
+                        '<div class="gbr-opt-title">كل الطلاب</div>' +
+                        '<div class="gbr-opt-desc">تقرير لكل طالب في الشعبة</div>' +
+                    '</div>' +
+                '</div>' +
+                '<div id="gbr-single-select" style="display:none;margin-bottom:14px;">' +
+                    '<label class="gbr-label">اختر الطالب:</label>' +
+                    '<select id="gbr-student" class="gbr-select">' + studentsOptions + '</select>' +
+                '</div>' +
+                '<div class="gbr-ai-toggle">' +
+                    '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;">' +
+                        '<input type="checkbox" id="gbr-use-ai" checked style="width:18px;height:18px;accent-color:#d4af37;">' +
+                        '<span>🤖 توليد تعليق تربوي ذكي بالذكاء الاصطناعي</span>' +
+                    '</label>' +
+                    '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px;margin-right:26px;">يحلل الدرجات ويكتب ملاحظة مخصصة لكل طالب</div>' +
+                '</div>' +
+                '<div id="gbr-progress" style="display:none;margin:14px 0;">' +
+                    '<div style="color:#d4af37;font-size:0.85rem;margin-bottom:6px;" id="gbr-progress-text">جارٍ التوليد...</div>' +
+                    '<div style="height:8px;background:rgba(0,0,0,0.4);border-radius:4px;overflow:hidden;">' +
+                        '<div id="gbr-progress-bar" style="height:100%;width:0%;background:linear-gradient(90deg,#d4af37,#fcd34d);transition:width 0.3s;"></div>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="gbr-modal-footer">' +
+                '<button class="gbr-btn-cancel" onclick="gbrCloseModal()">إلغاء</button>' +
+                '<button class="gbr-btn-generate" id="gbr-gen-btn" onclick="gbrGenerate()">📄 توليد التقارير</button>' +
+            '</div>' +
+        '</div>';
+    
+    modal.style.display = 'flex';
+    _gbrState.mode = 'all';
+}
+
+function gbrSelectMode(el, mode) {
+    document.querySelectorAll('.gbr-opt-card').forEach(function(c){ c.classList.remove('gbr-selected'); });
+    el.classList.add('gbr-selected');
+    _gbrState.mode = mode;
+    document.getElementById('gbr-single-select').style.display = (mode === 'single') ? 'block' : 'none';
+}
+
+function gbrCloseModal() {
+    var modal = document.getElementById('gbr-modal');
+    if (modal) modal.style.display = 'none';
+}
+
+// توليد التقارير
+async function gbrGenerate() {
+    if (_gbrState.generating) return;
+    
+    var cls = gbGetCurrentClass();
+    if (!cls) return;
+    
+    var useAI = document.getElementById('gbr-use-ai').checked;
+    var mode = _gbrState.mode || 'all';
+    
+    // تحديد الطلاب
+    var students = [];
+    if (mode === 'single') {
+        var sid = document.getElementById('gbr-student').value;
+        var s = cls.students.find(function(x){ return String(x.id) === String(sid); });
+        if (s) students = [s];
+    } else {
+        students = cls.students.slice();
+    }
+    
+    if (!students.length) { alert('لا يوجد طلاب'); return; }
+    
+    _gbrState.generating = true;
+    var genBtn = document.getElementById('gbr-gen-btn');
+    genBtn.disabled = true;
+    genBtn.textContent = '⏳ جاري التوليد...';
+    
+    var progressDiv = document.getElementById('gbr-progress');
+    var progressBar = document.getElementById('gbr-progress-bar');
+    var progressText = document.getElementById('gbr-progress-text');
+    progressDiv.style.display = 'block';
+    
+    // جمع بيانات التقارير
+    var reports = [];
+    for (var i = 0; i < students.length; i++) {
+        var s = students[i];
+        var pct = Math.round(((i+1) / students.length) * 100);
+        progressBar.style.width = pct + '%';
+        progressText.textContent = 'جارٍ معالجة: ' + (s.name || 'طالب') + ' (' + (i+1) + '/' + students.length + ')';
+        
+        var comment = '';
+        if (useAI) {
+            comment = await gbrFetchComment(s);
+        }
+        reports.push({ student: s, comment: comment });
+    }
+    
+    _gbrState.generating = false;
+    genBtn.disabled = false;
+    genBtn.textContent = '📄 توليد التقارير';
+    progressDiv.style.display = 'none';
+    
+    // فتح نافذة الطباعة
+    gbrRenderPrintWindow(reports);
+    gbrCloseModal();
+}
+
+// جلب تعليق AI لطالب
+async function gbrFetchComment(s) {
+    try {
+        var c = gbComputeV2(s);
+        var total = c.total100 || c.sumTotal || 0;
+        var maxTotal = (GB_DATA.template === 'official') ? 100 : (c.maxTotal || 100);
+        var percent = maxTotal > 0 ? Math.round((total / maxTotal) * 100) : 0;
+        
+        // بناء وصف الدرجات
+        var scores = {};
+        GB_DATA.columns.forEach(function(col){
+            if (col.type === 'input' && s[col.id] !== undefined) {
+                scores[col.label] = s[col.id] + (col.max ? '/' + col.max : '');
+            }
+        });
+        
+        var fd = new FormData();
+        fd.append('student_name', s.name || 'الطالب');
+        fd.append('grade', (GB_DATA.header && GB_DATA.header['gb-grade']) || '');
+        fd.append('subject', (GB_DATA.header && GB_DATA.header['gb-subject']) || 'الرياضيات');
+        fd.append('scores_json', JSON.stringify(scores));
+        fd.append('total_percent', String(percent));
+        
+        // 🔑 جلب التوكن بنفس طريقة باقي اللوحة (teacherData.token في sessionStorage)
+        var token = '';
+        try {
+            if (typeof teacherData !== 'undefined' && teacherData && teacherData.token) {
+                token = teacherData.token;
+            } else {
+                var td = JSON.parse(sessionStorage.getItem('teacherData') || '{}');
+                token = td.token || '';
+            }
+        } catch(e) {}
+        // بدائل احتياطية
+        if (!token) {
+            token = localStorage.getItem('adminToken') || localStorage.getItem('admin_token') ||
+                    sessionStorage.getItem('adminToken') || sessionStorage.getItem('admin_token') || '';
+        }
+        
+        var headers = {};
+        if (token) headers['Authorization'] = 'Bearer ' + token;
+        
+        var res = await fetch(API_URL + '/api/teacher/student_report_comment', { method: 'POST', body: fd, headers: headers });
+        if (res.ok) {
+            var data = await res.json();
+            return data.comment || '';
+        }
+    } catch(e) {
+        console.warn('AI comment failed:', e);
+    }
+    return '';
+}
+
+// رسم نافذة الطباعة
+function gbrRenderPrintWindow(reports) {
+    var header = GB_DATA.header || {};
+    var school = header['gb-school'] || 'المدرسة';
+    var subject = header['gb-subject'] || 'الرياضيات';
+    var grade = header['gb-grade'] || '';
+    var teacher = header['gb-teacher-name'] || 'المعلم';
+    var year = header['gb-year'] || '';
+    var term = header['gb-term'] || '';
+    
+    var cardsHtml = reports.map(function(r){
+        return gbrBuildReportCard(r.student, r.comment, {school:school, subject:subject, grade:grade, teacher:teacher, year:year, term:term});
+    }).join('');
+    
+    var win = window.open('', '_blank');
+    win.document.write(
+        '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+        '<title>تقارير الطلاب</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
+        '<style>' + gbrPrintStyles() + '</style>' +
+        '</head><body>' + cardsHtml + '</body></html>'
+    );
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 600);
+}
+
+// بناء بطاقة تقرير واحدة
+function gbrBuildReportCard(s, comment, ctx) {
+    var c = gbComputeV2(s);
+    var n = function(v){return parseFloat(v)||0;};
+    
+    // الأعمدة القابلة للعرض (input فقط)
+    var rows = '';
+    var maxBarWidth = 100;
+    GB_DATA.columns.forEach(function(col){
+        if (col.type === 'input') {
+            var val = n(s[col.id]);
+            var max = col.max || 100;
+            var pct = max > 0 ? Math.min(100, (val/max)*100) : 0;
+            var barColor = pct >= 80 ? '#22c55e' : pct >= 65 ? '#3b82f6' : pct >= 50 ? '#f59e0b' : '#ef4444';
+            rows += '<tr>' +
+                '<td class="gbr-row-label">' + gbEsc(col.label) + '</td>' +
+                '<td class="gbr-row-bar"><div class="gbr-bar-track"><div class="gbr-bar-fill" style="width:' + pct + '%;background:' + barColor + ';"></div></div></td>' +
+                '<td class="gbr-row-score">' + val + '<span class="gbr-row-max">/' + max + '</span></td>' +
+            '</tr>';
+        }
+    });
+    
+    // الحساب الإجمالي
+    var total, maxTotal, percent, level;
+    if (GB_DATA.template === 'official') {
+        total = c.total100 || 0; maxTotal = 100;
+    } else {
+        total = c.sumTotal || 0; maxTotal = c.maxTotal || 100;
+    }
+    percent = maxTotal > 0 ? Math.round((total/maxTotal)*100) : 0;
+    
+    // التقدير
+    var gradeText, gradeColor;
+    if (percent >= 90) { gradeText = 'ممتاز'; gradeColor = '#22c55e'; }
+    else if (percent >= 80) { gradeText = 'جيد جداً'; gradeColor = '#3b82f6'; }
+    else if (percent >= 65) { gradeText = 'جيد'; gradeColor = '#0ea5e9'; }
+    else if (percent >= 50) { gradeText = 'مقبول'; gradeColor = '#f59e0b'; }
+    else { gradeText = 'يحتاج دعم'; gradeColor = '#ef4444'; }
+    
+    var dateStr = new Date().toLocaleDateString('ar-EG', {year:'numeric', month:'long', day:'numeric'});
+    
+    var commentHtml = comment ? 
+        '<div class="gbr-comment"><div class="gbr-comment-title">💬 ملاحظة المعلم</div><div class="gbr-comment-text">' + gbEsc(comment) + '</div></div>' : '';
+    
+    return '<div class="gbr-card">' +
+        '<div class="gbr-card-header">' +
+            '<div class="gbr-crown">👑</div>' +
+            '<div class="gbr-school">' + gbEsc(ctx.school) + '</div>' +
+            '<div class="gbr-platform">إمبراطورية الرياضيات</div>' +
+            '<div class="gbr-report-title">تقرير أداء الطالب</div>' +
+        '</div>' +
+        '<div class="gbr-student-bar">' +
+            '<div class="gbr-student-name">' + gbEsc(s.name || 'الطالب') + '</div>' +
+            '<div class="gbr-student-meta">' +
+                (ctx.grade ? '<span>🎓 ' + gbEsc(ctx.grade) + '</span>' : '') +
+                '<span>📚 ' + gbEsc(ctx.subject) + '</span>' +
+                (ctx.term ? '<span>📅 ' + gbEsc(ctx.term) + '</span>' : '') +
+            '</div>' +
+        '</div>' +
+        '<table class="gbr-scores-table">' + rows + '</table>' +
+        '<div class="gbr-summary">' +
+            '<div class="gbr-summary-item">' +
+                '<div class="gbr-summary-label">المجموع</div>' +
+                '<div class="gbr-summary-value">' + total + '<span style="font-size:0.6em;color:#999;">/' + maxTotal + '</span></div>' +
+            '</div>' +
+            '<div class="gbr-summary-item">' +
+                '<div class="gbr-summary-label">النسبة</div>' +
+                '<div class="gbr-summary-value" style="color:' + gradeColor + ';">' + percent + '%</div>' +
+            '</div>' +
+            '<div class="gbr-summary-item">' +
+                '<div class="gbr-summary-label">التقدير</div>' +
+                '<div class="gbr-grade-badge" style="background:' + gradeColor + ';">' + gradeText + '</div>' +
+            '</div>' +
+        '</div>' +
+        commentHtml +
+        '<div class="gbr-card-footer">' +
+            '<div class="gbr-sign"><div class="gbr-sign-line"></div><div class="gbr-sign-label">المعلم: ' + gbEsc(ctx.teacher) + '</div></div>' +
+            '<div class="gbr-date">' + dateStr + '</div>' +
+            '<div class="gbr-sign"><div class="gbr-sign-line"></div><div class="gbr-sign-label">ولي الأمر</div></div>' +
+        '</div>' +
+    '</div>';
+}
+
+// أنماط الطباعة
+function gbrPrintStyles() {
+    return '' +
+        '*{margin:0;padding:0;box-sizing:border-box;}' +
+        'body{font-family:Cairo,sans-serif;background:#f0f0f0;padding:20px;direction:rtl;}' +
+        '.gbr-card{background:#fff;width:210mm;min-height:auto;margin:0 auto 20px;padding:0;border-radius:12px;overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,0.15);page-break-after:always;}' +
+        '.gbr-card-header{background:linear-gradient(135deg,#0a1f4d,#040d21);color:#fff;text-align:center;padding:24px 20px 20px;position:relative;}' +
+        '.gbr-crown{font-size:2.5rem;margin-bottom:6px;}' +
+        '.gbr-school{font-size:1rem;color:#fcd34d;font-weight:600;}' +
+        '.gbr-platform{font-family:Amiri,serif;font-size:1.3rem;color:#d4af37;font-weight:700;margin:4px 0;}' +
+        '.gbr-report-title{font-size:1.1rem;margin-top:8px;padding-top:8px;border-top:1px solid rgba(212,175,55,0.3);display:inline-block;padding-left:30px;padding-right:30px;}' +
+        '.gbr-student-bar{background:linear-gradient(135deg,#d4af37,#aa771c);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}' +
+        '.gbr-student-name{font-family:Amiri,serif;font-size:1.5rem;font-weight:700;}' +
+        '.gbr-student-meta{display:flex;gap:14px;font-size:0.85rem;flex-wrap:wrap;}' +
+        '.gbr-student-meta span{background:rgba(255,255,255,0.2);padding:3px 10px;border-radius:12px;}' +
+        '.gbr-scores-table{width:100%;border-collapse:collapse;padding:0 24px;margin:20px 0;}' +
+        '.gbr-scores-table tr{border-bottom:1px solid #eee;}' +
+        '.gbr-row-label{padding:10px 24px;font-weight:600;color:#333;font-size:0.92rem;width:30%;}' +
+        '.gbr-row-bar{padding:10px;width:50%;}' +
+        '.gbr-bar-track{height:14px;background:#f0f0f0;border-radius:7px;overflow:hidden;}' +
+        '.gbr-bar-fill{height:100%;border-radius:7px;transition:width 0.3s;}' +
+        '.gbr-row-score{padding:10px 24px;text-align:left;font-weight:700;color:#1a1a2e;font-size:1rem;width:20%;}' +
+        '.gbr-row-max{font-size:0.75rem;color:#999;}' +
+        '.gbr-summary{display:flex;justify-content:space-around;padding:20px 24px;background:#faf8f0;margin:0 0 4px;border-top:2px solid #d4af37;border-bottom:2px solid #d4af37;}' +
+        '.gbr-summary-item{text-align:center;}' +
+        '.gbr-summary-label{font-size:0.82rem;color:#666;margin-bottom:4px;}' +
+        '.gbr-summary-value{font-family:Amiri,serif;font-size:1.8rem;font-weight:700;color:#1a1a2e;}' +
+        '.gbr-grade-badge{color:#fff;padding:6px 18px;border-radius:20px;font-weight:700;font-size:1rem;display:inline-block;margin-top:4px;}' +
+        '.gbr-comment{margin:16px 24px;padding:14px 18px;background:#fef9e7;border-right:4px solid #d4af37;border-radius:8px;}' +
+        '.gbr-comment-title{font-weight:700;color:#aa771c;margin-bottom:6px;font-size:0.92rem;}' +
+        '.gbr-comment-text{color:#444;line-height:1.7;font-size:0.9rem;}' +
+        '.gbr-card-footer{display:flex;justify-content:space-between;align-items:flex-end;padding:24px;margin-top:10px;}' +
+        '.gbr-sign{text-align:center;width:30%;}' +
+        '.gbr-sign-line{border-bottom:1.5px solid #999;margin-bottom:6px;height:30px;}' +
+        '.gbr-sign-label{font-size:0.82rem;color:#666;}' +
+        '.gbr-date{font-size:0.8rem;color:#999;text-align:center;}' +
+        '@media print{body{background:#fff;padding:0;}.gbr-card{box-shadow:none;margin:0;width:100%;border-radius:0;}}';
+}
 
 var _gbSmartFill = {
     activeCell: null,
