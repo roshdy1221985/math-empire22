@@ -10007,7 +10007,7 @@ async def prep_save_to_bank(
             
             options = q.get("options", [])
             if isinstance(options, list):
-                options_str = " | ".join(str(o) for o in options if o)
+                options_str = ", ".join(str(o) for o in options if o)
             else:
                 options_str = str(options)
             

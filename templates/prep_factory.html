@@ -1814,11 +1814,11 @@ function renderQuestions() {
   list.innerHTML = qs.map((q, i) => {
     const badgeCls = q.type==='اختياري' ? 'badge-mcq' : q.type==='صواب/خطأ' ? 'badge-tf' : 'badge-sh';
     const cardCls = q.type==='اختياري' ? 'type-mcq' : q.type==='صواب/خطأ' ? 'type-tf' : 'type-sh';
-    const opts = (q.options || []).join(' | ');
+    const opts = (q.options || []).join(', ');
     const optsField = q.type==='اختياري' ? `
       <div>
-        <div class="q-field-label">الخيارات (مفصولة بـ |)</div>
-        <input class="q-field-input" value="${_esc(opts)}" placeholder="خيار١ | خيار٢ | خيار٣ | خيار٤"
+        <div class="q-field-label">الخيارات (مفصولة بفاصلة ,)</div>
+        <input class="q-field-input" value="${_esc(opts)}" placeholder="خيار١, خيار٢, خيار٣, خيار٤"
                onchange="updateQ(${i},'options',this.value)">
       </div>` : '<div></div>';
     
@@ -1849,7 +1849,8 @@ function renderQuestions() {
 function updateQ(idx, field, val) {
   if (!state.questions[idx]) return;
   if (field==='options') {
-    state.questions[idx].options = val.split('|').map(s=>s.trim()).filter(Boolean);
+    // يدعم الفاصلة (,) والعربية (،) والـ pipe (|) للتوافق مع الأسئلة القديمة
+    state.questions[idx].options = val.split(/[,،|]/).map(s=>s.trim()).filter(Boolean);
   } else {
     state.questions[idx][field] = val;
   }
@@ -1956,7 +1957,7 @@ function downloadExcel() {
         lesson,
         q.type || 'اختياري',
         q.q || q.question || '',
-        (q.options || []).join(' | '),
+        (q.options || []).join(', '),
         q.answer || q.correct || ''
       ]);
     });
