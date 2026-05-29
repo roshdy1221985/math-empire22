@@ -11282,6 +11282,28 @@ async def prep_worksheet_generate(
     raise HTTPException(status_code=502, detail=f"❌ فشل توليد ورقة العمل: {last_error}")
 
 
+@app.post("/api/teacher/worksheet_generate")
+async def teacher_worksheet_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    worksheet_type: str = Form(default="practice"),
+    difficulty: str = Form(default="medium"),
+    n_questions: int = Form(default=10),
+    extra_text: str = Form(default=""),
+    include_instructions: bool = Form(default=True),
+):
+    """📝 [معلم] توليد ورقة عمل — من لوحة المعلم (بلا حماية admin)"""
+    # يستدعي نفس منطق دالة الأدمن مباشرةً (admin غير مطلوب)
+    return await prep_worksheet_generate(
+        request=request, grade=grade, semester=semester, unit=unit, lesson=lesson,
+        worksheet_type=worksheet_type, difficulty=difficulty, n_questions=n_questions,
+        extra_text=extra_text, include_instructions=include_instructions, admin="teacher"
+    )
+
+
 # ════════════════════════════════════════════════════════════════════════════
 # 🎬 SLIDES GENERATOR — مولّد العروض التقديمية بـ AI
 # ════════════════════════════════════════════════════════════════════════════

@@ -5999,6 +5999,14 @@
                     <div class="qa-sub">AI → شرائح للعرض</div>
                     <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:700;">جديد</span>
                 </div>
+
+                <!-- 📝 أوراق العمل -->
+                <div onclick="showSection('worksheet-gen', null)" class="qa-card qa-orange" style="position:relative;background:linear-gradient(135deg,rgba(243,156,18,0.12),rgba(230,126,34,0.06));border-color:rgba(243,156,18,0.35);">
+                    <div class="qa-icon-box" style="background:linear-gradient(135deg,#f39c12,#e67e22);"><i class="fas fa-file-pen"></i></div>
+                    <div class="qa-title">أوراق العمل 📝</div>
+                    <div class="qa-sub">تدريب · مراجعة · واجب</div>
+                    <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:700;">جديد</span>
+                </div>
                 
                 <!-- 5. 📓 تحضير AI -->
                 <div onclick="showSection('plan-gen', null)" class="qa-card qa-indigo">
@@ -7394,6 +7402,112 @@
             ١. اختر الصف والدرس<br>
             ٢. حدد عدد الشرائح والأسئلة التفاعلية<br>
             ٣. اضغط "توليد العرض التقديمي"
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         📝 قسم أوراق العمل
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-worksheet-gen" class="section">
+        <div style="background:linear-gradient(160deg,rgba(243,156,18,0.08),rgba(0,8,20,0.9));border:1px solid rgba(243,156,18,0.3);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;">
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(243,156,18,0.6));">📝</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;color:#f39c12;font-weight:700;">مولّد أوراق العمل</h2>
+            <p style="color:rgba(243,156,18,0.85);margin:0;font-size:1rem;font-weight:600;">ورقة عمل احترافية جاهزة للطباعة — تدريب · مراجعة · واجب · اختبار قصير</p>
+        </div>
+
+        <!-- نوع الورقة -->
+        <div style="margin-bottom:14px;color:#f9c270;font-weight:700;font-size:0.95rem;">📋 نوع ورقة العمل</div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px;">
+            <div class="wsg-type-card wsg-selected" data-wsgtype="practice" onclick="wsgSelectType(this,'practice')" style="background:rgba(255,255,255,0.03);border:2px solid #f39c12;border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                <div style="font-size:2rem;margin-bottom:6px;">✏️</div>
+                <div style="font-weight:700;color:#fff;">ورقة تدريب</div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:3px;">تمارين لترسيخ المفهوم</div>
+            </div>
+            <div class="wsg-type-card" data-wsgtype="review" onclick="wsgSelectType(this,'review')" style="background:rgba(255,255,255,0.03);border:2px solid rgba(243,156,18,0.2);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                <div style="font-size:2rem;margin-bottom:6px;">🔄</div>
+                <div style="font-weight:700;color:#fff;">ورقة مراجعة</div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:3px;">مراجعة شاملة للوحدة</div>
+            </div>
+            <div class="wsg-type-card" data-wsgtype="homework" onclick="wsgSelectType(this,'homework')" style="background:rgba(255,255,255,0.03);border:2px solid rgba(243,156,18,0.2);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                <div style="font-size:2rem;margin-bottom:6px;">🏠</div>
+                <div style="font-weight:700;color:#fff;">واجب منزلي</div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:3px;">أسئلة للحل في المنزل</div>
+            </div>
+            <div class="wsg-type-card" data-wsgtype="quiz" onclick="wsgSelectType(this,'quiz')" style="background:rgba(255,255,255,0.03);border:2px solid rgba(243,156,18,0.2);border-radius:14px;padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                <div style="font-size:2rem;margin-bottom:6px;">📊</div>
+                <div style="font-weight:700;color:#fff;">اختبار قصير</div>
+                <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:3px;">تقييم سريع بدرجات</div>
+            </div>
+        </div>
+
+        <!-- الإعدادات -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:14px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">🎓 الصف</label>
+                    <select id="wsg-grade" onchange="wsgLoadSemesters()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— اختر الصف —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">📅 الفصل</label>
+                    <select id="wsg-semester" onchange="wsgLoadUnits()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الفصل —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">📦 الوحدة</label>
+                    <select id="wsg-unit" onchange="wsgLoadLessons()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الوحدة —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">📖 الدرس</label>
+                    <select id="wsg-lesson" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الدرس —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">🔢 عدد الأسئلة</label>
+                    <input type="number" id="wsg-count" value="10" min="1" max="30" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#f9c270;margin-bottom:6px;font-weight:600;">📈 الصعوبة</label>
+                    <select id="wsg-difficulty" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(243,156,18,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="easy">🟢 سهل</option>
+                        <option value="medium" selected>🟡 متوسط</option>
+                        <option value="hard">🔴 صعب</option>
+                    </select>
+                </div>
+            </div>
+            <button onclick="wsgGenerate()" id="wsg-gen-btn" style="width:100%;margin-top:18px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:15px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.05rem;box-shadow:0 6px 18px rgba(243,156,18,0.4);">
+                ✨ توليد ورقة العمل
+            </button>
+        </div>
+
+        <div id="wsg-progress" style="display:none;background:rgba(0,0,0,0.3);border:1px solid rgba(243,156,18,0.3);border-radius:12px;padding:16px;margin-bottom:18px;">
+            <div id="wsg-progress-label" style="color:#f9c270;font-weight:600;margin-bottom:10px;font-size:0.9rem;">جارٍ التوليد...</div>
+            <div style="width:100%;height:8px;background:rgba(243,156,18,0.15);border-radius:4px;overflow:hidden;">
+                <div id="wsg-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#f39c12,#f9c270);border-radius:4px;transition:width 0.4s;"></div>
+            </div>
+        </div>
+
+        <div id="wsg-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
+            <button onclick="wsgToggleAnswers()" style="background:rgba(46,204,113,0.15);border:1px solid rgba(46,204,113,0.4);color:#2ecc71;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;"><span id="wsg-answers-label">👁️ إظهار الإجابات</span></button>
+            <button onclick="wsgPrint()" style="background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;border:none;padding:10px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:700;">🖨️ طباعة / PDF</button>
+            <button onclick="wsgGenerate()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:10px 20px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;">🔄 توليد جديد</button>
+        </div>
+
+        <div id="wsg-preview-wrap" style="display:none;background:#fff;color:#1a1a2e;border-radius:12px;padding:36px 40px;font-family:Cairo;box-shadow:0 10px 40px rgba(0,0,0,0.3);direction:rtl;">
+            <div id="wsg-preview"></div>
+        </div>
+
+        <div id="wsg-empty" style="text-align:center;padding:50px 20px;color:rgba(255,255,255,0.4);font-size:1rem;line-height:1.9;">
+            <span style="font-size:3.5rem;display:block;margin-bottom:14px;opacity:0.4;">📝</span>
+            ١. اختر نوع ورقة العمل<br>
+            ٢. حدد الصف والدرس وعدد الأسئلة<br>
+            ٣. اضغط "توليد ورقة العمل"
         </div>
     </div>
 
@@ -10937,6 +11051,185 @@ function slgPresentCSS() {
         '.sl-nav button:disabled{opacity:0.4;cursor:not-allowed;}' +
         '.sl-nav #sl-counter{color:#fff;font-weight:700;min-width:80px;text-align:center;}' +
         '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}';
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 📝 WORKSHEET GENERATOR — مولّد أوراق العمل (لوحة المعلم)
+// ════════════════════════════════════════════════════════════
+var _wsgType = 'practice';
+var _wsgData = null;
+var _wsgShowAnswers = false;
+
+function wsgInitCurriculum() {
+    if (!_exgCurriculum || !_exgCurriculum.length) {
+        fetch(API_URL + '/api/curriculum/structure')
+            .then(function(r){ return r.ok ? r.json() : []; })
+            .then(function(data){ _exgCurriculum = data || []; wsgFillGrades(); })
+            .catch(function(e){ console.warn('[wsg] curr:', e); });
+    } else { wsgFillGrades(); }
+}
+
+function wsgFillGrades() {
+    var sel = document.getElementById('wsg-grade');
+    if (!sel) return;
+    while (sel.options.length > 1) sel.remove(1);
+    _exgCurriculum.forEach(function(g){
+        if (!g || !g.name) return;
+        var o = document.createElement('option'); o.value = g.name; o.textContent = g.name; sel.appendChild(o);
+    });
+}
+
+function wsgSelectType(el, type) {
+    document.querySelectorAll('.wsg-type-card').forEach(function(c){ c.classList.remove('wsg-selected'); c.style.borderColor = 'rgba(243,156,18,0.2)'; });
+    el.classList.add('wsg-selected'); el.style.borderColor = '#f39c12';
+    _wsgType = type;
+}
+
+function wsgLoadSemesters() {
+    var grade = document.getElementById('wsg-grade').value;
+    var semSel = document.getElementById('wsg-semester'), unitSel = document.getElementById('wsg-unit'), lessSel = document.getElementById('wsg-lesson');
+    semSel.innerHTML = '<option value="">— كل الفصول —</option>'; unitSel.innerHTML = '<option value="">— الوحدة —</option>'; lessSel.innerHTML = '<option value="">— الدرس —</option>';
+    if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    if (g && g.semesters) g.semesters.forEach(function(s){ var o = document.createElement('option'); o.value = s.name; o.textContent = s.name; semSel.appendChild(o); });
+    semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function wsgLoadUnits() {
+    var grade = document.getElementById('wsg-grade').value, sem = document.getElementById('wsg-semester').value;
+    var unitSel = document.getElementById('wsg-unit'), lessSel = document.getElementById('wsg-lesson');
+    unitSel.innerHTML = '<option value="">— كل الوحدات —</option>'; lessSel.innerHTML = '<option value="">— الدرس —</option>';
+    if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    var s = g && g.semesters ? g.semesters.find(function(x){ return x && x.name === sem; }) : null;
+    if (s && s.units) s.units.forEach(function(u){ var o = document.createElement('option'); o.value = u.name; o.textContent = u.name; unitSel.appendChild(o); });
+    unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function wsgLoadLessons() {
+    var grade = document.getElementById('wsg-grade').value, sem = document.getElementById('wsg-semester').value, unit = document.getElementById('wsg-unit').value;
+    var lessSel = document.getElementById('wsg-lesson');
+    lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+    if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    var s = g && g.semesters ? g.semesters.find(function(x){ return x && x.name === sem; }) : null;
+    var u = s && s.units ? s.units.find(function(x){ return x && x.name === unit; }) : null;
+    if (u && u.lessons) u.lessons.forEach(function(l){ var o = document.createElement('option'); o.value = l.name; o.textContent = l.name; lessSel.appendChild(o); });
+    lessSel.disabled = false;
+}
+
+function wsgArNum(n) { return String(n).replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'[d]; }); }
+function wsgEsc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+async function wsgGenerate() {
+    var grade = document.getElementById('wsg-grade').value;
+    if (!grade) { if (typeof showToast === 'function') showToast('⚠️ اختر الصف أولاً', 'warning'); return; }
+    var count = parseInt(document.getElementById('wsg-count').value) || 10;
+    if (count < 1 || count > 30) { if (typeof showToast === 'function') showToast('عدد الأسئلة بين ١ و ٣٠', 'warning'); return; }
+
+    var btn = document.getElementById('wsg-gen-btn');
+    btn.disabled = true; btn.textContent = '⏳ جاري التوليد...';
+    document.getElementById('wsg-empty').style.display = 'none';
+    document.getElementById('wsg-progress').style.display = 'block';
+    document.getElementById('wsg-progress-fill').style.width = '40%';
+    document.getElementById('wsg-progress-label').textContent = 'جارٍ توليد ورقة العمل بـ Gemini...';
+
+    try {
+        var fd = new FormData();
+        fd.append('grade', grade);
+        fd.append('semester', document.getElementById('wsg-semester').value || '');
+        fd.append('unit', document.getElementById('wsg-unit').value || '');
+        fd.append('lesson', document.getElementById('wsg-lesson').value || '');
+        fd.append('worksheet_type', _wsgType);
+        fd.append('difficulty', document.getElementById('wsg-difficulty').value);
+        fd.append('n_questions', String(count));
+
+        document.getElementById('wsg-progress-fill').style.width = '70%';
+        var res = await fetch(API_URL + '/api/teacher/worksheet_generate', { method: 'POST', body: fd });
+        if (!res.ok) { var err = await res.json().catch(function(){return{};}); throw new Error(err.detail || 'HTTP ' + res.status); }
+        var data = await res.json();
+        _wsgData = data.worksheet;
+        _wsgData._context = { grade: grade, semester: document.getElementById('wsg-semester').value, unit: document.getElementById('wsg-unit').value, lesson: document.getElementById('wsg-lesson').value };
+        document.getElementById('wsg-progress-fill').style.width = '100%';
+        wsgRender();
+        setTimeout(function(){ document.getElementById('wsg-progress').style.display = 'none'; }, 500);
+        if (typeof showToast === 'function') showToast('✅ تم توليد ورقة العمل', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+        document.getElementById('wsg-progress').style.display = 'none';
+    } finally {
+        btn.disabled = false; btn.textContent = '✨ توليد ورقة العمل';
+    }
+}
+
+function wsgRender() {
+    if (!_wsgData) return;
+    var w = _wsgData, ctx = w._context || {};
+    var typeLabels = { practice:'ورقة تدريب', review:'ورقة مراجعة', homework:'واجب منزلي', quiz:'اختبار قصير' };
+    var typeLabel = typeLabels[_wsgType] || 'ورقة عمل';
+    var html = '<div style="text-align:center;border-bottom:3px double #d4af37;padding-bottom:16px;margin-bottom:20px;">' +
+        '<div style="font-size:0.9rem;color:#666;">سلطنة عُمان · وزارة التربية والتعليم</div>' +
+        '<div style="font-size:0.9rem;color:#666;">إمبراطورية الرياضيات 👑</div>' +
+        '<div style="font-family:Amiri,serif;font-size:1.6rem;color:#1a1a2e;font-weight:700;margin:8px 0;">' + wsgEsc(w.title || typeLabel) + '</div>' +
+        '<div style="display:flex;justify-content:center;gap:10px;font-size:0.85rem;margin-top:12px;flex-wrap:wrap;">' +
+        '<span style="background:#f5f0e0;padding:4px 12px;border-radius:6px;border:1px solid #e0d5b0;">📋 ' + typeLabel + '</span>' +
+        (ctx.grade ? '<span style="background:#f5f0e0;padding:4px 12px;border-radius:6px;border:1px solid #e0d5b0;">🎓 ' + wsgEsc(ctx.grade) + '</span>' : '') +
+        (ctx.unit ? '<span style="background:#f5f0e0;padding:4px 12px;border-radius:6px;border:1px solid #e0d5b0;">📦 ' + wsgEsc(ctx.unit) + '</span>' : '') +
+        (w.estimated_time ? '<span style="background:#f5f0e0;padding:4px 12px;border-radius:6px;border:1px solid #e0d5b0;">⏱️ ' + wsgEsc(String(w.estimated_time)) + ' دقيقة</span>' : '') +
+        '</div></div>' +
+        '<div style="display:flex;gap:20px;margin:16px 0;padding:12px;background:#faf8f0;border-radius:8px;flex-wrap:wrap;">' +
+        '<div style="flex:1;min-width:140px;font-size:0.9rem;">الاسم: ......................</div>' +
+        '<div style="flex:1;min-width:140px;font-size:0.9rem;">الصف: ............</div>' +
+        '<div style="flex:1;min-width:140px;font-size:0.9rem;">التاريخ: ............</div></div>';
+    if (w.learning_objective) html += '<div style="font-size:0.82rem;color:#666;font-style:italic;margin-bottom:16px;">🎯 الهدف: ' + wsgEsc(w.learning_objective) + '</div>';
+    if (w.instructions) html += '<div style="background:#fef9e7;border-right:4px solid #d4af37;padding:12px 16px;margin:16px 0;border-radius:6px;font-size:0.92rem;color:#333;">📌 <b>التعليمات:</b> ' + wsgEsc(w.instructions) + '</div>';
+
+    (w.questions || []).forEach(function(q, i) {
+        var num = q.num || (i+1);
+        var marks = q.marks ? '<span style="background:#f0f0f0;color:#666;font-size:0.72rem;padding:2px 8px;border-radius:10px;white-space:nowrap;">' + wsgArNum(q.marks) + ' ' + (q.marks === 1 ? 'درجة' : 'درجات') + '</span>' : '';
+        html += '<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed #ddd;">' +
+            '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">' +
+            '<div style="background:#d4af37;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">' + wsgArNum(num) + '</div>' +
+            '<div style="flex:1;font-size:0.98rem;color:#1a1a2e;line-height:1.6;padding-top:3px;">' + wsgEsc(q.q || q.question || '') + '</div>' + marks + '</div>';
+        if (q.type === 'mcq' && q.options && q.options.length) {
+            html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 38px;">';
+            var letters = ['أ','ب','ج','د','هـ','و'];
+            q.options.forEach(function(opt, oi){ html += '<div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;color:#333;"><span style="width:16px;height:16px;border:1.5px solid #999;border-radius:50%;flex-shrink:0;"></span> ' + (letters[oi]||'') + ') ' + wsgEsc(opt) + '</div>'; });
+            html += '</div>';
+        } else if (q.type === 'solve') {
+            html += '<div style="margin:8px 38px;min-height:60px;border:1px dashed #ccc;border-radius:6px;background:#fafafa;"></div>';
+        } else {
+            html += '<div style="margin:8px 38px;border-bottom:1px solid #ccc;min-height:28px;"></div>';
+        }
+        if (q.answer) html += '<div class="wsg-answer-only" style="display:' + (_wsgShowAnswers?'block':'none') + ';margin:6px 38px;padding:6px 12px;background:#e8f5e9;border-right:3px solid #4caf50;border-radius:4px;font-size:0.85rem;color:#2e7d32;"><b>✓ الإجابة:</b> ' + wsgEsc(q.answer) + '</div>';
+        html += '</div>';
+    });
+    html += '<div style="text-align:center;margin-top:24px;padding-top:16px;border-top:2px solid #d4af37;font-size:0.85rem;color:#888;">';
+    if (w.total_marks) html += '<div style="display:inline-block;background:#d4af37;color:#fff;padding:6px 16px;border-radius:8px;font-weight:700;margin-bottom:8px;">المجموع: ' + wsgArNum(w.total_marks) + ' درجة</div><br>';
+    html += 'مع تمنياتنا بالتوفيق والنجاح 🌟</div>';
+
+    document.getElementById('wsg-preview').innerHTML = html;
+    document.getElementById('wsg-preview-wrap').style.display = 'block';
+    document.getElementById('wsg-toolbar').style.display = 'flex';
+}
+
+function wsgToggleAnswers() {
+    _wsgShowAnswers = !_wsgShowAnswers;
+    document.querySelectorAll('.wsg-answer-only').forEach(function(el){ el.style.display = _wsgShowAnswers ? 'block' : 'none'; });
+    document.getElementById('wsg-answers-label').textContent = _wsgShowAnswers ? '🙈 إخفاء الإجابات' : '👁️ إظهار الإجابات';
+}
+
+function wsgPrint() {
+    if (!_wsgData) { if (typeof showToast === 'function') showToast('لا توجد ورقة', 'error'); return; }
+    var content = document.getElementById('wsg-preview').innerHTML;
+    var win = window.open('', '_blank');
+    win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + wsgEsc(_wsgData.title || 'ورقة عمل') + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
+        '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Cairo,sans-serif;padding:30px;color:#1a1a2e;direction:rtl;}@media print{body{padding:15px;}}</style>' +
+        '</head><body>' + content + '</body></html>');
+    win.document.close();
+    setTimeout(function(){ win.print(); }, 500);
 }
 
 
@@ -16348,6 +16641,11 @@ function applyDefaults() {
                     if (typeof slgInitCurriculum === 'function') slgInitCurriculum();
                 }, 100);
             }
+            if (name === 'worksheet-gen') {
+                setTimeout(function() {
+                    if (typeof wsgInitCurriculum === 'function') wsgInitCurriculum();
+                }, 100);
+            }
             if (name === 'home') {
                 setTimeout(loadHomeDashboard, 100);
             } else if (name === 'themes') {
@@ -16366,6 +16664,7 @@ function applyDefaults() {
             var titles = {
                 'exam-gen': 'مولّد الاختبارات',
                 'slides-gen': 'مولّد العروض',
+                'worksheet-gen': 'أوراق العمل',
                 'plan-gen': 'منشئ التحضيرات',
                 'certificates': 'الشهادات',
                 'visual-maker': 'صانع الأشكال',
