@@ -11589,6 +11589,110 @@ async def teacher_cinematic_generate(
 
 
 # ════════════════════════════════════════════════════════════════════════════
+# 👑 ROYAL LESSON — الدرس الإمبراطوري (قالب سينمائي متقن + AI للمحتوى)
+# ════════════════════════════════════════════════════════════════════════════
+async def _generate_royal_core(grade, semester, unit, lesson, teacher_name, ip):
+    """👑 محتوى الدرس الإمبراطوري — مسرح + playlist + 6 أمثلة حركية"""
+    if _is_rate_limited(ip, max_calls=12, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    ctx = []
+    if grade: ctx.append(f"الصف: {grade}")
+    if semester: ctx.append(f"الفصل: {semester}")
+    if unit: ctx.append(f"الوحدة: {unit}")
+    if lesson: ctx.append(f"الدرس: {lesson}")
+    context = " | ".join(ctx) if ctx else "رياضيات عامة"
+    
+    prompt = f"""أنت خبير تعليم رياضيات في سلطنة عُمان وخبير في تصميم الدروس التفاعلية.
+
+المهمة: أنشئ محتوى "درس إمبراطوري" متكامل سيُعرض في تطبيق ويب سينمائي بمسرح عرض وقائمة محطات.
+
+السياق: {context}
+
+الدرس يتكون من محطات بالترتيب التربوي:
+1. تمهيد (hook): قصة أو لغز يربط الدرس بالواقع
+2. مفهوم (concept): القانون/المفهوم الأساسي بشرح مركّز + 3 نقاط
+3. ستة أمثلة محلولة (examples): متدرّجة الصعوبة، كل مثال: مسألة + خطوات حل واضحة + نتيجة نهائية
+4. تقويم تكويني (formative): سؤال اختيار من متعدد + 4 خيارات + تغذية راجعة
+5. تقويم ختامي (summative): تحدّي بإدخال رقمي + تلميحات + الإجابة
+
+أخرج JSON فقط بهذا الشكل بالضبط:
+{{
+  "title": "عنوان الدرس",
+  "code": "رمز مثل ٢٩-١",
+  "hook": {{"story": "القصة التشويقية المرتبطة بالواقع", "highlight": "العبارة المفتاحية"}},
+  "concept": {{"title": "عنوان المفهوم", "law": "القانون أو القاعدة الأساسية", "points": ["نقطة 1", "نقطة 2", "نقطة 3"]}},
+  "examples": [
+    {{"title": "مثال ١", "problem": "نص المسألة", "steps": ["خطوة 1", "خطوة 2"], "result": "النتيجة"}}
+  ],
+  "formative": {{"question": "السؤال", "options": ["أ", "ب", "ج", "د"], "correct_index": 0, "feedback": "شرح الإجابة الصحيحة"}},
+  "summative": {{"question": "سؤال التحدّي", "hints": ["تلميح 1", "تلميح 2"], "answer": "الإجابة النهائية"}}
+}}
+
+قواعد صارمة:
+- العربية الفصحى، أرقام عربية (٠-٩) في كل النصوص
+- بالضبط ٦ أمثلة في examples، متدرّجة من السهل للصعب
+- كل مثال خطوتان حل على الأقل + نتيجة واضحة
+- 3 نقاط في المفهوم، 4 خيارات في formative
+- correct_index من 0 إلى 3
+- المحتوى دقيق رياضياً ومناسب لمستوى الصف"""
+    
+    import httpx, json as jl
+    models = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_err = None
+    for m in models:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
+            with httpx.Client(timeout=80.0) as client:
+                r = client.post(url, json={"contents":[{"parts":[{"text":prompt}]}],"generationConfig":{"temperature":0.82,"maxOutputTokens":9000,"responseMimeType":"application/json"}})
+                if r.status_code == 200:
+                    raw = r.json().get("candidates",[{}])[0].get("content",{}).get("parts",[{}])[0].get("text","").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n",1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```",1)[0] if "```" in raw else raw
+                    parsed = jl.loads(raw)
+                    if not parsed.get("examples"):
+                        raise ValueError("لا أمثلة")
+                    return {"status":"ok","royal":parsed,"model":m,"context":{"grade":grade,"semester":semester,"unit":unit,"lesson":lesson,"teacher_name":teacher_name}}
+                else:
+                    last_err = f"HTTP {r.status_code}"
+        except jl.JSONDecodeError as e:
+            last_err = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_err = f"{m}: {str(e)[:120]}"
+            continue
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد الدرس: {last_err}")
+
+
+@app.post("/api/prep/royal_generate")
+async def prep_royal_generate(
+    request: Request,
+    grade: str = Form(default=""), semester: str = Form(default=""),
+    unit: str = Form(default=""), lesson: str = Form(default=""),
+    teacher_name: str = Form(default="أ. رشدي سيد"),
+    admin = Depends(get_current_admin)
+):
+    """👑 [أدمن] توليد درس إمبراطوري"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_royal_core(grade, semester, unit, lesson, teacher_name, ip)
+
+
+@app.post("/api/teacher/royal_generate")
+async def teacher_royal_generate(
+    request: Request,
+    grade: str = Form(default=""), semester: str = Form(default=""),
+    unit: str = Form(default=""), lesson: str = Form(default=""),
+    teacher_name: str = Form(default=""),
+):
+    """👑 [معلم] توليد درس إمبراطوري"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_royal_core(grade, semester, unit, lesson, teacher_name, ip)
+
+
+# ════════════════════════════════════════════════════════════════════════════
 # 🎮 INTERACTIVE LESSON — مولّد الدروس التفاعلية (مختبر + كويز + تحدّي)
 # ════════════════════════════════════════════════════════════════════════════
 async def _generate_interactive_core(grade, semester, unit, lesson, teacher_name, ip):

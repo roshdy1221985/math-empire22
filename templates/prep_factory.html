@@ -1444,6 +1444,9 @@ body {
       <button class="factory-tab" id="tab-btn-interactive" onclick="switchTab('interactive')">
         <span class="tab-icon">🎮</span> الدروس التفاعلية
       </button>
+      <button class="factory-tab" id="tab-btn-royal" onclick="switchTab('royal')">
+        <span class="tab-icon">👑</span> الدرس الإمبراطوري
+      </button>
     </div>
 
     <!-- ═══════════ تبويب: مصنع الأسئلة ═══════════ -->
@@ -1983,6 +1986,78 @@ body {
 
     </div>
     <!-- ═══════════ نهاية تبويب: الدروس التفاعلية ═══════════ -->
+
+    <!-- ═══════════ تبويب: الدرس الإمبراطوري ═══════════ -->
+    <div class="tab-content" id="tab-royal">
+
+      <div style="background:linear-gradient(135deg,rgba(212,175,55,0.08),rgba(168,85,247,0.05));border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:18px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <span style="font-size:2rem;">👑</span>
+          <div>
+            <div style="font-weight:800;color:#d4af37;font-size:1.15rem;">الدرس الإمبراطوري</div>
+            <div style="font-size:0.82rem;color:var(--dim);">درس سينمائي كامل: مسرح + قائمة محطات + تمهيد + مفهوم + ٦ أمثلة حركية + تقويم تكويني وختامي بأسلوب GSAP</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-config">
+        <div class="field-group">
+          <label class="field-label">🎓 الصف</label>
+          <select class="field-select" id="rl-grade" onchange="rlLoadSemesters()">
+            <option value="">— اختر الصف —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📅 الفصل</label>
+          <select class="field-select" id="rl-semester" onchange="rlLoadUnits()" disabled>
+            <option value="">— الفصل —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📦 الوحدة</label>
+          <select class="field-select" id="rl-unit" onchange="rlLoadLessons()" disabled>
+            <option value="">— الوحدة —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 الدرس</label>
+          <select class="field-select" id="rl-lesson" disabled>
+            <option value="">— الدرس —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">✍️ اسم المعلم</label>
+          <input class="field-input" type="text" id="rl-teacher" value="أ. رشدي سيد" placeholder="اسم المعلم">
+        </div>
+      </div>
+
+      <button class="gen-btn" id="rl-gen-btn" onclick="generateRoyal()" style="width:100%;margin-bottom:16px;background:linear-gradient(135deg,#d4af37,#a855f7);">
+        👑 إنشاء الدرس الإمبراطوري
+      </button>
+
+      <div class="progress-wrap" id="rl-progress">
+        <div class="progress-label" id="rl-progress-label">جارٍ الإنشاء...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="rl-progress-fill"></div></div>
+      </div>
+
+      <div id="rl-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
+        <button class="act-btn primary" onclick="rlPlay()" style="background:linear-gradient(135deg,#d4af37,#a855f7);">👑 فتح الدرس</button>
+        <button class="act-btn" onclick="rlDownload()" style="background:rgba(212,175,55,0.12);border-color:rgba(212,175,55,0.4);color:#d4af37;">⬇️ تنزيل HTML</button>
+        <button class="act-btn" onclick="rlUploadLibrary()" style="background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.4);color:#2ecc71;">📚 رفع للمكتبة</button>
+        <button class="act-btn" onclick="generateRoyal()">🔄 إنشاء جديد</button>
+      </div>
+
+      <div id="rl-preview" style="display:none;"></div>
+
+      <div class="empty-state" id="rl-empty">
+        <span class="empty-icon">👑</span>
+        ١. اختر الصف والدرس<br>
+        ٢. اضغط "إنشاء الدرس الإمبراطوري"<br>
+        ٣. درس سينمائي كامل بمسرح ومحطات و٦ أمثلة حركية
+      </div>
+
+    </div>
+    <!-- ═══════════ نهاية تبويب: الدرس الإمبراطوري ═══════════ -->
   </main>
 </div>
 
@@ -3501,11 +3576,13 @@ function switchTab(tab) {
   document.getElementById('tab-btn-slides').classList.toggle('active', tab === 'slides');
   document.getElementById('tab-btn-cinema').classList.toggle('active', tab === 'cinema');
   document.getElementById('tab-btn-interactive').classList.toggle('active', tab === 'interactive');
+  document.getElementById('tab-btn-royal').classList.toggle('active', tab === 'royal');
   document.getElementById('tab-questions').classList.toggle('active', tab === 'questions');
   document.getElementById('tab-worksheet').classList.toggle('active', tab === 'worksheet');
   document.getElementById('tab-slides').classList.toggle('active', tab === 'slides');
   document.getElementById('tab-cinema').classList.toggle('active', tab === 'cinema');
   document.getElementById('tab-interactive').classList.toggle('active', tab === 'interactive');
+  document.getElementById('tab-royal').classList.toggle('active', tab === 'royal');
   if (tab === 'worksheet' && !_wsInitialized) {
     wsInitCurriculum();
     _wsInitialized = true;
@@ -3521,6 +3598,10 @@ function switchTab(tab) {
   if (tab === 'interactive' && !_ivInitialized) {
     ivInitCurriculum();
     _ivInitialized = true;
+  }
+  if (tab === 'royal' && !_rlInitialized) {
+    rlInitCurriculum();
+    _rlInitialized = true;
   }
 }
 
@@ -4923,6 +5004,219 @@ function ivBuildLessonHTML(L) {
     'function chCheck(){const v=document.getElementById("chAns").value.trim();const fb=document.getElementById("chFb");if(v&&(v===CHA||v.replace(/\\s/g,"")===CHA.replace(/\\s/g,""))){playSound("success");fireConfetti();prog.challenge=true;updateSummary();fb.innerText="🎉 إجابة صحيحة! أنت بطل!";fb.style.color="var(--success)";}else{playSound("wrong");fb.innerText="ليست صحيحة، استعن بالتلميحات 💡";fb.style.color="var(--danger)";}}' +
     'function chHint(){const h=document.getElementById("hint-"+chH);if(h){h.style.display="block";chH++;}}' +
     'document.querySelectorAll("text,.number").forEach(el=>{el.innerHTML=toAr(el.innerHTML);});' +
+    '<\/script></body></html>';
+}
+
+// ════════════════════════════════════════════════════════════
+// 👑 مولّد الدرس الإمبراطوري (قالب سينمائي GSAP متقن)
+// ════════════════════════════════════════════════════════════
+let _rlInitialized = false;
+let _rlData = null;
+
+function rlInitCurriculum() {
+  if (!state.curriculum || !Array.isArray(state.curriculum)) return;
+  const sel = document.getElementById('rl-grade');
+  sel.innerHTML = '<option value="">— اختر الصف —</option>';
+  state.curriculum.forEach(g => { const o = document.createElement('option'); o.value = g.name; o.textContent = g.name; sel.appendChild(o); });
+}
+function rlLoadSemesters() {
+  const grade = document.getElementById('rl-grade').value;
+  const semSel = document.getElementById('rl-semester'), unitSel = document.getElementById('rl-unit'), lessSel = document.getElementById('rl-lesson');
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>'; unitSel.innerHTML = '<option value="">— الوحدة —</option>'; lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade) { semSel.disabled = unitSel.disabled = lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  if (g && g.semesters) g.semesters.forEach(s => { const o = document.createElement('option'); o.value = s.name; o.textContent = s.name; semSel.appendChild(o); });
+  semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+function rlLoadUnits() {
+  const grade = document.getElementById('rl-grade').value, sem = document.getElementById('rl-semester').value;
+  const unitSel = document.getElementById('rl-unit'), lessSel = document.getElementById('rl-lesson');
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>'; lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade || !sem) { unitSel.disabled = lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  if (s && s.units) s.units.forEach(u => { const o = document.createElement('option'); o.value = u.name; o.textContent = u.name; unitSel.appendChild(o); });
+  unitSel.disabled = false; lessSel.disabled = true;
+}
+function rlLoadLessons() {
+  const grade = document.getElementById('rl-grade').value, sem = document.getElementById('rl-semester').value, unit = document.getElementById('rl-unit').value;
+  const lessSel = document.getElementById('rl-lesson');
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  const u = s?.units?.find(x => x.name === unit);
+  if (u && u.lessons) u.lessons.forEach(l => { const o = document.createElement('option'); o.value = l.name; o.textContent = l.name; lessSel.appendChild(o); });
+  lessSel.disabled = false;
+}
+
+async function generateRoyal() {
+  const grade = document.getElementById('rl-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف أولاً', 'error'); return; }
+  const btn = document.getElementById('rl-gen-btn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإنشاء...';
+  document.getElementById('rl-empty').style.display = 'none';
+  document.getElementById('rl-progress').classList.add('show');
+  document.getElementById('rl-progress-fill').style.width = '35%';
+  document.getElementById('rl-progress-label').textContent = 'جارٍ بناء الدرس الإمبراطوري...';
+  try {
+    const fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('rl-semester').value || '');
+    fd.append('unit', document.getElementById('rl-unit').value || '');
+    fd.append('lesson', document.getElementById('rl-lesson').value || '');
+    fd.append('teacher_name', document.getElementById('rl-teacher').value || 'أ. رشدي سيد');
+    document.getElementById('rl-progress-fill').style.width = '65%';
+    const res = await apiCall('/api/prep/royal_generate', { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || 'HTTP ' + res.status); }
+    const data = await res.json();
+    _rlData = data.royal;
+    _rlData._context = data.context || {};
+    document.getElementById('rl-progress-fill').style.width = '100%';
+    rlRenderPreview();
+    setTimeout(() => document.getElementById('rl-progress').classList.remove('show'), 500);
+    toast('👑 تم إنشاء الدرس الإمبراطوري', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    document.getElementById('rl-progress').classList.remove('show');
+  } finally {
+    btn.disabled = false; btn.textContent = '👑 إنشاء الدرس الإمبراطوري';
+  }
+}
+
+function rlRenderPreview() {
+  if (!_rlData) return;
+  const stations = [
+    ['🎬', 'التمهيد', _rlData.hook ? 1 : 0],
+    ['📚', 'المفهوم', _rlData.concept ? 1 : 0],
+    ['✏️', 'الأمثلة المحلولة', (_rlData.examples || []).length],
+    ['🚦', 'تقويم تكويني', _rlData.formative ? 1 : 0],
+    ['👑', 'تقويم ختامي', _rlData.summative ? 1 : 0],
+  ];
+  let html = '<div style="background:rgba(212,175,55,0.04);border:1px solid rgba(212,175,55,0.2);border-radius:12px;padding:16px;margin-bottom:14px;">';
+  html += '<div style="font-weight:800;color:#d4af37;font-size:1.1rem;margin-bottom:4px;">👑 ' + _esc(_rlData.title || 'الدرس الإمبراطوري') + '</div>';
+  html += '<div style="font-size:0.82rem;color:var(--dim);">' + (_rlData.code ? _esc(_rlData.code) + ' · ' : '') + '٥ محطات تعليمية متسلسلة</div>';
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;">';
+  stations.forEach(([icon, name, count]) => {
+    const ok = count > 0;
+    html += '<div style="background:rgba(255,255,255,0.04);border:1px solid ' + (ok ? 'rgba(212,175,55,0.25)' : 'var(--border)') + ';border-radius:10px;padding:11px;display:flex;align-items:center;gap:8px;">';
+    html += '<span style="font-size:1.3rem;">' + icon + '</span>';
+    html += '<div><div style="font-weight:700;color:' + (ok ? '#d4af37' : 'var(--dim)') + ';font-size:0.82rem;">' + name + '</div>';
+    if (count > 1) html += '<div style="font-size:0.68rem;color:var(--dim);">' + arabicNum(count) + ' أمثلة</div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  document.getElementById('rl-preview').innerHTML = html;
+  document.getElementById('rl-preview').style.display = 'block';
+  document.getElementById('rl-toolbar').style.display = 'flex';
+}
+
+function rlPlay() {
+  if (!_rlData) { toast('لا يوجد درس', 'error'); return; }
+  const win = window.open('', '_blank');
+  win.document.write(rlBuildLessonHTML(_rlData));
+  win.document.close();
+}
+function rlDownload() {
+  if (!_rlData) { toast('لا يوجد درس', 'error'); return; }
+  downloadHTMLFile(rlBuildLessonHTML(_rlData), sanitizeFilename(_rlData.title || 'درس_إمبراطوري') + '.html');
+  toast('⬇️ تم التنزيل', 'success');
+}
+async function rlUploadLibrary() {
+  if (!_rlData) { toast('لا يوجد درس', 'error'); return; }
+  const ctx = _rlData._context || {};
+  try {
+    toast('⏳ جارٍ الرفع...', 'info');
+    await uploadToLibrary(rlBuildLessonHTML(_rlData), { title: _rlData.title || 'درس إمبراطوري', grade: ctx.grade, semester: ctx.semester, unit: ctx.unit, lesson: ctx.lesson, type: 'royal' });
+    toast('📚 تم الرفع للمكتبة!', 'success');
+  } catch(e) { toast('❌ ' + e.message, 'error'); }
+}
+
+// 🏗️ محرّك بناء الدرس الإمبراطوري (مسرح + playlist + GSAP)
+function rlBuildLessonHTML(D) {
+  const ctx = D._context || {};
+  const grade = ctx.grade || 'الصف';
+  const teacher = ctx.teacher_name || 'أ. رشدي سيد';
+  const code = D.code || '';
+  const title = D.title || 'الدرس';
+  const e = _escMovie;
+  const dataJson = JSON.stringify(D).replace(/<\/script>/g, '<\\/script>');
+
+  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + e(title) + '</title>' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"><\/script>' +
+    '<style>' +
+    "@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Amiri:wght@700&display=swap');" +
+    ':root{--bg:#05060f;--panel:#0c1024;--gold:#d4af37;--gold-l:#fcd34d;--cyan:#00f3ff;--pink:#ff007f;--green:#00ff88;--purple:#a855f7;--text:#f0ead6;}' +
+    '*{box-sizing:border-box;margin:0;padding:0;font-family:Cairo,sans-serif;}' +
+    'body{background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}' +
+    '.rl-header{height:56px;flex-shrink:0;background:linear-gradient(90deg,#0a0c1a,#12152e);border-bottom:2px solid var(--gold);display:flex;align-items:center;justify-content:space-between;padding:0 18px;gap:12px;}' +
+    '.rl-header .h-title{font-family:Amiri,serif;font-weight:700;color:var(--gold-l);font-size:clamp(0.9rem,2vw,1.3rem);}' +
+    '.rl-header .h-meta{font-size:0.75rem;color:var(--text);opacity:0.7;text-align:left;}' +
+    '.rl-body{flex:1;display:flex;overflow:hidden;}' +
+    '@media(max-width:768px){.rl-body{flex-direction:column;}.rl-sidebar{width:100%!important;height:auto!important;flex-direction:row!important;overflow-x:auto;border-left:none!important;border-bottom:1px solid rgba(212,175,55,0.2);}}' +
+    '.rl-sidebar{width:230px;flex-shrink:0;background:var(--panel);border-left:1px solid rgba(212,175,55,0.2);padding:14px;display:flex;flex-direction:column;gap:8px;overflow-y:auto;}' +
+    '.rl-station{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:10px;cursor:pointer;background:rgba(255,255,255,0.03);border:1px solid transparent;transition:all 0.2s;white-space:nowrap;}' +
+    '.rl-station:hover{background:rgba(212,175,55,0.1);}' +
+    '.rl-station.active{background:linear-gradient(90deg,rgba(212,175,55,0.2),transparent);border-color:var(--gold);}' +
+    '.rl-station .s-icon{font-size:1.3rem;}' +
+    '.rl-station .s-name{font-weight:700;font-size:0.88rem;}' +
+    '.rl-station .s-num{margin-right:auto;background:var(--gold);color:#000;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;}' +
+    '.rl-theater{flex:1;position:relative;background:radial-gradient(circle at 50% 40%,#0d1130,var(--bg));overflow-y:auto;padding:30px;display:flex;flex-direction:column;align-items:center;justify-content:center;}' +
+    '.rl-stage{width:100%;max-width:820px;}' +
+    '.rl-line{opacity:0;transform:translateY(20px);margin-bottom:18px;font-size:clamp(1.1rem,2.6vw,1.7rem);line-height:1.7;font-weight:700;text-align:center;}' +
+    '.rl-big{font-family:Amiri,serif;font-size:clamp(1.8rem,5vw,3rem);color:var(--gold-l);text-shadow:0 0 18px rgba(212,175,55,0.5);}' +
+    '.hl-cyan{color:var(--cyan);text-shadow:0 0 10px var(--cyan);}.hl-pink{color:var(--pink);text-shadow:0 0 10px var(--pink);}.hl-green{color:var(--green);text-shadow:0 0 10px var(--green);}.hl-gold{color:var(--gold-l);}.hl-purple{color:var(--purple);text-shadow:0 0 10px var(--purple);}' +
+    '.rl-card{background:rgba(255,255,255,0.04);border:1px solid rgba(212,175,55,0.25);border-radius:16px;padding:26px;margin-bottom:16px;opacity:0;transform:translateY(20px);}' +
+    '.rl-law{background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(168,85,247,0.08));border:1px dashed var(--gold);border-radius:12px;padding:18px;font-family:Amiri,serif;font-size:clamp(1.2rem,3vw,1.8rem);color:var(--gold-l);text-align:center;margin:16px 0;}' +
+    '.rl-step{background:rgba(255,255,255,0.03);border-right:4px solid var(--cyan);padding:14px 18px;margin-bottom:12px;border-radius:8px;font-size:clamp(1rem,2.4vw,1.4rem);opacity:0;transform:translateX(20px);}' +
+    '.rl-result{background:rgba(0,255,136,0.12);border:1px solid var(--green);border-radius:12px;padding:18px;text-align:center;font-size:clamp(1.3rem,3.5vw,2rem);font-weight:900;color:var(--green);margin-top:14px;opacity:0;}' +
+    '.rl-opt{display:block;width:100%;background:rgba(255,255,255,0.05);border:2px solid rgba(255,255,255,0.15);color:var(--text);padding:16px;border-radius:12px;margin-bottom:12px;font-family:Cairo;font-size:clamp(1rem,2.4vw,1.3rem);font-weight:700;cursor:pointer;transition:all 0.2s;text-align:right;}' +
+    '.rl-opt:hover{border-color:var(--gold);}' +
+    '.rl-opt.correct{background:rgba(0,255,136,0.2);border-color:var(--green);}' +
+    '.rl-opt.wrong{background:rgba(255,0,127,0.15);border-color:var(--pink);}' +
+    '.rl-input{width:100%;max-width:300px;background:rgba(0,0,0,0.4);border:2px solid var(--gold);color:#fff;padding:16px;border-radius:12px;font-size:1.5rem;text-align:center;font-family:Cairo;font-weight:800;margin:14px auto;display:block;}' +
+    '.rl-btn{background:linear-gradient(135deg,var(--gold),var(--gold-l));color:#000;border:none;padding:14px 32px;border-radius:12px;font-family:Cairo;font-weight:800;font-size:1.1rem;cursor:pointer;display:block;margin:10px auto;}' +
+    '.rl-fb{text-align:center;font-size:1.2rem;font-weight:800;margin-top:14px;min-height:30px;}' +
+    '.rl-hint{color:var(--gold-l);text-align:center;margin-top:8px;display:none;font-size:1rem;}' +
+    '.rl-footer{height:34px;flex-shrink:0;background:#0a0c1a;border-top:1px solid rgba(212,175,55,0.2);display:flex;align-items:center;justify-content:center;font-size:0.72rem;color:var(--gold);}' +
+    '</style></head><body>' +
+    '<div class="rl-header"><div class="h-title">👑 ' + e(title) + '</div><div class="h-meta">' + e(grade) + (code ? ' · ' + e(code) : '') + '</div></div>' +
+    '<div class="rl-body">' +
+    '<div class="rl-sidebar" id="rlSidebar"></div>' +
+    '<div class="rl-theater"><div class="rl-stage" id="rlStage"></div></div>' +
+    '</div>' +
+    '<div class="rl-footer">إمبراطورية الرياضيات | إعداد: ' + e(teacher) + '</div>' +
+    '<script>' +
+    'var D=' + dataJson + ';' +
+    'function toAr(s){return String(s).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d];});}' +
+    'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}' +
+    // Confetti
+    'function confetti(){var c=document.createElement("canvas");c.style.cssText="position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;";document.body.appendChild(c);var x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;var cols=["#d4af37","#00f3ff","#ff007f","#00ff88","#a855f7"];var p=[];for(var i=0;i<100;i++)p.push({x:c.width/2,y:c.height/2,vx:(Math.random()-0.5)*22,vy:(Math.random()-1)*20-4,s:Math.random()*9+4,c:cols[~~(Math.random()*5)],r:Math.random()*360,rs:(Math.random()-0.5)*14});function d(){x.clearRect(0,0,c.width,c.height);var a=false;p.forEach(function(i){i.x+=i.vx;i.y+=i.vy;i.vy+=0.7;i.r+=i.rs;if(i.y<c.height)a=true;x.save();x.translate(i.x,i.y);x.rotate(i.r*Math.PI/180);x.fillStyle=i.c;x.fillRect(-i.s/2,-i.s/2,i.s,i.s);x.restore();});if(a)requestAnimationFrame(d);else c.remove();}d();}' +
+    'function snd(ok){try{var a=new(window.AudioContext||window.webkitAudioContext)(),o=a.createOscillator(),g=a.createGain();o.connect(g);g.connect(a.destination);if(ok){o.type="sine";o.frequency.setValueAtTime(523,a.currentTime);o.frequency.setValueAtTime(659,a.currentTime+0.1);o.frequency.setValueAtTime(784,a.currentTime+0.2);g.gain.setValueAtTime(0.25,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+0.4);o.start();o.stop(a.currentTime+0.4);}else{o.type="sawtooth";o.frequency.setValueAtTime(200,a.currentTime);o.frequency.exponentialRampToValueAtTime(100,a.currentTime+0.2);g.gain.setValueAtTime(0.2,a.currentTime);g.gain.exponentialRampToValueAtTime(0.01,a.currentTime+0.2);o.start();o.stop(a.currentTime+0.2);}}catch(e){}}' +
+    // clearStage — يمنع التداخل
+    'function clearStage(){gsap.killTweensOf("*");document.getElementById("rlStage").innerHTML="";}' +
+    // بناء المحطات
+    'var stations=[];' +
+    'stations.push({icon:"🎬",name:"التمهيد",fn:playHook});' +
+    'stations.push({icon:"📚",name:"المفهوم",fn:playConcept});' +
+    'D.examples.forEach(function(ex,i){stations.push({icon:"✏️",name:"مثال "+toAr(i+1),fn:function(){playExample(i);}});});' +
+    'stations.push({icon:"🚦",name:"تقويم تكويني",fn:playFormative});' +
+    'stations.push({icon:"👑",name:"تحدّي النخبة",fn:playSummative});' +
+    'var sb=document.getElementById("rlSidebar");' +
+    'stations.forEach(function(st,i){var d=document.createElement("div");d.className="rl-station";d.innerHTML="<span class=\\"s-icon\\">"+st.icon+"</span><span class=\\"s-name\\">"+st.name+"</span><span class=\\"s-num\\">"+toAr(i+1)+"</span>";d.onclick=function(){selectStation(i);};sb.appendChild(d);});' +
+    'function selectStation(i){clearStage();document.querySelectorAll(".rl-station").forEach(function(s,j){s.classList.toggle("active",j===i);});stations[i].fn();}' +
+    // المحطات
+    'function playHook(){var s=document.getElementById("rlStage");s.innerHTML="<div class=\\"rl-line rl-big\\">🎬 "+esc(D.hook.story)+"</div>"+(D.hook.highlight?"<div class=\\"rl-line hl-cyan\\">"+esc(D.hook.highlight)+"</div>":"");gsap.timeline().to(".rl-line",{opacity:1,y:0,stagger:1,duration:1,ease:"power3.out"});}' +
+    'function playConcept(){var c=D.concept;var h="<div class=\\"rl-card\\"><div class=\\"rl-line rl-big hl-gold\\" style=\\"opacity:1;transform:none;\\">"+esc(c.title)+"</div>";if(c.law)h+="<div class=\\"rl-law\\">"+esc(c.law)+"</div>";(c.points||[]).forEach(function(p){h+="<div class=\\"rl-line\\" style=\\"font-size:1.2rem;\\">◆ "+esc(p)+"</div>";});h+="</div>";document.getElementById("rlStage").innerHTML=h;gsap.timeline().to(".rl-card",{opacity:1,y:0,duration:0.8}).to(".rl-line",{opacity:1,y:0,stagger:0.6,duration:0.8},"-=0.3");}' +
+    'function playExample(idx){var ex=D.examples[idx];var h="<div class=\\"rl-line rl-big hl-gold\\">"+esc(ex.title)+"</div>";h+="<div class=\\"rl-card\\" style=\\"opacity:1;transform:none;\\"><div class=\\"rl-line\\" style=\\"opacity:1;transform:none;font-size:1.3rem;\\">"+esc(ex.problem)+"</div>";(ex.steps||[]).forEach(function(st){h+="<div class=\\"rl-step\\">"+esc(st)+"</div>";});if(ex.result)h+="<div class=\\"rl-result\\">✓ "+esc(ex.result)+"</div>";h+="</div>";document.getElementById("rlStage").innerHTML=h;var tl=gsap.timeline();tl.to(".rl-line",{opacity:1,y:0,duration:0.7});tl.to(".rl-step",{opacity:1,x:0,stagger:1.1,duration:0.7,ease:"power2.out"});tl.to(".rl-result",{opacity:1,scale:1.05,duration:0.6,ease:"back.out"},"+=0.3");}' +
+    'function playFormative(){var f=D.formative;var h="<div class=\\"rl-line rl-big hl-purple\\">🚦 تقويم تكويني</div><div class=\\"rl-card\\"><div class=\\"rl-line\\" style=\\"opacity:1;transform:none;font-size:1.3rem;\\">"+esc(f.question)+"</div><div id=\\"rlOpts\\"></div><div class=\\"rl-fb\\" id=\\"rlFb\\"></div></div>";document.getElementById("rlStage").innerHTML=h;var o=document.getElementById("rlOpts");(f.options||[]).forEach(function(opt,i){var b=document.createElement("button");b.className="rl-opt";b.innerHTML=esc(opt);b.onclick=function(){if(b.dataset.done)return;if(i===f.correct_index){b.classList.add("correct");snd(true);confetti();document.getElementById("rlFb").innerHTML="<span class=\\"hl-green\\">✓ "+esc(f.feedback||"أحسنت!")+"</span>";document.querySelectorAll(".rl-opt").forEach(function(x){x.dataset.done="1";});}else{b.classList.add("wrong");snd(false);document.getElementById("rlFb").innerHTML="<span class=\\"hl-pink\\">حاول مرة أخرى 🤔</span>";setTimeout(function(){b.classList.remove("wrong");},500);}};o.appendChild(b);});gsap.timeline().to(".rl-card",{opacity:1,y:0,duration:0.7}).to(".rl-opt",{opacity:1,y:0,stagger:0.3,duration:0.5},"-=0.3");gsap.set(".rl-opt",{opacity:0,y:15});}' +
+    'function playSummative(){var s=D.summative;var hh=(s.hints||[]).map(function(h,i){return "<div class=\\"rl-hint\\" id=\\"rlH"+i+"\\">💡 "+esc(h)+"</div>";}).join("");var h="<div class=\\"rl-line rl-big hl-gold\\">👑 تحدّي النخبة</div><div class=\\"rl-card\\"><div class=\\"rl-line\\" style=\\"opacity:1;transform:none;font-size:1.3rem;\\">"+esc(s.question)+"</div><input class=\\"rl-input\\" id=\\"rlAns\\" placeholder=\\"إجابتك\\"><button class=\\"rl-btn\\" onclick=\\"rlCheck()\\">تحقّق</button><div class=\\"rl-fb\\" id=\\"rlFb2\\"></div><button class=\\"rl-btn\\" style=\\"background:transparent;border:1px solid var(--gold);color:var(--gold);\\" onclick=\\"rlHint()\\">💡 تلميح</button>"+hh+"</div>";document.getElementById("rlStage").innerHTML=h;gsap.timeline().to(".rl-card",{opacity:1,y:0,duration:0.7});}' +
+    'var rlHi=0;function rlHint(){var h=document.getElementById("rlH"+rlHi);if(h){h.style.display="block";rlHi++;}}' +
+    'function rlCheck(){var v=document.getElementById("rlAns").value.trim();var ans=String(D.summative.answer||"");var fb=document.getElementById("rlFb2");if(v&&(v===ans||v.replace(/\\s/g,"")===ans.replace(/\\s/g,""))){snd(true);confetti();fb.innerHTML="<span class=\\"hl-green\\">🎉 إجابة صحيحة! أنت بطل الإمبراطورية!</span>";}else{snd(false);fb.innerHTML="<span class=\\"hl-pink\\">ليست صحيحة، استعن بالتلميحات 💡</span>";}}' +
+    // تحويل أرقام السايدبار + بدء أول محطة
+    'selectStation(0);' +
     '<\/script></body></html>';
 }
 
