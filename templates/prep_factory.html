@@ -1813,6 +1813,7 @@ body {
       <!-- أزرار التحكم -->
       <div id="sl-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
         <button class="act-btn primary" onclick="slPresent()">▶️ عرض ملء الشاشة</button>
+        <button class="act-btn" onclick="slDownloadPptx()" style="background:rgba(217,95,52,0.15);border-color:rgba(217,95,52,0.4);color:#ff8a5c;">⬇️ تحميل PowerPoint</button>
         <button class="act-btn" onclick="generateSlides()">🔄 توليد جديد</button>
       </div>
 
@@ -3941,6 +3942,34 @@ function slTypeName(type) {
   return names[type] || type;
 }
 
+async function slDownloadPptx() {
+  if (!_slData || !_slData.slides) { toast('لا يوجد عرض', 'error'); return; }
+  const ctx = _slData._context || {};
+  toast('⏳ جارٍ توليد ملف PowerPoint...', 'info');
+  try {
+    const fd = new FormData();
+    fd.append('slides_json', JSON.stringify(_slData.slides));
+    fd.append('lesson_title', _slData.title || 'عرض تقديمي');
+    fd.append('grade', ctx.grade || '');
+    fd.append('teacher_name', 'أ. رشدي سيد');
+    const res = await apiCall('/api/prep/slides_pptx', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = (_slData.title || 'presentation').replace(/[<>:"/\\|?*]+/g, '_') + '.pptx';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    toast('⬇️ تم تحميل ملف PowerPoint', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
 function slPresent(startIndex) {
   if (!_slData) { toast('لا يوجد عرض', 'error'); return; }
   const slides = _slData.slides || [];
@@ -4555,6 +4584,165 @@ async function ivUploadLibrary() {
 }
 
 // 🏗️ محرّك بناء الدرس التفاعلي الكامل
+// ════════════════════════════════════════════════════════════
+// 🔬 محرّك المختبرات المتخصصة (3D + SVG)
+// ════════════════════════════════════════════════════════════
+function ivBuildLabSection(lab, type, cfg, e) {
+  const title = e(lab.title || 'مختبر تفاعلي');
+  const desc = e(lab.description || '');
+  const note = e(lab.note || '');
+  const head = '<section id="s-lab"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:15px;">' + title + ' 🔬</h2>' +
+    '<p style="margin-bottom:25px;text-align:center;max-width:700px;">' + desc + '</p>';
+  const noteBox = note ? '<div class="lab-note" id="labNote">' + note + '</div>' : '';
+
+  if (type === 'solids3d') {
+    return head +
+      '<div class="glass-card lab-container"><div class="controls">' +
+      '<div class="slider-group"><label>الدوران التلقائي</label>' +
+      '<button class="btn" id="lab3dRotate" style="width:100%;">⏸️ إيقاف/تشغيل الدوران</button></div>' +
+      '<div class="slider-group"><label>🩻 الوضع الشفّاف (X-Ray)</label>' +
+      '<button class="btn btn-outline" id="lab3dXray" style="width:100%;">تفعيل الرؤية الداخلية</button></div>' +
+      '<div class="slider-group"><label>الحجم: <span id="lab3dSizeV" class="number" style="color:var(--accent);">1</span></label>' +
+      '<input type="range" id="lab3dSize" min="1" max="3" value="1.5" step="0.1"></div>' +
+      '<div class="slider-group"><label>الشفافية</label>' +
+      '<input type="range" id="lab3dOpacity" min="0.2" max="1" value="0.85" step="0.05"></div>' +
+      noteBox + '</div>' +
+      '<div class="visualizer" style="min-height:380px;"><div id="lab3dCanvas" style="width:100%;height:360px;"></div></div></div></section>';
+  }
+  else if (type === 'fractions') {
+    return head +
+      '<div class="glass-card lab-container"><div class="controls">' +
+      '<div class="slider-group"><label>عدد الأجزاء الملوّنة: <span id="labFracS" class="number" style="color:var(--accent);">1</span></label>' +
+      '<input type="range" id="labFracShaded" min="0" value="1" step="1"></div>' +
+      '<div class="slider-group"><label>إجمالي الأجزاء: <span id="labFracT" class="number" style="color:var(--ratio);">4</span></label>' +
+      '<input type="range" id="labFracTotal" min="2" max="12" value="4" step="1"></div>' +
+      noteBox + '</div>' +
+      '<div class="visualizer"><svg id="labFracSvg" viewBox="0 0 220 220" style="width:240px;height:240px;"></svg>' +
+      '<div class="big-value" id="labFracDisp" style="font-size:2.5rem;margin-top:10px;">١/٤</div></div></div></section>';
+  }
+  else if (type === 'ratio') {
+    return head +
+      '<div class="glass-card lab-container"><div class="controls"><div class="slider-group">' +
+      '<label>كم مجموعة تريد؟ <span id="labRatioM" class="number" style="color:var(--accent);">1</span></label>' +
+      '<input type="range" id="labRatioMul" min="1" max="5" value="1" step="1"></div>' + noteBox + '</div>' +
+      '<div class="visualizer"><div style="display:flex;gap:20px;align-items:flex-end;height:200px;">' +
+      '<div style="text-align:center;"><div id="labRatioBarA" style="width:60px;background:var(--p1);border-radius:8px 8px 0 0;transition:height 0.4s;height:120px;"></div>' +
+      '<div id="labRatioLabA" style="font-family:Cairo;margin-top:8px;color:var(--p1);font-weight:bold;">3</div></div>' +
+      '<div style="text-align:center;"><div id="labRatioBarB" style="width:60px;background:var(--p2);border-radius:8px 8px 0 0;transition:height 0.4s;height:40px;"></div>' +
+      '<div id="labRatioLabB" style="font-family:Cairo;margin-top:8px;color:var(--p2);font-weight:bold;">1</div></div></div>' +
+      '<div class="big-value" id="labRatioDisp" style="font-size:2.5rem;margin-top:20px;direction:ltr;">3 : 1</div></div></div></section>';
+  }
+  else if (type === 'bars') {
+    return head +
+      '<div class="glass-card"><div class="visualizer" style="min-height:320px;width:100%;">' +
+      '<svg id="labBarsSvg" viewBox="0 0 400 280" style="width:100%;max-width:500px;"></svg>' + noteBox + '</div></div></section>';
+  }
+  else if (type === 'geometry') {
+    return head +
+      '<div class="glass-card lab-container"><div class="controls"><div class="slider-group">' +
+      '<label>عدد الأضلاع: <span id="labGeoS" class="number" style="color:var(--accent);">3</span></label>' +
+      '<input type="range" id="labGeoSides" min="3" max="10" value="3" step="1"></div>' + noteBox + '</div>' +
+      '<div class="visualizer"><svg id="labGeoSvg" viewBox="0 0 240 240" style="width:240px;height:240px;"></svg>' +
+      '<div class="big-value" id="labGeoDisp" style="font-size:1.6rem;margin-top:10px;">مثلّث</div></div></div></section>';
+  }
+  // slider (افتراضي)
+  const base = parseInt(cfg.base_value) || 3;
+  return head +
+    '<div class="glass-card lab-container"><div class="controls"><div class="slider-group">' +
+    '<label>' + e(cfg.multiplier_label || 'العدد') + ': <span id="labMul" class="number" style="color:var(--accent);">1</span></label>' +
+    '<input type="range" id="labSlider" min="1" max="5" value="1" step="1"></div>' + noteBox + '</div>' +
+    '<div class="visualizer"><div style="font-family:Cairo;color:var(--muted);margin-bottom:10px;">' + e(cfg.unit_name || 'القيمة') + '</div>' +
+    '<div class="big-value" id="labValue">' + base + '</div>' +
+    '<div style="font-family:Cairo;color:var(--muted);margin-top:10px;">القيمة الأساسية × العدد</div></div></div></section>';
+}
+
+function ivBuildLabJS(type, cfg) {
+  if (type === 'solids3d') {
+    const shape = cfg.shape || 'cube';
+    return 'const shapeType="' + shape + '";var lab3dStop=false;' +
+      '(function(){if(typeof THREE==="undefined"){document.getElementById("lab3dCanvas").innerHTML="<p style=\\"color:#a0aab5;text-align:center;padding-top:150px;\\">جارٍ تحميل المحرّك ثلاثي الأبعاد...</p>";return;}' +
+      'const cv=document.getElementById("lab3dCanvas");const W=cv.clientWidth||400,H=360;' +
+      'const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera(50,W/H,0.1,1000);cam.position.z=5;' +
+      'const rnd=new THREE.WebGLRenderer({antialias:true,alpha:true});rnd.setSize(W,H);rnd.setPixelRatio(window.devicePixelRatio);cv.appendChild(rnd.domElement);' +
+      'let geo;' +
+      'if(shapeType==="cube")geo=new THREE.BoxGeometry(2,2,2);' +
+      'else if(shapeType==="pyramid")geo=new THREE.ConeGeometry(1.6,2.4,4);' +
+      'else if(shapeType==="cone")geo=new THREE.ConeGeometry(1.5,2.6,48);' +
+      'else if(shapeType==="cylinder")geo=new THREE.CylinderGeometry(1.3,1.3,2.6,48);' +
+      'else if(shapeType==="sphere")geo=new THREE.SphereGeometry(1.6,48,48);' +
+      'else if(shapeType==="prism")geo=new THREE.CylinderGeometry(1.5,1.5,2.6,3);' +
+      'else geo=new THREE.BoxGeometry(2,2,2);' +
+      'const mat=new THREE.MeshPhongMaterial({color:0x00cec9,transparent:true,opacity:0.85,shininess:90});' +
+      'const mesh=new THREE.Mesh(geo,mat);scene.add(mesh);' +
+      'const edges=new THREE.LineSegments(new THREE.EdgesGeometry(geo),new THREE.LineBasicMaterial({color:0xffffff}));mesh.add(edges);' +
+      'const l1=new THREE.DirectionalLight(0xffffff,1);l1.position.set(5,5,5);scene.add(l1);' +
+      'const l2=new THREE.DirectionalLight(0xf39c12,0.5);l2.position.set(-5,-3,2);scene.add(l2);' +
+      'scene.add(new THREE.AmbientLight(0xffffff,0.4));' +
+      'function animate(){requestAnimationFrame(animate);if(!lab3dStop){mesh.rotation.y+=0.01;mesh.rotation.x+=0.004;}rnd.render(scene,cam);}animate();' +
+      'document.getElementById("lab3dRotate").onclick=function(){lab3dStop=!lab3dStop;this.innerText=lab3dStop?"▶️ تشغيل الدوران":"⏸️ إيقاف الدوران";};' +
+      'document.getElementById("lab3dSize").addEventListener("input",function(){const s=+this.value;mesh.scale.set(s,s,s);document.getElementById("lab3dSizeV").innerText=toAr(s.toFixed(1));});' +
+      'document.getElementById("lab3dOpacity").addEventListener("input",function(){mat.opacity=+this.value;});' +
+      'var xrayOn=false;document.getElementById("lab3dXray").onclick=function(){xrayOn=!xrayOn;if(xrayOn){mat.opacity=0.25;mat.wireframe=false;document.getElementById("lab3dOpacity").value=0.25;this.innerText="إخفاء الرؤية الداخلية";this.style.background="var(--ratio)";this.style.color="#0b0e14";}else{mat.opacity=0.85;document.getElementById("lab3dOpacity").value=0.85;this.innerText="تفعيل الرؤية الداخلية";this.style.background="transparent";this.style.color="var(--ratio)";}};' +
+      'mesh.scale.set(1.5,1.5,1.5);' +
+      'window.addEventListener("resize",function(){const w=cv.clientWidth||400;cam.aspect=w/H;cam.updateProjectionMatrix();rnd.setSize(w,H);});' +
+      '})();';
+  }
+  else if (type === 'fractions') {
+    const total = parseInt(cfg.fraction_parts) || 4;
+    const shaded = parseInt(cfg.fraction_shaded) || 1;
+    return 'var fT=' + total + ',fS=' + Math.min(shaded, total) + ';' +
+      'function drawFrac(){const svg=document.getElementById("labFracSvg");let h="";const cx=110,cy=110,r=95;' +
+      'for(let i=0;i<fT;i++){const a0=(i/fT)*2*Math.PI-Math.PI/2,a1=((i+1)/fT)*2*Math.PI-Math.PI/2;' +
+      'const x0=cx+r*Math.cos(a0),y0=cy+r*Math.sin(a0),x1=cx+r*Math.cos(a1),y1=cy+r*Math.sin(a1);' +
+      'const fill=i<fS?"#f39c12":"rgba(255,255,255,0.05)";' +
+      'h+="<path d=\\"M"+cx+","+cy+" L"+x0+","+y0+" A"+r+","+r+" 0 0 1 "+x1+","+y1+" Z\\" fill=\\""+fill+"\\" stroke=\\"#00cec9\\" stroke-width=\\"2\\"/>";}' +
+      'svg.innerHTML=h;document.getElementById("labFracDisp").innerText=toAr(fS)+"/"+toAr(fT);' +
+      'document.getElementById("labFracS").innerText=toAr(fS);document.getElementById("labFracT").innerText=toAr(fT);' +
+      'const ss=document.getElementById("labFracShaded");ss.max=fT;if(fS>fT){fS=fT;ss.value=fT;}}' +
+      'document.getElementById("labFracTotal").addEventListener("input",function(){fT=+this.value;if(fS>fT)fS=fT;drawFrac();});' +
+      'document.getElementById("labFracShaded").addEventListener("input",function(){fS=+this.value;drawFrac();});' +
+      'drawFrac();';
+  }
+  else if (type === 'ratio') {
+    const a = parseInt(cfg.ratio_a) || 3, b = parseInt(cfg.ratio_b) || 1;
+    return 'var rA=' + a + ',rB=' + b + ';' +
+      'document.getElementById("labRatioMul").addEventListener("input",function(){const m=+this.value;' +
+      'const va=rA*m,vb=rB*m;document.getElementById("labRatioM").innerText=toAr(m);' +
+      'const mx=Math.max(va,vb,1);document.getElementById("labRatioBarA").style.height=(va/mx*160)+"px";' +
+      'document.getElementById("labRatioBarB").style.height=(vb/mx*160)+"px";' +
+      'document.getElementById("labRatioLabA").innerText=toAr(va);document.getElementById("labRatioLabB").innerText=toAr(vb);' +
+      'document.getElementById("labRatioDisp").innerText=toAr(va)+" : "+toAr(vb);});' +
+      'document.getElementById("labRatioDisp").innerText=toAr(rA)+" : "+toAr(rB);' +
+      'document.getElementById("labRatioLabA").innerText=toAr(rA);document.getElementById("labRatioLabB").innerText=toAr(rB);';
+  }
+  else if (type === 'bars') {
+    let data = cfg.bars_data;
+    if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) { data = []; } }
+    if (!Array.isArray(data) || !data.length) data = [{label:'أ',value:5},{label:'ب',value:8},{label:'ج',value:3},{label:'د',value:6}];
+    return 'var bars=' + JSON.stringify(data) + ';' +
+      '(function(){const svg=document.getElementById("labBarsSvg");const mx=Math.max.apply(null,bars.map(b=>b.value))||1;' +
+      'const bw=320/bars.length,gap=12;let h="";' +
+      'bars.forEach((b,i)=>{const bh=(b.value/mx)*200;const x=40+i*bw;const y=240-bh;' +
+      'h+="<rect x=\\""+(x+gap/2)+"\\" y=\\""+y+"\\" width=\\""+(bw-gap)+"\\" height=\\""+bh+"\\" fill=\\"#00cec9\\" rx=\\"4\\"><animate attributeName=\\"height\\" from=\\"0\\" to=\\""+bh+"\\" dur=\\"0.8s\\"/><animate attributeName=\\"y\\" from=\\"240\\" to=\\""+y+"\\" dur=\\"0.8s\\"/></rect>";' +
+      'h+="<text x=\\""+(x+bw/2)+"\\" y=\\"260\\" fill=\\"#fff\\" font-size=\\"14\\" text-anchor=\\"middle\\" font-family=\\"Cairo\\">"+b.label+"</text>";' +
+      'h+="<text x=\\""+(x+bw/2)+"\\" y=\\""+(y-6)+"\\" fill=\\"#f39c12\\" font-size=\\"14\\" text-anchor=\\"middle\\" font-weight=\\"bold\\">"+toAr(b.value)+"</text>";});' +
+      'svg.innerHTML=h;})();';
+  }
+  else if (type === 'geometry') {
+    return 'function drawGeo(){const n=+document.getElementById("labGeoSides").value;const svg=document.getElementById("labGeoSvg");' +
+      'const cx=120,cy=120,r=95;let pts="";for(let i=0;i<n;i++){const a=(i/n)*2*Math.PI-Math.PI/2;pts+=(cx+r*Math.cos(a))+","+(cy+r*Math.sin(a))+" ";}' +
+      'svg.innerHTML="<polygon points=\\""+pts+"\\" fill=\\"rgba(0,206,201,0.15)\\" stroke=\\"#00cec9\\" stroke-width=\\"3\\"/>";' +
+      'document.getElementById("labGeoS").innerText=toAr(n);' +
+      'const names={3:"مثلّث",4:"مربّع",5:"خماسي",6:"سداسي",7:"سباعي",8:"ثماني",9:"تساعي",10:"عشاري"};' +
+      'document.getElementById("labGeoDisp").innerText=names[n]||(toAr(n)+" أضلاع");}' +
+      'document.getElementById("labGeoSides").addEventListener("input",drawGeo);drawGeo();';
+  }
+  // slider
+  const base = parseInt(cfg.base_value) || 3;
+  return 'const labBase=' + base + ';const sl=document.getElementById("labSlider");' +
+    'if(sl){sl.addEventListener("input",function(){const m=+this.value;document.getElementById("labMul").innerText=toAr(m);document.getElementById("labValue").innerText=toAr(labBase*m);});}';
+}
+
 function ivBuildLessonHTML(L) {
   const ctx = L._context || {};
   const grade = ctx.grade || 'الصف';
@@ -4589,7 +4777,8 @@ function ivBuildLessonHTML(L) {
     '<div class="hint" id="hint-' + i + '">💡 ' + e(h) + '</div>'
   ).join('');
   const lab = L.lab || {};
-  const labBase = parseInt(lab.base_value) || 3;
+  const labType = lab.lab_type || 'slider';
+  const labCfg = lab.config || {};
   const hook = L.hook || {};
   const pitfall = L.pitfall || {};
   const summary = L.summary || {};
@@ -4597,6 +4786,7 @@ function ivBuildLessonHTML(L) {
   return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + e(title) + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">' +
+    (labType === 'solids3d' ? '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\/script>' : '') +
     '<style>' +
     ':root{--primary:#001f3f;--accent:#f39c12;--success:#2ecc71;--danger:#e74c3c;--bg:#0b0e14;--surface:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--text:#fff;--muted:#a0aab5;--ratio:#00cec9;--glow:0 0 20px rgba(0,206,201,0.4);--p1:#f1c40f;--p2:#2ecc71;}' +
     '*{box-sizing:border-box;margin:0;padding:0;font-family:Tajawal,sans-serif;scroll-behavior:smooth;}' +
@@ -4662,16 +4852,8 @@ function ivBuildLessonHTML(L) {
     // 2. Concepts
     '<section id="s-concepts"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:30px;">المفاهيم الأساسية 🎯</h2>' +
     '<div class="cards-grid">' + conceptsHTML + '</div></section>' +
-    // 3. Lab
-    '<section id="s-lab"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:15px;">' + e(lab.title || 'مختبر تفاعلي') + ' 🎚️</h2>' +
-    '<p style="margin-bottom:25px;text-align:center;max-width:700px;">' + e(lab.description || '') + '</p>' +
-    '<div class="glass-card lab-container"><div class="controls"><div class="slider-group">' +
-    '<label>' + e(lab.multiplier_label || 'العدد') + ': <span id="labMul" class="number" style="color:var(--accent);">1</span></label>' +
-    '<input type="range" id="labSlider" min="1" max="5" value="1" step="1"></div>' +
-    '<div class="lab-note" id="labNote">' + e(lab.note || '') + '</div></div>' +
-    '<div class="visualizer"><div style="font-family:Cairo;color:var(--muted);margin-bottom:10px;">' + e(lab.unit_name || 'القيمة') + '</div>' +
-    '<div class="big-value" id="labValue">' + labBase + '</div>' +
-    '<div style="font-family:Cairo;color:var(--muted);margin-top:10px;">القيمة الأساسية × العدد</div></div></div></section>' +
+    // 3. Lab (حسب النوع)
+    ivBuildLabSection(lab, labType, labCfg, e) +
     // 4. Examples
     '<section id="s-examples"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:20px;">مسرح الأمثلة 🎬</h2>' +
     '<div class="glass-card" style="max-width:700px;"><div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;margin-bottom:20px;">' +
@@ -4699,30 +4881,46 @@ function ivBuildLessonHTML(L) {
     '<div class="feedback-msg" id="chFb"></div>' +
     '<button class="btn btn-outline" onclick="chHint()" style="margin-top:15px;">💡 تلميح</button>' +
     '<div class="hints-container">' + hintsHTML + '</div></div></section>' +
-    // 9. Summary
-    '<section id="s-summary"><div class="stat-circle">' + e(summary.mastery || 'ممتاز') + '</div>' +
-    '<h2 style="color:var(--success);font-size:2rem;text-align:center;margin-bottom:15px;">أحسنت! 🌟</h2>' +
+    // 9. Summary (ذكي — يحسب الإنجاز)
+    '<section id="s-summary"><div class="stat-circle" id="sumCircle">٠٪</div>' +
+    '<h2 style="color:var(--success);font-size:2rem;text-align:center;margin-bottom:15px;" id="sumTitle">أكمل الدرس! 🌟</h2>' +
+    '<div id="sumStats" style="display:flex;gap:15px;justify-content:center;flex-wrap:wrap;margin-bottom:20px;">' +
+    '<div style="background:rgba(0,0,0,0.3);padding:10px 18px;border-radius:20px;font-family:Cairo;">🚦 الكويز: <span id="sumQuiz" style="color:var(--muted);">لم يُحلّ</span></div>' +
+    '<div style="background:rgba(0,0,0,0.3);padding:10px 18px;border-radius:20px;font-family:Cairo;">👑 التحدّي: <span id="sumCh" style="color:var(--muted);">لم يُحلّ</span></div></div>' +
     '<p style="text-align:center;font-size:1.2rem;max-width:600px;line-height:1.8;">' + e(summary.closing || '') + '</p></section>' +
     '<footer>🎓 إمبراطورية الرياضيات · ' + e(teacher) + '</footer>' +
     '<script>' +
     'function toAr(s){const a=["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];return String(s).replace(/[0-9]/g,w=>a[+w]);}' +
+    // 🎵 الأصوات (Web Audio)
+    'function playSound(type){try{const ac=new(window.AudioContext||window.webkitAudioContext)();const o=ac.createOscillator(),g=ac.createGain();o.connect(g);g.connect(ac.destination);' +
+    'if(type==="success"){o.type="sine";o.frequency.setValueAtTime(523,ac.currentTime);o.frequency.setValueAtTime(659,ac.currentTime+0.1);o.frequency.setValueAtTime(784,ac.currentTime+0.2);g.gain.setValueAtTime(0.25,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+0.4);o.start();o.stop(ac.currentTime+0.4);}' +
+    'else{o.type="sawtooth";o.frequency.setValueAtTime(200,ac.currentTime);o.frequency.exponentialRampToValueAtTime(100,ac.currentTime+0.2);g.gain.setValueAtTime(0.2,ac.currentTime);g.gain.exponentialRampToValueAtTime(0.01,ac.currentTime+0.2);o.start();o.stop(ac.currentTime+0.2);}}catch(e){}}' +
+    // 🎉 Confetti
+    'function fireConfetti(){const c=document.createElement("canvas");c.style.cssText="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:9999;";document.body.appendChild(c);const x=c.getContext("2d");c.width=innerWidth;c.height=innerHeight;const cols=["#00cec9","#f39c12","#2ecc71","#e74c3c","#9b59b6"];const p=[];for(let i=0;i<90;i++)p.push({x:c.width/2,y:c.height/2,vx:(Math.random()-0.5)*20,vy:(Math.random()-1)*18-4,s:Math.random()*9+4,c:cols[~~(Math.random()*cols.length)],r:Math.random()*360,rs:(Math.random()-0.5)*12});' +
+    'function d(){x.clearRect(0,0,c.width,c.height);let a=false;p.forEach(i=>{i.x+=i.vx;i.y+=i.vy;i.vy+=0.7;i.r+=i.rs;if(i.y<c.height)a=true;x.save();x.translate(i.x,i.y);x.rotate(i.r*Math.PI/180);x.fillStyle=i.c;x.fillRect(-i.s/2,-i.s/2,i.s,i.s);x.restore();});if(a)requestAnimationFrame(d);else c.remove();}d();}' +
     // Scroll reveal + progress
     'const secs=document.querySelectorAll("section");' +
     'window.addEventListener("scroll",()=>{const h=document.documentElement;const p=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById("pBar").style.width=p+"%";secs.forEach(s=>{if(s.getBoundingClientRect().top<window.innerHeight*0.8)s.classList.add("visible");});});' +
-    // Lab
-    'const labBase=' + labBase + ';const sl=document.getElementById("labSlider");' +
-    'if(sl){sl.addEventListener("input",function(){const m=+this.value;document.getElementById("labMul").innerText=toAr(m);document.getElementById("labValue").innerText=toAr(labBase*m);});}' +
+    // Lab (حسب النوع)
+    ivBuildLabJS(labType, labCfg) +
     // Examples
     'const EX=' + examplesJson + ';let exI=0,exS=0;' +
     'function exShow(){const ex=EX[exI];if(!ex)return;document.getElementById("exTitle").innerText=ex.title;document.getElementById("exCur").innerText=toAr(exI+1);const st=document.getElementById("exStage");st.innerHTML="";exS=0;document.getElementById("exNext").style.display="inline-flex";document.getElementById("exPrev").style.display=exI>0?"inline-flex":"none";}' +
-    'function exStep(){const ex=EX[exI];if(!ex)return;if(exS<ex.steps.length){const d=document.createElement("div");d.className="step";d.style.display="block";d.innerHTML=toAr(ex.steps[exS]);document.getElementById("exStage").appendChild(d);exS++;}if(exS>=ex.steps.length){if(exI<EX.length-1){document.getElementById("exNext").innerText="المثال التالي ➡️";document.getElementById("exNext").onclick=function(){exI++;exShow();document.getElementById("exNext").innerText="الخطوة التالية ⬇️";document.getElementById("exNext").onclick=exStep;};}else{document.getElementById("exNext").style.display="none";}}}' +
+    'function exStep(){const ex=EX[exI];if(!ex)return;if(exS<ex.steps.length){const d=document.createElement("div");d.className="step";d.style.display="block";const isLast=(exS===ex.steps.length-1);if(isLast){d.style.borderRightColor="var(--success)";d.innerHTML="<span style=\\"color:var(--success);font-weight:bold;font-size:1.15rem;\\">✅ "+toAr(ex.steps[exS])+"</span>";}else{d.innerHTML=toAr(ex.steps[exS]);}document.getElementById("exStage").appendChild(d);exS++;}if(exS>=ex.steps.length){if(exI<EX.length-1){document.getElementById("exNext").innerText="المثال التالي ➡️";document.getElementById("exNext").onclick=function(){exI++;exShow();document.getElementById("exNext").innerText="الخطوة التالية ⬇️";document.getElementById("exNext").onclick=exStep;};}else{document.getElementById("exNext").style.display="none";}}}' +
     'function exNav(d){exI+=d;if(exI<0)exI=0;exShow();}' +
     'exShow();' +
-    // Quiz
-    'document.querySelectorAll(".quiz-btn").forEach(b=>{b.onclick=function(){if(this.dataset.correct==="true"){this.classList.add("correct");document.getElementById("qFb").innerText="' + e(quiz.success_msg || 'أحسنت!').replace(/'/g, "\\'") + '";document.getElementById("qFb").style.color="var(--success)";}else{this.classList.add("wrong");document.getElementById("qFb").innerText="حاول مرة أخرى 🤔";document.getElementById("qFb").style.color="var(--danger)";}};});' +
-    // Challenge
+    // 🏆 تتبّع الإنجاز
+    'var prog={quiz:false,challenge:false};' +
+    'function updateSummary(){let pts=0;if(prog.quiz)pts+=50;if(prog.challenge)pts+=50;' +
+    'document.getElementById("sumCircle").innerText=toAr(pts)+"٪";' +
+    'document.getElementById("sumQuiz").innerText=prog.quiz?"✅ صحيح":"لم يُحلّ";document.getElementById("sumQuiz").style.color=prog.quiz?"var(--success)":"var(--muted)";' +
+    'document.getElementById("sumCh").innerText=prog.challenge?"✅ صحيح":"لم يُحلّ";document.getElementById("sumCh").style.color=prog.challenge?"var(--success)":"var(--muted)";' +
+    'var t=document.getElementById("sumTitle");if(pts===100){t.innerText="بطل الإمبراطورية! 👑";if(!window._cel){window._cel=true;fireConfetti();}}else if(pts>=50)t.innerText="أداء جيد! واصل 🌟";else t.innerText="أكمل الدرس! 🌟";}' +
+    // Quiz (مع صوت + confetti + تتبّع)
+    'document.querySelectorAll(".quiz-btn").forEach(b=>{b.onclick=function(){if(prog.quiz)return;if(this.dataset.correct==="true"){this.classList.add("correct");playSound("success");fireConfetti();prog.quiz=true;updateSummary();document.getElementById("qFb").innerText="' + e(quiz.success_msg || 'أحسنت!').replace(/'/g, "\\'") + '";document.getElementById("qFb").style.color="var(--success)";}else{this.classList.add("wrong");playSound("wrong");document.getElementById("qFb").innerText="حاول مرة أخرى 🤔";document.getElementById("qFb").style.color="var(--danger)";setTimeout(()=>this.classList.remove("wrong"),500);}};});' +
+    // Challenge (مع صوت + confetti + تتبّع)
     'let chH=0;const CHA="' + e(String(ch.answer || '')).replace(/'/g, "\\'") + '";' +
-    'function chCheck(){const v=document.getElementById("chAns").value.trim();const fb=document.getElementById("chFb");if(v&&(v===CHA||v.replace(/\\s/g,"")===CHA.replace(/\\s/g,""))){fb.innerText="🎉 إجابة صحيحة! أنت بطل!";fb.style.color="var(--success)";}else{fb.innerText="ليست صحيحة، استعن بالتلميحات 💡";fb.style.color="var(--danger)";}}' +
+    'function chCheck(){const v=document.getElementById("chAns").value.trim();const fb=document.getElementById("chFb");if(v&&(v===CHA||v.replace(/\\s/g,"")===CHA.replace(/\\s/g,""))){playSound("success");fireConfetti();prog.challenge=true;updateSummary();fb.innerText="🎉 إجابة صحيحة! أنت بطل!";fb.style.color="var(--success)";}else{playSound("wrong");fb.innerText="ليست صحيحة، استعن بالتلميحات 💡";fb.style.color="var(--danger)";}}' +
     'function chHint(){const h=document.getElementById("hint-"+chH);if(h){h.style.display="block";chH++;}}' +
     'document.querySelectorAll("text,.number").forEach(el=>{el.innerHTML=toAr(el.innerHTML);});' +
     '<\/script></body></html>';

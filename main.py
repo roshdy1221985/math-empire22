@@ -11611,12 +11611,23 @@ async def _generate_interactive_core(grade, semester, unit, lesson, teacher_name
     {{"title": "المفهوم", "desc": "الشرح", "law": "القانون أو القاعدة"}}
   ],
   "lab": {{
+    "lab_type": "اختر النوع الأنسب للدرس: solids3d (مجسّمات ثلاثية الأبعاد) | fractions (كسور) | ratio (نسبة) | bars (إحصاء/أعمدة) | geometry (هندسة مستوية) | slider (عام)",
     "title": "عنوان المختبر",
-    "description": "اشرح ماذا يفعل الطالب بالمنزلق",
-    "unit_name": "اسم الوحدة المتغيرة مثل (كوب)",
-    "base_value": 3,
-    "multiplier_label": "الكمية الأساسية لكل وحدة",
-    "note": "ملاحظة تعليمية"
+    "description": "اشرح ماذا يفعل الطالب في المختبر",
+    "note": "ملاحظة تعليمية",
+    "config": {{
+      "shape": "للـ solids3d فقط: cube | pyramid | cylinder | sphere | cone | prism",
+      "fraction_parts": "للـ fractions فقط: عدد الأجزاء الكلي مثل 8",
+      "fraction_shaded": "للـ fractions فقط: الأجزاء الملوّنة مثل 3",
+      "ratio_a": "للـ ratio فقط: الجزء الأول مثل 3",
+      "ratio_b": "للـ ratio فقط: الجزء الثاني مثل 1",
+      "ratio_label_a": "للـ ratio: اسم الأول مثل ليمون",
+      "ratio_label_b": "للـ ratio: اسم الثاني مثل نعناع",
+      "bars_data": "للـ bars فقط: مصفوفة مثل [{{\\"label\\":\\"أ\\",\\"value\\":5}}]",
+      "base_value": "للـ slider فقط: قيمة أساسية رقم 1-5",
+      "unit_name": "للـ slider: اسم الوحدة",
+      "multiplier_label": "للـ slider: وصف المنزلق"
+    }}
   }},
   "examples": [
     {{"title": "مثال 1: العنوان", "steps": ["خطوة 1", "خطوة 2", "النتيجة"]}}
@@ -11641,9 +11652,16 @@ async def _generate_interactive_core(grade, semester, unit, lesson, teacher_name
 }}
 
 قواعد صارمة:
-- العربية الفصحى، أرقام عربية (٠-٩) في كل النصوص
+- العربية الفصحى، أرقام عربية (٠-٩) في كل النصوص العربية (لكن أبقِ الأرقام في config بالإنجليزية)
 - 3 مفاهيم، 3 أمثلة، 3 نصائح، 3 تلميحات بالضبط
-- المختبر: base_value رقم صحيح بين 1 و 5 (الكمية لكل وحدة)
+- **مهم جداً — اختيار lab_type:** اختر النوع الذي يخدم الدرس فعلياً:
+  * دروس المجسّمات/الحجم/المساحة السطحية → solids3d (حدد shape المناسب)
+  * دروس الكسور → fractions
+  * دروس النسبة/التناسب → ratio
+  * دروس الإحصاء/البيانات → bars
+  * دروس الهندسة المستوية/المضلّعات → geometry
+  * أي درس آخر (أعداد، جبر، عمليات) → slider
+- املأ config فقط بحقول النوع المختار (الباقي اتركه فارغاً أو احذفه)
 - correct_index رقم من 0 إلى 3
 - المحتوى دقيق رياضياً ومناسب لمستوى الصف"""
     
@@ -11766,6 +11784,141 @@ async def prep_library_save(
         raise HTTPException(status_code=500, detail=f"فشل الحفظ: {str(e)[:200]}")
     
     return {"status": "success", "file_url": file_url, "message": "تم الرفع لمكتبة الدروس التفاعلية"}
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 📊 POWERPOINT EXPORT — تصدير العرض التقديمي كملف PPTX
+# ════════════════════════════════════════════════════════════════════════════
+async def _build_pptx(slides_json: str, lesson_title: str, grade: str, teacher_name: str):
+    """يبني ملف PowerPoint من شرائح JSON ويُرجع مساره"""
+    try:
+        from pptx import Presentation
+        from pptx.util import Inches, Pt, Emu
+        from pptx.dml.color import RGBColor
+        from pptx.enum.text import PP_ALIGN, MSO_ANCHOR
+    except ImportError:
+        raise HTTPException(status_code=503, detail="❌ مكتبة python-pptx غير مثبتة. شغّل: pip install python-pptx")
+    
+    import json as jl
+    try:
+        slides = jl.loads(slides_json)
+    except Exception:
+        raise HTTPException(status_code=400, detail="بيانات الشرائح غير صحيحة")
+    if not isinstance(slides, list) or not slides:
+        raise HTTPException(status_code=400, detail="لا توجد شرائح")
+    
+    # ألوان الإمبراطورية
+    NAVY = RGBColor(0x0A, 0x1F, 0x4D)
+    DARK = RGBColor(0x04, 0x0D, 0x21)
+    GOLD = RGBColor(0xD4, 0xAF, 0x37)
+    GOLD_L = RGBColor(0xFC, 0xD3, 0x4E)
+    WHITE = RGBColor(0xF0, 0xEA, 0xD6)
+    GREEN = RGBColor(0x2E, 0xCC, 0x71)
+    
+    prs = Presentation()
+    prs.slide_width = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    SW, SH = prs.slide_width, prs.slide_height
+    blank = prs.slide_layouts[6]
+    
+    def set_bg(slide, color):
+        slide.background.fill.solid()
+        slide.background.fill.fore_color.rgb = color
+    
+    def add_box(slide, x, y, w, h, text, size, color, bold=True, align=PP_ALIGN.CENTER, anchor=MSO_ANCHOR.MIDDLE):
+        tb = slide.shapes.add_textbox(x, y, w, h)
+        tf = tb.text_frame
+        tf.word_wrap = True
+        tf.vertical_anchor = anchor
+        lines = text.split("\n") if isinstance(text, str) else [str(text)]
+        for i, ln in enumerate(lines):
+            p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
+            p.alignment = align
+            run = p.add_run()
+            run.text = ln
+            run.font.size = Pt(size)
+            run.font.bold = bold
+            run.font.color.rgb = color
+            run.font.name = "Cairo"
+        return tb
+    
+    def add_bar(slide, x, y, w, h, color):
+        from pptx.enum.shapes import MSO_SHAPE
+        shp = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, x, y, w, h)
+        shp.fill.solid()
+        shp.fill.fore_color.rgb = color
+        shp.line.fill.background()
+        return shp
+    
+    for s in slides:
+        stype = s.get("type", "content")
+        slide = prs.slides.add_slide(blank)
+        set_bg(slide, DARK if stype == "title" else NAVY)
+        # شريط علوي ذهبي
+        add_bar(slide, 0, 0, SW, Inches(0.15), GOLD)
+        
+        if stype == "title":
+            add_box(slide, Inches(1), Inches(2.2), Inches(11.33), Inches(1.5), s.get("title", ""), 48, GOLD_L)
+            if s.get("subtitle"):
+                add_box(slide, Inches(1), Inches(3.8), Inches(11.33), Inches(1), s.get("subtitle", ""), 26, WHITE, bold=False)
+            add_box(slide, Inches(1), Inches(6), Inches(11.33), Inches(0.8), "إمبراطورية الرياضيات 👑", 18, GOLD)
+        elif stype == "question":
+            add_box(slide, Inches(0.5), Inches(0.5), Inches(12.33), Inches(0.8), "❓ سؤال تفاعلي", 24, GOLD)
+            add_box(slide, Inches(1), Inches(1.6), Inches(11.33), Inches(1), s.get("title", ""), 32, GOLD_L)
+            add_box(slide, Inches(1), Inches(2.8), Inches(11.33), Inches(1.8), s.get("question", ""), 28, WHITE, bold=False)
+            if s.get("answer"):
+                add_box(slide, Inches(1.5), Inches(5), Inches(10.33), Inches(1.2), "✓ الإجابة: " + str(s.get("answer", "")), 24, GREEN)
+        elif stype == "example":
+            add_box(slide, Inches(0.5), Inches(0.5), Inches(12.33), Inches(1), s.get("title", ""), 32, GOLD_L)
+            body = ""
+            if s.get("problem"): body += str(s.get("problem")) + "\n\n"
+            for i, st in enumerate(s.get("steps", []), 1):
+                body += "• " + str(st) + "\n"
+            add_box(slide, Inches(1), Inches(1.7), Inches(11.33), Inches(3.8), body.strip(), 22, WHITE, bold=False, anchor=MSO_ANCHOR.TOP)
+            if s.get("result"):
+                add_box(slide, Inches(1.5), Inches(5.7), Inches(10.33), Inches(1), "✓ " + str(s.get("result", "")), 26, GREEN)
+        else:  # content / objectives / closing
+            icon = {"objectives": "🎯 ", "closing": "🏁 ", "content": "📚 "}.get(stype, "")
+            add_box(slide, Inches(0.5), Inches(0.5), Inches(12.33), Inches(1.2), icon + s.get("title", ""), 34, GOLD_L)
+            pts = s.get("points", [])
+            body = "\n".join("◆  " + str(p) for p in pts)
+            add_box(slide, Inches(1.2), Inches(2), Inches(11), Inches(4.5), body, 24, WHITE, bold=False, anchor=MSO_ANCHOR.TOP, align=PP_ALIGN.RIGHT)
+        
+        # تذييل
+        add_box(slide, Inches(0.5), Inches(6.95), Inches(12.33), Inches(0.4), (teacher_name or "") + "  ·  " + (grade or ""), 12, GOLD, bold=False)
+    
+    import tempfile, os as _os
+    safe = "".join(ch for ch in (lesson_title or "presentation") if ch.isalnum() or ch in " _-").strip()[:50] or "presentation"
+    out_path = _os.path.join(tempfile.gettempdir(), f"{safe}_{int(__import__('time').time())}.pptx")
+    prs.save(out_path)
+    return out_path
+
+
+@app.post("/api/prep/slides_pptx")
+async def prep_slides_pptx(
+    slides_json: str = Form(...),
+    lesson_title: str = Form(default="عرض تقديمي"),
+    grade: str = Form(default=""),
+    teacher_name: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """📊 [أدمن] تصدير العرض كملف PowerPoint"""
+    path = await _build_pptx(slides_json, lesson_title, grade, teacher_name)
+    safe = "".join(ch for ch in (lesson_title or "presentation") if ch.isalnum() or ch in " _-").strip()[:50] or "presentation"
+    return FileResponse(path, media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation", filename=f"{safe}.pptx")
+
+
+@app.post("/api/teacher/slides_pptx")
+async def teacher_slides_pptx(
+    slides_json: str = Form(...),
+    lesson_title: str = Form(default="عرض تقديمي"),
+    grade: str = Form(default=""),
+    teacher_name: str = Form(default=""),
+):
+    """📊 [معلم] تصدير العرض كملف PowerPoint"""
+    path = await _build_pptx(slides_json, lesson_title, grade, teacher_name)
+    safe = "".join(ch for ch in (lesson_title or "presentation") if ch.isalnum() or ch in " _-").strip()[:50] or "presentation"
+    return FileResponse(path, media_type="application/vnd.openxmlformats-officedocument.presentationml.presentation", filename=f"{safe}.pptx")
 
 
 # ════════════════════════════════════════════════════════════════════════════
