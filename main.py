@@ -11285,20 +11285,8 @@ async def prep_worksheet_generate(
 # ════════════════════════════════════════════════════════════════════════════
 # 🎬 SLIDES GENERATOR — مولّد العروض التقديمية بـ AI
 # ════════════════════════════════════════════════════════════════════════════
-@app.post("/api/prep/slides_generate")
-async def prep_slides_generate(
-    request: Request,
-    grade: str = Form(default=""),
-    semester: str = Form(default=""),
-    unit: str = Form(default=""),
-    lesson: str = Form(default=""),
-    n_slides: int = Form(default=8),
-    n_questions: int = Form(default=3),
-    extra_text: str = Form(default=""),
-    admin = Depends(get_current_admin)
-):
-    """🎬 توليد عرض تقديمي كامل: عنوان + أهداف + شرح + أمثلة محلولة + أسئلة تفاعلية"""
-    ip = request.client.host if request.client else "unknown"
+async def _generate_slides_core(grade, semester, unit, lesson, n_slides, n_questions, extra_text, ip):
+    """🎬 المنطق الأساسي لتوليد العرض — مشترك بين الأدمن والمعلم"""
     if _is_rate_limited(ip, max_calls=15, window_seconds=120):
         raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
     
@@ -11391,6 +11379,393 @@ async def prep_slides_generate(
             continue
     
     raise HTTPException(status_code=502, detail=f"❌ فشل توليد العرض: {last_error}")
+
+
+@app.post("/api/prep/slides_generate")
+async def prep_slides_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    n_slides: int = Form(default=8),
+    n_questions: int = Form(default=3),
+    extra_text: str = Form(default=""),
+    admin = Depends(get_current_admin)
+):
+    """🎬 [أدمن] توليد عرض تقديمي — من داخل المصنع"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_slides_core(grade, semester, unit, lesson, n_slides, n_questions, extra_text, ip)
+
+
+@app.post("/api/teacher/slides_generate")
+async def teacher_slides_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    n_slides: int = Form(default=8),
+    n_questions: int = Form(default=3),
+    extra_text: str = Form(default=""),
+):
+    """🎬 [معلم] توليد عرض تقديمي — من لوحة المعلم (بلا حماية admin، مثل بقية أدوات المعلم)"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_slides_core(grade, semester, unit, lesson, n_slides, n_questions, extra_text, ip)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🎥 CINEMATIC LESSON — مولّد الدروس السينمائية المتحركة (GSAP)
+# ════════════════════════════════════════════════════════════════════════════
+async def _generate_cinematic_core(grade, semester, unit, lesson, teacher_name, n_examples, n_challenges, ip):
+    """🎥 المنطق الأساسي لتوليد فيلم الدرس — نظام القوالب (AI يملأ المحتوى فقط)"""
+    if _is_rate_limited(ip, max_calls=12, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    n_examples = max(1, min(n_examples, 8))
+    n_challenges = max(0, min(n_challenges, 3))
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "رياضيات عامة"
+    
+    prompt = f"""أنت خبير في إعداد الدروس التعليمية المتحركة للرياضيات في سلطنة عُمان.
+
+المهمة: أنشئ محتوى "فيلم درس" متحرك من مشاهد متتابعة.
+
+السياق: {context}
+
+المشاهد المطلوبة بالترتيب:
+1. مشهد مفهوم واحد (concept): يشرح الفكرة الأساسية + 3 مصطلحات للصناديق الملونة
+2. عدد {n_examples} مشهد مثال محلول (example): مسألة + خطوات حل + نتيجة نهائية
+{f'3. عدد {n_challenges} مشهد تحدّي (challenge): لغز أو سؤال محفّز للتفكير' if n_challenges > 0 else ''}
+4. مشهد توصيات ختامي واحد (summary): 3 نصائح + جملة ختامية ملهمة
+
+أخرج JSON فقط بهذا الشكل بالضبط:
+{{
+  "lesson_title": "عنوان الدرس المختصر",
+  "lesson_code": "رمز الدرس مثل ٢٣-١",
+  "scenes": [
+    {{
+      "type": "concept",
+      "title": "ما هو الموضوع؟",
+      "lines": ["جملة شرح 1", "جملة شرح 2", "جملة شرح 3"],
+      "boxes": [
+        {{"label": "مصطلح 1", "color": "green"}},
+        {{"label": "مصطلح 2", "color": "pink"}},
+        {{"label": "مصطلح 3", "color": "yellow"}}
+      ]
+    }},
+    {{
+      "type": "example",
+      "title": "مثال ١: العنوان",
+      "problem": "نص المسألة",
+      "steps": ["الخطوة 1", "الخطوة 2"],
+      "result": "النتيجة النهائية"
+    }},
+    {{
+      "type": "challenge",
+      "title": "لغز التحدي 👑",
+      "lines": ["سطر اللغز 1", "سطر اللغز 2"],
+      "hint": "السؤال المطلوب"
+    }},
+    {{
+      "type": "summary",
+      "title": "توصيات وتغذية راجعة 🌟",
+      "tips": ["نصيحة 1", "نصيحة 2", "نصيحة 3"],
+      "closing": "جملة ختامية ملهمة"
+    }}
+  ]
+}}
+
+قواعد صارمة:
+- العربية الفصحى، أرقام عربية (٠-٩) في كل النصوص
+- كل مثال: مسألة واضحة + خطوتان للحل على الأقل + نتيجة
+- النصوص مركّزة ومناسبة للعرض المتحرك (ليست فقرات طويلة)
+- ألوان الصناديق من: green, pink, yellow, cyan فقط
+- التزم بالترتيب: concept ثم examples ثم challenges ثم summary"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.85, "maxOutputTokens": 8000, "responseMimeType": "application/json"}
+            }
+            with httpx.Client(timeout=75.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    if not parsed.get("scenes"):
+                        raise ValueError("لا توجد مشاهد")
+                    return {
+                        "status": "ok",
+                        "movie": parsed,
+                        "model": model_name,
+                        "context": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson, "teacher_name": teacher_name}
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:150]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد الفيلم: {last_error}")
+
+
+@app.post("/api/prep/cinematic_generate")
+async def prep_cinematic_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    teacher_name: str = Form(default="أ. رشدي سيد"),
+    n_examples: int = Form(default=4),
+    n_challenges: int = Form(default=1),
+    admin = Depends(get_current_admin)
+):
+    """🎥 [أدمن] توليد فيلم درس سينمائي — من المصنع"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_cinematic_core(grade, semester, unit, lesson, teacher_name, n_examples, n_challenges, ip)
+
+
+@app.post("/api/teacher/cinematic_generate")
+async def teacher_cinematic_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    teacher_name: str = Form(default=""),
+    n_examples: int = Form(default=4),
+    n_challenges: int = Form(default=1),
+):
+    """🎥 [معلم] توليد فيلm درس سينمائي — من لوحة المعلم"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_cinematic_core(grade, semester, unit, lesson, teacher_name, n_examples, n_challenges, ip)
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# 🎮 INTERACTIVE LESSON — مولّد الدروس التفاعلية (مختبر + كويز + تحدّي)
+# ════════════════════════════════════════════════════════════════════════════
+async def _generate_interactive_core(grade, semester, unit, lesson, teacher_name, ip):
+    """🎮 المنطق الأساسي للدرس التفاعلي — قوالب عامة قابلة لأي درس"""
+    if _is_rate_limited(ip, max_calls=12, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+    
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "رياضيات عامة"
+    
+    prompt = f"""أنت خبير في تصميم الدروس التفاعلية للرياضيات في سلطنة عُمان.
+
+المهمة: أنشئ محتوى درس تفاعلي كامل يتفاعل معه الطالب بنفسه.
+
+السياق: {context}
+
+الدرس يتكون من أقسام متتابعة:
+1. قصة تشويقية (hook): فقرة جذابة تربط الدرس بالحياة
+2. بطاقات مفاهيم (concepts): 3 مفاهيم أساسية لكل منها قانون/قاعدة
+3. مختبر تفاعلي (lab): الطالب يحرّك منزلقاً (slider) ليرى نتيجة تتغير
+4. مسرح أمثلة (examples): 3 أمثلة كل مثال عدة خطوات حل
+5. نقطة تحقق (quiz): سؤال اختيار من متعدد + 4 خيارات
+6. الفخ الشائع (pitfall): خطأ يقع فيه الطلاب + الصواب
+7. نصائح ذهبية (tips): 3 نصائح قابلة للطي
+8. تحدّي (challenge): سؤال صعب + 3 تلميحات + الإجابة
+9. ملخص (summary): جملة ختامية + نسبة إتقان
+
+أخرج JSON فقط بهذا الشكل بالضبط:
+{{
+  "lesson_title": "عنوان الدرس",
+  "lesson_code": "رمز مثل ٢٩-١",
+  "hook": {{"story": "القصة التشويقية", "highlight": "الكلمة المفتاحية"}},
+  "concepts": [
+    {{"title": "المفهوم", "desc": "الشرح", "law": "القانون أو القاعدة"}}
+  ],
+  "lab": {{
+    "title": "عنوان المختبر",
+    "description": "اشرح ماذا يفعل الطالب بالمنزلق",
+    "unit_name": "اسم الوحدة المتغيرة مثل (كوب)",
+    "base_value": 3,
+    "multiplier_label": "الكمية الأساسية لكل وحدة",
+    "note": "ملاحظة تعليمية"
+  }},
+  "examples": [
+    {{"title": "مثال 1: العنوان", "steps": ["خطوة 1", "خطوة 2", "النتيجة"]}}
+  ],
+  "quiz": {{
+    "question": "نص السؤال",
+    "hint": "تلميح",
+    "options": ["خيار 1", "خيار 2", "خيار 3", "خيار 4"],
+    "correct_index": 1,
+    "success_msg": "أحسنت! الشرح"
+  }},
+  "pitfall": {{"title": "الخطأ الشائع", "wrong": "الفهم الخاطئ", "right": "الفهم الصحيح"}},
+  "tips": [
+    {{"title": "عنوان النصيحة", "body": "تفاصيل النصيحة"}}
+  ],
+  "challenge": {{
+    "question": "سؤال التحدّي",
+    "hints": ["تلميح 1", "تلميح 2", "تلميح 3"],
+    "answer": "الإجابة النهائية"
+  }},
+  "summary": {{"closing": "جملة ختامية ملهمة", "mastery": "ممتاز"}}
+}}
+
+قواعد صارمة:
+- العربية الفصحى، أرقام عربية (٠-٩) في كل النصوص
+- 3 مفاهيم، 3 أمثلة، 3 نصائح، 3 تلميحات بالضبط
+- المختبر: base_value رقم صحيح بين 1 و 5 (الكمية لكل وحدة)
+- correct_index رقم من 0 إلى 3
+- المحتوى دقيق رياضياً ومناسب لمستوى الصف"""
+    
+    import httpx
+    import json as json_lib
+    
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]
+    last_error = None
+    
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}],
+                "generationConfig": {"temperature": 0.85, "maxOutputTokens": 9000, "responseMimeType": "application/json"}
+            }
+            with httpx.Client(timeout=80.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    raw = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if raw.startswith("```"):
+                        raw = raw.split("\n", 1)[1] if "\n" in raw else raw
+                        raw = raw.rsplit("```", 1)[0] if "```" in raw else raw
+                    parsed = json_lib.loads(raw)
+                    if not parsed.get("concepts"):
+                        raise ValueError("محتوى ناقص")
+                    return {
+                        "status": "ok",
+                        "lesson": parsed,
+                        "model": model_name,
+                        "context": {"grade": grade, "semester": semester, "unit": unit, "lesson": lesson, "teacher_name": teacher_name}
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:150]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:150]}"
+            continue
+    
+    raise HTTPException(status_code=502, detail=f"❌ فشل توليد الدرس التفاعلي: {last_error}")
+
+
+@app.post("/api/prep/interactive_generate")
+async def prep_interactive_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    teacher_name: str = Form(default="أ. رشدي سيد"),
+    admin = Depends(get_current_admin)
+):
+    """🎮 [أدمن] توليد درس تفاعلي — من المصنع"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_interactive_core(grade, semester, unit, lesson, teacher_name, ip)
+
+
+@app.post("/api/teacher/interactive_generate")
+async def teacher_interactive_generate(
+    request: Request,
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    teacher_name: str = Form(default=""),
+):
+    """🎮 [معلم] توليد درس تفاعلي — من لوحة المعلم"""
+    ip = request.client.host if request.client else "unknown"
+    return await _generate_interactive_core(grade, semester, unit, lesson, teacher_name, ip)
+
+
+@app.post("/api/prep/library_save")
+async def prep_library_save(
+    request: Request,
+    title: str = Form(...),
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    lesson_type: str = Form(default="interactive"),
+    html_content: str = Form(...),
+):
+    """📚 رفع درس (فيلم/تفاعلي) لمكتبة الدروس التفاعلية — يخزّن HTML في Supabase Storage"""
+    if not html_content or len(html_content) < 100:
+        raise HTTPException(status_code=400, detail="المحتوى فارغ أو قصير")
+    if len(html_content) > 5 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="الملف أكبر من 5 ميجابايت")
+    
+    import time as _t
+    safe_title = "".join(ch for ch in title if ch.isalnum() or ch in " _-").strip()[:50] or "lesson"
+    file_name = f"lessons/{lesson_type}_{int(_t.time())}_{safe_title}.html"
+    
+    try:
+        supabase.storage.from_("resources").upload(
+            path=file_name,
+            file=html_content.encode("utf-8"),
+            file_options={"content-type": "text/html; charset=utf-8"}
+        )
+        file_url = supabase.storage.from_("resources").get_public_url(file_name)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل رفع الملف: {str(e)[:200]}")
+    
+    type_label = {"cinematic": "🎥 فيلم سينمائي", "interactive": "🎮 درس تفاعلي"}.get(lesson_type, "درس")
+    row = {
+        "title": title[:200],
+        "grade": grade[:100],
+        "semester": (semester or "")[:100],
+        "unit": (unit or "")[:200],
+        "lesson": (lesson or "")[:300],
+        "description": type_label,
+        "file_url": file_url,
+        "file_size_kb": len(html_content.encode("utf-8")) // 1024,
+        "sanitized": True,
+    }
+    try:
+        supabase.table("html_lessons").insert(row).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل الحفظ: {str(e)[:200]}")
+    
+    return {"status": "success", "file_url": file_url, "message": "تم الرفع لمكتبة الدروس التفاعلية"}
 
 
 # ════════════════════════════════════════════════════════════════════════════

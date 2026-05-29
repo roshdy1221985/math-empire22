@@ -1438,6 +1438,12 @@ body {
       <button class="factory-tab" id="tab-btn-slides" onclick="switchTab('slides')">
         <span class="tab-icon">🎬</span> العروض التقديمية
       </button>
+      <button class="factory-tab" id="tab-btn-cinema" onclick="switchTab('cinema')">
+        <span class="tab-icon">🎥</span> الأفلام السينمائية
+      </button>
+      <button class="factory-tab" id="tab-btn-interactive" onclick="switchTab('interactive')">
+        <span class="tab-icon">🎮</span> الدروس التفاعلية
+      </button>
     </div>
 
     <!-- ═══════════ تبويب: مصنع الأسئلة ═══════════ -->
@@ -1823,6 +1829,159 @@ body {
 
     </div>
     <!-- ═══════════ نهاية تبويب: العروض التقديمية ═══════════ -->
+
+    <!-- ═══════════ تبويب: الأفلام السينمائية ═══════════ -->
+    <div class="tab-content" id="tab-cinema">
+
+      <div style="background:linear-gradient(135deg,rgba(0,243,255,0.06),rgba(255,0,127,0.04));border:1px solid rgba(0,243,255,0.25);border-radius:14px;padding:16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.8rem;">🎥</span>
+          <div>
+            <div style="font-weight:800;color:#00f3ff;font-size:1.05rem;">الأفلام التعليمية السينمائية</div>
+            <div style="font-size:0.8rem;color:var(--dim);">درس متحرك بأسلوب GSAP — مفهوم + أمثلة محلولة متحركة + تحدّيات + توصيات</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- إعدادات الفيلم -->
+      <div class="ws-config">
+        <div class="field-group">
+          <label class="field-label">🎓 الصف</label>
+          <select class="field-select" id="cn-grade" onchange="cnLoadSemesters()">
+            <option value="">— اختر الصف —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📅 الفصل</label>
+          <select class="field-select" id="cn-semester" onchange="cnLoadUnits()" disabled>
+            <option value="">— الفصل —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📦 الوحدة</label>
+          <select class="field-select" id="cn-unit" onchange="cnLoadLessons()" disabled>
+            <option value="">— الوحدة —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 الدرس</label>
+          <select class="field-select" id="cn-lesson" disabled>
+            <option value="">— الدرس —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">✏️ عدد الأمثلة المحلولة</label>
+          <input class="field-input" type="number" id="cn-examples" value="4" min="1" max="8">
+        </div>
+        <div class="field-group">
+          <label class="field-label">👑 عدد التحدّيات</label>
+          <input class="field-input" type="number" id="cn-challenges" value="1" min="0" max="3">
+        </div>
+        <div class="field-group">
+          <label class="field-label">✍️ اسم المعلم (في الشريط)</label>
+          <input class="field-input" type="text" id="cn-teacher" value="أ. رشدي سيد" placeholder="اسم المعلم">
+        </div>
+      </div>
+
+      <button class="gen-btn" id="cn-gen-btn" onclick="generateCinema()" style="width:100%;margin-bottom:16px;background:linear-gradient(135deg,#00f3ff,#ff007f);">
+        🎬 إنتاج الفيلم التعليمي
+      </button>
+
+      <div class="progress-wrap" id="cn-progress">
+        <div class="progress-label" id="cn-progress-label">جارٍ الإنتاج...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="cn-progress-fill"></div></div>
+      </div>
+
+      <div id="cn-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
+        <button class="act-btn primary" onclick="cnPlay()" style="background:linear-gradient(135deg,#00f3ff,#ff007f);">🎬 تشغيل الفيلم</button>
+        <button class="act-btn" onclick="cnDownload()" style="background:rgba(0,243,255,0.12);border-color:rgba(0,243,255,0.4);color:#00f3ff;">⬇️ تنزيل HTML</button>
+        <button class="act-btn" onclick="cnUploadLibrary()" style="background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.4);color:#2ecc71;">📚 رفع للمكتبة</button>
+        <button class="act-btn" onclick="generateCinema()">🔄 إنتاج جديد</button>
+      </div>
+
+      <div id="cn-preview" style="display:none;"></div>
+
+      <div class="empty-state" id="cn-empty">
+        <span class="empty-icon">🎥</span>
+        ١. اختر الصف والدرس<br>
+        ٢. حدد عدد الأمثلة والتحدّيات<br>
+        ٣. اضغط "إنتاج الفيلم التعليمي"
+      </div>
+
+    </div>
+    <!-- ═══════════ نهاية تبويب: الأفلام السينمائية ═══════════ -->
+
+    <!-- ═══════════ تبويب: الدروس التفاعلية ═══════════ -->
+    <div class="tab-content" id="tab-interactive">
+
+      <div style="background:linear-gradient(135deg,rgba(0,206,201,0.06),rgba(46,204,113,0.04));border:1px solid rgba(0,206,201,0.25);border-radius:14px;padding:16px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:1.8rem;">🎮</span>
+          <div>
+            <div style="font-weight:800;color:#00cec9;font-size:1.05rem;">الدروس التفاعلية</div>
+            <div style="font-size:0.8rem;color:var(--dim);">درس يلمسه الطالب — مختبر منزلق + كويز + مقارنة + تحدّي بإدخال</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="ws-config">
+        <div class="field-group">
+          <label class="field-label">🎓 الصف</label>
+          <select class="field-select" id="iv-grade" onchange="ivLoadSemesters()">
+            <option value="">— اختر الصف —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📅 الفصل</label>
+          <select class="field-select" id="iv-semester" onchange="ivLoadUnits()" disabled>
+            <option value="">— الفصل —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📦 الوحدة</label>
+          <select class="field-select" id="iv-unit" onchange="ivLoadLessons()" disabled>
+            <option value="">— الوحدة —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">📖 الدرس</label>
+          <select class="field-select" id="iv-lesson" disabled>
+            <option value="">— الدرس —</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label class="field-label">✍️ اسم المعلم</label>
+          <input class="field-input" type="text" id="iv-teacher" value="أ. رشدي سيد" placeholder="اسم المعلم">
+        </div>
+      </div>
+
+      <button class="gen-btn" id="iv-gen-btn" onclick="generateInteractive()" style="width:100%;margin-bottom:16px;background:linear-gradient(135deg,#00cec9,#2ecc71);">
+        🎮 إنشاء الدرس التفاعلي
+      </button>
+
+      <div class="progress-wrap" id="iv-progress">
+        <div class="progress-label" id="iv-progress-label">جارٍ الإنشاء...</div>
+        <div class="progress-bar-track"><div class="progress-bar-fill" id="iv-progress-fill"></div></div>
+      </div>
+
+      <div id="iv-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:16px;">
+        <button class="act-btn primary" onclick="ivPlay()" style="background:linear-gradient(135deg,#00cec9,#2ecc71);">🎮 فتح الدرس</button>
+        <button class="act-btn" onclick="ivDownload()" style="background:rgba(0,206,201,0.12);border-color:rgba(0,206,201,0.4);color:#00cec9;">⬇️ تنزيل HTML</button>
+        <button class="act-btn" onclick="ivUploadLibrary()" style="background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.4);color:#2ecc71;">📚 رفع للمكتبة</button>
+        <button class="act-btn" onclick="generateInteractive()">🔄 إنشاء جديد</button>
+      </div>
+
+      <div id="iv-preview" style="display:none;"></div>
+
+      <div class="empty-state" id="iv-empty">
+        <span class="empty-icon">🎮</span>
+        ١. اختر الصف والدرس<br>
+        ٢. اضغط "إنشاء الدرس التفاعلي"<br>
+        ٣. درس كامل يتفاعل معه الطالب بنفسه
+      </div>
+
+    </div>
+    <!-- ═══════════ نهاية تبويب: الدروس التفاعلية ═══════════ -->
   </main>
 </div>
 
@@ -3339,9 +3498,13 @@ function switchTab(tab) {
   document.getElementById('tab-btn-questions').classList.toggle('active', tab === 'questions');
   document.getElementById('tab-btn-worksheet').classList.toggle('active', tab === 'worksheet');
   document.getElementById('tab-btn-slides').classList.toggle('active', tab === 'slides');
+  document.getElementById('tab-btn-cinema').classList.toggle('active', tab === 'cinema');
+  document.getElementById('tab-btn-interactive').classList.toggle('active', tab === 'interactive');
   document.getElementById('tab-questions').classList.toggle('active', tab === 'questions');
   document.getElementById('tab-worksheet').classList.toggle('active', tab === 'worksheet');
   document.getElementById('tab-slides').classList.toggle('active', tab === 'slides');
+  document.getElementById('tab-cinema').classList.toggle('active', tab === 'cinema');
+  document.getElementById('tab-interactive').classList.toggle('active', tab === 'interactive');
   if (tab === 'worksheet' && !_wsInitialized) {
     wsInitCurriculum();
     _wsInitialized = true;
@@ -3349,6 +3512,14 @@ function switchTab(tab) {
   if (tab === 'slides' && !_slInitialized) {
     slInitCurriculum();
     _slInitialized = true;
+  }
+  if (tab === 'cinema' && !_cnInitialized) {
+    cnInitCurriculum();
+    _cnInitialized = true;
+  }
+  if (tab === 'interactive' && !_ivInitialized) {
+    ivInitCurriculum();
+    _ivInitialized = true;
   }
 }
 
@@ -3877,6 +4048,684 @@ function slPresentCSS() {
     '.sl-nav button:disabled{opacity:0.4;cursor:not-allowed;}' +
     '.sl-nav #sl-counter{color:#fff;font-weight:700;min-width:80px;text-align:center;}' +
     '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}';
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎥 مولّد الأفلام السينمائية (GSAP) — نظام القوالب
+// ════════════════════════════════════════════════════════════
+let _cnInitialized = false;
+let _cnData = null;
+
+function cnInitCurriculum() {
+  if (!state.curriculum || !Array.isArray(state.curriculum)) return;
+  const sel = document.getElementById('cn-grade');
+  sel.innerHTML = '<option value="">— اختر الصف —</option>';
+  state.curriculum.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.name; opt.textContent = g.name;
+    sel.appendChild(opt);
+  });
+}
+
+function cnLoadSemesters() {
+  const grade = document.getElementById('cn-grade').value;
+  const semSel = document.getElementById('cn-semester');
+  const unitSel = document.getElementById('cn-unit');
+  const lessSel = document.getElementById('cn-lesson');
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+  unitSel.innerHTML = '<option value="">— الوحدة —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  if (g && g.semesters) g.semesters.forEach(s => {
+    const opt = document.createElement('option'); opt.value = s.name; opt.textContent = s.name; semSel.appendChild(opt);
+  });
+  semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function cnLoadUnits() {
+  const grade = document.getElementById('cn-grade').value;
+  const sem = document.getElementById('cn-semester').value;
+  const unitSel = document.getElementById('cn-unit');
+  const lessSel = document.getElementById('cn-lesson');
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  if (s && s.units) s.units.forEach(u => {
+    const opt = document.createElement('option'); opt.value = u.name; opt.textContent = u.name; unitSel.appendChild(opt);
+  });
+  unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function cnLoadLessons() {
+  const grade = document.getElementById('cn-grade').value;
+  const sem = document.getElementById('cn-semester').value;
+  const unit = document.getElementById('cn-unit').value;
+  const lessSel = document.getElementById('cn-lesson');
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  const u = s?.units?.find(x => x.name === unit);
+  if (u && u.lessons) u.lessons.forEach(l => {
+    const opt = document.createElement('option'); opt.value = l.name; opt.textContent = l.name; lessSel.appendChild(opt);
+  });
+  lessSel.disabled = false;
+}
+
+async function generateCinema() {
+  const grade = document.getElementById('cn-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف أولاً', 'error'); return; }
+  const nEx = parseInt(document.getElementById('cn-examples').value) || 4;
+  const nCh = parseInt(document.getElementById('cn-challenges').value) || 0;
+  
+  const btn = document.getElementById('cn-gen-btn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإنتاج...';
+  document.getElementById('cn-empty').style.display = 'none';
+  document.getElementById('cn-progress').classList.add('show');
+  document.getElementById('cn-progress-fill').style.width = '35%';
+  document.getElementById('cn-progress-label').textContent = 'جارٍ إنتاج الفيلم بـ Gemini...';
+  
+  try {
+    const fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('cn-semester').value || '');
+    fd.append('unit', document.getElementById('cn-unit').value || '');
+    fd.append('lesson', document.getElementById('cn-lesson').value || '');
+    fd.append('teacher_name', document.getElementById('cn-teacher').value || 'أ. رشدي سيد');
+    fd.append('n_examples', String(nEx));
+    fd.append('n_challenges', String(nCh));
+    
+    document.getElementById('cn-progress-fill').style.width = '65%';
+    const res = await apiCall('/api/prep/cinematic_generate', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    _cnData = data.movie;
+    _cnData._context = data.context || {};
+    document.getElementById('cn-progress-fill').style.width = '100%';
+    cnRenderPreview();
+    setTimeout(() => document.getElementById('cn-progress').classList.remove('show'), 500);
+    toast(`✅ تم إنتاج فيلم من ${(_cnData.scenes || []).length} مشهد`, 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    document.getElementById('cn-progress').classList.remove('show');
+  } finally {
+    btn.disabled = false; btn.textContent = '🎬 إنتاج الفيلم التعليمي';
+  }
+}
+
+function cnRenderPreview() {
+  if (!_cnData) return;
+  const scenes = _cnData.scenes || [];
+  const preview = document.getElementById('cn-preview');
+  const typeNames = { concept:'📚 مفهوم', example:'✏️ مثال', challenge:'👑 تحدّي', summary:'🌟 توصيات' };
+  
+  let html = '<div style="background:rgba(0,243,255,0.04);border:1px solid rgba(0,243,255,0.2);border-radius:12px;padding:16px;margin-bottom:14px;">';
+  html += '<div style="font-weight:800;color:#00f3ff;font-size:1.1rem;margin-bottom:4px;">🎬 ' + _esc(_cnData.lesson_title || 'فيلم الدرس') + '</div>';
+  html += '<div style="font-size:0.82rem;color:var(--dim);">' + arabicNum(scenes.length) + ' مشهد · جاهز للتشغيل</div>';
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">';
+  scenes.forEach((s, i) => {
+    html += '<div style="background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:12px;">';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:6px;">';
+    html += '<span style="background:linear-gradient(135deg,#00f3ff,#ff007f);color:#000;width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:0.75rem;">' + arabicNum(i+1) + '</span>';
+    html += '<span style="font-size:0.68rem;color:var(--dim);">' + (typeNames[s.type] || s.type) + '</span>';
+    html += '</div>';
+    html += '<div style="font-weight:700;color:#00f3ff;font-size:0.85rem;">' + _esc(s.title || '') + '</div>';
+    html += '</div>';
+  });
+  html += '</div>';
+  
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+  document.getElementById('cn-toolbar').style.display = 'flex';
+}
+
+function cnPlay() {
+  if (!_cnData) { toast('لا يوجد فيلم', 'error'); return; }
+  const win = window.open('', '_blank');
+  win.document.write(cnBuildMovieHTML(_cnData));
+  win.document.close();
+}
+
+// 🎬 محرّك بناء الفيلم الكامل (HTML + CSS + GSAP)
+function cnBuildMovieHTML(movie) {
+  const ctx = movie._context || {};
+  const scenes = movie.scenes || [];
+  const grade = ctx.grade || 'الصف';
+  const teacher = ctx.teacher_name || 'أ. رشدي سيد';
+  const code = movie.lesson_code || '';
+  const title = movie.lesson_title || 'الدرس';
+  
+  const colorMap = { green:'--neon-green', pink:'--neon-pink', yellow:'--neon-yellow', cyan:'--neon-cyan' };
+  
+  // نبني HTML المشاهد
+  let scenesHTML = '';
+  let tlJS = '';
+  
+  scenes.forEach((s, i) => {
+    const sid = 'scene-' + i;
+    let inner = '';
+    
+    if (s.type === 'concept') {
+      inner += '<div class="text-panel">';
+      inner += '<div class="k-line hl-yellow">' + _escMovie(s.title) + '</div>';
+      (s.lines || []).forEach(l => { inner += '<div class="k-line">' + _escMovie(l) + '</div>'; });
+      inner += '</div><div class="svg-panel"><svg viewBox="0 0 400 200">';
+      const boxes = s.boxes || [];
+      const positions = [250, 150, 50];
+      boxes.slice(0,3).forEach((b, bi) => {
+        const cvar = 'var(' + (colorMap[b.color] || '--neon-cyan') + ')';
+        const x = positions[bi] !== undefined ? positions[bi] : (250 - bi*100);
+        inner += '<rect x="' + x + '" y="70" width="80" height="60" fill="rgba(255,255,255,0.05)" stroke="' + cvar + '" stroke-width="3" rx="5" class="' + sid + '-box" opacity="0"/>';
+        inner += '<text x="' + (x+40) + '" y="105" fill="' + cvar + '" font-size="18" font-weight="bold" text-anchor="middle" class="' + sid + '-box" opacity="0">' + _escMovie(b.label) + '</text>';
+      });
+      inner += '</svg></div>';
+      tlJS += 'movieTL.add(clearStage()).set("#' + sid + '",{display:"flex",opacity:1})';
+      tlJS += '.to("#' + sid + ' .k-line",{opacity:1,y:0,stagger:1.2,duration:1,ease:"power2.out"})';
+      tlJS += '.to(".' + sid + '-box",{opacity:1,y:-10,stagger:0.4,duration:0.7,ease:"back.out"},"-=1.5")';
+      tlJS += '.to("#' + sid + '",{opacity:0,duration:1},"+=4");\n';
+    }
+    else if (s.type === 'example') {
+      inner += '<div class="text-panel">';
+      inner += '<div class="k-line hl-yellow">' + _escMovie(s.title) + '</div>';
+      if (s.problem) inner += '<div class="k-line hl-cyan" style="font-size:clamp(1.3rem,3.5vw,2rem);">' + _escMovie(s.problem) + '</div>';
+      (s.steps || []).forEach(st => { inner += '<div class="k-line ans-line">' + _escMovie(st) + '</div>'; });
+      if (s.result) inner += '<div class="k-line ans-line hl-green" style="font-size:clamp(1.4rem,4vw,2.3rem);">' + _escMovie(s.result) + '</div>';
+      inner += '</div><div class="svg-panel"><svg viewBox="0 0 400 200">';
+      inner += '<text x="200" y="115" fill="#fff" font-size="44" font-weight="bold" text-anchor="middle" class="' + sid + '-svg" opacity="0">' + _escMovie(s.result || '=') + '</text>';
+      inner += '</svg></div>';
+      tlJS += 'movieTL.add(clearStage()).set("#' + sid + '",{display:"flex",opacity:1})';
+      tlJS += '.to("#' + sid + ' .k-line:not(.ans-line)",{opacity:1,y:0,stagger:1.2,duration:1,ease:"power2.out"})';
+      tlJS += '.to({},{duration:2})';
+      tlJS += '.to("#' + sid + ' .ans-line",{opacity:1,y:0,stagger:1.3,duration:1,ease:"power2.out"})';
+      tlJS += '.to(".' + sid + '-svg",{opacity:1,scale:1.1,duration:0.6,ease:"back.out"},"-=0.5")';
+      tlJS += '.to("#' + sid + '",{opacity:0,duration:1},"+=4");\n';
+    }
+    else if (s.type === 'challenge') {
+      inner += '<div class="text-panel" style="width:100%;text-align:center;">';
+      inner += '<div class="k-line hl-pink" style="font-size:clamp(1.5rem,4vw,2.4rem);">' + _escMovie(s.title) + '</div>';
+      (s.lines || []).forEach(l => { inner += '<div class="k-line">' + _escMovie(l) + '</div>'; });
+      if (s.hint) inner += '<div class="k-line hl-yellow" style="margin-top:14px;">' + _escMovie(s.hint) + '</div>';
+      inner += '</div><div class="svg-panel"><svg viewBox="0 0 300 200">';
+      inner += '<text x="150" y="120" fill="var(--neon-cyan)" font-size="80" text-anchor="middle" class="' + sid + '-q" opacity="0">❓</text>';
+      inner += '</svg></div>';
+      tlJS += 'movieTL.add(clearStage()).set("#' + sid + '",{display:"flex",opacity:1})';
+      tlJS += '.to("#' + sid + ' .k-line",{opacity:1,y:0,stagger:1.3,duration:1.3,ease:"power3.out"})';
+      tlJS += '.to(".' + sid + '-q",{opacity:1,scale:1.3,duration:1,ease:"elastic.out"},"-=1.5")';
+      tlJS += '.to("#' + sid + '",{opacity:0,duration:1},"+=5");\n';
+    }
+    else if (s.type === 'summary') {
+      inner += '<div class="text-panel" style="width:100%;text-align:right;">';
+      inner += '<div class="k-line hl-yellow" style="font-size:clamp(1.5rem,4vw,2.3rem);text-align:center;">' + _escMovie(s.title) + '</div>';
+      (s.tips || []).forEach(t => { inner += '<div class="k-line">' + _escMovie(t) + '</div>'; });
+      if (s.closing) inner += '<div class="k-line hl-green" style="text-align:center;margin-top:18px;">' + _escMovie(s.closing) + '</div>';
+      inner += '</div>';
+      tlJS += 'movieTL.add(clearStage()).set("#' + sid + '",{display:"flex",opacity:1})';
+      tlJS += '.to("#' + sid + ' .k-line",{opacity:1,y:0,stagger:1.3,duration:1.3,ease:"power2.out"});\n';
+    }
+    
+    scenesHTML += '<div class="scene" id="' + sid + '">' + inner + '</div>\n';
+  });
+  
+  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+    '<title>' + _escMovie(title) + '</title>' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"><\/script>' +
+    '<style>' +
+    "@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');" +
+    ':root{--bg-color:#04060a;--neon-cyan:#00f3ff;--neon-pink:#ff007f;--neon-yellow:#ffea00;--neon-green:#00ff66;--text-main:#fff;}' +
+    '*{box-sizing:border-box;margin:0;padding:0;font-family:Cairo,sans-serif;}' +
+    'body{background:var(--bg-color);color:var(--text-main);height:100vh;display:flex;flex-direction:column;overflow:hidden;user-select:none;}' +
+    '.top-bar{height:45px;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:5px 10px;gap:8px;background:#000;border-bottom:1px solid var(--neon-cyan);z-index:1000;}' +
+    '.tb-rect{flex:1;height:100%;background:rgba(0,243,255,0.05);border:1px solid rgba(0,243,255,0.3);border-radius:4px;display:flex;justify-content:center;align-items:center;font-size:clamp(0.6rem,1.2vw,0.85rem);font-weight:800;text-align:center;line-height:1.1;padding:2px;}' +
+    '.tb-center{border-color:var(--neon-yellow);color:var(--neon-yellow);background:rgba(255,234,0,0.05);flex:1.5;}' +
+    '.theater-wrapper{flex:1;display:flex;padding:15px 0;overflow:hidden;position:relative;z-index:10;}' +
+    '.theater{flex:1;position:relative;background:radial-gradient(circle at center,#101424,var(--bg-color));overflow:hidden;border-top:1px dashed rgba(255,255,255,0.05);border-bottom:1px dashed rgba(255,255,255,0.05);}' +
+    '.scene{position:absolute;top:0;left:10px;right:10px;bottom:0;display:none;flex-direction:column;opacity:0;padding:10px;}' +
+    '@media(min-width:768px){.scene{flex-direction:row;padding:20px;}.text-panel{text-align:right;align-items:flex-start!important;padding-left:20px;}}' +
+    '.text-panel{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;z-index:10;}' +
+    '.svg-panel{flex:1;display:flex;justify-content:center;align-items:center;position:relative;max-height:45vh;}' +
+    '.k-line{font-size:clamp(1rem,2.5vw,1.8rem);font-weight:800;line-height:1.5;margin-bottom:12px;opacity:0;transform:translateY(15px);width:100%;}' +
+    '.hl-cyan{color:var(--neon-cyan);text-shadow:0 0 8px var(--neon-cyan);font-weight:900;}' +
+    '.hl-pink{color:var(--neon-pink);text-shadow:0 0 8px var(--neon-pink);font-weight:900;}' +
+    '.hl-yellow{color:var(--neon-yellow);text-shadow:0 0 8px var(--neon-yellow);font-weight:900;}' +
+    '.hl-green{color:var(--neon-green);text-shadow:0 0 8px var(--neon-green);font-weight:900;}' +
+    'svg{width:100%;max-width:400px;height:100%;overflow:visible;}' +
+    '.bottom-bar{height:45px;flex-shrink:0;background:#000;border-top:1px solid var(--neon-pink);display:flex;align-items:center;padding:0 15px;gap:15px;z-index:1000;}' +
+    '.ctrl-btn{background:transparent;border:none;color:var(--text-main);font-size:1.3rem;cursor:pointer;transition:0.3s;}' +
+    '.ctrl-btn:hover{color:var(--neon-pink);transform:scale(1.1);}' +
+    '.progress-track{flex:1;height:5px;background:#222;border-radius:2px;position:relative;overflow:hidden;}' +
+    '.progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--neon-cyan),var(--neon-pink));}' +
+    '</style></head><body>' +
+    '<header class="top-bar"><div class="tb-rect">' + _escMovie(grade) + '</div>' +
+    '<div class="tb-rect tb-center">' + _escMovie(code) + ' ' + _escMovie(title) + '</div>' +
+    '<div class="tb-rect">إمبراطورية الرياضيات<br>' + _escMovie(teacher) + '</div></header>' +
+    '<div class="theater-wrapper"><main class="theater" id="stage">' + scenesHTML + '</main></div>' +
+    '<div class="bottom-bar"><button class="ctrl-btn" onclick="movieTL.restart()">⏮</button>' +
+    '<button class="ctrl-btn" id="play-pause-btn" onclick="togglePlay()">⏸</button>' +
+    '<div class="progress-track"><div class="progress-fill" id="progress-bar"></div></div></div>' +
+    '<script>' +
+    'function toArabicDigits(str){const a=["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];return String(str).replace(/[0-9]/g,w=>a[+w]);}' +
+    'document.querySelectorAll(".k-line,text,.tb-rect").forEach(el=>{el.innerHTML=toArabicDigits(el.innerHTML);});' +
+    'let movieTL=gsap.timeline({onUpdate:function(){document.getElementById("progress-bar").style.width=(this.progress()*100)+"%";},onComplete:function(){document.getElementById("play-pause-btn").innerText="▶";}});' +
+    'function clearStage(){return gsap.set(".scene",{display:"none",opacity:0});}' +
+    tlJS +
+    'function togglePlay(){const b=document.getElementById("play-pause-btn");if(movieTL.isActive()){movieTL.pause();b.innerText="▶";}else{if(movieTL.progress()===1)movieTL.restart();else movieTL.play();b.innerText="⏸";}}' +
+    '<\/script></body></html>';
+}
+
+function _escMovie(s) {
+  return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ════════════════════════════════════════════════════════════
+// 💾 أدوات مساعدة: تنزيل ملف + رفع للمكتبة
+// ════════════════════════════════════════════════════════════
+function downloadHTMLFile(htmlContent, filename) {
+  const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function sanitizeFilename(name) {
+  return String(name || 'درس').replace(/[<>:"/\\|?*]+/g, '_').replace(/\s+/g, '_').substring(0, 60);
+}
+
+async function uploadToLibrary(htmlContent, meta) {
+  // meta: { title, grade, semester, unit, lesson, type }
+  const fd = new FormData();
+  fd.append('title', meta.title || 'درس تفاعلي');
+  fd.append('grade', meta.grade || '');
+  fd.append('semester', meta.semester || '');
+  fd.append('unit', meta.unit || '');
+  fd.append('lesson', meta.lesson || '');
+  fd.append('lesson_type', meta.type || 'interactive');
+  fd.append('html_content', htmlContent);
+  const res = await apiCall('/api/prep/library_save', { method: 'POST', body: fd });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'HTTP ' + res.status);
+  }
+  return await res.json();
+}
+
+// ═══ تنزيل/رفع الأفلام السينمائية ═══
+function cnDownload() {
+  if (!_cnData) { toast('لا يوجد فيلم', 'error'); return; }
+  const html = cnBuildMovieHTML(_cnData);
+  const fn = sanitizeFilename(_cnData.lesson_title || 'فيلم') + '.html';
+  downloadHTMLFile(html, fn);
+  toast('⬇️ تم تنزيل الفيلم', 'success');
+}
+
+async function cnUploadLibrary() {
+  if (!_cnData) { toast('لا يوجد فيلم', 'error'); return; }
+  const ctx = _cnData._context || {};
+  try {
+    toast('⏳ جارٍ الرفع للمكتبة...', 'info');
+    await uploadToLibrary(cnBuildMovieHTML(_cnData), {
+      title: _cnData.lesson_title || 'فيلم تعليمي',
+      grade: ctx.grade, semester: ctx.semester, unit: ctx.unit, lesson: ctx.lesson,
+      type: 'cinematic'
+    });
+    toast('📚 تم الرفع للمكتبة التفاعلية!', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🎮 مولّد الدروس التفاعلية
+// ════════════════════════════════════════════════════════════
+let _ivInitialized = false;
+let _ivData = null;
+
+function ivInitCurriculum() {
+  if (!state.curriculum || !Array.isArray(state.curriculum)) return;
+  const sel = document.getElementById('iv-grade');
+  sel.innerHTML = '<option value="">— اختر الصف —</option>';
+  state.curriculum.forEach(g => {
+    const opt = document.createElement('option');
+    opt.value = g.name; opt.textContent = g.name;
+    sel.appendChild(opt);
+  });
+}
+
+function ivLoadSemesters() {
+  const grade = document.getElementById('iv-grade').value;
+  const semSel = document.getElementById('iv-semester');
+  const unitSel = document.getElementById('iv-unit');
+  const lessSel = document.getElementById('iv-lesson');
+  semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+  unitSel.innerHTML = '<option value="">— الوحدة —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  if (g && g.semesters) g.semesters.forEach(s => {
+    const opt = document.createElement('option'); opt.value = s.name; opt.textContent = s.name; semSel.appendChild(opt);
+  });
+  semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function ivLoadUnits() {
+  const grade = document.getElementById('iv-grade').value;
+  const sem = document.getElementById('iv-semester').value;
+  const unitSel = document.getElementById('iv-unit');
+  const lessSel = document.getElementById('iv-lesson');
+  unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+  lessSel.innerHTML = '<option value="">— الدرس —</option>';
+  if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  if (s && s.units) s.units.forEach(u => {
+    const opt = document.createElement('option'); opt.value = u.name; opt.textContent = u.name; unitSel.appendChild(opt);
+  });
+  unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function ivLoadLessons() {
+  const grade = document.getElementById('iv-grade').value;
+  const sem = document.getElementById('iv-semester').value;
+  const unit = document.getElementById('iv-unit').value;
+  const lessSel = document.getElementById('iv-lesson');
+  lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+  if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+  const g = state.curriculum.find(x => x.name === grade);
+  const s = g?.semesters?.find(x => x.name === sem);
+  const u = s?.units?.find(x => x.name === unit);
+  if (u && u.lessons) u.lessons.forEach(l => {
+    const opt = document.createElement('option'); opt.value = l.name; opt.textContent = l.name; lessSel.appendChild(opt);
+  });
+  lessSel.disabled = false;
+}
+
+async function generateInteractive() {
+  const grade = document.getElementById('iv-grade').value;
+  if (!grade) { toast('⚠️ اختر الصف أولاً', 'error'); return; }
+  
+  const btn = document.getElementById('iv-gen-btn');
+  btn.disabled = true; btn.textContent = '⏳ جاري الإنشاء...';
+  document.getElementById('iv-empty').style.display = 'none';
+  document.getElementById('iv-progress').classList.add('show');
+  document.getElementById('iv-progress-fill').style.width = '35%';
+  document.getElementById('iv-progress-label').textContent = 'جارٍ إنشاء الدرس التفاعلي بـ Gemini...';
+  
+  try {
+    const fd = new FormData();
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('iv-semester').value || '');
+    fd.append('unit', document.getElementById('iv-unit').value || '');
+    fd.append('lesson', document.getElementById('iv-lesson').value || '');
+    fd.append('teacher_name', document.getElementById('iv-teacher').value || 'أ. رشدي سيد');
+    
+    document.getElementById('iv-progress-fill').style.width = '65%';
+    const res = await apiCall('/api/prep/interactive_generate', { method: 'POST', body: fd });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.detail || 'HTTP ' + res.status);
+    }
+    const data = await res.json();
+    _ivData = data.lesson;
+    _ivData._context = data.context || {};
+    document.getElementById('iv-progress-fill').style.width = '100%';
+    ivRenderPreview();
+    setTimeout(() => document.getElementById('iv-progress').classList.remove('show'), 500);
+    toast('✅ تم إنشاء الدرس التفاعلي', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+    document.getElementById('iv-progress').classList.remove('show');
+  } finally {
+    btn.disabled = false; btn.textContent = '🎮 إنشاء الدرس التفاعلي';
+  }
+}
+
+function ivRenderPreview() {
+  if (!_ivData) return;
+  const preview = document.getElementById('iv-preview');
+  const sections = [
+    ['📖', 'قصة تشويقية', _ivData.hook ? 1 : 0],
+    ['🎯', 'بطاقات مفاهيم', (_ivData.concepts || []).length],
+    ['🎚️', 'مختبر تفاعلي', _ivData.lab ? 1 : 0],
+    ['🎬', 'مسرح أمثلة', (_ivData.examples || []).length],
+    ['🚦', 'نقطة تحقق', _ivData.quiz ? 1 : 0],
+    ['⚖️', 'الفخ الشائع', _ivData.pitfall ? 1 : 0],
+    ['💡', 'نصائح ذهبية', (_ivData.tips || []).length],
+    ['👑', 'تحدّي', _ivData.challenge ? 1 : 0],
+    ['🌟', 'ملخص', _ivData.summary ? 1 : 0],
+  ];
+  let html = '<div style="background:rgba(0,206,201,0.04);border:1px solid rgba(0,206,201,0.2);border-radius:12px;padding:16px;margin-bottom:14px;">';
+  html += '<div style="font-weight:800;color:#00cec9;font-size:1.1rem;margin-bottom:4px;">🎮 ' + _esc(_ivData.lesson_title || 'الدرس التفاعلي') + '</div>';
+  html += '<div style="font-size:0.82rem;color:var(--dim);">٩ أقسام تفاعلية · جاهز للطالب</div>';
+  html += '</div>';
+  html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;">';
+  sections.forEach(([icon, name, count]) => {
+    const ok = count > 0;
+    html += '<div style="background:rgba(255,255,255,0.04);border:1px solid ' + (ok ? 'rgba(0,206,201,0.25)' : 'var(--border)') + ';border-radius:10px;padding:11px;display:flex;align-items:center;gap:8px;">';
+    html += '<span style="font-size:1.3rem;">' + icon + '</span>';
+    html += '<div><div style="font-weight:700;color:' + (ok ? '#00cec9' : 'var(--dim)') + ';font-size:0.82rem;">' + name + '</div>';
+    if (count > 1) html += '<div style="font-size:0.68rem;color:var(--dim);">' + arabicNum(count) + ' عناصر</div>';
+    html += '</div></div>';
+  });
+  html += '</div>';
+  preview.innerHTML = html;
+  preview.style.display = 'block';
+  document.getElementById('iv-toolbar').style.display = 'flex';
+}
+
+function ivPlay() {
+  if (!_ivData) { toast('لا يوجد درس', 'error'); return; }
+  const win = window.open('', '_blank');
+  win.document.write(ivBuildLessonHTML(_ivData));
+  win.document.close();
+}
+
+function ivDownload() {
+  if (!_ivData) { toast('لا يوجد درس', 'error'); return; }
+  const html = ivBuildLessonHTML(_ivData);
+  downloadHTMLFile(html, sanitizeFilename(_ivData.lesson_title || 'درس_تفاعلي') + '.html');
+  toast('⬇️ تم تنزيل الدرس', 'success');
+}
+
+async function ivUploadLibrary() {
+  if (!_ivData) { toast('لا يوجد درس', 'error'); return; }
+  const ctx = _ivData._context || {};
+  try {
+    toast('⏳ جارٍ الرفع للمكتبة...', 'info');
+    await uploadToLibrary(ivBuildLessonHTML(_ivData), {
+      title: _ivData.lesson_title || 'درس تفاعلي',
+      grade: ctx.grade, semester: ctx.semester, unit: ctx.unit, lesson: ctx.lesson,
+      type: 'interactive'
+    });
+    toast('📚 تم الرفع للمكتبة التفاعلية!', 'success');
+  } catch(e) {
+    toast('❌ ' + e.message, 'error');
+  }
+}
+
+// 🏗️ محرّك بناء الدرس التفاعلي الكامل
+function ivBuildLessonHTML(L) {
+  const ctx = L._context || {};
+  const grade = ctx.grade || 'الصف';
+  const teacher = ctx.teacher_name || 'أ. رشدي سيد';
+  const code = L.lesson_code || '';
+  const title = L.lesson_title || 'الدرس';
+  const e = _escMovie;
+  
+  // المفاهيم
+  let conceptsHTML = (L.concepts || []).map(c =>
+    '<div class="concept-card"><h3 style="color:var(--ratio);margin-bottom:10px;">' + e(c.title) + '</h3>' +
+    '<p style="color:var(--muted);line-height:1.7;">' + e(c.desc) + '</p>' +
+    (c.law ? '<div class="law-box">' + e(c.law) + '</div>' : '') + '</div>'
+  ).join('');
+  
+  // الأمثلة (JSON للـ JS)
+  const examplesJson = JSON.stringify(L.examples || []).replace(/<\/script>/g, '<\\/script>');
+  // الكويز
+  const quiz = L.quiz || {};
+  let quizOptsHTML = (quiz.options || []).map((o, i) =>
+    '<button class="quiz-btn" data-correct="' + (i === quiz.correct_index ? 'true' : 'false') + '">' + e(o) + '</button>'
+  ).join('');
+  // النصائح
+  let tipsHTML = (L.tips || []).map(t =>
+    '<div class="acc-item"><div class="acc-header" onclick="this.parentElement.classList.toggle(\'open\')">' +
+    '<span>' + e(t.title) + '</span><span>+</span></div>' +
+    '<div class="acc-body">' + e(t.body) + '</div></div>'
+  ).join('');
+  // التحدّي
+  const ch = L.challenge || {};
+  let hintsHTML = (ch.hints || []).map((h, i) =>
+    '<div class="hint" id="hint-' + i + '">💡 ' + e(h) + '</div>'
+  ).join('');
+  const lab = L.lab || {};
+  const labBase = parseInt(lab.base_value) || 3;
+  const hook = L.hook || {};
+  const pitfall = L.pitfall || {};
+  const summary = L.summary || {};
+  
+  return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0"><title>' + e(title) + '</title>' +
+    '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">' +
+    '<style>' +
+    ':root{--primary:#001f3f;--accent:#f39c12;--success:#2ecc71;--danger:#e74c3c;--bg:#0b0e14;--surface:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.1);--text:#fff;--muted:#a0aab5;--ratio:#00cec9;--glow:0 0 20px rgba(0,206,201,0.4);--p1:#f1c40f;--p2:#2ecc71;}' +
+    '*{box-sizing:border-box;margin:0;padding:0;font-family:Tajawal,sans-serif;scroll-behavior:smooth;}' +
+    'body{background:var(--bg);color:var(--text);overflow-x:hidden;font-size:16px;}' +
+    'h1,h2,h3,h4,.number{font-family:Cairo,sans-serif;}' +
+    'header{position:fixed;top:0;left:0;width:100%;background:rgba(11,14,20,0.9);backdrop-filter:blur(10px);z-index:1000;border-bottom:1px solid var(--border);}' +
+    '.progress-container{width:100%;height:4px;background:#222;}' +
+    '.progress-bar{height:100%;background:linear-gradient(90deg,var(--ratio),var(--success));width:0%;transition:width 0.2s;box-shadow:var(--glow);}' +
+    '.header-content{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;}' +
+    '.logo{font-family:Cairo;font-weight:900;font-size:1.5rem;background:linear-gradient(45deg,#f39c12,#ffeb3b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}' +
+    '.lesson-info{text-align:left;font-size:0.9rem;color:var(--muted);}' +
+    'section{min-height:100dvh;padding:80px 20px 40px;display:flex;flex-direction:column;justify-content:center;align-items:center;opacity:0;transform:translateY(30px);transition:opacity 0.8s,transform 0.8s;max-width:1200px;margin:0 auto;}' +
+    'section.visible{opacity:1;transform:translateY(0);}' +
+    '.glass-card{background:var(--surface);backdrop-filter:blur(12px);border:1px solid var(--border);border-radius:15px;padding:30px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.3);}' +
+    '.btn{background:linear-gradient(45deg,#00b894,var(--ratio));color:#0b0e14;border:none;padding:15px 30px;font-size:1.1rem;border-radius:8px;cursor:pointer;font-family:Cairo;font-weight:900;transition:transform 0.2s;min-height:48px;box-shadow:var(--glow);}' +
+    '.btn:hover{transform:translateY(-2px);}' +
+    '.btn-outline{background:transparent;border:2px solid var(--ratio);color:var(--ratio);box-shadow:none;}' +
+    '.story-text{font-size:1.3rem;line-height:1.8;margin-bottom:30px;max-width:800px;text-align:center;}' +
+    '.highlight{color:var(--ratio);font-weight:bold;}' +
+    '.cards-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;width:100%;}' +
+    '.concept-card{text-align:center;padding:20px;border-radius:12px;background:rgba(255,255,255,0.02);border-top:4px solid var(--ratio);transition:transform 0.3s;}' +
+    '.concept-card:hover{transform:translateY(-10px);}' +
+    '.law-box{padding:15px;margin-top:15px;border-radius:8px;font-family:Cairo;font-weight:bold;background:rgba(0,206,201,0.1);border:1px dashed var(--ratio);color:#81ecec;}' +
+    '.lab-container{display:flex;flex-direction:column;gap:30px;width:100%;}@media(min-width:768px){.lab-container{flex-direction:row;}}' +
+    '.controls{flex:1;display:flex;flex-direction:column;gap:15px;justify-content:center;}' +
+    '.slider-group{background:rgba(0,0,0,0.2);padding:20px;border-radius:10px;border:1px solid var(--border);}' +
+    '.slider-group label{display:flex;justify-content:center;font-size:1.2rem;margin-bottom:20px;font-family:Cairo;font-weight:bold;}' +
+    'input[type=range]{width:100%;height:8px;border-radius:4px;outline:none;accent-color:var(--ratio);}' +
+    '.visualizer{flex:1.5;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.4);border-radius:15px;padding:30px 20px;min-height:300px;border:1px solid var(--border);}' +
+    '.big-value{font-family:Cairo;font-weight:900;font-size:5rem;color:var(--ratio);text-shadow:var(--glow);}' +
+    '.lab-note{font-family:Cairo;font-size:1rem;color:var(--muted);margin-top:15px;text-align:center;line-height:1.6;}' +
+    '.step{display:none;margin-bottom:15px;padding:15px;background:rgba(255,255,255,0.02);border-right:4px solid var(--accent);animation:slideIn 0.5s forwards;}' +
+    '@keyframes slideIn{from{opacity:0;transform:translateX(20px);}to{opacity:1;transform:translateX(0);}}' +
+    '.example-nav{display:flex;justify-content:space-between;margin-top:20px;align-items:center;}' +
+    '.quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin-top:30px;}' +
+    '.quiz-btn{background:var(--primary);border:1px solid rgba(255,255,255,0.2);color:#fff;padding:20px;font-size:1.1rem;border-radius:10px;cursor:pointer;transition:all 0.2s;font-family:Cairo;}' +
+    '.quiz-btn:hover{border-color:var(--accent);}' +
+    '.quiz-btn.correct{background:var(--success);border-color:var(--success);}' +
+    '.quiz-btn.wrong{background:var(--danger);animation:shake 0.4s;}' +
+    '@keyframes shake{0%,100%{transform:translateX(0);}25%{transform:translateX(-10px);}75%{transform:translateX(10px);}}' +
+    '.feedback-msg{margin-top:20px;font-size:1.2rem;font-weight:bold;text-align:center;min-height:30px;color:var(--accent);}' +
+    '.compare-table{display:flex;width:100%;gap:10px;margin-top:20px;flex-wrap:wrap;}' +
+    '.compare-col{flex:1;min-width:240px;padding:20px;background:rgba(255,255,255,0.03);border-radius:10px;border:1px solid transparent;}' +
+    '.accordion{width:100%;margin-top:20px;}' +
+    '.acc-item{margin-bottom:10px;border:1px solid var(--border);border-radius:8px;overflow:hidden;}' +
+    '.acc-header{background:rgba(255,255,255,0.05);padding:15px 20px;cursor:pointer;font-weight:bold;font-family:Cairo;display:flex;justify-content:space-between;}' +
+    '.acc-body{max-height:0;padding:0 20px;background:rgba(0,0,0,0.2);transition:max-height 0.3s,padding 0.3s;overflow:hidden;line-height:1.8;}' +
+    '.acc-item.open .acc-body{padding:15px 20px;max-height:300px;}' +
+    '.input-group{display:flex;gap:10px;margin-top:20px;}' +
+    '.input-group input{flex:1;background:rgba(0,0,0,0.3);border:1px solid var(--border);color:#fff;padding:15px;border-radius:8px;font-size:1.2rem;text-align:center;font-family:Cairo;}' +
+    '.hint{display:none;color:var(--accent);margin-top:8px;font-size:0.95rem;}' +
+    '.stat-circle{width:120px;height:120px;border-radius:50%;border:5px solid var(--success);display:flex;align-items:center;justify-content:center;font-size:1.6rem;font-family:Cairo;font-weight:bold;margin:0 auto 20px;box-shadow:0 0 20px rgba(46,204,113,0.3);}' +
+    'footer{text-align:center;padding:30px;border-top:1px solid var(--border);color:var(--muted);font-size:0.9rem;margin-top:50px;}' +
+    '</style></head><body>' +
+    '<header><div class="progress-container"><div class="progress-bar" id="pBar"></div></div>' +
+    '<div class="header-content"><div class="logo">إمبراطورية الرياضيات</div>' +
+    '<div class="lesson-info">' + e(teacher) + ' | ' + e(grade) + '<br><strong>' + e(code) + ' ' + e(title) + '</strong></div></div></header>' +
+    // 1. Hook
+    '<section id="s-hook" class="visible" style="background:radial-gradient(circle at center,#012420,var(--bg) 70%);text-align:center;">' +
+    '<h1 style="font-size:2.5rem;color:var(--ratio);margin-bottom:20px;">' + e(title) + '</h1>' +
+    '<p class="story-text">' + e(hook.story || '') + (hook.highlight ? ' <span class="highlight">' + e(hook.highlight) + '</span>' : '') + '</p>' +
+    '<button class="btn" onclick="document.getElementById(\'s-concepts\').scrollIntoView()">لنبدأ الرحلة 🚀</button></section>' +
+    // 2. Concepts
+    '<section id="s-concepts"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:30px;">المفاهيم الأساسية 🎯</h2>' +
+    '<div class="cards-grid">' + conceptsHTML + '</div></section>' +
+    // 3. Lab
+    '<section id="s-lab"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:15px;">' + e(lab.title || 'مختبر تفاعلي') + ' 🎚️</h2>' +
+    '<p style="margin-bottom:25px;text-align:center;max-width:700px;">' + e(lab.description || '') + '</p>' +
+    '<div class="glass-card lab-container"><div class="controls"><div class="slider-group">' +
+    '<label>' + e(lab.multiplier_label || 'العدد') + ': <span id="labMul" class="number" style="color:var(--accent);">1</span></label>' +
+    '<input type="range" id="labSlider" min="1" max="5" value="1" step="1"></div>' +
+    '<div class="lab-note" id="labNote">' + e(lab.note || '') + '</div></div>' +
+    '<div class="visualizer"><div style="font-family:Cairo;color:var(--muted);margin-bottom:10px;">' + e(lab.unit_name || 'القيمة') + '</div>' +
+    '<div class="big-value" id="labValue">' + labBase + '</div>' +
+    '<div style="font-family:Cairo;color:var(--muted);margin-top:10px;">القيمة الأساسية × العدد</div></div></div></section>' +
+    // 4. Examples
+    '<section id="s-examples"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:20px;">مسرح الأمثلة 🎬</h2>' +
+    '<div class="glass-card" style="max-width:700px;"><div style="display:flex;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,0.1);padding-bottom:10px;margin-bottom:20px;">' +
+    '<h3 id="exTitle" style="color:var(--accent);"></h3><span style="color:var(--muted);font-family:Cairo;">مثال <span id="exCur">1</span></span></div>' +
+    '<div id="exStage" style="min-height:200px;"></div>' +
+    '<div class="example-nav"><button class="btn btn-outline" id="exPrev" onclick="exNav(-1)" style="display:none;">السابق</button>' +
+    '<button class="btn" id="exNext" onclick="exStep()">الخطوة التالية ⬇️</button></div></div></section>' +
+    // 5. Quiz
+    '<section id="s-quiz"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:20px;">نقطة تحقق 🚦</h2>' +
+    '<div class="glass-card" style="max-width:600px;text-align:center;"><h3 style="line-height:1.6;margin-bottom:15px;">' + e(quiz.question || '') + '</h3>' +
+    (quiz.hint ? '<p style="color:var(--muted);font-size:0.9rem;">' + e(quiz.hint) + '</p>' : '') +
+    '<div class="quiz-options">' + quizOptsHTML + '</div>' +
+    '<div class="feedback-msg" id="qFb"></div></div></section>' +
+    // 6. Pitfall
+    '<section id="s-pitfall"><h2 style="color:var(--danger);font-size:2rem;margin-bottom:20px;">⚠️ ' + e(pitfall.title || 'الفخ الشائع') + '</h2>' +
+    '<div class="compare-table"><div class="compare-col" style="border-color:var(--danger);"><h3 style="color:var(--danger);margin-bottom:10px;">❌ خطأ شائع</h3><p style="line-height:1.7;">' + e(pitfall.wrong || '') + '</p></div>' +
+    '<div class="compare-col" style="border-color:var(--success);"><h3 style="color:var(--success);margin-bottom:10px;">✅ الصواب</h3><p style="line-height:1.7;">' + e(pitfall.right || '') + '</p></div></div></section>' +
+    // 7. Tips
+    '<section id="s-tips"><h2 style="color:var(--accent);font-size:2rem;margin-bottom:20px;">نصائح ذهبية 💡</h2>' +
+    '<div class="accordion" style="max-width:700px;">' + tipsHTML + '</div></section>' +
+    // 8. Challenge
+    '<section id="s-challenge"><h2 style="color:var(--danger);font-size:2rem;margin-bottom:20px;">تحدّي النخبة 👑</h2>' +
+    '<div class="glass-card" style="max-width:600px;border-color:var(--danger);"><h3 style="line-height:1.6;margin-bottom:15px;">' + e(ch.question || '') + '</h3>' +
+    '<div class="input-group"><input type="text" id="chAns" placeholder="اكتب إجابتك"><button class="btn" onclick="chCheck()">تحقّق</button></div>' +
+    '<div class="feedback-msg" id="chFb"></div>' +
+    '<button class="btn btn-outline" onclick="chHint()" style="margin-top:15px;">💡 تلميح</button>' +
+    '<div class="hints-container">' + hintsHTML + '</div></div></section>' +
+    // 9. Summary
+    '<section id="s-summary"><div class="stat-circle">' + e(summary.mastery || 'ممتاز') + '</div>' +
+    '<h2 style="color:var(--success);font-size:2rem;text-align:center;margin-bottom:15px;">أحسنت! 🌟</h2>' +
+    '<p style="text-align:center;font-size:1.2rem;max-width:600px;line-height:1.8;">' + e(summary.closing || '') + '</p></section>' +
+    '<footer>🎓 إمبراطورية الرياضيات · ' + e(teacher) + '</footer>' +
+    '<script>' +
+    'function toAr(s){const a=["٠","١","٢","٣","٤","٥","٦","٧","٨","٩"];return String(s).replace(/[0-9]/g,w=>a[+w]);}' +
+    // Scroll reveal + progress
+    'const secs=document.querySelectorAll("section");' +
+    'window.addEventListener("scroll",()=>{const h=document.documentElement;const p=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;document.getElementById("pBar").style.width=p+"%";secs.forEach(s=>{if(s.getBoundingClientRect().top<window.innerHeight*0.8)s.classList.add("visible");});});' +
+    // Lab
+    'const labBase=' + labBase + ';const sl=document.getElementById("labSlider");' +
+    'if(sl){sl.addEventListener("input",function(){const m=+this.value;document.getElementById("labMul").innerText=toAr(m);document.getElementById("labValue").innerText=toAr(labBase*m);});}' +
+    // Examples
+    'const EX=' + examplesJson + ';let exI=0,exS=0;' +
+    'function exShow(){const ex=EX[exI];if(!ex)return;document.getElementById("exTitle").innerText=ex.title;document.getElementById("exCur").innerText=toAr(exI+1);const st=document.getElementById("exStage");st.innerHTML="";exS=0;document.getElementById("exNext").style.display="inline-flex";document.getElementById("exPrev").style.display=exI>0?"inline-flex":"none";}' +
+    'function exStep(){const ex=EX[exI];if(!ex)return;if(exS<ex.steps.length){const d=document.createElement("div");d.className="step";d.style.display="block";d.innerHTML=toAr(ex.steps[exS]);document.getElementById("exStage").appendChild(d);exS++;}if(exS>=ex.steps.length){if(exI<EX.length-1){document.getElementById("exNext").innerText="المثال التالي ➡️";document.getElementById("exNext").onclick=function(){exI++;exShow();document.getElementById("exNext").innerText="الخطوة التالية ⬇️";document.getElementById("exNext").onclick=exStep;};}else{document.getElementById("exNext").style.display="none";}}}' +
+    'function exNav(d){exI+=d;if(exI<0)exI=0;exShow();}' +
+    'exShow();' +
+    // Quiz
+    'document.querySelectorAll(".quiz-btn").forEach(b=>{b.onclick=function(){if(this.dataset.correct==="true"){this.classList.add("correct");document.getElementById("qFb").innerText="' + e(quiz.success_msg || 'أحسنت!').replace(/'/g, "\\'") + '";document.getElementById("qFb").style.color="var(--success)";}else{this.classList.add("wrong");document.getElementById("qFb").innerText="حاول مرة أخرى 🤔";document.getElementById("qFb").style.color="var(--danger)";}};});' +
+    // Challenge
+    'let chH=0;const CHA="' + e(String(ch.answer || '')).replace(/'/g, "\\'") + '";' +
+    'function chCheck(){const v=document.getElementById("chAns").value.trim();const fb=document.getElementById("chFb");if(v&&(v===CHA||v.replace(/\\s/g,"")===CHA.replace(/\\s/g,""))){fb.innerText="🎉 إجابة صحيحة! أنت بطل!";fb.style.color="var(--success)";}else{fb.innerText="ليست صحيحة، استعن بالتلميحات 💡";fb.style.color="var(--danger)";}}' +
+    'function chHint(){const h=document.getElementById("hint-"+chH);if(h){h.style.display="block";chH++;}}' +
+    'document.querySelectorAll("text,.number").forEach(el=>{el.innerHTML=toAr(el.innerHTML);});' +
+    '<\/script></body></html>';
 }
 
 // ════════════════════════════════════════════════════════════

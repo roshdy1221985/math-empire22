@@ -5992,8 +5992,8 @@
                     <div class="qa-sub">8 قوالب + صور</div>
                 </div>
                 
-                <!-- 🎬 العروض التقديمية (في المصنع) -->
-                <div onclick="window.open('/prep#slides', '_blank')" class="qa-card qa-violet" style="position:relative;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(124,58,237,0.06));border-color:rgba(168,85,247,0.35);">
+                <!-- 🎬 العروض التقديمية (أداة معلم كاملة) -->
+                <div onclick="showSection('slides-gen', null)" class="qa-card qa-violet" style="position:relative;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(124,58,237,0.06));border-color:rgba(168,85,247,0.35);">
                     <div class="qa-icon-box" style="background:linear-gradient(135deg,#a855f7,#7c3aed);"><i class="fas fa-chalkboard"></i></div>
                     <div class="qa-title">عروض تقديمية 🎬</div>
                     <div class="qa-sub">AI → شرائح للعرض</div>
@@ -7313,6 +7313,87 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════════════════════════════
+         🎬 قسم العروض التقديمية
+    ══════════════════════════════════════════════════════ -->
+    <div id="section-slides-gen" class="section">
+        <!-- Header -->
+        <div style="background:linear-gradient(160deg,rgba(168,85,247,0.08),rgba(0,8,20,0.9));border:1px solid rgba(168,85,247,0.3);border-radius:24px;padding:32px;margin-bottom:24px;text-align:center;position:relative;overflow:hidden;">
+            <div style="position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:2.4rem;opacity:0.3;color:#a855f7;">🎬</div>
+            <div style="font-size:3.4rem;margin-bottom:12px;filter:drop-shadow(0 0 18px rgba(168,85,247,0.6));">🎬</div>
+            <h2 style="font-family:'Amiri';margin:0 0 10px;font-size:2.2rem;background:linear-gradient(135deg,#c4a0ff,#a855f7,#d8b4fe,#a855f7,#7c3aed);background-size:200% auto;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:ilTitleShimmer 4s ease-in-out infinite;font-weight:700;">مولّد العروض التقديمية</h2>
+            <p style="color:rgba(196,160,255,0.85);margin:0;font-size:1rem;line-height:1.8;font-weight:600;">🎯 اختر درساً → احصل على عرض تقديمي احترافي للعرض على الفصل 🎯</p>
+            <p style="color:rgba(255,255,255,0.55);margin:6px 0 0;font-size:0.88rem;">شرائح + أمثلة محلولة + أسئلة تفاعلية · عرض ملء الشاشة</p>
+        </div>
+
+        <!-- إعدادات العرض -->
+        <div class="glass-card" style="padding:22px;margin-bottom:18px;">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;">
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">🎓 الصف</label>
+                    <select id="slg-grade" onchange="slgLoadSemesters()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— اختر الصف —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">📅 الفصل</label>
+                    <select id="slg-semester" onchange="slgLoadUnits()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الفصل —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">📦 الوحدة</label>
+                    <select id="slg-unit" onchange="slgLoadLessons()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الوحدة —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">📖 الدرس</label>
+                    <select id="slg-lesson" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                        <option value="">— الدرس —</option>
+                    </select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">🎬 عدد الشرائح</label>
+                    <input type="number" id="slg-count" value="8" min="4" max="20" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:#c4a0ff;margin-bottom:6px;font-weight:600;">❓ أسئلة تفاعلية</label>
+                    <input type="number" id="slg-questions" value="3" min="0" max="10" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(168,85,247,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                </div>
+            </div>
+            <button onclick="slgGenerate()" id="slg-gen-btn" style="width:100%;margin-top:18px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:15px;border-radius:12px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:1.05rem;box-shadow:0 6px 18px rgba(168,85,247,0.4);">
+                ✨ توليد العرض التقديمي
+            </button>
+        </div>
+
+        <!-- شريط تقدم -->
+        <div id="slg-progress" style="display:none;background:rgba(0,0,0,0.3);border:1px solid rgba(168,85,247,0.3);border-radius:12px;padding:16px;margin-bottom:18px;">
+            <div id="slg-progress-label" style="color:#c4a0ff;font-weight:600;margin-bottom:10px;font-size:0.9rem;">جارٍ التوليد...</div>
+            <div style="width:100%;height:8px;background:rgba(168,85,247,0.15);border-radius:4px;overflow:hidden;">
+                <div id="slg-progress-fill" style="height:100%;width:0%;background:linear-gradient(90deg,#a855f7,#c4a0ff);border-radius:4px;transition:width 0.4s;"></div>
+            </div>
+        </div>
+
+        <!-- أزرار التحكم -->
+        <div id="slg-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
+            <button onclick="slgPresent()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:700;font-size:1rem;">▶️ عرض ملء الشاشة</button>
+            <button onclick="slgGenerate()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:12px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;">🔄 توليد جديد</button>
+        </div>
+
+        <!-- معاينة الشرائح -->
+        <div id="slg-preview" style="display:none;"></div>
+
+        <!-- حالة فارغة -->
+        <div id="slg-empty" style="text-align:center;padding:50px 20px;color:rgba(255,255,255,0.4);font-size:1rem;line-height:1.9;">
+            <span style="font-size:3.5rem;display:block;margin-bottom:14px;opacity:0.4;">🎬</span>
+            ١. اختر الصف والدرس<br>
+            ٢. حدد عدد الشرائح والأسئلة التفاعلية<br>
+            ٣. اضغط "توليد العرض التقديمي"
         </div>
     </div>
 
@@ -10604,6 +10685,258 @@ async function exgEdPrint() {
     } catch(e) {
         if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
     }
+}
+
+
+// ════════════════════════════════════════════════════════════
+// 🎬 SLIDES GENERATOR — مولّد العروض التقديمية (لوحة المعلم)
+// ════════════════════════════════════════════════════════════
+var _slgData = null;
+var _slgInitialized = false;
+
+function slgInitCurriculum() {
+    // نستخدم _exgCurriculum المُحمّل في مولّد الاختبارات، أو نحمّله
+    if (!_exgCurriculum || !_exgCurriculum.length) {
+        fetch(API_URL + '/api/curriculum/structure')
+            .then(function(r){ return r.ok ? r.json() : []; })
+            .then(function(data){ _exgCurriculum = data || []; slgFillGrades(); })
+            .catch(function(e){ console.warn('[slg] curr:', e); });
+    } else {
+        slgFillGrades();
+    }
+}
+
+function slgFillGrades() {
+    var sel = document.getElementById('slg-grade');
+    if (!sel) return;
+    while (sel.options.length > 1) sel.remove(1);
+    _exgCurriculum.forEach(function(g) {
+        if (!g || !g.name) return;
+        var opt = document.createElement('option');
+        opt.value = g.name; opt.textContent = g.name;
+        sel.appendChild(opt);
+    });
+}
+
+function slgLoadSemesters() {
+    var grade = document.getElementById('slg-grade').value;
+    var semSel = document.getElementById('slg-semester');
+    var unitSel = document.getElementById('slg-unit');
+    var lessSel = document.getElementById('slg-lesson');
+    semSel.innerHTML = '<option value="">— كل الفصول —</option>';
+    unitSel.innerHTML = '<option value="">— الوحدة —</option>';
+    lessSel.innerHTML = '<option value="">— الدرس —</option>';
+    if (!grade) { semSel.disabled = true; unitSel.disabled = true; lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    if (g && g.semesters) {
+        g.semesters.forEach(function(s){
+            var opt = document.createElement('option');
+            opt.value = s.name; opt.textContent = s.name;
+            semSel.appendChild(opt);
+        });
+    }
+    semSel.disabled = false; unitSel.disabled = true; lessSel.disabled = true;
+}
+
+function slgLoadUnits() {
+    var grade = document.getElementById('slg-grade').value;
+    var sem = document.getElementById('slg-semester').value;
+    var unitSel = document.getElementById('slg-unit');
+    var lessSel = document.getElementById('slg-lesson');
+    unitSel.innerHTML = '<option value="">— كل الوحدات —</option>';
+    lessSel.innerHTML = '<option value="">— الدرس —</option>';
+    if (!grade || !sem) { unitSel.disabled = true; lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    var s = g && g.semesters ? g.semesters.find(function(x){ return x && x.name === sem; }) : null;
+    if (s && s.units) {
+        s.units.forEach(function(u){
+            var opt = document.createElement('option');
+            opt.value = u.name; opt.textContent = u.name;
+            unitSel.appendChild(opt);
+        });
+    }
+    unitSel.disabled = false; lessSel.disabled = true;
+}
+
+function slgLoadLessons() {
+    var grade = document.getElementById('slg-grade').value;
+    var sem = document.getElementById('slg-semester').value;
+    var unit = document.getElementById('slg-unit').value;
+    var lessSel = document.getElementById('slg-lesson');
+    lessSel.innerHTML = '<option value="">— كل الدروس —</option>';
+    if (!grade || !sem || !unit) { lessSel.disabled = true; return; }
+    var g = _exgCurriculum.find(function(x){ return x && x.name === grade; });
+    var s = g && g.semesters ? g.semesters.find(function(x){ return x && x.name === sem; }) : null;
+    var u = s && s.units ? s.units.find(function(x){ return x && x.name === unit; }) : null;
+    if (u && u.lessons) {
+        u.lessons.forEach(function(l){
+            var opt = document.createElement('option');
+            opt.value = l.name; opt.textContent = l.name;
+            lessSel.appendChild(opt);
+        });
+    }
+    lessSel.disabled = false;
+}
+
+async function slgGenerate() {
+    var grade = document.getElementById('slg-grade').value;
+    if (!grade) { if (typeof showToast === 'function') showToast('⚠️ اختر الصف أولاً', 'warning'); return; }
+    var nSlides = parseInt(document.getElementById('slg-count').value) || 8;
+    var nQuestions = parseInt(document.getElementById('slg-questions').value) || 0;
+    
+    var btn = document.getElementById('slg-gen-btn');
+    btn.disabled = true;
+    btn.textContent = '⏳ جاري التوليد...';
+    document.getElementById('slg-empty').style.display = 'none';
+    document.getElementById('slg-progress').style.display = 'block';
+    document.getElementById('slg-progress-fill').style.width = '35%';
+    document.getElementById('slg-progress-label').textContent = 'جارٍ توليد العرض بـ Gemini...';
+    
+    try {
+        var fd = new FormData();
+        fd.append('grade', grade);
+        fd.append('semester', document.getElementById('slg-semester').value || '');
+        fd.append('unit', document.getElementById('slg-unit').value || '');
+        fd.append('lesson', document.getElementById('slg-lesson').value || '');
+        fd.append('n_slides', String(nSlides));
+        fd.append('n_questions', String(nQuestions));
+        
+        document.getElementById('slg-progress-fill').style.width = '65%';
+        var res = await fetch(API_URL + '/api/teacher/slides_generate', { method: 'POST', body: fd });
+        if (!res.ok) {
+            var err = await res.json().catch(function(){return{};});
+            throw new Error(err.detail || 'HTTP ' + res.status);
+        }
+        var data = await res.json();
+        _slgData = data.presentation;
+        _slgData._context = {
+            grade: grade,
+            semester: document.getElementById('slg-semester').value,
+            unit: document.getElementById('slg-unit').value,
+            lesson: document.getElementById('slg-lesson').value
+        };
+        document.getElementById('slg-progress-fill').style.width = '100%';
+        slgRenderPreview();
+        setTimeout(function(){ document.getElementById('slg-progress').style.display = 'none'; }, 500);
+        if (typeof showToast === 'function') showToast('✅ تم توليد ' + (_slgData.slides || []).length + ' شريحة', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+        document.getElementById('slg-progress').style.display = 'none';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = '✨ توليد العرض التقديمي';
+    }
+}
+
+function slgEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function slgAr(n){ return String(n).replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'[d]; }); }
+
+function slgTypeName(type) {
+    var names = { title:'🎬 عنوان', objectives:'🎯 أهداف', content:'📚 شرح', example:'✏️ مثال', question:'❓ سؤال', closing:'🏁 ختام' };
+    return names[type] || type;
+}
+
+function slgRenderPreview() {
+    if (!_slgData) return;
+    var slides = _slgData.slides || [];
+    var preview = document.getElementById('slg-preview');
+    var html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px;">';
+    slides.forEach(function(s, i) {
+        html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(168,85,247,0.25);border-radius:12px;padding:14px;cursor:pointer;transition:all 0.2s;" onclick="slgPresent(' + i + ')" onmouseover="this.style.borderColor=\'#a855f7\'" onmouseout="this.style.borderColor=\'rgba(168,85,247,0.25)\'">';
+        html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">';
+        html += '<span style="background:#a855f7;color:#fff;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;">' + slgAr(i+1) + '</span>';
+        html += '<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);">' + slgTypeName(s.type) + '</span>';
+        html += '</div>';
+        html += '<div style="font-weight:700;color:#c4a0ff;font-size:0.92rem;margin-bottom:4px;">' + slgEsc(s.title || '') + '</div>';
+        var pv = s.subtitle || s.problem || s.question || (s.points ? s.points[0] : '') || '';
+        if (pv) html += '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);line-height:1.5;">' + slgEsc(String(pv).substring(0, 60)) + '</div>';
+        html += '</div>';
+    });
+    html += '</div>';
+    preview.innerHTML = html;
+    preview.style.display = 'block';
+    document.getElementById('slg-toolbar').style.display = 'flex';
+}
+
+function slgPresent(startIndex) {
+    if (!_slgData) { if (typeof showToast === 'function') showToast('لا يوجد عرض', 'error'); return; }
+    var slides = _slgData.slides || [];
+    var ctx = _slgData._context || {};
+    var start = (typeof startIndex === 'number') ? startIndex : 0;
+    var win = window.open('', '_blank');
+    win.document.write(slgPresentHTML(slides, ctx, start));
+    win.document.close();
+}
+
+function slgPresentHTML(slides, ctx, startIndex) {
+    var slidesJson = JSON.stringify(slides).replace(/<\/script>/g, '<\\/script>');
+    var ctxJson = JSON.stringify(ctx);
+    var titleText = slgEsc(_slgData.title || 'عرض تقديمي');
+    return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
+        '<title>' + titleText + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+        '<style>' + slgPresentCSS() + '</style></head><body>' +
+        '<div id="slide-stage"></div>' +
+        '<div class="sl-nav">' +
+          '<button onclick="slPrev()" id="sl-prev">◀ السابقة</button>' +
+          '<span id="sl-counter">١ / ١</span>' +
+          '<button onclick="slNext()" id="sl-next">التالية ▶</button>' +
+          '<button onclick="slFull()" class="sl-full-btn">⛶ ملء الشاشة</button>' +
+        '</div>' +
+        '<script>' +
+        'var SLIDES=' + slidesJson + ';var CTX=' + ctxJson + ';var cur=' + startIndex + ';' +
+        'function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d];});}' +
+        'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}' +
+        'function renderSlide(){var s=SLIDES[cur];if(!s)return;var h="";' +
+          'if(s.type==="title"){h+="<div class=\\"slide slide-title\\"><div class=\\"crown\\">👑</div><h1>"+esc(s.title)+"</h1>";if(s.subtitle)h+="<div class=\\"subtitle\\">"+esc(s.subtitle)+"</div>";h+="<div class=\\"brand\\">إمبراطورية الرياضيات</div></div>";}' +
+          'else if(s.type==="question"){h+="<div class=\\"slide slide-question\\"><div class=\\"q-badge\\">❓ سؤال تفاعلي</div><h2>"+esc(s.title)+"</h2><div class=\\"q-text\\">"+esc(s.question)+"</div>";h+="<button class=\\"reveal-btn\\" onclick=\\"document.getElementById(\\x27ans\\x27).style.display=\\x27block\\x27;this.style.display=\\x27none\\x27\\">💡 كشف الإجابة</button>";h+="<div class=\\"answer\\" id=\\"ans\\"><b>الإجابة:</b> "+esc(s.answer)+"</div></div>";}' +
+          'else if(s.type==="example"){h+="<div class=\\"slide slide-example\\"><div class=\\"ex-badge\\">✏️ مثال محلول</div><h2>"+esc(s.title)+"</h2>";if(s.problem)h+="<div class=\\"problem\\">"+esc(s.problem)+"</div>";if(s.steps){h+="<div class=\\"steps\\">";s.steps.forEach(function(st,i){h+="<div class=\\"step\\"><span class=\\"step-num\\">"+ar(i+1)+"</span>"+esc(st)+"</div>";});h+="</div>";}if(s.result)h+="<div class=\\"result\\">✓ "+esc(s.result)+"</div>";h+="</div>";}' +
+          'else{var icon=s.type==="objectives"?"🎯":s.type==="closing"?"🏁":"📚";h+="<div class=\\"slide slide-content\\"><div class=\\"c-icon\\">"+icon+"</div><h2>"+esc(s.title)+"</h2>";if(s.points){h+="<ul>";s.points.forEach(function(p){h+="<li>"+esc(p)+"</li>";});h+="</ul>";}h+="</div>";}' +
+          'document.getElementById("slide-stage").innerHTML=h;document.getElementById("sl-counter").textContent=ar(cur+1)+" / "+ar(SLIDES.length);document.getElementById("sl-prev").disabled=(cur===0);document.getElementById("sl-next").disabled=(cur===SLIDES.length-1);}' +
+        'function slNext(){if(cur<SLIDES.length-1){cur++;renderSlide();}}function slPrev(){if(cur>0){cur--;renderSlide();}}' +
+        'function slFull(){if(!document.fullscreenElement){document.documentElement.requestFullscreen();}else{document.exitFullscreen();}}' +
+        'document.addEventListener("keydown",function(e){if(e.key==="ArrowLeft"||e.key===" ")slNext();else if(e.key==="ArrowRight")slPrev();else if(e.key==="f"||e.key==="F")slFull();});' +
+        'renderSlide();' +
+        '</' + 'script></body></html>';
+}
+
+function slgPresentCSS() {
+    return '*{margin:0;padding:0;box-sizing:border-box;}' +
+        'body{font-family:Cairo,sans-serif;background:#040d21;overflow:hidden;height:100vh;}' +
+        '#slide-stage{height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px;}' +
+        '.slide{width:100%;max-width:1000px;min-height:70vh;border-radius:24px;padding:60px;display:flex;flex-direction:column;justify-content:center;animation:slideIn 0.4s ease;}' +
+        '@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
+        '.slide-title{background:linear-gradient(160deg,#0a1f4d,#040d21);text-align:center;align-items:center;border:2px solid rgba(212,175,55,0.4);}' +
+        '.slide-title .crown{font-size:5rem;margin-bottom:20px;}' +
+        '.slide-title h1{font-family:Amiri,serif;font-size:3.5rem;color:#fcd34d;margin-bottom:16px;}' +
+        '.slide-title .subtitle{font-size:1.4rem;color:rgba(240,234,214,0.7);margin-bottom:30px;}' +
+        '.slide-title .brand{font-size:1rem;color:#d4af37;letter-spacing:2px;}' +
+        '.slide-content{background:linear-gradient(160deg,rgba(20,25,50,0.95),rgba(10,20,40,0.9));border:1px solid rgba(212,175,55,0.25);}' +
+        '.slide-content .c-icon{font-size:3rem;margin-bottom:20px;}' +
+        '.slide-content h2{font-family:Amiri,serif;font-size:2.4rem;color:#fcd34d;margin-bottom:30px;border-bottom:2px solid rgba(212,175,55,0.3);padding-bottom:14px;}' +
+        '.slide-content ul{list-style:none;}' +
+        '.slide-content li{font-size:1.5rem;color:#f0ead6;margin-bottom:18px;padding-right:36px;position:relative;line-height:1.6;}' +
+        '.slide-content li:before{content:"◆";color:#d4af37;position:absolute;right:0;}' +
+        '.slide-example{background:linear-gradient(160deg,rgba(15,40,30,0.95),rgba(10,30,20,0.9));border:1px solid rgba(46,204,113,0.3);}' +
+        '.slide-example .ex-badge{background:rgba(46,204,113,0.2);color:#7fffd4;padding:6px 18px;border-radius:20px;font-weight:700;align-self:flex-start;margin-bottom:20px;}' +
+        '.slide-example h2{font-family:Amiri,serif;font-size:2.2rem;color:#7fffd4;margin-bottom:20px;}' +
+        '.slide-example .problem{font-size:1.6rem;color:#fff;background:rgba(255,255,255,0.05);padding:20px;border-radius:12px;margin-bottom:20px;text-align:center;}' +
+        '.slide-example .steps{display:flex;flex-direction:column;gap:14px;}' +
+        '.slide-example .step{font-size:1.3rem;color:#f0ead6;display:flex;align-items:center;gap:14px;}' +
+        '.slide-example .step-num{background:#2ecc71;color:#fff;width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0;}' +
+        '.slide-example .result{margin-top:24px;font-size:1.6rem;color:#7fffd4;font-weight:700;background:rgba(46,204,113,0.15);padding:16px;border-radius:12px;text-align:center;}' +
+        '.slide-question{background:linear-gradient(160deg,rgba(40,20,50,0.95),rgba(30,15,40,0.9));border:1px solid rgba(168,85,247,0.4);align-items:center;text-align:center;}' +
+        '.slide-question .q-badge{background:rgba(168,85,247,0.2);color:#c4a0ff;padding:6px 18px;border-radius:20px;font-weight:700;margin-bottom:20px;}' +
+        '.slide-question h2{font-family:Amiri,serif;font-size:2rem;color:#c4a0ff;margin-bottom:24px;}' +
+        '.slide-question .q-text{font-size:2rem;color:#fff;margin-bottom:30px;line-height:1.6;}' +
+        '.slide-question .reveal-btn{background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:14px 32px;border-radius:12px;font-family:Cairo;font-weight:700;font-size:1.2rem;cursor:pointer;}' +
+        '.slide-question .answer{display:none;margin-top:24px;font-size:1.6rem;color:#7fffd4;background:rgba(46,204,113,0.15);padding:20px;border-radius:12px;}' +
+        '.sl-nav{height:70px;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;gap:16px;border-top:1px solid rgba(212,175,55,0.2);}' +
+        '.sl-nav button{background:rgba(212,175,55,0.15);border:1px solid rgba(212,175,55,0.3);color:#fcd34d;padding:10px 20px;border-radius:10px;font-family:Cairo;font-weight:600;cursor:pointer;font-size:1rem;}' +
+        '.sl-nav button:hover:not(:disabled){background:rgba(212,175,55,0.3);}' +
+        '.sl-nav button:disabled{opacity:0.4;cursor:not-allowed;}' +
+        '.sl-nav #sl-counter{color:#fff;font-weight:700;min-width:80px;text-align:center;}' +
+        '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}';
 }
 
 
@@ -16010,6 +16343,11 @@ function applyDefaults() {
                     if (typeof loadExamGenerator === 'function') loadExamGenerator();
                 }, 100);
             }
+            if (name === 'slides-gen') {
+                setTimeout(function() {
+                    if (typeof slgInitCurriculum === 'function') slgInitCurriculum();
+                }, 100);
+            }
             if (name === 'home') {
                 setTimeout(loadHomeDashboard, 100);
             } else if (name === 'themes') {
@@ -16027,6 +16365,7 @@ function applyDefaults() {
             // تتبّع النشاط
             var titles = {
                 'exam-gen': 'مولّد الاختبارات',
+                'slides-gen': 'مولّد العروض',
                 'plan-gen': 'منشئ التحضيرات',
                 'certificates': 'الشهادات',
                 'visual-maker': 'صانع الأشكال',
