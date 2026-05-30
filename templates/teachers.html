@@ -5918,19 +5918,24 @@
          🏠 قسم لوحة البيت الذكية (الافتراضي)
     ══════════════════════════════════════════════════════ -->
     <div id="section-home" class="section active">
-        <!-- 🌌 Aurora Hero مع Hero Card -->
-        <div class="aurora-bg" style="margin-bottom:22px;">
-            <div class="aurora-third"></div>
-            <div style="text-align:center;padding:14px 0;">
-                <div style="display:inline-block;padding:6px 14px;background:rgba(255,255,255,0.06);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.12);border-radius:20px;color:rgba(255,255,255,0.85);font-size:0.82rem;margin-bottom:14px;">
-                    <i class="fas fa-sparkles" style="margin-left:6px;"></i>
+        <!-- 👑 Hero الإمبراطوري الأسطوري -->
+        <div class="royal-hero" style="margin-bottom:22px;">
+            <div class="royal-hero-glow"></div>
+            <div class="royal-hero-rays"></div>
+            <div style="position:relative;z-index:2;text-align:center;padding:30px 20px 26px;">
+                <div class="royal-crown">👑</div>
+                <div class="royal-badge">
+                    <span style="width:7px;height:7px;border-radius:50%;background:#fcd34d;box-shadow:0 0 8px #fcd34d;display:inline-block;"></span>
                     <span id="home-greeting-badge">صباح الخير</span>
                 </div>
-                <h1 class="gold-shine-text" style="font-family:'Amiri';margin:0 0 6px;font-size:2.6rem;font-weight:700;">
-                    إمبراطورية الرياضيات
-                </h1>
-                <p id="home-subtitle" style="color:rgba(255,255,255,0.7);margin:0 0 8px;font-size:1rem;line-height:1.8;">⚜️ ديوان المعلمين — حيث يصنع العلم الفرق</p>
-                <p id="home-date" style="color:rgba(255,255,255,0.4);margin:6px 0 0;font-size:0.85rem;"></p>
+                <h1 class="royal-title" style="margin:0 0 8px;">إمبراطورية الرياضيات</h1>
+                <div class="royal-divider">
+                    <span class="royal-divider-line"></span>
+                    <span class="royal-divider-gem">◆</span>
+                    <span class="royal-divider-line"></span>
+                </div>
+                <p id="home-subtitle" style="color:rgba(252,211,77,0.85);margin:8px 0 4px;font-size:1.02rem;font-weight:600;font-family:'Amiri';">ديوان المعلمين — حيث يُصنع العلم ويُبنى الأثر</p>
+                <p id="home-date" style="color:rgba(255,255,255,0.45);margin:6px 0 0;font-size:0.85rem;"></p>
             </div>
         </div>
         
@@ -5993,19 +5998,27 @@
                 </div>
                 
                 <!-- 🎬 العروض التقديمية (أداة معلم كاملة) -->
-                <div onclick="showSection('slides-gen', null)" class="qa-card qa-violet" style="position:relative;background:linear-gradient(135deg,rgba(168,85,247,0.12),rgba(124,58,237,0.06));border-color:rgba(168,85,247,0.35);">
-                    <div class="qa-icon-box" style="background:linear-gradient(135deg,#a855f7,#7c3aed);"><i class="fas fa-chalkboard"></i></div>
-                    <div class="qa-title">عروض تقديمية 🎬</div>
-                    <div class="qa-sub">AI → شرائح للعرض</div>
-                    <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:700;">جديد</span>
+                <div onclick="showSection('slides-gen', null)" class="qa-card qa-violet" style="position:relative;">
+                    <div class="qa-new-badge">جديد</div>
+                    <div class="qa-icon-box"><i class="fas fa-chalkboard"></i></div>
+                    <div class="qa-title">عروض تقديمية</div>
+                    <div class="qa-sub">AI ← شرائح للعرض</div>
                 </div>
 
                 <!-- 📝 أوراق العمل -->
-                <div onclick="showSection('worksheet-gen', null)" class="qa-card qa-orange" style="position:relative;background:linear-gradient(135deg,rgba(243,156,18,0.12),rgba(230,126,34,0.06));border-color:rgba(243,156,18,0.35);">
-                    <div class="qa-icon-box" style="background:linear-gradient(135deg,#f39c12,#e67e22);"><i class="fas fa-file-pen"></i></div>
-                    <div class="qa-title">أوراق العمل 📝</div>
+                <div onclick="showSection('worksheet-gen', null)" class="qa-card qa-orange" style="position:relative;">
+                    <div class="qa-new-badge">جديد</div>
+                    <div class="qa-icon-box"><i class="fas fa-file-lines"></i></div>
+                    <div class="qa-title">أوراق العمل</div>
                     <div class="qa-sub">تدريب · مراجعة · واجب</div>
-                    <span style="position:absolute;top:6px;left:6px;background:linear-gradient(135deg,#f39c12,#e67e22);color:#fff;font-size:0.6rem;padding:2px 7px;border-radius:10px;font-weight:700;">جديد</span>
+                </div>
+
+                <!-- 👑 الدرس الإمبراطوري -->
+                <div onclick="window.open('/prep#royal','_blank')" class="qa-card qa-gold" style="position:relative;">
+                    <div class="qa-new-badge qa-badge-hot">👑 جديد</div>
+                    <div class="qa-icon-box"><i class="fas fa-crown"></i></div>
+                    <div class="qa-title">الدرس الإمبراطوري</div>
+                    <div class="qa-sub">درس سينمائي تفاعلي</div>
                 </div>
                 
                 <!-- 5. 📓 تحضير AI -->
@@ -6027,20 +6040,6 @@
                     <div class="qa-icon-box"><i class="fas fa-robot"></i></div>
                     <div class="qa-title">المساعد AI</div>
                     <div class="qa-sub">اسأل أي شيء</div>
-                </div>
-                
-                <!-- 8. 🎨 الأشكال -->
-                <div onclick="showSection('visual-maker', null)" class="qa-card qa-pink">
-                    <div class="qa-icon-box"><i class="fas fa-palette"></i></div>
-                    <div class="qa-title">الأشكال</div>
-                    <div class="qa-sub">2D + 3D</div>
-                </div>
-                
-                <!-- 9. 🎮 ورشة الألعاب -->
-                <div onclick="showSection('schedule-tpl', null)" class="qa-card qa-purple">
-                    <div class="qa-icon-box"><i class="fas fa-gamepad"></i></div>
-                    <div class="qa-title">ورشة الألعاب</div>
-                    <div class="qa-sub">ألعاب تفاعلية</div>
                 </div>
                 
             </div>
@@ -6100,55 +6099,147 @@
                 <!-- ⚡ CSS بطاقات الوصول السريع -->
         <style>
                 /* ════════════════════════════════════════════════
+                   👑 Royal Hero — الهيرو الإمبراطوري الأسطوري
+                ════════════════════════════════════════════════ */
+                .royal-hero {
+                    position: relative; border-radius: 24px; overflow: hidden;
+                    background:
+                        radial-gradient(ellipse at 50% 0%, rgba(212,175,55,0.16), transparent 60%),
+                        linear-gradient(160deg, #14102a 0%, #0a0a1f 55%, #0d1226 100%);
+                    border: 1px solid rgba(212,175,55,0.3);
+                    box-shadow: 0 18px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(212,175,55,0.2);
+                }
+                .royal-hero-glow {
+                    position: absolute; top: -60%; left: 50%; transform: translateX(-50%);
+                    width: 480px; height: 480px; border-radius: 50%;
+                    background: radial-gradient(circle, rgba(212,175,55,0.22), transparent 65%);
+                    filter: blur(28px); pointer-events: none;
+                    animation: royalPulse 5s ease-in-out infinite;
+                }
+                @keyframes royalPulse {
+                    0%,100% { opacity: 0.7; transform: translateX(-50%) scale(1); }
+                    50% { opacity: 1; transform: translateX(-50%) scale(1.08); }
+                }
+                .royal-hero-rays {
+                    position: absolute; inset: 0; pointer-events: none; opacity: 0.5;
+                    background: repeating-conic-gradient(from 0deg at 50% 0%,
+                        rgba(212,175,55,0.06) 0deg, transparent 8deg, transparent 16deg, rgba(212,175,55,0.06) 24deg);
+                    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 70%);
+                    mask-image: linear-gradient(to bottom, rgba(0,0,0,0.6), transparent 70%);
+                }
+                .royal-crown {
+                    font-size: 3rem; line-height: 1; margin-bottom: 10px;
+                    filter: drop-shadow(0 0 18px rgba(252,211,77,0.7));
+                    animation: crownFloat 3.5s ease-in-out infinite;
+                }
+                @keyframes crownFloat {
+                    0%,100% { transform: translateY(0) rotate(-2deg); }
+                    50% { transform: translateY(-8px) rotate(2deg); }
+                }
+                .royal-badge {
+                    display: inline-flex; align-items: center; gap: 8px;
+                    padding: 6px 16px; margin-bottom: 14px;
+                    background: rgba(212,175,55,0.1); border: 1px solid rgba(212,175,55,0.3);
+                    border-radius: 20px; color: #fcd34d; font-size: 0.85rem; font-weight: 600;
+                    backdrop-filter: blur(10px);
+                }
+                .royal-title {
+                    font-family: 'Amiri', serif; font-weight: 700;
+                    font-size: clamp(2rem, 5vw, 3rem);
+                    background: linear-gradient(110deg, #b8860b 0%, #fcd34d 25%, #fffbe6 50%, #fcd34d 75%, #b8860b 100%);
+                    background-size: 250% auto;
+                    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+                    animation: royalShine 5s linear infinite;
+                    text-shadow: 0 2px 20px rgba(212,175,55,0.3);
+                }
+                @keyframes royalShine { to { background-position: 250% center; } }
+                .royal-divider {
+                    display: flex; align-items: center; justify-content: center; gap: 12px;
+                    margin: 4px auto; max-width: 320px;
+                }
+                .royal-divider-line { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(212,175,55,0.6), transparent); }
+                .royal-divider-gem {
+                    color: #fcd34d; font-size: 0.7rem;
+                    filter: drop-shadow(0 0 6px rgba(252,211,77,0.8));
+                    animation: gemTwinkle 2.5s ease-in-out infinite;
+                }
+                @keyframes gemTwinkle {
+                    0%,100% { opacity: 0.6; transform: scale(1); }
+                    50% { opacity: 1; transform: scale(1.3); }
+                }
+                @media(max-width:600px){ .royal-crown{font-size:2.4rem;} }
+
+                /* ════════════════════════════════════════════════
                    ⚡ Quick Access Cards — بطاقات أيقونية أنيقة
                 ════════════════════════════════════════════════ */
                 .qa-card {
-                    background: rgba(255, 255, 255, 0.02);
+                    background: linear-gradient(160deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
                     border: 1px solid rgba(255, 255, 255, 0.08);
-                    border-radius: 14px;
-                    padding: 18px 14px;
+                    border-radius: 16px;
+                    padding: 20px 14px;
                     cursor: pointer;
                     text-align: center;
-                    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
                     position: relative;
                     overflow: hidden;
+                    backdrop-filter: blur(8px);
                 }
                 .qa-card::before {
                     content: '';
                     position: absolute;
-                    top: -40px;
-                    right: -40px;
-                    width: 100px;
-                    height: 100px;
+                    top: -50px;
+                    right: -50px;
+                    width: 110px;
+                    height: 110px;
                     border-radius: 50%;
-                    opacity: 0.15;
+                    opacity: 0.12;
                     pointer-events: none;
-                    transition: all 0.4s ease;
+                    transition: all 0.5s ease;
+                }
+                /* لمعان يمرّ عند المرور */
+                .qa-card::after {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -120%;
+                    width: 70%;
+                    height: 100%;
+                    background: linear-gradient(120deg, transparent, rgba(255,255,255,0.12), transparent);
+                    transform: skewX(-20deg);
+                    transition: left 0.6s ease;
+                    pointer-events: none;
                 }
                 .qa-card:hover {
-                    transform: translateY(-4px);
-                    border-color: rgba(255, 255, 255, 0.2);
-                    background: rgba(255, 255, 255, 0.04);
-                    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+                    transform: translateY(-6px) scale(1.02);
+                    border-color: rgba(255, 255, 255, 0.25);
+                    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.5);
                 }
                 .qa-card:hover::before {
-                    transform: scale(1.5);
-                    opacity: 0.3;
+                    transform: scale(1.6);
+                    opacity: 0.32;
+                }
+                .qa-card:hover::after {
+                    left: 130%;
+                }
+                .qa-card:active {
+                    transform: translateY(-2px) scale(0.99);
                 }
                 
                 .qa-icon-box {
-                    width: 52px;
-                    height: 52px;
+                    width: 56px;
+                    height: 56px;
                     margin: 0 auto 12px;
-                    border-radius: 14px;
+                    border-radius: 16px;
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    font-size: 1.5rem;
-                    transition: all 0.3s ease;
+                    font-size: 1.55rem;
+                    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+                    position: relative;
                 }
                 .qa-card:hover .qa-icon-box {
-                    transform: scale(1.1) rotate(-5deg);
+                    transform: scale(1.15) rotate(-6deg);
+                    box-shadow: 0 0 22px currentColor;
                 }
                 
                 .qa-title {
@@ -6157,10 +6248,18 @@
                     font-size: 1.05rem;
                     margin-bottom: 4px;
                     transition: all 0.3s ease;
+                    position: relative;
+                    z-index: 1;
                 }
                 .qa-sub {
                     color: rgba(255, 255, 255, 0.5);
                     font-size: 0.74rem;
+                    transition: color 0.3s ease;
+                    position: relative;
+                    z-index: 1;
+                }
+                .qa-card:hover .qa-sub {
+                    color: rgba(255, 255, 255, 0.75);
                 }
                 
                 /* الألوان المخصصة لكل بطاقة */
@@ -6401,10 +6500,6 @@
                     <div id="stat-exams-count" style="color:#fcd34d;font-size:2.5rem;font-weight:600;font-family:'Amiri';line-height:1;">0</div>
                     <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:6px;">اختبار أنشأته منذ البداية</div>
                 </div>
-                <svg viewBox="0 0 200 60" style="width:100%;height:50px;">
-                    <polyline points="5,45 30,38 55,40 80,28 105,30 130,18 155,22 180,10 195,14" fill="none" stroke="#d4af37" stroke-width="2" opacity="0.8"/>
-                    <circle cx="195" cy="14" r="3" fill="#fcd34d"/>
-                </svg>
             </div>
             
             <!-- صغيرة 1: تحضيرات -->
@@ -6431,40 +6526,6 @@
                     <div style="color:rgba(255,255,255,0.5);font-size:0.75rem;"><span id="stat-shapes-count">0</span> شكل مُصمَّم</div>
                 </div>
                 <button onclick="showSection('visual-maker', null)" style="background:rgba(99,102,241,0.2);color:#818cf8;border:1px solid rgba(99,102,241,0.4);padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:600;flex-shrink:0;">صمّم</button>
-            </div>
-        </div>
-        
-                <!-- ⏰ Timeline — جدول اليوم -->
-        <div class="glass-pro" style="padding:24px;margin-bottom:20px;">
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px;">
-                <div>
-                    <h3 style="color:#fcd34d;font-family:'Amiri';margin:0 0 4px;font-size:1.2rem;">📅 جدول اليوم</h3>
-                    <p id="timeline-date" style="color:rgba(255,255,255,0.5);margin:0;font-size:0.82rem;"></p>
-                </div>
-            </div>
-            <div class="timeline-container">
-                <div class="timeline-line"></div>
-                <div class="timeline-item">
-                    <div class="timeline-dot done"><i class="fas fa-check" style="font-size:0.7rem;color:#052e16;"></i></div>
-                    <div class="timeline-content done">
-                        <div style="color:#fcd34d;font-weight:600;font-size:0.9rem;">حصة الفصل 6/أ — منتهية</div>
-                        <div style="color:rgba(255,255,255,0.6);font-size:0.78rem;">07:30 - 08:15 · الكسور العشرية</div>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot now"></div>
-                    <div class="timeline-content now">
-                        <div style="color:#818cf8;font-weight:600;font-size:0.9rem;">حصة الفصل 7/ب — الآن</div>
-                        <div style="color:rgba(255,255,255,0.65);font-size:0.78rem;">08:30 - 09:15 · الجبر</div>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-dot future"></div>
-                    <div class="timeline-content future">
-                        <div style="color:rgba(255,255,255,0.85);font-weight:600;font-size:0.9rem;">حصة الفصل 8/أ</div>
-                        <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">09:30 - 10:15 · الهندسة</div>
-                    </div>
-                </div>
             </div>
         </div>
 
@@ -7390,6 +7451,7 @@
         <!-- أزرار التحكم -->
         <div id="slg-toolbar" style="display:none;gap:10px;flex-wrap:wrap;justify-content:center;margin-bottom:18px;">
             <button onclick="slgPresent()" style="background:linear-gradient(135deg,#a855f7,#7c3aed);color:#fff;border:none;padding:12px 28px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:700;font-size:1rem;">▶️ عرض ملء الشاشة</button>
+            <button onclick="slgDownloadPptx()" style="background:rgba(217,95,52,0.15);border:1px solid rgba(217,95,52,0.4);color:#ff8a5c;padding:12px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;">⬇️ تحميل PowerPoint</button>
             <button onclick="slgGenerate()" style="background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:#fff;padding:12px 24px;border-radius:10px;cursor:pointer;font-family:Cairo;font-weight:600;">🔄 توليد جديد</button>
         </div>
 
@@ -8961,6 +9023,85 @@
     let currentPrepData = null;
     let editAttachments = [];
 
+    /* ══════════════════════════════════════════════════════════
+       ☁️ cloudStore — مزامنة بيانات المعلم عبر الأجهزة
+       يحفظ في localStorage (سريع) + السحابة (يتبع المعلم)
+       ══════════════════════════════════════════════════════════ */
+    const CLOUD_KEYS = [
+        'exam_library', 'teacher_stats', 'recent_activity', 'favorites',
+        'teacher_theme', 'teacher_theme_v2', 'saved_shapes', 'lesson_drafts',
+        'gradebook_data', 'plan_drafts', 'worksheet_drafts',
+        'gradebook_v1', 'weak_students_v1', 'gifted_students_v1',
+        'math_empire_games_v1', 'exam_draft', 'default_teacher_name',
+        'default_school_name', 'teacherProfilePhoto', 'sidebar_compact',
+        'theme_mode', 'math_empire_games_sound'
+    ];
+
+    function _tid() {
+        try {
+            if (teacherData && teacherData.id) return teacherData.id;
+            var td = JSON.parse(sessionStorage.getItem('teacherData') || '{}');
+            return td.id || null;
+        } catch(e) { return null; }
+    }
+
+    // حفظ محلي فوري + سحابي مؤجّل (debounce)
+    var _cloudTimers = {};
+    function cloudSet(key, valueObj) {
+        try { localStorage.setItem(key, JSON.stringify(valueObj)); } catch(e) {}
+        var tid = _tid();
+        if (!tid || CLOUD_KEYS.indexOf(key) === -1) return;
+        clearTimeout(_cloudTimers[key]);
+        _cloudTimers[key] = setTimeout(function() { _cloudPush(key, JSON.stringify(valueObj), tid); }, 800);
+    }
+
+    // حفظ قيمة نصية خام (اسم، صورة، ثيم) — تُخزّن كما هي
+    function cloudSetRaw(key, rawString) {
+        try { localStorage.setItem(key, rawString); } catch(e) {}
+        var tid = _tid();
+        if (!tid || CLOUD_KEYS.indexOf(key) === -1) return;
+        clearTimeout(_cloudTimers[key]);
+        _cloudTimers[key] = setTimeout(function() { _cloudPush(key, rawString, tid); }, 800);
+    }
+
+    async function _cloudPush(key, valueStr, tid) {
+        try {
+            var fd = new FormData();
+            fd.append('teacher_id', tid);
+            fd.append('data_key', key);
+            fd.append('data_value', valueStr);
+            await fetch(API_URL + '/api/teacher/data/save', { method: 'POST', body: fd });
+        } catch(e) { /* صامت — البيانات محفوظة محلياً على الأقل */ }
+    }
+
+    // جلب كل البيانات من السحابة عند الدخول، ودمجها محلياً
+    async function cloudPullAll() {
+        var tid = _tid();
+        if (!tid) return;
+        try {
+            var res = await fetch(API_URL + '/api/teacher/data/get?teacher_id=' + tid);
+            if (!res.ok) return;
+            var json = await res.json();
+            var cloud = json.data || {};
+            Object.keys(cloud).forEach(function(key) {
+                if (CLOUD_KEYS.indexOf(key) === -1) return;
+                try {
+                    var v = cloud[key];
+                    // إن كانت القيمة نصاً عادياً نخزّنها كما هي، وإلا ككائن JSON
+                    if (typeof v === 'string') localStorage.setItem(key, v);
+                    else localStorage.setItem(key, JSON.stringify(v));
+                } catch(e) {}
+            });
+            // رفع أي مفاتيح محلية غير موجودة سحابياً (أول مرة)
+            CLOUD_KEYS.forEach(function(key) {
+                if (!(key in cloud)) {
+                    var local = localStorage.getItem(key);
+                    if (local) { try { _cloudPush(key, local, tid); } catch(e) {} }
+                }
+            });
+        } catch(e) { /* صامت */ }
+    }
+
     /* ══ Toast ══ */
     function toast(msg, ok=true) {
         const t = document.getElementById('toast');
@@ -9032,6 +9173,8 @@
 
     /* ══ Init ══ */
     async function initTeacher() {
+        // ☁️ جلب بيانات المعلم من السحابة أولاً (تتبعه عبر الأجهزة)
+        await cloudPullAll();
         await loadCurriculum();
         loadExams();
         populatePrepGrades('view-grade');
@@ -9061,6 +9204,31 @@
         if (name === 'exams')    loadExams();
         if (name === 'support')  checkSubStatus();
         if (name === 'profile')  loadProfileSection();
+        if (typeof updateFavButton === 'function') updateFavButton(name);
+    }
+
+    /* ⭐ زر المفضّلة العائم — يعكس حالة القسم الحالي */
+    var _currentFavSection = '';
+    function updateFavButton(name) {
+        _currentFavSection = name;
+        var btn = document.getElementById('floating-fav-btn');
+        if (!btn) return;
+        // إخفاء الزر في الصفحة الرئيسية (لا معنى لتفضيلها)
+        if (name === 'home') { btn.style.display = 'none'; return; }
+        btn.style.display = 'flex';
+        var fav = (typeof isFavorite === 'function') ? isFavorite(name) : false;
+        btn.innerHTML = fav ? '⭐' : '☆';
+        btn.title = fav ? 'إزالة من المفضّلة' : 'إضافة للمفضّلة';
+        btn.style.background = fav ? 'linear-gradient(135deg,#f9c74f,#f39c12)' : 'rgba(255,255,255,0.08)';
+        btn.style.color = fav ? '#1a0d2e' : '#f9c74f';
+    }
+    function clickFavButton() {
+        if (!_currentFavSection || _currentFavSection === 'home') return;
+        var titles = (typeof getSectionTitle === 'function') ? null : null;
+        // نأخذ العنوان من خريطة العناوين إن وُجدت، وإلا من اسم القسم
+        var title = (window._sectionTitles && window._sectionTitles[_currentFavSection]) || _currentFavSection;
+        toggleFavorite(_currentFavSection, title);
+        updateFavButton(_currentFavSection);
     }
 
     /* ══ مساعدات المنهج ══ */
@@ -10980,6 +11148,33 @@ function slgPresent(startIndex) {
     var win = window.open('', '_blank');
     win.document.write(slgPresentHTML(slides, ctx, start));
     win.document.close();
+}
+
+async function slgDownloadPptx() {
+    if (!_slgData || !_slgData.slides) { if (typeof showToast === 'function') showToast('لا يوجد عرض', 'error'); return; }
+    var ctx = _slgData._context || {};
+    if (typeof showToast === 'function') showToast('⏳ جارٍ توليد ملف PowerPoint...', 'info');
+    try {
+        var fd = new FormData();
+        fd.append('slides_json', JSON.stringify(_slgData.slides));
+        fd.append('lesson_title', _slgData.title || 'عرض تقديمي');
+        fd.append('grade', ctx.grade || '');
+        var tname = '';
+        try { tname = (teacherData && teacherData.full_name) ? teacherData.full_name : ''; } catch(e) {}
+        fd.append('teacher_name', tname || 'أ. رشدي سيد');
+        var res = await fetch(API_URL + '/api/teacher/slides_pptx', { method: 'POST', body: fd });
+        if (!res.ok) { var err = await res.json().catch(function(){return{};}); throw new Error(err.detail || 'HTTP ' + res.status); }
+        var blob = await res.blob();
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = (_slgData.title || 'presentation').replace(/[<>:"/\\|?*]+/g, '_') + '.pptx';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+        if (typeof showToast === 'function') showToast('⬇️ تم تحميل ملف PowerPoint', 'success');
+    } catch(e) {
+        if (typeof showToast === 'function') showToast('❌ ' + (e.message || 'فشل'), 'error');
+    }
 }
 
 function slgPresentHTML(slides, ctx, startIndex) {
@@ -13291,7 +13486,7 @@ function _gameSaveData(key, data) {
     try {
         var all = _gameLoadData();
         all[key] = data;
-        localStorage.setItem(GAME_STORAGE_KEY, JSON.stringify(all));
+        cloudSet('math_empire_games_v1', all);
     } catch(e) {}
 }
 
@@ -16363,7 +16558,7 @@ function bumpStat(key) {
     try {
         var stats = JSON.parse(localStorage.getItem('teacher_stats') || '{}');
         stats[key] = (stats[key] || 0) + 1;
-        localStorage.setItem('teacher_stats', JSON.stringify(stats));
+        cloudSet('teacher_stats', stats);
     } catch(e) {}
 }
 
@@ -16377,7 +16572,7 @@ function logActivity(type, title, sectionId) {
             time: Date.now(),
         });
         list = list.slice(0, 10);
-        localStorage.setItem('recent_activity', JSON.stringify(list));
+        cloudSet('recent_activity', list);
     } catch(e) {}
 }
 
@@ -16437,7 +16632,7 @@ function toggleFavorite(sectionId, title) {
             favs.push({ sectionId: sectionId, title: title, addedAt: Date.now() });
             if (typeof showToast === 'function') showToast('⭐ أُضيف للمفضّلة', 'success');
         }
-        localStorage.setItem('favorites', JSON.stringify(favs));
+        cloudSet('favorites', favs);
         loadFavorites();
     } catch(e) {}
 }
@@ -16575,8 +16770,8 @@ function saveDefaults() {
         var teacher = document.getElementById('default-teacher-name').value.trim();
         var school = document.getElementById('default-school-name').value.trim();
         
-        if (teacher) localStorage.setItem('default_teacher_name', teacher);
-        if (school) localStorage.setItem('default_school_name', school);
+        if (teacher) cloudSetRaw('default_teacher_name', teacher);
+        if (school) cloudSetRaw('default_school_name', school);
         
         // املأ الحقول في كل النماذج تلقائياً
         applyDefaults();
@@ -16676,6 +16871,7 @@ function applyDefaults() {
                 'bank': 'بنك الأسئلة',
                 'schedule-tpl': 'قوالب الجداول',
             };
+            window._sectionTitles = titles;
             var types = {
                 'exam-gen': 'exam', 'plan-gen': 'plan', 'certificates': 'cert',
                 'visual-maker': 'shape', 'ai-assistant': 'ai', 'videos': 'video',
@@ -18071,6 +18267,11 @@ async function saveTeacherProfile() {
         <i class="fas fa-plus" id="fab-icon"></i>
     </button>
 </div>
+
+<!-- ⭐ زر المفضّلة العائم -->
+<button id="floating-fav-btn" onclick="clickFavButton()" title="إضافة للمفضّلة"
+    style="display:none;position:fixed;bottom:26px;right:96px;width:52px;height:52px;border-radius:50%;border:1px solid rgba(249,199,79,0.4);background:rgba(10,18,40,0.92);color:#f9c74f;font-size:1.5rem;cursor:pointer;z-index:9990;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.5);backdrop-filter:blur(10px);transition:all 0.25s cubic-bezier(0.175,0.885,0.32,1.275);"
+    onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">☆</button>
 
 <script>
 function toggleFab() {
@@ -20921,7 +21122,7 @@ function _examApplyData(d) {
 function examAutoSave() {
     try {
         var data = examGetData();
-        localStorage.setItem('exam_draft', JSON.stringify(data));
+        cloudSet('exam_draft', data);
         _examLastSaved = Date.now();
         document.getElementById('exam-save-status').innerHTML = '<span style="color:#4ade80;">●</span> محفوظ تلقائياً';
     } catch(e) {
@@ -20940,7 +21141,7 @@ function examSaveLocal() {
         saved.push(data);
         // نُبقي آخر 50 فقط
         if (saved.length > 50) saved = saved.slice(-50);
-        localStorage.setItem('exam_library', JSON.stringify(saved));
+        cloudSet('exam_library', saved);
         
         if (typeof showToast === 'function') showToast('✅ تم حفظ الاختبار في مكتبتك', 'success');
         document.getElementById('exam-save-status').innerHTML = '<span style="color:#4ade80;">●</span> محفوظ';
@@ -20988,7 +21189,7 @@ function examDeleteFromLibrary(id) {
     if (!confirm('حذف هذا الاختبار؟')) return;
     var saved = JSON.parse(localStorage.getItem('exam_library') || '[]');
     saved = saved.filter(function(e){ return e.id !== id; });
-    localStorage.setItem('exam_library', JSON.stringify(saved));
+    cloudSet('exam_library', saved);
     examOpenLibrary();
 }
 
@@ -21333,7 +21534,7 @@ function gbInit() {
 }
 
 function gbSave() {
-    try { localStorage.setItem(GB_TEACHER_KEY, JSON.stringify(GB_DATA)); } catch(e){}
+    try { cloudSet('gradebook_v1', GB_DATA); } catch(e){}
 }
 
 function gbLoad() {
@@ -22070,7 +22271,7 @@ function wsInit() {
     wsUpdateStats();
 }
 
-function wsSave(){ try{ localStorage.setItem(WS_KEY, JSON.stringify(WS_DATA)); }catch(e){} }
+function wsSave(){ try{ cloudSet('weak_students_v1', WS_DATA); }catch(e){} }
 function wsLoad(){
     try { var d = localStorage.getItem(WS_KEY); if (d) WS_DATA = JSON.parse(d); } catch(e){}
 }
@@ -22380,7 +22581,7 @@ function gsInit() {
     gsUpdateStats();
 }
 
-function gsSave(){ try{ localStorage.setItem(GS_KEY, JSON.stringify(GS_DATA)); }catch(e){} }
+function gsSave(){ try{ cloudSet('gifted_students_v1', GS_DATA); }catch(e){} }
 function gsLoad(){
     try { var d = localStorage.getItem(GS_KEY); if (d) GS_DATA = JSON.parse(d); } catch(e){}
 }

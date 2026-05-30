@@ -790,6 +790,77 @@ async def teacher_login(request: Request, username: str = Form(...), password: s
     raise HTTPException(status_code=401, detail="بيانات الدخول خاطئة")
 
 
+# ════════════════════════════════════════════════════════════════════════════
+# ☁️ TEACHER CLOUD DATA — حفظ/جلب بيانات المعلم في السحابة (تتبعه عبر الأجهزة)
+# ════════════════════════════════════════════════════════════════════════════
+# المفاتيح المسموحة (whitelist للأمان)
+_ALLOWED_TD_KEYS = {
+    "exam_library", "teacher_stats", "recent_activity", "favorites",
+    "teacher_theme", "teacher_theme_v2", "saved_shapes", "lesson_drafts",
+    "gradebook_data", "plan_drafts", "worksheet_drafts",
+    # ── سجلات وبيانات إضافية ──
+    "gradebook_v1", "weak_students_v1", "gifted_students_v1",
+    "math_empire_games_v1", "exam_draft", "default_teacher_name",
+    "default_school_name", "teacherProfilePhoto", "sidebar_compact",
+    "theme_mode", "math_empire_games_sound"
+}
+
+@app.get("/api/teacher/data/get")
+async def teacher_data_get(teacher_id: int, data_key: str = ""):
+    """☁️ جلب بيانات المعلم من السحابة. بدون data_key يجلب كل البيانات."""
+    if not teacher_id:
+        raise HTTPException(status_code=400, detail="teacher_id مطلوب")
+    try:
+        q = supabase.table("teacher_data").select("data_key, data_value, updated_at").eq("teacher_id", teacher_id)
+        if data_key:
+            q = q.eq("data_key", data_key)
+        res = q.execute()
+        out = {}
+        for row in (res.data or []):
+            out[row["data_key"]] = row["data_value"]
+        return {"status": "ok", "data": out}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل الجلب: {str(e)[:160]}")
+
+
+@app.post("/api/teacher/data/save")
+async def teacher_data_save(
+    teacher_id: int = Form(...),
+    data_key: str = Form(...),
+    data_value: str = Form(...),
+):
+    """☁️ حفظ بيانات المعلم في السحابة (upsert)."""
+    if not teacher_id:
+        raise HTTPException(status_code=400, detail="teacher_id مطلوب")
+    if data_key not in _ALLOWED_TD_KEYS:
+        raise HTTPException(status_code=400, detail=f"مفتاح غير مسموح: {data_key}")
+    if len(data_value) > 4 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="البيانات أكبر من 4 ميجابايت")
+    import json as _jl
+    try:
+        parsed = _jl.loads(data_value)  # تحقّق أنها JSON صحيح
+    except Exception:
+        # بعض القيم نصوص عادية (اسم المعلم، الصورة، الثيم) — نخزّنها كنص داخل JSON
+        parsed = data_value
+    try:
+        # تأكد أن المعلم موجود
+        t = supabase.table("teachers").select("id").eq("id", teacher_id).limit(1).execute()
+        if not t.data:
+            raise HTTPException(status_code=404, detail="المعلم غير موجود")
+        row = {
+            "teacher_id": teacher_id,
+            "data_key": data_key,
+            "data_value": parsed,
+            "updated_at": datetime.now(timezone.utc).isoformat()
+        }
+        supabase.table("teacher_data").upsert(row, on_conflict="teacher_id,data_key").execute()
+        return {"status": "ok", "message": "تم الحفظ السحابي"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"فشل الحفظ: {str(e)[:160]}")
+
+
 def _normalize_phone(phone: str) -> str:
     """تطبيع رقم الهاتف للمقارنة: إزالة كل ما عدا الأرقام"""
     if not phone:

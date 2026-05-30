@@ -5235,13 +5235,14 @@ function rlBuildLessonHTML(D) {
     tryRestoreFromBackup();
   }, 1000);
   
-  // 🎬 فتح تبويب العروض تلقائياً إذا الرابط فيه #slides
-  if (window.location.hash === '#slides') {
+  // 🔗 فتح تبويب محدّد تلقائياً حسب الرابط (#slides, #royal, #cinema...)
+  var hashTab = (window.location.hash || '').replace('#', '');
+  var validTabs = ['questions','worksheet','slides','cinema','interactive','royal'];
+  if (hashTab && validTabs.indexOf(hashTab) !== -1) {
     setTimeout(() => {
-      // ننتظر تحميل المنهج أولاً
       const tryOpen = () => {
         if (state.curriculum) {
-          switchTab('slides');
+          switchTab(hashTab);
         } else {
           setTimeout(tryOpen, 300);
         }
