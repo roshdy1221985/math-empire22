@@ -8570,11 +8570,12 @@
         <div class="glass-card" style="padding:18px;margin-bottom:18px;">
             <h3 style="color:#7fffd4;font-family:'Amiri';margin:0 0 14px;font-size:1.1rem;">💡 اقتراحات سريعة</h3>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button onclick="aiQuickAsk('كم طالباً ضعيفاً وموهوباً عندي؟ وبماذا تنصحني؟')" style="background:rgba(212,175,55,0.12);color:#fcd34d;border:1px solid rgba(212,175,55,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">📊 تحليل طلابي</button>
+                <button onclick="aiQuickAsk('كيف أنشئ اختباراً عن الكسور؟ أرشدني للأداة المناسبة')" style="background:rgba(212,175,55,0.12);color:#fcd34d;border:1px solid rgba(212,175,55,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">🧭 كيف أنشئ اختباراً؟</button>
                 <button onclick="aiQuickAsk('كيف أشرح الكسور لطالب يعاني صعوبة في الفهم؟')" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">📚 شرح الكسور لطالب ضعيف</button>
                 <button onclick="aiQuickAsk('أعطني 5 أمثلة حياتية واقعية على نظرية فيثاغورس')" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">🌍 أمثلة حياتية لفيثاغورس</button>
                 <button onclick="aiQuickAsk('اقترح 3 أنشطة تفاعلية لدرس الزوايا')" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">🎯 أنشطة لدرس الزوايا</button>
                 <button onclick="aiQuickAsk('كيف أتعامل مع طلاب يكرهون الرياضيات؟')" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">💖 طلاب يكرهون الرياضيات</button>
-                <button onclick="aiQuickAsk('اقترح طرق تقويم متنوعة لدرس الجبر')" style="background:rgba(0,255,136,0.1);color:#7fffd4;border:1px solid rgba(0,255,136,0.4);padding:8px 14px;border-radius:20px;cursor:pointer;font-family:Cairo;font-size:0.85rem;font-weight:600;">✅ طرق تقويم للجبر</button>
             </div>
         </div>
 
@@ -15765,6 +15766,20 @@ async function aiSend() {
         var fd = new FormData();
         fd.append('message', question);
         fd.append('history', JSON.stringify(_aiHistory));
+        // 🆕 نجمع بيانات المعلم الحقيقية ليكون المساعد واعياً
+        try {
+            var ctx = {};
+            try { ctx.weak_count = (JSON.parse(localStorage.getItem('weak_students_v1')||'[]')||[]).length; } catch(e){}
+            try { ctx.gifted_count = (JSON.parse(localStorage.getItem('gifted_students_v1')||'[]')||[]).length; } catch(e){}
+            try { ctx.exams_count = (JSON.parse(localStorage.getItem('exam_library')||'[]')||[]).length; } catch(e){}
+            try {
+                var ws = JSON.parse(localStorage.getItem('weak_students_v1')||'[]')||[];
+                ctx.weak_names = ws.map(function(s){ return s.name || s.student_name || ''; }).filter(Boolean).slice(0,10);
+                var gs = JSON.parse(localStorage.getItem('gifted_students_v1')||'[]')||[];
+                ctx.gifted_names = gs.map(function(s){ return s.name || s.student_name || ''; }).filter(Boolean).slice(0,10);
+            } catch(e){}
+            fd.append('context_data', JSON.stringify(ctx));
+        } catch(e) {}
         
         var res = await fetch(API_URL + '/api/teacher/ai_assistant', {
             method: 'POST',

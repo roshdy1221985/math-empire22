@@ -7078,14 +7078,17 @@ async def teacher_ai_assistant(
     history: str         = Form(default="[]"),     # JSON array of past messages
     grade: str           = Form(default=""),
     subject: str         = Form(default="الرياضيات"),
+    context_data: str    = Form(default=""),       # 🆕 بيانات المعلم (JSON): ضعاف/موهوبون/اختبارات...
 ):
     """
-    🤖 مساعد تربوي ذكي — يجيب أسئلة المعلم في:
+    🤖 مساعد تربوي ذكي واعٍ بالمنصة — يجيب أسئلة المعلم في:
     - شرح المفاهيم بطرق مختلفة
     - اقتراح أنشطة تعليمية
     - تحسين تحضير
     - معالجة صعوبات الطلاب
     - إعطاء أمثلة حياتية
+    - 🆕 الإجابة عن بيانات المعلم (طلابه، اختباراته)
+    - 🆕 إرشاده لأدوات المنصة
     """
     # rate limit
     ip = request.client.host if request.client else "unknown"
@@ -7099,8 +7102,40 @@ async def teacher_ai_assistant(
     if not api_key:
         raise HTTPException(status_code=503, detail="❌ خدمة AI غير مُهيّأة (GEMINI_API_KEY مفقود)")
     
+    # 🆕 نبني سياق بيانات المعلم (إن أُرسل)
+    context_block = ""
+    try:
+        import json as _json2
+        cd = _json2.loads(context_data) if context_data else {}
+        if cd:
+            parts = []
+            if cd.get("weak_count") is not None: parts.append(f"عدد الطلاب الضعاف المسجّلين: {cd.get('weak_count')}")
+            if cd.get("gifted_count") is not None: parts.append(f"عدد الطلاب الموهوبين المسجّلين: {cd.get('gifted_count')}")
+            if cd.get("exams_count") is not None: parts.append(f"عدد الاختبارات التي أنشأها: {cd.get('exams_count')}")
+            if cd.get("classrooms_count") is not None: parts.append(f"عدد فصوله: {cd.get('classrooms_count')}")
+            if cd.get("weak_names"): parts.append(f"أسماء بعض الطلاب الضعاف: {', '.join(cd.get('weak_names', [])[:10])}")
+            if cd.get("gifted_names"): parts.append(f"أسماء بعض الموهوبين: {', '.join(cd.get('gifted_names', [])[:10])}")
+            if parts:
+                context_block = "\n\n📊 بيانات المعلم الحالية (استخدمها للإجابة عن أسئلته الشخصية بدقة):\n- " + "\n- ".join(parts)
+    except Exception:
+        pass
+    
+    # 🆕 معرفة بأدوات المنصة (ليرشد المعلم)
+    tools_block = """
+
+🧭 أدوات منصة «إمبراطورية الرياضيات» (أرشد المعلم إليها عند الحاجة):
+- مصنع الأسئلة: لتوليد أسئلة من المنهج
+- أوراق العمل: تدريب/مراجعة/واجب/اختبار قصير
+- العروض التقديمية: شرائح بصرية مع خرائط ذهنية ورسوم
+- الدرس الإمبراطوري: درس سينمائي تفاعلي كامل
+- مولّد الاختبارات: اختبارات متنوعة
+- سجل الدرجات: لرصد درجات الطلاب
+- متابعة الطلاب الضعاف والموهوبين
+- الفصول الافتراضية، الشهادات، الفيديوهات القصيرة
+عند سؤال المعلم "كيف أنشئ..." أو "أين أجد..."، أرشده للأداة المناسبة بوضوح."""
+    
     # نُحدّد دور AI بدقة
-    system_prompt = f"""أنت مساعد تربوي ذكي متخصص في تعليم {subject} للمراحل المدرسية.
+    system_prompt = f"""أنت مساعد تربوي ذكي متخصص في تعليم {subject} للمراحل المدرسية، ومدمج في منصة «إمبراطورية الرياضيات» للمعلم.
 دورك مساعدة المعلم على:
 1. شرح المفاهيم الرياضية بطرق مبسّطة ومتنوّعة
 2. اقتراح أنشطة تعليمية وألعاب صفية ممتعة
@@ -7108,6 +7143,8 @@ async def teacher_ai_assistant(
 4. معالجة صعوبات تعلّم الطلاب
 5. تحسين خطط الدروس والتحضيرات
 6. اقتراح طرق تقويم متنوعة
+7. الإجابة عن أسئلة المعلم حول بياناته (طلابه، اختباراته) بدقة من البيانات المتوفرة
+8. إرشاد المعلم لأدوات المنصة المناسبة
 
 ملاحظات مهمة:
 - استخدم لغة عربية فصيحة وسهلة
@@ -7115,7 +7152,8 @@ async def teacher_ai_assistant(
 - استخدم نقاط منظمة عند الحاجة
 - اقترح أكثر من حل/طريقة عند الإمكان
 - كن إيجابياً ومُلهماً
-{f'- المعلم يدرّس {grade}' if grade else ''}
+- إذا سأل عن بياناته ولم تتوفر، اطلب منه فتح القسم المناسب أولاً
+{f'- المعلم يدرّس {grade}' if grade else ''}{context_block}{tools_block}
 """
     
     # نبني تاريخ المحادثة
