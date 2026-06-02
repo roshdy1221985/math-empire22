@@ -4019,7 +4019,7 @@ function renderSlidesPreview() {
 }
 
 function slTypeName(type) {
-  const names = { title:'🎬 عنوان', objectives:'🎯 أهداف', content:'📚 شرح', example:'✏️ مثال', question:'❓ سؤال', closing:'🏁 ختام' };
+  const names = { title:'🎬 عنوان', objectives:'🎯 أهداف', content:'📚 شرح', example:'✏️ مثال', question:'❓ سؤال', closing:'🏁 ختام', mindmap:'🧠 خريطة ذهنية', chart:'📊 رسم بياني' };
   return names[type] || type;
 }
 
@@ -4070,6 +4070,7 @@ function slPresentHTML(slides, ctx, startIndex) {
   return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
     '<title>' + _esc(_slData.title || 'عرض تقديمي') + '</title>' +
     '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
+    '<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"><\/script>' +
     '<style>' + slPresentCSS() + '</style></head><body>' +
     '<div id="slide-stage"></div>' +
     '<div class="sl-nav">' +
@@ -4084,6 +4085,26 @@ function slPresentHTML(slides, ctx, startIndex) {
     'var cur=' + startIndex + ';' +
     'function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d];});}' +
     'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}' +
+    // 🧠 خريطة ذهنية SVG
+    'function buildMindmap(s){' +
+      'var branches=s.branches||[];var n=branches.length||1;' +
+      'var W=900,H=520,cx=W/2,cy=H/2;var R=190;' +
+      'var svg="<svg viewBox=\\"0 0 "+W+" "+H+"\\" class=\\"mm-svg\\">";' +
+      'var nodes="";' +
+      'for(var i=0;i<n;i++){var ang=(i/n)*2*Math.PI-Math.PI/2;var x=cx+R*Math.cos(ang);var y=cy+R*Math.sin(ang);' +
+        'svg+="<line class=\\"mm-line\\" x1=\\""+cx+"\\" y1=\\""+cy+"\\" x2=\\""+x+"\\" y2=\\""+y+"\\"/>";' +
+        'nodes+="<div class=\\"mm-branch\\" style=\\"left:"+(x/W*100)+"%;top:"+(y/H*100)+"%;\\">"+esc(branches[i])+"</div>";}' +
+      'svg+="</svg>";' +
+      'var center="<div class=\\"mm-center\\">"+esc(s.center||s.title)+"</div>";' +
+      'return "<div class=\\"slide slide-mindmap\\"><h2>🧠 "+esc(s.title)+"</h2><div class=\\"mm-wrap\\">"+svg+center+nodes+"</div></div>";' +
+    '}' +
+    // 📊 رسم بياني (أعمدة)
+    'function buildChart(s){' +
+      'var data=s.data||[];var mx=1;data.forEach(function(d){if(+d.value>mx)mx=+d.value;});' +
+      'var bars="";data.forEach(function(d,i){var h=(+d.value/mx)*100;' +
+        'bars+="<div class=\\"ch-col\\"><div class=\\"ch-val\\">"+ar(d.value)+"</div><div class=\\"ch-bar\\" data-h=\\""+h+"\\" style=\\"height:0%;\\"></div><div class=\\"ch-label\\">"+esc(d.label)+"</div></div>";});' +
+      'return "<div class=\\"slide slide-chart\\"><div class=\\"c-icon\\">📊</div><h2>"+esc(s.title)+"</h2>"+(s.chart_label?"<div class=\\"ch-desc\\">"+esc(s.chart_label)+"</div>":"")+"<div class=\\"ch-area\\">"+bars+"</div></div>";' +
+    '}' +
     'function renderSlide(){' +
       'var s=SLIDES[cur];if(!s)return;' +
       'var h="";' +
@@ -4091,6 +4112,10 @@ function slPresentHTML(slides, ctx, startIndex) {
         'h+="<div class=\\"slide slide-title\\"><div class=\\"crown\\">👑</div><h1>"+esc(s.title)+"</h1>";' +
         'if(s.subtitle)h+="<div class=\\"subtitle\\">"+esc(s.subtitle)+"</div>";' +
         'h+="<div class=\\"brand\\">إمبراطورية الرياضيات</div></div>";' +
+      '}else if(s.type==="mindmap"){' +
+        'h+=buildMindmap(s);' +
+      '}else if(s.type==="chart"){' +
+        'h+=buildChart(s);' +
       '}else if(s.type==="question"){' +
         'h+="<div class=\\"slide slide-question\\"><div class=\\"q-badge\\">❓ سؤال تفاعلي</div><h2>"+esc(s.title)+"</h2>";' +
         'h+="<div class=\\"q-text\\">"+esc(s.question)+"</div>";' +
@@ -4112,6 +4137,16 @@ function slPresentHTML(slides, ctx, startIndex) {
       'document.getElementById("sl-counter").textContent=ar(cur+1)+" / "+ar(SLIDES.length);' +
       'document.getElementById("sl-prev").disabled=(cur===0);' +
       'document.getElementById("sl-next").disabled=(cur===SLIDES.length-1);' +
+      'animateSlide(s.type);' +
+    '}' +
+    // ✨ حركات GSAP لكل نوع
+    'function animateSlide(type){' +
+      'if(typeof gsap==="undefined")return;' +
+      'gsap.from(".slide",{opacity:0,y:30,duration:0.5,ease:"power2.out"});' +
+      'if(type==="objectives"||type==="closing"||type==="content"){gsap.from(".slide li",{opacity:0,x:30,stagger:0.15,delay:0.2,duration:0.5});}' +
+      'else if(type==="example"){gsap.from(".slide .step",{opacity:0,x:30,stagger:0.25,delay:0.3,duration:0.5});gsap.from(".slide .result",{opacity:0,scale:0.8,delay:0.3+0.25*( (SLIDES[cur].steps||[]).length ),duration:0.5,ease:"back.out(1.7)"});}' +
+      'else if(type==="mindmap"){gsap.from(".mm-center",{opacity:0,scale:0.5,duration:0.6,ease:"back.out(1.7)"});gsap.from(".mm-line",{opacity:0,stagger:0.1,delay:0.3,duration:0.4});gsap.from(".mm-branch",{opacity:0,scale:0.4,stagger:0.12,delay:0.5,duration:0.5,ease:"back.out(1.7)"});}' +
+      'else if(type==="chart"){gsap.to(".ch-bar",{height:function(i,t){return t.getAttribute("data-h")+"%";},stagger:0.12,delay:0.3,duration:0.7,ease:"power2.out"});gsap.from(".ch-val",{opacity:0,stagger:0.12,delay:0.5,duration:0.4});}' +
     '}' +
     'function slNext(){if(cur<SLIDES.length-1){cur++;renderSlide();}}' +
     'function slPrev(){if(cur>0){cur--;renderSlide();}}' +
@@ -4157,7 +4192,25 @@ function slPresentCSS() {
     '.sl-nav button:hover:not(:disabled){background:rgba(212,175,55,0.3);}' +
     '.sl-nav button:disabled{opacity:0.4;cursor:not-allowed;}' +
     '.sl-nav #sl-counter{color:#fff;font-weight:700;min-width:80px;text-align:center;}' +
-    '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}';
+    '.sl-full-btn{background:rgba(46,204,113,0.15)!important;border-color:rgba(46,204,113,0.3)!important;color:#7fffd4!important;}' +
+    // 🧠 خريطة ذهنية
+    '.slide-mindmap{background:linear-gradient(160deg,rgba(20,16,42,0.96),rgba(10,10,31,0.92));border:1px solid rgba(168,85,247,0.35);align-items:center;}' +
+    '.slide-mindmap h2{font-family:Amiri,serif;font-size:2.2rem;color:#c4a0ff;margin-bottom:20px;text-align:center;}' +
+    '.mm-wrap{position:relative;width:100%;max-width:900px;margin:0 auto;aspect-ratio:900/520;}' +
+    '.mm-svg{position:absolute;inset:0;width:100%;height:100%;}' +
+    '.mm-line{stroke:rgba(212,175,55,0.5);stroke-width:2.5;}' +
+    '.mm-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:linear-gradient(135deg,#d4af37,#fcd34d);color:#1a0d2e;font-family:Amiri,serif;font-weight:700;font-size:1.4rem;padding:18px 28px;border-radius:50%;min-width:130px;min-height:130px;display:flex;align-items:center;justify-content:center;text-align:center;box-shadow:0 0 30px rgba(212,175,55,0.5);z-index:2;}' +
+    '.mm-branch{position:absolute;transform:translate(-50%,-50%);background:rgba(168,85,247,0.18);border:1.5px solid rgba(168,85,247,0.5);color:#f0ead6;font-weight:600;font-size:1.1rem;padding:12px 18px;border-radius:14px;text-align:center;max-width:180px;backdrop-filter:blur(6px);}' +
+    // 📊 رسم بياني
+    '.slide-chart{background:linear-gradient(160deg,rgba(10,30,40,0.96),rgba(8,20,30,0.92));border:1px solid rgba(0,206,201,0.35);align-items:center;}' +
+    '.slide-chart .c-icon{font-size:3rem;margin-bottom:12px;}' +
+    '.slide-chart h2{font-family:Amiri,serif;font-size:2.2rem;color:#5eead4;margin-bottom:8px;text-align:center;}' +
+    '.ch-desc{color:rgba(240,234,214,0.7);font-size:1.1rem;margin-bottom:30px;text-align:center;}' +
+    '.ch-area{display:flex;align-items:flex-end;justify-content:center;gap:28px;height:300px;width:100%;max-width:760px;padding:0 20px;}' +
+    '.ch-col{flex:1;max-width:120px;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;}' +
+    '.ch-val{color:#fcd34d;font-weight:700;font-size:1.4rem;margin-bottom:8px;font-family:Amiri;}' +
+    '.ch-bar{width:100%;background:linear-gradient(180deg,#00cec9,#0a8784);border-radius:10px 10px 0 0;box-shadow:0 0 18px rgba(0,206,201,0.4);min-height:4px;}' +
+    '.ch-label{color:#f0ead6;font-weight:600;font-size:1.1rem;margin-top:14px;text-align:center;}';
 }
 
 // ════════════════════════════════════════════════════════════

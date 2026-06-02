@@ -11408,8 +11408,10 @@ async def _generate_slides_core(grade, semester, unit, lesson, n_slides, n_quest
 أنواع الشرائح المطلوبة بالترتيب:
 1. شريحة عنوان (title): عنوان الدرس
 2. شريحة أهداف (objectives): أهداف الدرس كنقاط
+3. شريحة خريطة ذهنية (mindmap): المفهوم المركزي وتتفرّع منه ٣-٥ أفكار رئيسية
 3-؟. شرائح شرح (content): المفاهيم كنقاط واضحة
 شرائح أمثلة (example): مثال محلول خطوة بخطوة
+شريحة رسم بياني (chart): إذا كان الدرس يتضمّن أرقاماً أو نسباً أو مقارنات، أضف شريحة بيانات
 {n_questions} شريحة سؤال تفاعلي (question): سؤال + إجابة مخفية
 شريحة ختام (closing): تلخيص
 
@@ -11419,8 +11421,10 @@ async def _generate_slides_core(grade, semester, unit, lesson, n_slides, n_quest
   "slides": [
     {{"type": "title", "title": "عنوان الدرس", "subtitle": "الصف · الوحدة"}},
     {{"type": "objectives", "title": "أهداف الدرس", "points": ["هدف 1", "هدف 2", "هدف 3"]}},
+    {{"type": "mindmap", "title": "خريطة المفهوم", "center": "المفهوم المركزي", "branches": ["فكرة 1", "فكرة 2", "فكرة 3", "فكرة 4"]}},
     {{"type": "content", "title": "عنوان الفكرة", "points": ["نقطة 1", "نقطة 2"]}},
     {{"type": "example", "title": "مثال محلول", "problem": "نص المسألة", "steps": ["الخطوة 1", "الخطوة 2"], "result": "النتيجة النهائية"}},
+    {{"type": "chart", "title": "عنوان الرسم", "chart_label": "وصف ما تمثّله الأرقام", "data": [{{"label": "أ", "value": 30}}, {{"label": "ب", "value": 50}}, {{"label": "ج", "value": 20}}]}},
     {{"type": "question", "title": "سؤال تفاعلي", "question": "نص السؤال", "answer": "الإجابة الصحيحة"}},
     {{"type": "closing", "title": "الخلاصة", "points": ["ملخص 1", "ملخص 2"]}}
   ]
@@ -11431,7 +11435,9 @@ async def _generate_slides_core(grade, semester, unit, lesson, n_slides, n_quest
 - كل شريحة محتواها مركّز ومناسب للعرض (ليس نصاً طويلاً)
 - الأمثلة المحلولة واضحة خطوة بخطوة
 - الأسئلة التفاعلية مناسبة لمستوى الطلاب
-- المجموع {n_slides} شريحة بالضبط"""
+- **مهم:** أضف شريحة mindmap واحدة للمفهوم الرئيسي (٣-٥ تفرّعات)
+- شريحة chart فقط إذا كان الدرس يحتوي أرقاماً/نسباً/مقارنات حقيقية (قيم data أرقام صحيحة موجبة)؛ إن لم يكن الدرس رقمياً فلا تضف chart
+- المجموع تقريباً {n_slides} شريحة"""
     
     import httpx
     import json as json_lib
