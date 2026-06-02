@@ -18288,6 +18288,166 @@ async function saveTeacherProfile() {
     style="display:none;position:fixed;bottom:26px;right:96px;width:52px;height:52px;border-radius:50%;border:1px solid rgba(249,199,79,0.4);background:rgba(10,18,40,0.92);color:#f9c74f;font-size:1.5rem;cursor:pointer;z-index:9990;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,0.5);backdrop-filter:blur(10px);transition:all 0.25s cubic-bezier(0.175,0.885,0.32,1.275);"
     onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">☆</button>
 
+<!-- 🤖 زر المساعد الذكي العائم -->
+<button id="bot-fab" onclick="toggleBotChat()" title="المساعد الذكي" aria-label="المساعد الذكي">
+    <span id="bot-fab-icon">🤖</span>
+</button>
+
+<!-- 💬 نافذة المحادثة المنبثقة -->
+<div id="bot-chat-panel">
+    <div class="bot-chat-header">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <span style="font-size:1.6rem;filter:drop-shadow(0 0 8px rgba(0,255,136,0.6));">🤖</span>
+            <div>
+                <div style="font-weight:700;color:#7fffd4;font-size:1rem;">المساعد الذكي</div>
+                <div style="font-size:0.72rem;color:rgba(127,255,212,0.6);">واعٍ ببياناتك وأدواتك</div>
+            </div>
+        </div>
+        <button onclick="toggleBotChat()" style="background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
+    </div>
+    <div id="bot-chat-messages">
+        <div class="bot-welcome">
+            <div style="font-size:2.6rem;margin-bottom:8px;">🤖</div>
+            <p style="color:#7fffd4;font-weight:700;">مرحباً يا أستاذ!</p>
+            <p style="font-size:0.85rem;margin-top:6px;color:rgba(255,255,255,0.6);line-height:1.7;">اسألني عن طلابك، أو كيف تستخدم أداة، أو أي سؤال تربوي</p>
+        </div>
+    </div>
+    <div id="bot-chat-suggestions">
+        <button onclick="botQuickAsk('كم طالباً ضعيفاً وموهوباً عندي؟')">📊 تحليل طلابي</button>
+        <button onclick="botQuickAsk('كيف أنشئ اختباراً؟')">🧭 كيف أنشئ اختباراً؟</button>
+        <button onclick="botQuickAsk('اقترح نشاطاً تفاعلياً لدرس الكسور')">🎯 اقترح نشاطاً</button>
+    </div>
+    <div class="bot-chat-input">
+        <input type="text" id="bot-input" placeholder="اكتب سؤالك..." onkeypress="if(event.key==='Enter')botSend()">
+        <button onclick="botSend()" id="bot-send-btn">🚀</button>
+    </div>
+</div>
+
+<style>
+#bot-fab {
+    position: fixed; bottom: 96px; left: 24px; z-index: 9991;
+    width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
+    background: linear-gradient(135deg, #00ff88, #00cc66);
+    box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 0 rgba(0,255,136,0.5);
+    font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+    animation: botPulse 2.8s ease-in-out infinite;
+}
+#bot-fab:hover { transform: scale(1.12) rotate(-6deg); }
+#bot-fab #bot-fab-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+@keyframes botPulse {
+    0%,100% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 0 rgba(0,255,136,0.5); }
+    50% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 14px rgba(0,255,136,0); }
+}
+#bot-chat-panel {
+    display: none; position: fixed; bottom: 96px; left: 24px; z-index: 9992;
+    width: 380px; max-width: calc(100vw - 48px); height: 540px; max-height: calc(100vh - 130px);
+    background: linear-gradient(160deg, #0a1228, #050a1a);
+    border: 1px solid rgba(0,255,136,0.35); border-radius: 20px;
+    box-shadow: 0 25px 70px rgba(0,0,0,0.7), 0 0 40px rgba(0,255,136,0.1);
+    flex-direction: column; overflow: hidden;
+    animation: botSlideUp 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+#bot-chat-panel.open { display: flex; }
+@keyframes botSlideUp { from { opacity: 0; transform: translateY(30px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
+.bot-chat-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 18px; border-bottom: 1px solid rgba(0,255,136,0.2);
+    background: rgba(0,255,136,0.04);
+}
+#bot-chat-messages { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.bot-welcome { text-align: center; padding: 30px 16px; }
+.bot-bubble-user { align-self: flex-end; max-width: 82%; background: linear-gradient(135deg,#00ff88,#00cc66); color: #001a0d; padding: 10px 14px; border-radius: 14px 14px 4px 14px; line-height: 1.6; font-weight: 600; font-size: 0.9rem; }
+.bot-bubble-ai { align-self: flex-start; max-width: 88%; background: rgba(0,255,136,0.08); border: 1px solid rgba(0,255,136,0.3); color: #fff; padding: 11px 15px; border-radius: 14px 14px 14px 4px; line-height: 1.8; font-size: 0.9rem; white-space: pre-wrap; }
+.bot-bubble-typing { align-self: flex-start; background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.25); color: #7fffd4; padding: 10px 14px; border-radius: 14px; font-style: italic; font-size: 0.85rem; }
+.bot-bubble-err { align-self: flex-start; background: rgba(231,76,60,0.1); border: 1px solid rgba(231,76,60,0.4); color: #ff7676; padding: 10px 14px; border-radius: 14px; font-size: 0.85rem; }
+#bot-chat-suggestions { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 14px 10px; }
+#bot-chat-suggestions button { background: rgba(0,255,136,0.1); color: #7fffd4; border: 1px solid rgba(0,255,136,0.35); padding: 6px 11px; border-radius: 16px; cursor: pointer; font-family: Cairo; font-size: 0.76rem; font-weight: 600; transition: all 0.2s; }
+#bot-chat-suggestions button:hover { background: rgba(0,255,136,0.2); }
+.bot-chat-input { display: flex; gap: 8px; padding: 12px 14px; border-top: 1px solid rgba(0,255,136,0.2); background: rgba(0,0,0,0.3); }
+.bot-chat-input input { flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(0,255,136,0.4); color: #fff; padding: 10px 14px; border-radius: 12px; font-family: Cairo; font-size: 0.9rem; }
+.bot-chat-input button { background: linear-gradient(135deg,#00ff88,#00cc66); color: #001a0d; border: none; width: 46px; border-radius: 12px; cursor: pointer; font-size: 1.1rem; }
+.bot-chat-input button:disabled { opacity: 0.5; cursor: not-allowed; }
+@media(max-width:600px){ #bot-chat-panel{ bottom: 88px; height: 70vh; } }
+</style>
+
+<script>
+var _botHistory = [];
+function toggleBotChat() {
+    var panel = document.getElementById('bot-chat-panel');
+    var open = panel.classList.toggle('open');
+    document.getElementById('bot-fab-icon').textContent = open ? '✖️' : '🤖';
+    if (open) setTimeout(function(){ var i = document.getElementById('bot-input'); if(i) i.focus(); }, 100);
+}
+function botQuickAsk(q) {
+    document.getElementById('bot-input').value = q;
+    botSend();
+}
+function _botCtx() {
+    var ctx = {};
+    try { ctx.weak_count = (JSON.parse(localStorage.getItem('weak_students_v1')||'[]')||[]).length; } catch(e){}
+    try { ctx.gifted_count = (JSON.parse(localStorage.getItem('gifted_students_v1')||'[]')||[]).length; } catch(e){}
+    try { ctx.exams_count = (JSON.parse(localStorage.getItem('exam_library')||'[]')||[]).length; } catch(e){}
+    try {
+        var ws = JSON.parse(localStorage.getItem('weak_students_v1')||'[]')||[];
+        ctx.weak_names = ws.map(function(s){ return s.name||s.student_name||''; }).filter(Boolean).slice(0,10);
+        var gs = JSON.parse(localStorage.getItem('gifted_students_v1')||'[]')||[];
+        ctx.gifted_names = gs.map(function(s){ return s.name||s.student_name||''; }).filter(Boolean).slice(0,10);
+    } catch(e){}
+    return ctx;
+}
+async function botSend() {
+    var input = document.getElementById('bot-input');
+    var btn = document.getElementById('bot-send-btn');
+    var msgs = document.getElementById('bot-chat-messages');
+    if (!input || !btn || !msgs) return;
+    var q = input.value.trim();
+    if (!q) return;
+    var welcome = msgs.querySelector('.bot-welcome');
+    if (welcome) welcome.remove();
+    var ub = document.createElement('div');
+    ub.className = 'bot-bubble-user';
+    ub.textContent = q;
+    msgs.appendChild(ub);
+    input.value = '';
+    var typing = document.createElement('div');
+    typing.className = 'bot-bubble-typing';
+    typing.id = 'bot-typing';
+    typing.textContent = '🤖 جارٍ التفكير...';
+    msgs.appendChild(typing);
+    msgs.scrollTop = msgs.scrollHeight;
+    btn.disabled = true;
+    try {
+        var fd = new FormData();
+        fd.append('message', q);
+        fd.append('history', JSON.stringify(_botHistory));
+        fd.append('context_data', JSON.stringify(_botCtx()));
+        var res = await fetch(API_URL + '/api/teacher/ai_assistant', { method:'POST', body: fd });
+        var t = document.getElementById('bot-typing'); if (t) t.remove();
+        if (!res.ok) { var err = await res.json().catch(function(){return{};}); throw new Error(err.detail||'فشل'); }
+        var data = await res.json();
+        var answer = data.response || '...';
+        var ab = document.createElement('div');
+        ab.className = 'bot-bubble-ai';
+        ab.innerHTML = (typeof esc==='function'?esc(answer):answer).replace(/\n/g,'<br>');
+        msgs.appendChild(ab);
+        msgs.scrollTop = msgs.scrollHeight;
+        _botHistory.push({role:'user',content:q});
+        _botHistory.push({role:'assistant',content:answer});
+        if (_botHistory.length > 20) _botHistory = _botHistory.slice(-20);
+    } catch(e) {
+        var t2 = document.getElementById('bot-typing'); if (t2) t2.remove();
+        var eb = document.createElement('div');
+        eb.className = 'bot-bubble-err';
+        eb.textContent = '❌ ' + (e.message||'خطأ في الاتصال');
+        msgs.appendChild(eb);
+    } finally {
+        btn.disabled = false;
+        input.focus();
+    }
+}
+</script>
+
 <script>
 function toggleFab() {
     var actions = document.getElementById('fab-actions');
