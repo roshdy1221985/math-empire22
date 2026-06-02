@@ -4137,16 +4137,20 @@ function slPresentHTML(slides, ctx, startIndex) {
       'document.getElementById("sl-counter").textContent=ar(cur+1)+" / "+ar(SLIDES.length);' +
       'document.getElementById("sl-prev").disabled=(cur===0);' +
       'document.getElementById("sl-next").disabled=(cur===SLIDES.length-1);' +
-      'animateSlide(s.type);' +
+      'try{animateSlide(s.type);}catch(e){' +
+        // إن فشلت الحركة، نضمن ظهور كل العناصر فوراً
+        'try{gsap.set(".slide, .slide *",{opacity:1,clearProps:"all"});}catch(_){}' +
+      '}' +
     '}' +
     // ✨ حركات GSAP لكل نوع
     'function animateSlide(type){' +
       'if(typeof gsap==="undefined")return;' +
-      'gsap.from(".slide",{opacity:0,y:30,duration:0.5,ease:"power2.out"});' +
-      'if(type==="objectives"||type==="closing"||type==="content"){gsap.from(".slide li",{opacity:0,x:30,stagger:0.15,delay:0.2,duration:0.5});}' +
-      'else if(type==="example"){gsap.from(".slide .step",{opacity:0,x:30,stagger:0.25,delay:0.3,duration:0.5});gsap.from(".slide .result",{opacity:0,scale:0.8,delay:0.3+0.25*( (SLIDES[cur].steps||[]).length ),duration:0.5,ease:"back.out(1.7)"});}' +
-      'else if(type==="mindmap"){gsap.from(".mm-center",{opacity:0,scale:0.5,duration:0.6,ease:"back.out(1.7)"});gsap.from(".mm-line",{opacity:0,stagger:0.1,delay:0.3,duration:0.4});gsap.from(".mm-branch",{opacity:0,scale:0.4,stagger:0.12,delay:0.5,duration:0.5,ease:"back.out(1.7)"});}' +
-      'else if(type==="chart"){gsap.to(".ch-bar",{height:function(i,t){return t.getAttribute("data-h")+"%";},stagger:0.12,delay:0.3,duration:0.7,ease:"power2.out"});gsap.from(".ch-val",{opacity:0,stagger:0.12,delay:0.5,duration:0.4});}' +
+      'gsap.killTweensOf([".slide",".slide li",".slide .step",".slide .result",".mm-center",".mm-line",".mm-branch",".ch-bar",".ch-val"]);' +
+      'gsap.fromTo(".slide",{opacity:0,y:30},{opacity:1,y:0,duration:0.5,ease:"power2.out",clearProps:"transform"});' +
+      'if(type==="objectives"||type==="closing"||type==="content"){gsap.fromTo(".slide li",{opacity:0,x:30},{opacity:1,x:0,stagger:0.12,delay:0.2,duration:0.5,clearProps:"all"});}' +
+      'else if(type==="example"){gsap.fromTo(".slide .step",{opacity:0,x:30},{opacity:1,x:0,stagger:0.2,delay:0.3,duration:0.5,clearProps:"all"});gsap.fromTo(".slide .result",{opacity:0,scale:0.8},{opacity:1,scale:1,delay:0.3+0.2*((SLIDES[cur].steps||[]).length),duration:0.5,ease:"back.out(1.7)",clearProps:"all"});}' +
+      'else if(type==="mindmap"){gsap.fromTo(".mm-center",{opacity:0,scale:0.5},{opacity:1,scale:1,duration:0.6,ease:"back.out(1.7)",clearProps:"all"});gsap.fromTo(".mm-line",{opacity:0},{opacity:1,stagger:0.1,delay:0.3,duration:0.4,clearProps:"all"});gsap.fromTo(".mm-branch",{opacity:0,scale:0.4},{opacity:1,scale:1,stagger:0.12,delay:0.5,duration:0.5,ease:"back.out(1.7)",clearProps:"all"});}' +
+      'else if(type==="chart"){gsap.fromTo(".ch-bar",{height:"0%"},{height:function(i,t){return t.getAttribute("data-h")+"%";},stagger:0.12,delay:0.3,duration:0.7,ease:"power2.out"});gsap.fromTo(".ch-val",{opacity:0},{opacity:1,stagger:0.12,delay:0.5,duration:0.4,clearProps:"all"});}' +
     '}' +
     'function slNext(){if(cur<SLIDES.length-1){cur++;renderSlide();}}' +
     'function slPrev(){if(cur>0){cur--;renderSlide();}}' +
@@ -4160,7 +4164,7 @@ function slPresentCSS() {
   return '*{margin:0;padding:0;box-sizing:border-box;}' +
     'body{font-family:Cairo,sans-serif;background:#040d21;overflow:hidden;height:100vh;}' +
     '#slide-stage{height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px;}' +
-    '.slide{width:100%;max-width:1000px;min-height:70vh;border-radius:24px;padding:60px;display:flex;flex-direction:column;justify-content:center;animation:slideIn 0.4s ease;}' +
+    '.slide{width:100%;max-width:1000px;min-height:70vh;border-radius:24px;padding:60px;display:flex;flex-direction:column;justify-content:center;}' +
     '@keyframes slideIn{from{opacity:0;transform:translateY(20px);}to{opacity:1;transform:translateY(0);}}' +
     '.slide-title{background:linear-gradient(160deg,#0a1f4d,#040d21);text-align:center;align-items:center;border:2px solid rgba(212,175,55,0.4);}' +
     '.slide-title .crown{font-size:5rem;margin-bottom:20px;}' +
