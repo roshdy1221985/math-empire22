@@ -18290,7 +18290,28 @@ async function saveTeacherProfile() {
 
 <!-- 🤖 زر المساعد الذكي العائم -->
 <button id="bot-fab" onclick="toggleBotChat()" title="المساعد الذكي" aria-label="المساعد الذكي">
-    <span id="bot-fab-icon">🤖</span>
+    <span id="bot-fab-icon">
+        <svg viewBox="0 0 64 64" width="34" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- التاج الملكي -->
+            <path class="bot-crown" d="M22 12 L26 18 L32 11 L38 18 L42 12 L40 22 L24 22 Z" fill="#fcd34d" stroke="#b8860b" stroke-width="1"/>
+            <circle cx="22" cy="11" r="2" fill="#fcd34d"/>
+            <circle cx="32" cy="9" r="2.2" fill="#fff3c4"/>
+            <circle cx="42" cy="11" r="2" fill="#fcd34d"/>
+            <!-- الهوائي -->
+            <line class="bot-antenna" x1="32" y1="22" x2="32" y2="17" stroke="#001a0d" stroke-width="2" stroke-linecap="round"/>
+            <!-- رأس الروبوت -->
+            <rect x="16" y="22" width="32" height="26" rx="9" fill="#001a0d" stroke="#001a0d" stroke-width="1"/>
+            <rect x="18" y="24" width="28" height="22" rx="7" fill="#06241a"/>
+            <!-- العينان -->
+            <circle class="bot-eye" cx="26" cy="34" r="3.6" fill="#001a0d"/>
+            <circle class="bot-eye" cx="38" cy="34" r="3.6" fill="#001a0d"/>
+            <!-- الابتسامة -->
+            <path d="M26 41 Q32 45 38 41" stroke="#001a0d" stroke-width="2" stroke-linecap="round" fill="none"/>
+            <!-- الأذنان -->
+            <rect x="13" y="31" width="4" height="8" rx="2" fill="#001a0d"/>
+            <rect x="47" y="31" width="4" height="8" rx="2" fill="#001a0d"/>
+        </svg>
+    </span>
 </button>
 
 <!-- 💬 نافذة المحادثة المنبثقة -->
@@ -18334,7 +18355,25 @@ async function saveTeacherProfile() {
     animation: botPulse 2.8s ease-in-out infinite;
 }
 #bot-fab:hover { transform: scale(1.12) rotate(-6deg); }
-#bot-fab #bot-fab-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+#bot-fab #bot-fab-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display:flex; align-items:center; justify-content:center; }
+/* 👁️ رمشة العين */
+.bot-eye { animation: botBlink 4s infinite; transform-origin: center; }
+@keyframes botBlink {
+    0%, 92%, 100% { transform: scaleY(1); }
+    95% { transform: scaleY(0.15); }
+}
+/* 👑 توهّج التاج */
+.bot-crown { animation: botCrownGlow 2.5s ease-in-out infinite; transform-origin: center; }
+@keyframes botCrownGlow {
+    0%,100% { filter: drop-shadow(0 0 1px rgba(252,211,77,0.5)); }
+    50% { filter: drop-shadow(0 0 4px rgba(252,211,77,0.9)); }
+}
+/* 📡 تمايل الهوائي */
+.bot-antenna { animation: botAntenna 3s ease-in-out infinite; transform-origin: 32px 22px; }
+@keyframes botAntenna {
+    0%,100% { transform: rotate(-8deg); }
+    50% { transform: rotate(8deg); }
+}
 @keyframes botPulse {
     0%,100% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 0 rgba(0,255,136,0.5); }
     50% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 14px rgba(0,255,136,0); }
@@ -18373,10 +18412,17 @@ async function saveTeacherProfile() {
 
 <script>
 var _botHistory = [];
+var _botRobotSVG = '';
 function toggleBotChat() {
     var panel = document.getElementById('bot-chat-panel');
+    var iconSpan = document.getElementById('bot-fab-icon');
+    if (!_botRobotSVG && iconSpan) _botRobotSVG = iconSpan.innerHTML; // نحفظ الروبوت أول مرة
     var open = panel.classList.toggle('open');
-    document.getElementById('bot-fab-icon').textContent = open ? '✖️' : '🤖';
+    if (iconSpan) {
+        iconSpan.innerHTML = open
+            ? '<span style="font-size:1.6rem;color:#001a0d;font-weight:900;line-height:1;">✕</span>'
+            : _botRobotSVG;
+    }
     if (open) setTimeout(function(){ var i = document.getElementById('bot-input'); if(i) i.focus(); }, 100);
 }
 function botQuickAsk(q) {
