@@ -18292,7 +18292,7 @@ async function saveTeacherProfile() {
 <!-- 🤖 زر المساعد الذكي العائم -->
 <button id="bot-fab" onclick="toggleBotChat()" title="استشر الأستاذ رشدي" aria-label="المساعد الذكي">
     <span id="bot-fab-icon">
-        <img src="static/assistant.jpg" alt="المساعد" class="bot-fab-photo"
+        <img src="/static/assistant.jpg" alt="المساعد" class="bot-fab-photo"
              onerror="this.style.display='none';this.parentNode.innerHTML='<span style=\'font-size:1.7rem\'>🎓</span>';">
     </span>
     <span class="bot-online-dot"></span>
@@ -18302,7 +18302,7 @@ async function saveTeacherProfile() {
 <div id="bot-chat-panel">
     <div class="bot-chat-header">
         <div style="display:flex;align-items:center;gap:10px;">
-            <img src="static/assistant.jpg" alt="المساعد" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #d4af37;box-shadow:0 0 10px rgba(212,175,55,0.5);" onerror="this.style.display='none'">
+            <img src="/static/assistant.jpg" alt="المساعد" style="width:42px;height:42px;border-radius:50%;object-fit:cover;object-position:center 38%;border:2px solid #d4af37;box-shadow:0 0 10px rgba(212,175,55,0.5);filter:contrast(1.08) saturate(1.05);" onerror="this.style.display='none'">
             <div>
                 <div style="font-weight:700;color:#fcd34d;font-size:1rem;">المستشار رشدي</div>
                 <div style="font-size:0.72rem;color:rgba(127,255,212,0.7);">🟢 متصل · واعٍ ببياناتك وأدواتك</div>
@@ -18312,7 +18312,7 @@ async function saveTeacherProfile() {
     </div>
     <div id="bot-chat-messages">
         <div class="bot-welcome">
-            <img src="static/assistant.jpg" alt="المستشار" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #d4af37;box-shadow:0 0 18px rgba(212,175,55,0.5);margin-bottom:10px;" onerror="this.style.display='none'">
+            <img src="/static/assistant.jpg" alt="المستشار" style="width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:center 38%;border:3px solid #d4af37;box-shadow:0 0 18px rgba(212,175,55,0.5);margin-bottom:10px;filter:contrast(1.08) saturate(1.05);" onerror="this.style.display='none'">
             <p style="color:#fcd34d;font-weight:700;">مرحباً يا أستاذ!</p>
             <p style="font-size:0.85rem;margin-top:6px;color:rgba(255,255,255,0.6);line-height:1.7;">اسألني عن طلابك، أو كيف تستخدم أداة، أو أي سؤال تربوي</p>
         </div>
@@ -18345,7 +18345,13 @@ async function saveTeacherProfile() {
     display: flex; align-items: center; justify-content: center;
     background: #0a1228; border: 2px solid #fff3c4;
 }
-.bot-fab-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bot-fab-photo {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+    transform: scale(1.32);
+    object-position: center 38%;
+    filter: contrast(1.08) saturate(1.05) brightness(1.03);
+    image-rendering: -webkit-optimize-contrast;
+}
 /* 🟢 نقطة "متصل" */
 .bot-online-dot {
     position: absolute; bottom: 2px; right: 2px;
