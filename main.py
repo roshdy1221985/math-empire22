@@ -783,6 +783,13 @@ async def teacher_login(request: Request, username: str = Form(...), password: s
 
     res = supabase.table("teachers").select("*").eq("username", username).execute()
     if res.data and verify_password(password, res.data[0]['password']):
+        # ═══ تحديث آخر دخول (last_login) — قد لا يوجد العمود في قواعد قديمة ═══
+        try:
+            supabase.table("teachers").update({
+                "last_login": datetime.now(timezone.utc).isoformat()
+            }).eq("id", res.data[0]['id']).execute()
+        except Exception:
+            pass  # last_login column may not exist yet
         # ═══ نسخة نظيفة من بيانات المعلم بدون كلمة المرور ═══
         user_clean = {k: v for k, v in res.data[0].items() if k != 'password'}
         return {"status": "success", "user": user_clean}
@@ -7078,17 +7085,14 @@ async def teacher_ai_assistant(
     history: str         = Form(default="[]"),     # JSON array of past messages
     grade: str           = Form(default=""),
     subject: str         = Form(default="الرياضيات"),
-    context_data: str    = Form(default=""),       # 🆕 بيانات المعلم (JSON): ضعاف/موهوبون/اختبارات...
 ):
     """
-    🤖 مساعد تربوي ذكي واعٍ بالمنصة — يجيب أسئلة المعلم في:
+    🤖 مساعد تربوي ذكي — يجيب أسئلة المعلم في:
     - شرح المفاهيم بطرق مختلفة
     - اقتراح أنشطة تعليمية
     - تحسين تحضير
     - معالجة صعوبات الطلاب
     - إعطاء أمثلة حياتية
-    - 🆕 الإجابة عن بيانات المعلم (طلابه، اختباراته)
-    - 🆕 إرشاده لأدوات المنصة
     """
     # rate limit
     ip = request.client.host if request.client else "unknown"
@@ -7102,40 +7106,8 @@ async def teacher_ai_assistant(
     if not api_key:
         raise HTTPException(status_code=503, detail="❌ خدمة AI غير مُهيّأة (GEMINI_API_KEY مفقود)")
     
-    # 🆕 نبني سياق بيانات المعلم (إن أُرسل)
-    context_block = ""
-    try:
-        import json as _json2
-        cd = _json2.loads(context_data) if context_data else {}
-        if cd:
-            parts = []
-            if cd.get("weak_count") is not None: parts.append(f"عدد الطلاب الضعاف المسجّلين: {cd.get('weak_count')}")
-            if cd.get("gifted_count") is not None: parts.append(f"عدد الطلاب الموهوبين المسجّلين: {cd.get('gifted_count')}")
-            if cd.get("exams_count") is not None: parts.append(f"عدد الاختبارات التي أنشأها: {cd.get('exams_count')}")
-            if cd.get("classrooms_count") is not None: parts.append(f"عدد فصوله: {cd.get('classrooms_count')}")
-            if cd.get("weak_names"): parts.append(f"أسماء بعض الطلاب الضعاف: {', '.join(cd.get('weak_names', [])[:10])}")
-            if cd.get("gifted_names"): parts.append(f"أسماء بعض الموهوبين: {', '.join(cd.get('gifted_names', [])[:10])}")
-            if parts:
-                context_block = "\n\n📊 بيانات المعلم الحالية (استخدمها للإجابة عن أسئلته الشخصية بدقة):\n- " + "\n- ".join(parts)
-    except Exception:
-        pass
-    
-    # 🆕 معرفة بأدوات المنصة (ليرشد المعلم)
-    tools_block = """
-
-🧭 أدوات منصة «إمبراطورية الرياضيات» (أرشد المعلم إليها عند الحاجة):
-- مصنع الأسئلة: لتوليد أسئلة من المنهج
-- أوراق العمل: تدريب/مراجعة/واجب/اختبار قصير
-- العروض التقديمية: شرائح بصرية مع خرائط ذهنية ورسوم
-- الدرس الإمبراطوري: درس سينمائي تفاعلي كامل
-- مولّد الاختبارات: اختبارات متنوعة
-- سجل الدرجات: لرصد درجات الطلاب
-- متابعة الطلاب الضعاف والموهوبين
-- الفصول الافتراضية، الشهادات، الفيديوهات القصيرة
-عند سؤال المعلم "كيف أنشئ..." أو "أين أجد..."، أرشده للأداة المناسبة بوضوح."""
-    
     # نُحدّد دور AI بدقة
-    system_prompt = f"""أنت مساعد تربوي ذكي متخصص في تعليم {subject} للمراحل المدرسية، ومدمج في منصة «إمبراطورية الرياضيات» للمعلم.
+    system_prompt = f"""أنت مساعد تربوي ذكي متخصص في تعليم {subject} للمراحل المدرسية.
 دورك مساعدة المعلم على:
 1. شرح المفاهيم الرياضية بطرق مبسّطة ومتنوّعة
 2. اقتراح أنشطة تعليمية وألعاب صفية ممتعة
@@ -7143,8 +7115,6 @@ async def teacher_ai_assistant(
 4. معالجة صعوبات تعلّم الطلاب
 5. تحسين خطط الدروس والتحضيرات
 6. اقتراح طرق تقويم متنوعة
-7. الإجابة عن أسئلة المعلم حول بياناته (طلابه، اختباراته) بدقة من البيانات المتوفرة
-8. إرشاد المعلم لأدوات المنصة المناسبة
 
 ملاحظات مهمة:
 - استخدم لغة عربية فصيحة وسهلة
@@ -7152,8 +7122,7 @@ async def teacher_ai_assistant(
 - استخدم نقاط منظمة عند الحاجة
 - اقترح أكثر من حل/طريقة عند الإمكان
 - كن إيجابياً ومُلهماً
-- إذا سأل عن بياناته ولم تتوفر، اطلب منه فتح القسم المناسب أولاً
-{f'- المعلم يدرّس {grade}' if grade else ''}{context_block}{tools_block}
+{f'- المعلم يدرّس {grade}' if grade else ''}
 """
     
     # نبني تاريخ المحادثة
@@ -16376,10 +16345,65 @@ async def delete_student(student_id: int, request: Request, admin=Depends(get_cu
 @app.get("/api/admin/teachers")
 async def get_all_teachers(admin=Depends(get_current_admin)):
     """جلب قائمة المعلمين"""
-    res = supabase.table("teachers").select(
-        "id, full_name, username, subject, is_active, created_at"
-    ).order("full_name").execute()
+    try:
+        res = supabase.table("teachers").select(
+            "id, full_name, username, subject, is_active, created_at, last_login"
+        ).order("full_name").execute()
+    except Exception:
+        # last_login قد لا يوجد بعد
+        res = supabase.table("teachers").select(
+            "id, full_name, username, subject, is_active, created_at"
+        ).order("full_name").execute()
     return res.data or []
+
+
+@app.get("/api/admin/teachers/activity")
+async def teachers_activity(admin=Depends(get_current_admin)):
+    """📊 إحصاء نشاط المعلمين: نشطون / غائبون / لم يدخلوا قط"""
+    try:
+        res = supabase.table("teachers").select(
+            "id, full_name, username, subject, is_active, created_at, last_login"
+        ).order("last_login", desc=True).execute()
+        teachers = res.data or []
+    except Exception:
+        # العمود غير موجود — نُرجع القائمة بلا تتبّع
+        res = supabase.table("teachers").select(
+            "id, full_name, username, subject, is_active, created_at"
+        ).execute()
+        return {
+            "has_tracking": False,
+            "message": "عمود last_login غير موجود — نفّذ migration أولاً",
+            "total": len(res.data or []),
+            "teachers": res.data or []
+        }
+    now = datetime.now(timezone.utc)
+    active_7d = absent = never = 0
+    enriched = []
+    for t in teachers:
+        ll = t.get("last_login")
+        days = None
+        status = "never"
+        if ll:
+            try:
+                dt = datetime.fromisoformat(str(ll).replace("Z", "+00:00"))
+                days = (now - dt).days
+                status = "active" if days <= 7 else "absent"
+            except Exception:
+                pass
+        if status == "active": active_7d += 1
+        elif status == "absent": absent += 1
+        else: never += 1
+        t["_days_since"] = days
+        t["_status"] = status
+        enriched.append(t)
+    return {
+        "has_tracking": True,
+        "total": len(teachers),
+        "active_7d": active_7d,
+        "absent": absent,
+        "never_logged": never,
+        "teachers": enriched
+    }
 
 
 @app.post("/api/admin/teachers/{teacher_id}/toggle")

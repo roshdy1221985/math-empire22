@@ -10445,15 +10445,51 @@ async function unassignStudent(studentId) {
         if (!el) return;
         el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">جاري التحميل...</p>';
         try {
-            const res  = await authFetch('/api/admin/teachers');
-            const data = await res.json();
-            if (!data || !data.length) { el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا يوجد معلمون مسجلون</p>'; return; }
-            el.innerHTML = `
+            const res  = await authFetch('/api/admin/teachers/activity');
+            const resp = await res.json();
+            const data = resp.teachers || [];
+            const tracking = resp.has_tracking;
+            if (!data.length) { el.innerHTML = '<p style="opacity:0.5;text-align:center;padding:20px;">لا يوجد معلمون مسجلون</p>'; return; }
+            // شريط الإحصاء
+            var statsBar = '';
+            if (tracking) {
+                statsBar = `
+                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;">
+                    <div style="background:linear-gradient(135deg,rgba(46,204,113,0.15),rgba(46,204,113,0.04));border:1px solid rgba(46,204,113,0.4);border-radius:12px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#2ecc71;font-family:'Amiri';">${resp.active_7d}</div>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);">نشط (آخر ٧ أيام)</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(243,156,18,0.15),rgba(243,156,18,0.04));border:1px solid rgba(243,156,18,0.4);border-radius:12px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#f39c12;font-family:'Amiri';">${resp.absent}</div>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);">غائب (+٧ أيام)</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(231,76,60,0.15),rgba(231,76,60,0.04));border:1px solid rgba(231,76,60,0.4);border-radius:12px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#e74c3c;font-family:'Amiri';">${resp.never_logged}</div>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);">لم يدخل قط</div>
+                    </div>
+                    <div style="background:linear-gradient(135deg,rgba(212,175,55,0.15),rgba(212,175,55,0.04));border:1px solid rgba(212,175,55,0.4);border-radius:12px;padding:14px;text-align:center;">
+                        <div style="font-size:1.8rem;font-weight:900;color:#fcd34d;font-family:'Amiri';">${resp.total}</div>
+                        <div style="font-size:0.75rem;color:rgba(255,255,255,0.7);">إجمالي المعلمين</div>
+                    </div>
+                </div>`;
+            } else {
+                statsBar = `<div style="background:rgba(243,156,18,0.1);border:1px solid rgba(243,156,18,0.4);border-radius:10px;padding:12px;margin-bottom:14px;color:#f39c12;font-size:0.85rem;text-align:center;">⚠️ لتفعيل تتبّع النشاط، نفّذ ملف <b>teacher_last_login.sql</b> في Supabase</div>`;
+            }
+            function activityCell(t) {
+                if (!tracking) return '<td style="padding:10px;color:rgba(255,255,255,0.3);">—</td>';
+                var d = t._days_since, s = t._status;
+                if (s === 'never') return '<td style="padding:10px;"><span style="color:#e74c3c;font-size:0.8rem;">⛔ لم يدخل</span></td>';
+                var label = d === 0 ? 'اليوم' : d === 1 ? 'أمس' : 'منذ ' + d + ' يوم';
+                var color = s === 'active' ? '#2ecc71' : '#f39c12';
+                var dot = s === 'active' ? '🟢' : '🟡';
+                return '<td style="padding:10px;"><span style="color:'+color+';font-size:0.82rem;">'+dot+' '+label+'</span></td>';
+            }
+            el.innerHTML = statsBar + `
                 <table style="width:100%;">
                     <thead><tr style="color:var(--gold);border-bottom:1px solid rgba(212,175,55,0.3);">
                         <th style="padding:10px;text-align:right;">الاسم</th>
                         <th style="padding:10px;text-align:right;">المستخدم</th>
-                        <th style="padding:10px;text-align:right;">المادة</th>
+                        <th style="padding:10px;text-align:right;">آخر نشاط</th>
                         <th style="padding:10px;text-align:center;">الإجراءات</th>
                     </tr></thead>
                     <tbody>
@@ -10461,7 +10497,7 @@ async function unassignStudent(studentId) {
                         <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
                             <td style="padding:10px;font-weight:bold;">👨‍🏫 ${esc(t.full_name||t.name||'')}</td>
                             <td style="padding:10px;color:rgba(255,255,255,0.5);">${esc(t.username||'')}</td>
-                            <td style="padding:10px;">${esc(t.subject||'')}</td>
+                            ${activityCell(t)}
                             <td style="padding:10px;text-align:center;">
                                 <div style="display:flex;gap:6px;justify-content:center;">
                                     ${t.is_active===false
