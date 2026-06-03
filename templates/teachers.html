@@ -2291,6 +2291,7 @@
             overflow: hidden;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.06);
         }
         .bento-card::after {
             content: '';
@@ -2301,43 +2302,43 @@
             height: 150px;
             border-radius: 50%;
             pointer-events: none;
-            opacity: 0.6;
+            opacity: 0.9;
         }
         .bento-card:hover {
             transform: translateY(-4px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.4);
+            box-shadow: 0 14px 36px rgba(0,0,0,0.5);
         }
         .bento-big {
             grid-column: 1; grid-row: 1 / 3;
-            background: linear-gradient(135deg, #1a1f3a, #0f1428);
-            border: 1px solid rgba(212, 175, 55, 0.25);
+            background: linear-gradient(135deg, #2a2f52, #161b38);
+            border: 1.5px solid rgba(212, 175, 55, 0.55);
             display: flex; flex-direction: column; justify-content: space-between;
         }
-        .bento-big::after { background: radial-gradient(circle, rgba(212,175,55,0.25), transparent); }
+        .bento-big::after { background: radial-gradient(circle, rgba(212,175,55,0.4), transparent); }
         
         .bento-purple {
             grid-column: 2; grid-row: 1;
-            background: linear-gradient(135deg, #2a1a3e, #1a0f2a);
-            border: 1px solid rgba(168, 85, 247, 0.3);
+            background: linear-gradient(135deg, #3d2658, #261640);
+            border: 1.5px solid rgba(168, 85, 247, 0.55);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .bento-purple::after { background: radial-gradient(circle, rgba(168,85,247,0.25), transparent); }
+        .bento-purple::after { background: radial-gradient(circle, rgba(168,85,247,0.4), transparent); }
         
         .bento-green {
             grid-column: 3; grid-row: 1;
-            background: linear-gradient(135deg, #1a3e2a, #0f2a1a);
-            border: 1px solid rgba(74, 222, 128, 0.3);
+            background: linear-gradient(135deg, #1e5638, #103a24);
+            border: 1.5px solid rgba(74, 222, 128, 0.55);
             display: flex; flex-direction: column; justify-content: center; align-items: center;
         }
-        .bento-green::after { background: radial-gradient(circle, rgba(74,222,128,0.25), transparent); }
+        .bento-green::after { background: radial-gradient(circle, rgba(74,222,128,0.4), transparent); }
         
         .bento-blue {
             grid-column: 2 / 4; grid-row: 2;
-            background: linear-gradient(135deg, #1a2a3e, #0f1a2a);
-            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, #1e3656, #122339);
+            border: 1.5px solid rgba(99, 102, 241, 0.55);
             display: flex; align-items: center; gap: 14px;
         }
-        .bento-blue::after { background: radial-gradient(circle, rgba(99,102,241,0.25), transparent); right: -30px; left: auto; }
+        .bento-blue::after { background: radial-gradient(circle, rgba(99,102,241,0.4), transparent); right: -30px; left: auto; }
         
         @media (max-width: 720px) {
             .bento-grid {
@@ -2452,7 +2453,7 @@
             font-family: 'Amiri', serif;
         }
         .hero-stat-label {
-            color: rgba(255, 255, 255, 0.5);
+            color: rgba(255, 255, 255, 0.75);
             font-size: 0.78rem;
         }
         
@@ -6495,7 +6496,7 @@
                 <div>
                     <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
                         <div style="font-size:1.5rem;">📝</div>
-                        <span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">اختباراتي</span>
+                        <span style="color:rgba(255,255,255,0.75);font-size:0.78rem;">اختباراتي</span>
                     </div>
                     <div id="stat-exams-count" style="color:#fcd34d;font-size:2.5rem;font-weight:600;font-family:'Amiri';line-height:1;">0</div>
                     <div style="color:rgba(255,255,255,0.55);font-size:0.85rem;margin-top:6px;">اختبار أنشأته منذ البداية</div>
@@ -6505,15 +6506,15 @@
             <!-- صغيرة 1: تحضيرات -->
             <div class="bento-card bento-purple">
                 <div style="font-size:2rem;color:#c084fc;line-height:1;">📓</div>
-                <div id="stat-plans-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
-                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">تحضير</div>
+                <div id="stat-plans-count" style="color:#fff;font-size:1.9rem;font-weight:700;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.8);font-size:0.78rem;">تحضير</div>
             </div>
             
             <!-- صغيرة 2: شهادات -->
             <div class="bento-card bento-green">
                 <div style="font-size:2rem;color:#4ade80;line-height:1;">🏆</div>
-                <div id="stat-certs-count" style="color:#fff;font-size:1.6rem;font-weight:600;margin:6px 0;font-family:'Amiri';">0</div>
-                <div style="color:rgba(255,255,255,0.55);font-size:0.74rem;">شهادة</div>
+                <div id="stat-certs-count" style="color:#fff;font-size:1.9rem;font-weight:700;margin:6px 0;font-family:'Amiri';">0</div>
+                <div style="color:rgba(255,255,255,0.8);font-size:0.78rem;">شهادة</div>
             </div>
             
             <!-- عريضة: أشكال + إجراء -->
@@ -8001,7 +8002,7 @@
         <!-- منطقة الكتابة - الصفحة البيضاء -->
         <div style="background:rgba(255,255,255,0.05);border-radius:12px;padding:14px;margin-bottom:14px;">
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                <div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">
+                <div style="color:rgba(255,255,255,0.75);font-size:0.78rem;">
                     <span id="exam-page-info">📄 صفحة A4</span> · 
                     <span id="exam-word-count">0 كلمة</span> · 
                     <span id="exam-save-status" style="color:#888;">●</span>
@@ -17054,7 +17055,7 @@ function renderClassroomsGrid() {
         if (c.description) html += '<p style="color:rgba(255,255,255,0.6);margin:0 0 10px;font-size:0.82rem;line-height:1.7;">' + esc(c.description.substring(0, 100)) + '</p>';
         html += '<div style="display:flex;gap:10px;justify-content:space-between;align-items:center;padding-top:10px;border-top:1px solid rgba(255,255,255,0.1);">';
         html += '<span style="color:#7fffd4;font-size:0.88rem;font-weight:600;">👥 ' + (c.members_count || 0) + ' / ' + (c.max_students || 50) + '</span>';
-        html += '<span style="color:rgba(255,255,255,0.5);font-size:0.78rem;">' + (c.is_active ? '🟢 نشط' : '⚫ متوقّف') + '</span>';
+        html += '<span style="color:rgba(255,255,255,0.75);font-size:0.78rem;">' + (c.is_active ? '🟢 نشط' : '⚫ متوقّف') + '</span>';
         html += '</div></div>';
     });
     grid.innerHTML = html;
@@ -18289,47 +18290,30 @@ async function saveTeacherProfile() {
     onmouseover="this.style.transform='scale(1.12)'" onmouseout="this.style.transform='scale(1)'">☆</button>
 
 <!-- 🤖 زر المساعد الذكي العائم -->
-<button id="bot-fab" onclick="toggleBotChat()" title="المساعد الذكي" aria-label="المساعد الذكي">
+<button id="bot-fab" onclick="toggleBotChat()" title="استشر الأستاذ رشدي" aria-label="المساعد الذكي">
     <span id="bot-fab-icon">
-        <svg viewBox="0 0 64 64" width="34" height="34" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- التاج الملكي -->
-            <path class="bot-crown" d="M22 12 L26 18 L32 11 L38 18 L42 12 L40 22 L24 22 Z" fill="#fcd34d" stroke="#b8860b" stroke-width="1"/>
-            <circle cx="22" cy="11" r="2" fill="#fcd34d"/>
-            <circle cx="32" cy="9" r="2.2" fill="#fff3c4"/>
-            <circle cx="42" cy="11" r="2" fill="#fcd34d"/>
-            <!-- الهوائي -->
-            <line class="bot-antenna" x1="32" y1="22" x2="32" y2="17" stroke="#001a0d" stroke-width="2" stroke-linecap="round"/>
-            <!-- رأس الروبوت -->
-            <rect x="16" y="22" width="32" height="26" rx="9" fill="#001a0d" stroke="#001a0d" stroke-width="1"/>
-            <rect x="18" y="24" width="28" height="22" rx="7" fill="#06241a"/>
-            <!-- العينان -->
-            <circle class="bot-eye" cx="26" cy="34" r="3.6" fill="#001a0d"/>
-            <circle class="bot-eye" cx="38" cy="34" r="3.6" fill="#001a0d"/>
-            <!-- الابتسامة -->
-            <path d="M26 41 Q32 45 38 41" stroke="#001a0d" stroke-width="2" stroke-linecap="round" fill="none"/>
-            <!-- الأذنان -->
-            <rect x="13" y="31" width="4" height="8" rx="2" fill="#001a0d"/>
-            <rect x="47" y="31" width="4" height="8" rx="2" fill="#001a0d"/>
-        </svg>
+        <img src="static/assistant.jpg" alt="المساعد" class="bot-fab-photo"
+             onerror="this.style.display='none';this.parentNode.innerHTML='<span style=\'font-size:1.7rem\'>🎓</span>';">
     </span>
+    <span class="bot-online-dot"></span>
 </button>
 
 <!-- 💬 نافذة المحادثة المنبثقة -->
 <div id="bot-chat-panel">
     <div class="bot-chat-header">
         <div style="display:flex;align-items:center;gap:10px;">
-            <span style="font-size:1.6rem;filter:drop-shadow(0 0 8px rgba(0,255,136,0.6));">🤖</span>
+            <img src="static/assistant.jpg" alt="المساعد" style="width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid #d4af37;box-shadow:0 0 10px rgba(212,175,55,0.5);" onerror="this.style.display='none'">
             <div>
-                <div style="font-weight:700;color:#7fffd4;font-size:1rem;">المساعد الذكي</div>
-                <div style="font-size:0.72rem;color:rgba(127,255,212,0.6);">واعٍ ببياناتك وأدواتك</div>
+                <div style="font-weight:700;color:#fcd34d;font-size:1rem;">المستشار رشدي</div>
+                <div style="font-size:0.72rem;color:rgba(127,255,212,0.7);">🟢 متصل · واعٍ ببياناتك وأدواتك</div>
             </div>
         </div>
         <button onclick="toggleBotChat()" style="background:transparent;border:none;color:rgba(255,255,255,0.6);font-size:1.4rem;cursor:pointer;line-height:1;">×</button>
     </div>
     <div id="bot-chat-messages">
         <div class="bot-welcome">
-            <div style="font-size:2.6rem;margin-bottom:8px;">🤖</div>
-            <p style="color:#7fffd4;font-weight:700;">مرحباً يا أستاذ!</p>
+            <img src="static/assistant.jpg" alt="المستشار" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:3px solid #d4af37;box-shadow:0 0 18px rgba(212,175,55,0.5);margin-bottom:10px;" onerror="this.style.display='none'">
+            <p style="color:#fcd34d;font-weight:700;">مرحباً يا أستاذ!</p>
             <p style="font-size:0.85rem;margin-top:6px;color:rgba(255,255,255,0.6);line-height:1.7;">اسألني عن طلابك، أو كيف تستخدم أداة، أو أي سؤال تربوي</p>
         </div>
     </div>
@@ -18347,36 +18331,36 @@ async function saveTeacherProfile() {
 <style>
 #bot-fab {
     position: fixed; bottom: 96px; left: 24px; z-index: 9991;
-    width: 60px; height: 60px; border-radius: 50%; border: none; cursor: pointer;
-    background: linear-gradient(135deg, #00ff88, #00cc66);
-    box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 0 rgba(0,255,136,0.5);
-    font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
+    width: 64px; height: 64px; border-radius: 50%; border: none; cursor: pointer; padding: 0;
+    background: linear-gradient(135deg, #fcd34d, #d4af37);
+    box-shadow: 0 8px 24px rgba(212,175,55,0.5), 0 0 0 0 rgba(212,175,55,0.5);
+    display: flex; align-items: center; justify-content: center;
     transition: all 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
     animation: botPulse 2.8s ease-in-out infinite;
+    overflow: visible;
 }
-#bot-fab:hover { transform: scale(1.12) rotate(-6deg); }
-#bot-fab #bot-fab-icon { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); display:flex; align-items:center; justify-content:center; }
-/* 👁️ رمشة العين */
-.bot-eye { animation: botBlink 4s infinite; transform-origin: center; }
-@keyframes botBlink {
-    0%, 92%, 100% { transform: scaleY(1); }
-    95% { transform: scaleY(0.15); }
+#bot-fab:hover { transform: scale(1.1); }
+#bot-fab #bot-fab-icon {
+    width: 56px; height: 56px; border-radius: 50%; overflow: hidden;
+    display: flex; align-items: center; justify-content: center;
+    background: #0a1228; border: 2px solid #fff3c4;
 }
-/* 👑 توهّج التاج */
-.bot-crown { animation: botCrownGlow 2.5s ease-in-out infinite; transform-origin: center; }
-@keyframes botCrownGlow {
-    0%,100% { filter: drop-shadow(0 0 1px rgba(252,211,77,0.5)); }
-    50% { filter: drop-shadow(0 0 4px rgba(252,211,77,0.9)); }
+.bot-fab-photo { width: 100%; height: 100%; object-fit: cover; display: block; }
+/* 🟢 نقطة "متصل" */
+.bot-online-dot {
+    position: absolute; bottom: 2px; right: 2px;
+    width: 15px; height: 15px; border-radius: 50%;
+    background: #2ecc71; border: 2.5px solid #0a1228;
+    box-shadow: 0 0 8px rgba(46,204,113,0.8);
+    animation: botOnline 2s ease-in-out infinite;
 }
-/* 📡 تمايل الهوائي */
-.bot-antenna { animation: botAntenna 3s ease-in-out infinite; transform-origin: 32px 22px; }
-@keyframes botAntenna {
-    0%,100% { transform: rotate(-8deg); }
-    50% { transform: rotate(8deg); }
+@keyframes botOnline {
+    0%,100% { box-shadow: 0 0 8px rgba(46,204,113,0.8); }
+    50% { box-shadow: 0 0 14px rgba(46,204,113,1); }
 }
 @keyframes botPulse {
-    0%,100% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 0 rgba(0,255,136,0.5); }
-    50% { box-shadow: 0 8px 24px rgba(0,255,136,0.45), 0 0 0 14px rgba(0,255,136,0); }
+    0%,100% { box-shadow: 0 8px 24px rgba(212,175,55,0.5), 0 0 0 0 rgba(212,175,55,0.5); }
+    50% { box-shadow: 0 8px 24px rgba(212,175,55,0.5), 0 0 0 14px rgba(212,175,55,0); }
 }
 #bot-chat-panel {
     display: none; position: fixed; bottom: 96px; left: 24px; z-index: 9992;
@@ -18416,13 +18400,15 @@ var _botRobotSVG = '';
 function toggleBotChat() {
     var panel = document.getElementById('bot-chat-panel');
     var iconSpan = document.getElementById('bot-fab-icon');
-    if (!_botRobotSVG && iconSpan) _botRobotSVG = iconSpan.innerHTML; // نحفظ الروبوت أول مرة
+    var dot = document.querySelector('.bot-online-dot');
+    if (!_botRobotSVG && iconSpan) _botRobotSVG = iconSpan.innerHTML; // نحفظ الصورة أول مرة
     var open = panel.classList.toggle('open');
     if (iconSpan) {
         iconSpan.innerHTML = open
-            ? '<span style="font-size:1.6rem;color:#001a0d;font-weight:900;line-height:1;">✕</span>'
+            ? '<span style="font-size:1.7rem;color:#fcd34d;font-weight:900;line-height:1;">✕</span>'
             : _botRobotSVG;
     }
+    if (dot) dot.style.display = open ? 'none' : 'block';
     if (open) setTimeout(function(){ var i = document.getElementById('bot-input'); if(i) i.focus(); }, 100);
 }
 function botQuickAsk(q) {
@@ -19240,7 +19226,7 @@ function renderVideosTab(vids) {
         h += '<div style="background:#ff0000;color:#fff;width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;"><i class="fab fa-youtube"></i></div>';
         h += '<div style="flex:1;min-width:0;">';
         h += '<div style="color:#fff;font-weight:600;margin-bottom:4px;">' + escapeHtmlPack(v.title) + '</div>';
-        h += '<div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">🔍 ' + escapeHtmlPack(v.search) + '</div>';
+        h += '<div style="color:rgba(255,255,255,0.75);font-size:0.78rem;">🔍 ' + escapeHtmlPack(v.search) + '</div>';
         h += '</div>';
         h += '<i class="fas fa-external-link-alt" style="color:rgba(255,255,255,0.4);"></i>';
         h += '</a>';
@@ -21383,7 +21369,7 @@ function examOpenLibrary() {
                 '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
                     '<div style="flex:1;min-width:200px;">' +
                         '<div style="color:#fff;font-weight:bold;margin-bottom:3px;">' + escHtml(e.title || 'اختبار') + '</div>' +
-                        '<div style="color:rgba(255,255,255,0.5);font-size:0.78rem;">' + escHtml(e.subject || '—') + ' • ' + escHtml(e.grade || '—') + ' • ' + new Date(e.savedAt).toLocaleString('ar-EG') + '</div>' +
+                        '<div style="color:rgba(255,255,255,0.75);font-size:0.78rem;">' + escHtml(e.subject || '—') + ' • ' + escHtml(e.grade || '—') + ' • ' + new Date(e.savedAt).toLocaleString('ar-EG') + '</div>' +
                     '</div>' +
                     '<div style="display:flex;gap:6px;">' +
                         '<button onclick="examLoadFromLibrary(\'' + e.id + '\')" style="background:linear-gradient(135deg,#16a085,#0e8174);color:#fff;border:none;padding:7px 14px;border-radius:6px;cursor:pointer;font-family:Cairo;font-weight:bold;font-size:0.82rem;">📂 فتح</button>' +
