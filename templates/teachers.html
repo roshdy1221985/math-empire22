@@ -22593,6 +22593,12 @@ function gbVoiceMode() {
         if (dirBtn) dirBtn.style.display = '';
         // نهيّئ أصوات النطق (بعضها يُحمّل بشكل غير متزامن)
         try { if ('speechSynthesis' in window) window.speechSynthesis.getVoices(); } catch(e){}
+        // نطلب إذن الميكروفون استباقياً (لتفادي مفاجأة not-allowed)
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({audio:true})
+                .then(function(stream){ stream.getTracks().forEach(function(t){t.stop();}); })
+                .catch(function(){ gbVoiceShowHint('🚫 الميكروفون محظور — اضغط 🔒 بجانب العنوان ← السماح بالميكروفون ← أعد التحميل'); });
+        }
         gbVoiceShowHint('🎤 الإملاء مُفعّل — اضغط خلية وانطق الرقم · قُل "نعم" للتأكيد · "لا" للإعادة');
         gbVoiceAttachCells();
     } else {
@@ -22639,7 +22645,29 @@ function gbVoiceListenOnce() {
             gbVoiceFillCell(txt);
         }
     };
-    _gbVoiceRec.onerror = function(e){ gbVoiceShowHint('⚠️ ' + e.error + ' — اضغط الخلية وحاول ثانية'); };
+    _gbVoiceRec.onerror = function(e){
+        var msg;
+        switch(e.error) {
+            case 'not-allowed':
+            case 'service-not-allowed':
+                msg = '🚫 الميكروفون محظور — اضغط 🔒 بجانب العنوان ← السماح بالميكروفون ← أعد التحميل';
+                break;
+            case 'no-speech':
+                msg = '🔇 لم أسمع صوتاً — تأكّد من الميكروفون وانطق بوضوح';
+                break;
+            case 'audio-capture':
+                msg = '🎙️ لا يوجد ميكروفون — تأكّد من توصيله';
+                break;
+            case 'network':
+                msg = '🌐 مشكلة شبكة — التعرّف الصوتي يحتاج إنترنت';
+                break;
+            case 'aborted':
+                return; // إلغاء عادي، نتجاهله
+            default:
+                msg = '⚠️ ' + e.error + ' — اضغط الخلية وحاول ثانية';
+        }
+        gbVoiceShowHint(msg);
+    };
     try {
         _gbVoiceRec.start();
         gbVoiceShowHint('🔴 يستمع... انطق الرقم الآن');
