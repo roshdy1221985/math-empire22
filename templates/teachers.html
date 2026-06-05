@@ -22736,8 +22736,10 @@ function gbVoiceFillCell(text) {
 
 // 🔊 نطق الرقم بصوت مسموع (Text-to-Speech) للتأكيد السمعي
 function gbVoiceSpeak(num) {
+    var restarted = false;
+    var go = function(){ if (restarted) return; restarted = true; if (_gbVoiceMode && _gbVoicePending !== null) gbVoiceListenOnce(); };
     try {
-        if (!('speechSynthesis' in window)) { setTimeout(function(){ if(_gbVoiceMode) gbVoiceListenOnce(); }, 600); return; }
+        if (!('speechSynthesis' in window)) { setTimeout(go, 500); return; }
         window.speechSynthesis.cancel();
         var u = new SpeechSynthesisUtterance(String(num));
         u.lang = 'ar-SA';
@@ -22746,10 +22748,13 @@ function gbVoiceSpeak(num) {
         var voices = window.speechSynthesis.getVoices();
         var ar = voices.find(function(v){ return v.lang && v.lang.indexOf('ar')===0; });
         if (ar) u.voice = ar;
-        // عند انتهاء النطق، نبدأ الاستماع (نتجنّب أن يلتقط الميكروفون صوت النطق)
-        u.onend = function(){ if(_gbVoiceMode && _gbVoicePending!==null) gbVoiceListenOnce(); };
+        // عند انتهاء النطق نبدأ الاستماع (نتجنّب التقاط الميكروفون لصوت النطق)
+        u.onend = go;
+        u.onerror = go;
         window.speechSynthesis.speak(u);
-    } catch(e){ setTimeout(function(){ if(_gbVoiceMode) gbVoiceListenOnce(); }, 600); }
+        // 🛡️ احتياط: لو لم يُبلّغ المتصفح بانتهاء النطق (خلل معروف) نُكمل بعد مهلة
+        setTimeout(go, 2500);
+    } catch(e){ setTimeout(go, 600); }
 }
 
 // ✅ تثبيت الدرجة المؤكّدة والانتقال
@@ -22831,22 +22836,51 @@ function gbVoiceNextCell(cell) {
 
 // استخراج رقم من نص (رقمي أو كلمة عربية)
 function gbExtractNumber(text) {
-    var words = text.trim().split(/[\s،,]+/).filter(Boolean);
-    for (var i=0;i<words.length;i++){
-        var n = parseFloat(words[i].replace(/[٠-٩]/g, function(d){return '٠١٢٣٤٥٦٧٨٩'.indexOf(d);}));
-        if (!isNaN(n)) return n;
-        var wn = gbWordToNum(words[i]);
-        if (wn !== null) return wn;
-    }
-    // حالة "ثمانية ونص" = 8.5
-    var base = null, half = false;
-    words.forEach(function(w){
-        var wn = gbWordToNum(w);
-        if (wn !== null && wn >= 1) base = wn;
-        if (w === 'نص' || w === 'نصف' || w === 'ونص') half = true;
-    });
-    if (base !== null) return base + (half ? 0.5 : 0);
+    var raw = (text || '').trim();
+    if (!raw) return null;
+    // 1) أي رقم صريح في الجملة (أرقام لاتينية أو عربية ٠-٩) — الأكثر موثوقية
+    var conv = raw.replace(/[٠-٩]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.indexOf(d); });
+    var m = conv.match(/-?\d+(?:[.,]\d+)?/);
+    if (m) { var v = parseFloat(m[0].replace(',', '.')); if (!isNaN(v)) return v; }
+    // 2) كلمات عربية — يدعم من صفر إلى مئة والمركّبات (خمسة عشر / خمسة وأربعين ...)
+    var words = raw.split(/[\s،,]+/).filter(Boolean);
+    var wn = gbArabicNumber(words);
+    if (wn !== null) return wn;
     return null;
+}
+
+// 🔢 يحوّل كلمات عربية إلى رقم (0..100 + المركّبات + النصف)
+// 🔢 يحوّل كلمات عربية إلى رقم (0..100 + المركّبات + النصف)
+function gbArabicNumber(words) {
+    var UNIT = {'صفر':0,'واحد':1,'واحده':1,'واحدة':1,'إحدى':1,'احدى':1,'اثنان':2,'اثنين':2,'إثنين':2,'ثنين':2,'ثنتين':2,'ثلاثة':3,'ثلاثه':3,'ثلاث':3,'أربعة':4,'اربعة':4,'اربعه':4,'أربع':4,'اربع':4,'خمسة':5,'خمسه':5,'خمس':5,'ستة':6,'سته':6,'ست':6,'سبعة':7,'سبعه':7,'سبع':7,'ثمانية':8,'ثمانيه':8,'ثماني':8,'ثمان':8,'تسعة':9,'تسعه':9,'تسع':9};
+    var TENS = {'عشرون':20,'عشرين':20,'ثلاثون':30,'ثلاثين':30,'أربعون':40,'اربعون':40,'أربعين':40,'اربعين':40,'خمسون':50,'خمسين':50,'ستون':60,'ستين':60,'سبعون':70,'سبعين':70,'ثمانون':80,'ثمانين':80,'تسعون':90,'تسعين':90};
+    var TEN10 = {'عشرة':10,'عشره':10,'عشر':10};
+    var HUND = {'مئة':100,'مائة':100,'مية':100,'ميه':100,'مئه':100};
+    var half = words.some(function(w){ return w==='نص'||w==='نصف'||w==='ونص'||w==='ونصف'; });
+    function lookup(w){
+        var cands = [w];
+        if (w.length>1 && w.charAt(0)==='و') cands.push(w.slice(1));
+        for (var k=0;k<cands.length;k++){
+            var c = cands[k];
+            if (HUND[c]  !== undefined) return {t:'H', v:HUND[c]};
+            if (TENS[c]  !== undefined) return {t:'T', v:TENS[c]};
+            if (TEN10[c] !== undefined) return {t:'X', v:10};
+            if (UNIT[c]  !== undefined) return {t:'U', v:UNIT[c]};
+        }
+        return null;
+    }
+    var total = null, pending = null;
+    for (var i=0;i<words.length;i++){
+        var r = lookup(words[i]);
+        if (!r) continue;
+        if (r.t==='H'){ total=(total||0)+(pending!==null?pending:1)*100; pending=null; }
+        else if (r.t==='T'){ total=(total||0)+r.v+(pending!==null?pending:0); pending=null; }
+        else if (r.t==='X'){ total=(total||0)+10+(pending!==null?pending:0); pending=null; }
+        else if (r.t==='U'){ if(pending!==null) total=(total||0)+pending; pending=r.v; }
+    }
+    if (pending !== null) total = (total||0) + pending;
+    if (total === null) return half ? 0.5 : null;
+    return total + (half ? 0.5 : 0);
 }
 
 function gbVoiceStopListening() {
