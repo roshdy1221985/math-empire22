@@ -185,7 +185,7 @@ async def security_headers(request: Request, call_next):
     response.headers["X-Content-Type-Options"]    = "nosniff"
     response.headers["X-Frame-Options"]           = "SAMEORIGIN"
     response.headers["Referrer-Policy"]           = "strict-origin-when-cross-origin"
-    response.headers["Permissions-Policy"]        = "geolocation=(), camera=(), microphone=()"
+    response.headers["Permissions-Policy"]        = "geolocation=(), camera=(), microphone=(self)"
 
     # ═══ Content Security Policy ═══
     # نسمح بالـ CDNs المستخدمة فعلاً + Supabase + fonts.googleapis.com + unsafe-inline/eval
@@ -380,7 +380,7 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         # سياسة المُحيل (لا نُسرّب URLs لمواقع خارجية)
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         # منع تتبع المتصفحات
-        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(), camera=()"
+        response.headers["Permissions-Policy"] = "geolocation=(), microphone=(self), camera=()"
         # XSS Protection للمتصفحات القديمة
         response.headers["X-XSS-Protection"] = "1; mode=block"
         return response
