@@ -19112,9 +19112,11 @@ function regenerateLessonPack() {
 // ════════════════════════════════════════════════════════════
 // 🔢 تحويل الأرقام والمتغيّرات للعربية في النص المرئي فقط — يحمي الوسوم وCSS والكلمات (sin/PDF/cm)
 var _VARMAP = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};
+var _SUP = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
 function _arabicizeDigits(html) {
     return html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>|[^<]+/gi, function(tok){
         if (tok.charAt(0) === '<') return tok;
+        tok = tok.replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+/g, function(sup){ var out=''; for(var i=0;i<sup.length;i++){ out += _SUP[sup.charAt(i)]||''; } return '<sup>'+out+'</sup>'; });
         tok = tok.replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.charAt(+d); });
         tok = tok.replace(/[A-Za-z]+/g, function(w){ if(w.length===1){ return _VARMAP[w.toLowerCase()]||w; } return w; });
         return tok;
