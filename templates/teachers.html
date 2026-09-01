@@ -4917,6 +4917,9 @@
         #section-gradebook .gb-btn-purple{background:linear-gradient(135deg,#8e44ad,#9b59b6);color:#fff;}
         #section-gradebook .gb-table-wrap{background:rgba(0,0,0,0.3);border:1px solid rgba(212,175,55,0.2);border-radius:14px;padding:10px;overflow-x:auto;backdrop-filter:blur(12px);}
         #section-gradebook table.gb-table{border-collapse:collapse;width:100%;min-width:1400px;}
+        #section-gradebook table.gb-table .gb-col-oralavg, #section-gradebook table.gb-table .gb-col-hwavg{display:none;}
+        #section-gradebook table.gb-avg-mode .gb-col-oralavg, #section-gradebook table.gb-avg-mode .gb-col-hwavg{display:table-cell;}
+        #section-gradebook table.gb-no-project .gb-col-project{display:none;}
         #section-gradebook .gb-table th{background:rgba(0,0,0,0.6);color:#d4af37;padding:10px 6px;font-size:.78rem;font-weight:bold;text-align:center;border:1px solid rgba(212,175,55,0.2);position:sticky;top:0;z-index:5;}
         #section-gradebook .gb-table td{padding:6px 4px;text-align:center;border:1px solid rgba(255,255,255,0.05);font-size:.85rem;}
         #section-gradebook .gb-table tr:nth-child(odd) td{background:rgba(255,255,255,0.02);}
@@ -5347,11 +5350,13 @@
                             <th rowspan="2">م</th>
                             <th rowspan="2">اسم الطالب</th>
                             <th colspan="2">الشفوي</th>
+                            <th rowspan="2" class="gb-col-oralavg">متوسط الشفوي<br><small>(5)</small></th>
                             <th colspan="2">الواجبات</th>
+                            <th rowspan="2" class="gb-col-hwavg">متوسط الواجب<br><small>(5)</small></th>
                             <th colspan="2">الأسئلة القصيرة</th>
                             <th colspan="2">الاختبار القصير 1</th>
                             <th colspan="2">الاختبار القصير 2</th>
-                            <th rowspan="2" id="gb-th-project">المشروع<br><small>(10)</small></th>
+                            <th rowspan="2" id="gb-th-project" class="gb-col-project">المشروع<br><small>(10)</small></th>
                             <th rowspan="2" id="gb-th-sum">المجموع<br><small>(60)</small></th>
                             <th rowspan="2">المستوى</th>
                             <th rowspan="2" id="gb-th-final">اختبار النهاية<br><small>(40)</small></th>
@@ -21775,7 +21780,8 @@ function gbCompute(s) {
     var overall = gbCalcLevel(cont, cfg.contMax);
     var total100 = cont + n(s.finalExam);
     var totalLvl = gbCalcLevel(total100, 100);
-    return { sum60: cont, level1: level1, level2: level2, overall: overall, total100: total100, totalLvl: totalLvl };
+    var oralAvg=(n(s.oral1)+n(s.oral2))/2, hwAvg=(n(s.hw1)+n(s.hw2))/2;
+    return { sum60: cont, level1: level1, level2: level2, overall: overall, total100: total100, totalLvl: totalLvl, oralAvg: oralAvg, hwAvg: hwAvg };
 }
 
 function gbApplyStageHeader(){
@@ -21784,6 +21790,8 @@ function gbApplyStageHeader(){
     if(p) p.innerHTML = cfg.proj ? 'المشروع<br><small>(10)</small>' : 'المشروع<br><small>(لا يُحتسب)</small>';
     if(su) su.innerHTML = 'المجموع<br><small>('+cfg.contMax+')</small>';
     if(f) f.innerHTML = 'اختبار النهاية<br><small>('+cfg.finalMax+')</small>';
+    var tbl=document.getElementById('gb-table');
+    if(tbl){ tbl.classList.toggle('gb-avg-mode', cfg.oralHw==='avg'); tbl.classList.toggle('gb-no-project', !cfg.proj); }
     var sel=document.getElementById('gb-stage-select'); if(sel) sel.value=(GB_DATA.stage||'5_9');
 }
 function gbSetStage(st){
@@ -21799,11 +21807,11 @@ function gbRenderTable() {
     if (!tbody) return;
     var cls = gbGetCurrentClass();
     if (!cls) {
-        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">لا توجد شعب — أضف شعبة لبدء الرصد</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="20" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">لا توجد شعب — أضف شعبة لبدء الرصد</td></tr>';
         return;
     }
     if (!cls.students.length) {
-        tbody.innerHTML = '<tr><td colspan="18" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">📝 لا يوجد طلاب — اضغط "إضافة طالب" أو "إضافة دفعة"</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="20" style="text-align:center;padding:30px;color:rgba(255,255,255,0.4);">📝 لا يوجد طلاب — اضغط "إضافة طالب" أو "إضافة دفعة"</td></tr>';
         return;
     }
     
@@ -21815,15 +21823,17 @@ function gbRenderTable() {
             '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.oral1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'oral1\',this.value)"></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.oral2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'oral2\',this.value)"></td>' +
+            '<td class="gb-col-oralavg"><span class="gb-sum">' + c.oralAvg.toFixed(1) + '</span></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.hw1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'hw1\',this.value)"></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.hw2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'hw2\',this.value)"></td>' +
+            '<td class="gb-col-hwavg"><span class="gb-sum">' + c.hwAvg.toFixed(1) + '</span></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.quiz1 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'quiz1\',this.value)"></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.quiz2 + '" min="0" max="5" step="0.5" onchange="gbUpdateField(' + s.id + ',\'quiz2\',this.value)"></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.shortExam1 + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'shortExam1\',this.value)"></td>' +
             '<td><span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.shortExam2 + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'shortExam2\',this.value)"></td>' +
             '<td><span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span></td>' +
-            '<td>' + (cfg.proj ? '<input type="number" class="gb-cell-input" value="' + s.project + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'project\',this.value)">' : '<span style="color:rgba(255,255,255,0.25);" title="لا يُحتسب في هذا الصف">—</span>') + '</td>' +
+            '<td class="gb-col-project"><input type="number" class="gb-cell-input" value="' + s.project + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'project\',this.value)"></td>' +
             '<td><span class="gb-sum">' + c.sum60.toFixed(1) + '</span></td>' +
             '<td><span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.finalExam + '" min="0" max="' + cfg.finalMax + '" step="0.5" onchange="gbUpdateField(' + s.id + ',\'finalExam\',this.value)" style="width:60px;"></td>' +
@@ -21846,12 +21856,13 @@ function gbUpdateField(sid, field, val) {
     if (row && field !== 'name') {
         var c = gbCompute(s);
         var cells = row.querySelectorAll('td');
-        // المستوى 1 (index 9)
-        cells[9].innerHTML = '<span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span>';
-        cells[11].innerHTML = '<span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span>';
-        cells[13].innerHTML = '<span class="gb-sum">' + c.sum60.toFixed(1) + '</span>';
-        cells[14].innerHTML = '<span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span>';
-        cells[16].innerHTML = '<span class="gb-sum" style="font-size:1.05rem;">' + c.total100.toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + c.totalLvl + '</span>';
+        cells[4].innerHTML = '<span class="gb-sum">' + c.oralAvg.toFixed(1) + '</span>';
+        cells[7].innerHTML = '<span class="gb-sum">' + c.hwAvg.toFixed(1) + '</span>';
+        cells[11].innerHTML = '<span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span>';
+        cells[13].innerHTML = '<span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span>';
+        cells[15].innerHTML = '<span class="gb-sum">' + c.sum60.toFixed(1) + '</span>';
+        cells[16].innerHTML = '<span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span>';
+        cells[18].innerHTML = '<span class="gb-sum" style="font-size:1.05rem;">' + c.total100.toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + c.totalLvl + '</span>';
     }
     gbUpdateStats();
 }
