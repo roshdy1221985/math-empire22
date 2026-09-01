@@ -5331,6 +5331,14 @@
                 </div>
             </div>
             
+<div style="display:flex;align-items:center;gap:8px;margin:8px 0;flex-wrap:wrap;background:rgba(255,255,255,0.04);padding:10px 12px;border-radius:10px;">
+  <span style="color:rgba(255,255,255,0.8);font-size:.9rem;font-weight:700;">📋 نظام الدرجات حسب الصف:</span>
+  <select id="gb-stage-select" onchange="gbSetStage(this.value)" style="background:#0a1228;color:#fff;border:1px solid rgba(0,255,136,0.4);border-radius:8px;padding:7px 12px;font-family:Cairo;font-weight:600;cursor:pointer;">
+    <option value="5_9">الصفوف 5–9 — أعمال 60 + نهائي 40 (بمشروع)</option>
+    <option value="11">الصفوف 10–11 — أعمال 40 + نهائي 60 (متوسط · بدون مشروع)</option>
+  </select>
+  <span style="color:rgba(0,255,136,0.75);font-size:.75rem;">الشفوي والواجب يُحسبان بالمتوسط في الصفوف 10–11 (اجمع الخانتين ÷ 2)</span>
+</div>
             <!-- 📊 الجدول -->
             <div class="gb-table-wrap">
                 <table class="gb-table" id="gb-table">
@@ -5343,10 +5351,10 @@
                             <th colspan="2">الأسئلة القصيرة</th>
                             <th colspan="2">الاختبار القصير 1</th>
                             <th colspan="2">الاختبار القصير 2</th>
-                            <th rowspan="2">المشروع<br><small>(10)</small></th>
-                            <th rowspan="2">المجموع<br><small>(60)</small></th>
+                            <th rowspan="2" id="gb-th-project">المشروع<br><small>(10)</small></th>
+                            <th rowspan="2" id="gb-th-sum">المجموع<br><small>(60)</small></th>
                             <th rowspan="2">المستوى</th>
-                            <th rowspan="2">اختبار النهاية<br><small>(40)</small></th>
+                            <th rowspan="2" id="gb-th-final">اختبار النهاية<br><small>(40)</small></th>
                             <th rowspan="2">الكلي<br><small>(100)</small></th>
                             <th rowspan="2">⚙️</th>
                         </tr>
@@ -21713,6 +21721,12 @@ function gbCalcLevel(score, max) {
         if (score >= 6.5) return 'ج';
         if (score >= 5) return 'د';
         return 'هـ';
+    } else if (max === 40) {
+        if (score >= 36) return 'أ';
+        if (score >= 32) return 'ب';
+        if (score >= 26) return 'ج';
+        if (score >= 20) return 'د';
+        return 'هـ';
     } else if (max === 60) {
         if (score >= 54) return 'أ';
         if (score >= 48) return 'ب';
@@ -21733,18 +21747,54 @@ function gbLevelClass(lvl) {
     return 'gb-level gb-lvl-' + ({'أ':'a','ب':'b','ج':'c','د':'d','هـ':'e'}[lvl] || 'e');
 }
 
+// يرجع إعدادات الدرجات حسب الصف (الوزارة)
+function gbStageCfg(){
+    var st = (typeof GB_DATA!=='undefined' && GB_DATA.stage) ? GB_DATA.stage : '10';
+    switch(st){
+        case '10':
+        case '11': return { st:st, oralHw:'avg', hw:true,  quiz:'two', proj:false, contMax:40, finalMax:60 };
+        default:    return { st:'5_9', oralHw:'sum', hw:true, quiz:'two', proj:true,  contMax:60, finalMax:40 };
+    }
+}
 function gbCompute(s) {
     var n = function(v){return parseFloat(v)||0;};
-    var sum60 = n(s.oral1)+n(s.oral2)+n(s.hw1)+n(s.hw2)+n(s.quiz1)+n(s.quiz2)+n(s.shortExam1)+n(s.shortExam2)+n(s.project);
+    var cfg = gbStageCfg();
+    var oral, hw, quiz, se, cont;
+    if (cfg.oralHw === 'avg') {
+        oral = (n(s.oral1)+n(s.oral2))/2;
+        hw   = cfg.hw ? (n(s.hw1)+n(s.hw2))/2 : 0;
+    } else {
+        oral = n(s.oral1)+n(s.oral2);
+        hw   = n(s.hw1)+n(s.hw2);
+    }
+    quiz = (cfg.quiz === 'one') ? n(s.quiz1) : (n(s.quiz1)+n(s.quiz2));
+    se   = n(s.shortExam1)+n(s.shortExam2);
+    cont = oral + hw + quiz + se + (cfg.proj ? n(s.project) : 0);
     var level1 = gbCalcLevel(n(s.shortExam1), 10);
     var level2 = gbCalcLevel(n(s.shortExam2), 10);
-    var overall = gbCalcLevel(sum60, 60);
-    var total100 = sum60 + n(s.finalExam);
+    var overall = gbCalcLevel(cont, cfg.contMax);
+    var total100 = cont + n(s.finalExam);
     var totalLvl = gbCalcLevel(total100, 100);
-    return { sum60: sum60, level1: level1, level2: level2, overall: overall, total100: total100, totalLvl: totalLvl };
+    return { sum60: cont, level1: level1, level2: level2, overall: overall, total100: total100, totalLvl: totalLvl };
 }
 
+function gbApplyStageHeader(){
+    var cfg = gbStageCfg();
+    var p=document.getElementById('gb-th-project'), su=document.getElementById('gb-th-sum'), f=document.getElementById('gb-th-final');
+    if(p) p.innerHTML = cfg.proj ? 'المشروع<br><small>(10)</small>' : 'المشروع<br><small>(لا يُحتسب)</small>';
+    if(su) su.innerHTML = 'المجموع<br><small>('+cfg.contMax+')</small>';
+    if(f) f.innerHTML = 'اختبار النهاية<br><small>('+cfg.finalMax+')</small>';
+    var sel=document.getElementById('gb-stage-select'); if(sel) sel.value=(GB_DATA.stage||'5_9');
+}
+function gbSetStage(st){
+    GB_DATA.stage = st;
+    if(typeof gbSave==='function') gbSave();
+    gbApplyStageHeader();
+    gbRenderTable();
+    if(typeof gbUpdateStats==='function') gbUpdateStats();
+}
 function gbRenderTable() {
+    gbApplyStageHeader();
     var tbody = document.getElementById('gb-tbody');
     if (!tbody) return;
     var cls = gbGetCurrentClass();
@@ -21759,6 +21809,7 @@ function gbRenderTable() {
     
     tbody.innerHTML = cls.students.map(function(s, i) {
         var c = gbCompute(s);
+        var cfg = gbCompute._cfg = gbStageCfg();
         return '<tr data-sid="' + s.id + '">' +
             '<td>' + (i+1) + '</td>' +
             '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>' +
@@ -21772,10 +21823,10 @@ function gbRenderTable() {
             '<td><span class="' + gbLevelClass(c.level1) + '">' + c.level1 + '</span></td>' +
             '<td><input type="number" class="gb-cell-input" value="' + s.shortExam2 + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'shortExam2\',this.value)"></td>' +
             '<td><span class="' + gbLevelClass(c.level2) + '">' + c.level2 + '</span></td>' +
-            '<td><input type="number" class="gb-cell-input" value="' + s.project + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'project\',this.value)"></td>' +
+            '<td>' + (cfg.proj ? '<input type="number" class="gb-cell-input" value="' + s.project + '" min="0" max="10" step="0.5" onchange="gbUpdateField(' + s.id + ',\'project\',this.value)">' : '<span style="color:rgba(255,255,255,0.25);" title="لا يُحتسب في هذا الصف">—</span>') + '</td>' +
             '<td><span class="gb-sum">' + c.sum60.toFixed(1) + '</span></td>' +
             '<td><span class="' + gbLevelClass(c.overall) + '">' + c.overall + '</span></td>' +
-            '<td><input type="number" class="gb-cell-input" value="' + s.finalExam + '" min="0" max="40" step="0.5" onchange="gbUpdateField(' + s.id + ',\'finalExam\',this.value)" style="width:60px;"></td>' +
+            '<td><input type="number" class="gb-cell-input" value="' + s.finalExam + '" min="0" max="' + cfg.finalMax + '" step="0.5" onchange="gbUpdateField(' + s.id + ',\'finalExam\',this.value)" style="width:60px;"></td>' +
             '<td><span class="gb-sum" style="font-size:1.05rem;">' + c.total100.toFixed(1) + '</span> <span class="' + gbLevelClass(c.totalLvl) + '" style="font-size:.85rem;">' + c.totalLvl + '</span></td>' +
             '<td><button class="gb-btn-del" onclick="gbDeleteStudent(' + s.id + ')">🗑️</button></td>' +
         '</tr>';
