@@ -5753,6 +5753,49 @@ async def cache_clear(
 # 📝 EXAM GENERATOR — مولّد الاختبارات الفوري للمعلمين
 # ═══════════════════════════════════════════════════════════════
 
+# ════════════════════════════════════════════════════════════
+# 🆕 تنسيق الرياضيات لمخرجات الاختبار (أُس/جذر/كسور/رموز) → يونيكود + <sup>
+#    يعمل مع تعريب المتصفح _arabicizeDigits لإخراج أرقام هندية ومتغيرات عربية
+# ════════════════════════════════════════════════════════════
+def _fmt_math(s):
+    import re as _re
+    s = str(s or "")
+    # 1) escape زوايا HTML أولاً (نفس سلوك esc القديم)
+    s = s.replace("<", "&lt;").replace(">", "&gt;")
+    # 2) إزالة حدود LaTeX ($$ $ \( \) \[ \])
+    s = s.replace("$$", "").replace("$", "")
+    s = s.replace("\\(", "").replace("\\)", "").replace("\\[", "").replace("\\]", "")
+    # 3) الكسور: \frac{a}{b} أو frac{a}{b}
+    s = _re.sub(r"\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}",
+                lambda m: m.group(1) + "/" + m.group(2), s)
+    # 4) الجذر: \sqrt{...} أو sqrt{...}
+    def _sqrt(m):
+        inner = m.group(1)
+        return ("\u221a(" + inner + ")") if _re.search(r"[+\-*/ ]", inner) else ("\u221a" + inner)
+    s = _re.sub(r"\\?sqrt\s*\{([^{}]*)\}", _sqrt, s)
+    # 5) رموز وعمليات يونانية / رياضية
+    _ops = [(r"\\left\\\{", "{"), (r"\\right\\\}", "}"),
+            (r"\\left\(", "("), (r"\\right\)", ")"),
+            (r"\\left", ""), (r"\\right", ""),
+            (r"\\pm", "\u00b1"), (r"\\mp", "\u2213"), (r"\\times", "\u00d7"),
+            (r"\\cdot", "\u00b7"), (r"\\div", "\u00f7"),
+            (r"\\leq", "\u2264"), (r"\\geq", "\u2265"), (r"\\le", "\u2264"), (r"\\ge", "\u2265"),
+            (r"\\neq", "\u2260"), (r"\\approx", "\u2248"), (r"\\equiv", "\u2261"),
+            (r"\\infty", "\u221e"), (r"\\pi", "\u03c0"), (r"\\theta", "\u03b8"),
+            (r"\\alpha", "\u03b1"), (r"\\beta", "\u03b2"), (r"\\gamma", "\u03b3"),
+            (r"\\Delta", "\u0394"), (r"\\delta", "\u03b4"), (r"\\lambda", "\u03bb"),
+            (r"\\sum", "\u2211"), (r"\\int", "\u222b"), (r"\\angle", "\u2220"),
+            (r"\\%", "%"), (r"\\,", " "), (r"\\;", " "), (r"\\!", "")]
+    for _pat, _rep in _ops:
+        s = _re.sub(_pat, _rep, s)
+    # 6) الأُس: ^{...} ثم ^(...) ثم ^رمز مفرد
+    s = _re.sub(r"\^\{([^{}]*)\}", r"<sup>\1</sup>", s)
+    s = _re.sub(r"\^\(([^()]*)\)", r"<sup>\1</sup>", s)
+    s = _re.sub(r"\^(-?\d+|[A-Za-z])", r"<sup>\1</sup>", s)
+    # 7) تنظيف أي أمر LaTeX غير معروف متبقٍّ (نشيل الـ backslash)
+    s = _re.sub(r"\\([A-Za-z]+)", r"\1", s)
+    return s
+
 @app.get("/api/teacher/exam_generator/preview")
 async def teacher_exam_preview(
     grade: str,
@@ -5932,7 +5975,7 @@ async def teacher_exam_build_pdf(
         arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
         
         for i, q in enumerate(questions, 1):
-            q_text = (q.get("question") or "").replace("<", "&lt;").replace(">", "&gt;")
+            q_text = _fmt_math(q.get("question"))
             options = q.get("options") or q.get("choices") or ""
             # نقرأ من كل الأعمدة المحتملة
             correct = (q.get("correct_answer") or q.get("answer") or 
@@ -5955,7 +5998,7 @@ async def teacher_exam_build_pdf(
                 q_block += '<div class="q-options">'
                 for idx, opt in enumerate(opts_list[:6]):
                     letter = arabic_letters[idx] if idx < len(arabic_letters) else str(idx+1)
-                    opt_clean = str(opt).replace("<", "&lt;").replace(">", "&gt;")
+                    opt_clean = _fmt_math(opt)
                     q_block += '<div class="q-option"><span class="q-letter">(' + letter + ')</span> ' + opt_clean + '</div>'
                 q_block += '</div>'
             else:
@@ -5964,7 +6007,7 @@ async def teacher_exam_build_pdf(
             q_block += '</div>'
             questions_html += q_block
             
-            ans_clean = str(correct).replace("<", "&lt;").replace(">", "&gt;")
+            ans_clean = _fmt_math(correct)
             answers_html += '<div class="ans-item"><strong>' + str(i) + '.</strong> ' + ans_clean + '</div>'
         
         # نبني الـ HTML الكامل
@@ -6271,7 +6314,7 @@ async def teacher_exam_build_pdf_v2(
         q_counter = [0]  # mutable
         
         def esc(s):
-            return str(s or "").replace("<", "&lt;").replace(">", "&gt;")
+            return _fmt_math(s)
         
         section_defs = [
             ("essay", "✍️ السؤال الأول: أجب عن الأسئلة التالية", "essay"),
@@ -6601,7 +6644,7 @@ async def teacher_exam_build_from_questions(
         arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
         
         def esc(s):
-            return str(s or "").replace("<", "&lt;").replace(">", "&gt;")
+            return _fmt_math(s)
         
         # المجموع الكلي = مجموع درجات الأسئلة
         total_marks = sum(float(q.get("marks", 1) or 0) for q in questions)

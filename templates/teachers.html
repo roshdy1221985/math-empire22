@@ -10755,7 +10755,8 @@ async function exgGenerate() {
             var err = await res.json().catch(function(){return{};});
             throw new Error(err.detail || 'فشل');
         }
-        var html = await res.text();
+        var _raw = await res.text();
+        var html = (typeof _arabicizeDigits === 'function') ? _arabicizeDigits(_raw) : _raw;  // 🆕 تعريب مخرجات الاختبار (أرقام هندية + متغيرات عربية) مثل حزمة الدرس
         
         // فتح في نافذة جديدة
         var w = window.open('', '_blank');
@@ -10982,7 +10983,8 @@ async function exgEdPrint() {
             var err = await res.json().catch(function(){return{};});
             throw new Error(err.detail || 'فشل');
         }
-        var html = await res.text();
+        var _raw = await res.text();
+        var html = (typeof _arabicizeDigits === 'function') ? _arabicizeDigits(_raw) : _raw;  // 🆕 تعريب مخرجات الاختبار (أرقام هندية + متغيرات عربية) مثل حزمة الدرس
         var w = window.open('', '_blank');
         w.document.open();
         w.document.write(html);
