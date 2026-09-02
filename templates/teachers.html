@@ -21754,7 +21754,7 @@ function gbLevelClass(lvl) {
 
 // يرجع إعدادات الدرجات حسب الصف (الوزارة)
 function gbStageCfg(){
-    var st = (typeof GB_DATA!=='undefined' && GB_DATA.stage) ? GB_DATA.stage : '10';
+    var st = (typeof GB_DATA!=='undefined' && GB_DATA.stage) ? GB_DATA.stage : '5_9';
     switch(st){
         case '10':
         case '11': return { st:st, oralHw:'avg', hw:true,  quiz:'two', proj:false, contMax:40, finalMax:60 };
@@ -23930,6 +23930,19 @@ function gbEnsureTemplate() {
         gbSave();
         console.log('[gb] migration applied');
     }
+    gbApplyStageColumns();
+}
+
+// 🆕 [إصلاح 10-11] يضبط أعمدة القالب الرسمي حسب الصف: يخفي المشروع + يظبط سقف النهائي والمجموع
+function gbApplyStageColumns() {
+    if (typeof GB_DATA === 'undefined' || GB_DATA.template !== 'official' || !GB_DATA.columns) return;
+    var cfg = (typeof gbStageCfg === 'function') ? gbStageCfg() : { proj:true, contMax:60, finalMax:40 };
+    GB_DATA.columns.forEach(function(col) {
+        if (col.id === 'project')   { col.visible = !!cfg.proj; }
+        if (col.id === 'finalExam') { col.max = cfg.finalMax; col.label = 'اختبار النهاية'; }
+        if (col.id === 'sum60')     { col.max = cfg.contMax;  col.label = 'المجموع'; }
+        if (col.id === 'overall')   { col.max = cfg.contMax;  col.label = 'المستوى الإجمالي'; }
+    });
 }
 
 // ════════════════════════════════════════════════════════════
@@ -24156,7 +24169,19 @@ function gbComputeV2(s) {
     
     if (GB_DATA.template === 'official') {
         // المنطق الأصلي للقالب الرسمي
-        var sum60 = n(s.oral1)+n(s.oral2)+n(s.hw1)+n(s.hw2)+n(s.quiz1)+n(s.quiz2)+n(s.shortExam1)+n(s.shortExam2)+n(s.project);
+        // 🆕 [توحيد] نفس منطق gbCompute القديم: يحترم الصف (متوسط/بدون مشروع في 10-11)
+        var _cfg = (typeof gbStageCfg === 'function') ? gbStageCfg() : { oralHw:'sum', hw:true, quiz:'two', proj:true, contMax:60 };
+        var _oral, _hw;
+        if (_cfg.oralHw === 'avg') {
+            _oral = (n(s.oral1)+n(s.oral2))/2;
+            _hw   = _cfg.hw ? (n(s.hw1)+n(s.hw2))/2 : 0;
+        } else {
+            _oral = n(s.oral1)+n(s.oral2);
+            _hw   = n(s.hw1)+n(s.hw2);
+        }
+        var _quiz = (_cfg.quiz === 'one') ? n(s.quiz1) : (n(s.quiz1)+n(s.quiz2));
+        var _se   = n(s.shortExam1)+n(s.shortExam2);
+        var sum60 = _oral + _hw + _quiz + _se + (_cfg.proj ? n(s.project) : 0);
         
         // نضيف الأعمدة المخصصة للمجموع (إذا كانت قبل sum60)
         GB_DATA.columns.forEach(function(col) {
@@ -24168,7 +24193,7 @@ function gbComputeV2(s) {
         result.level1 = gbCalcLevel(n(s.shortExam1), 10);
         result.level2 = gbCalcLevel(n(s.shortExam2), 10);
         result.sum60 = sum60;
-        result.overall = gbCalcLevel(sum60, 60);
+        result.overall = gbCalcLevel(sum60, _cfg.contMax);
         result.total100 = sum60 + n(s.finalExam);
         result.totalLvl = gbCalcLevel(result.total100, 100);
     } else if (GB_DATA.template === 'simple') {
