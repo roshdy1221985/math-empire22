@@ -5754,9 +5754,316 @@ async def cache_clear(
 # ═══════════════════════════════════════════════════════════════
 
 # ════════════════════════════════════════════════════════════
+# 🆕 استبدال وسم الرسم [[plot:...]] برسم SVG داخل نص السؤال
+#    أمثلة: [[plot:parabola a=1 b=-4 c=3]]  ·  [[plot:line m=2 c=-1]]  ·  color=#1565c0
+#    يُشغَّل بعد _fmt_math حتى لا يتعرّض الـSVG لعملية escape
+# ════════════════════════════════════════════════════════════
+def _render_plot_tags(s):
+    import re as _re
+    if not s or "[[plot:" not in s:
+        return s
+
+    def _one(m):
+        spec = (m.group(1) or "").strip()
+        toks = spec.split()
+        kind = "parabola"
+        kw = {"a": 1.0, "b": 0.0, "c": 0.0, "m": 1.0}
+        color = "#c0392b"
+        show_vertex = False
+        if toks and "=" not in toks[0]:
+            kind = toks[0].lower()
+            toks = toks[1:]
+        for pr in toks:
+            if "=" not in pr:
+                continue
+            key, val = pr.split("=", 1)
+            key = key.strip().lower()
+            val = val.strip()
+            if key == "color":
+                color = val
+            elif key == "vertex":
+                show_vertex = val.lower() not in ("off", "no", "0", "false", "hide")
+            elif key in kw:
+                try:
+                    kw[key] = float(val)
+                except Exception:
+                    pass
+        try:
+            svg = _plot_function_svg(kind=kind, a=kw["a"], b=kw["b"],
+                                     c=kw["c"], m=kw["m"], color=color,
+                                     show_vertex=show_vertex)
+        except Exception:
+            return ""
+        return '<div class="q-figure" style="text-align:center;margin:10px auto;break-inside:avoid;">' + svg + '</div>'
+
+    return _re.sub(r"\[\[plot:([^\]]+)\]\]", _one, s)
+
+# ════════════════════════════════════════════════════════════
 # 🆕 تنسيق الرياضيات لمخرجات الاختبار (أُس/جذر/كسور/رموز) → يونيكود + <sup>
 #    يعمل مع تعريب المتصفح _arabicizeDigits لإخراج أرقام هندية ومتغيرات عربية
 # ════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
+# 🆕 راسم الدوال (SVG): قطع مكافئ y=ax²+bx+c أو خط y=mx+c — محاور + شبكة + منحنى
+#    يطلّع SVG نصّي جاهز للحقن في الاختبار (سيرفر) وشاشة الطالب. أرقام المحاور هندية.
+# ════════════════════════════════════════════════════════════
+def _plot_function_svg(kind="parabola", a=1.0, b=0.0, c=0.0, m=1.0,
+                       color="#c0392b", width=360, height=360, show_vertex=False):
+    import math as _math
+
+    def _ar(v):
+        nn = int(round(v))
+        out = ""
+        for ch in str(abs(nn)):
+            out += "٠١٢٣٤٥٦٧٨٩"[int(ch)]
+        if nn < 0:
+            out += "-"          # 🆕 إشارة السالب يمين العدد
+        return out
+
+    kind = (kind or "parabola").lower()
+    if kind in ("line", "linear", "خط", "مستقيم"):
+        kind = "line"
+        f = lambda x: m * x + c
+        R = 7.0
+        cx0, cy0 = 0.0, 0.0
+    else:
+        kind = "parabola"
+        a = a if a else 1.0
+        h = -b / (2.0 * a)
+        k = a * h * h + b * h + c
+        f = lambda x: a * x * x + b * x + c
+        R = 6.0
+        cx0 = h
+        cy0 = k + (R - 1.0) if a > 0 else k - (R - 1.0)
+
+    # نافذة مربّعة (نفس عدد الوحدات أفقياً ورأسياً)
+    xmin, xmax = cx0 - R, cx0 + R
+    ymin, ymax = cy0 - R, cy0 + R
+
+    PADL, PADR, PADT, PADB = 30, 14, 14, 22
+    PW = width - PADL - PADR
+    PH = height - PADT - PADB
+    # مقياس موحّد => مربعات حقيقية، مع توسيط اللوحة
+    scale = min(PW / (xmax - xmin), PH / (ymax - ymin))
+    drawW = (xmax - xmin) * scale
+    drawH = (ymax - ymin) * scale
+    offX = PADL + (PW - drawW) / 2.0
+    offY = PADT + (PH - drawH) / 2.0
+
+    def sx(x):
+        return offX + (x - xmin) * scale
+
+    def sy(y):
+        return offY + (ymax - y) * scale
+
+    N = 240
+    xs = [xmin + (xmax - xmin) * i / N for i in range(N + 1)]
+    ys = [f(x) for x in xs]
+
+    p = []
+    p.append('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" width="%d" height="%d" font-family="Cairo,Arial,sans-serif" direction="ltr" style="direction:ltr;unicode-bidi:bidi-override;">' % (width, height, width, height))
+    p.append('<rect x="0" y="0" width="%d" height="%d" fill="#ffffff" rx="8"/>' % (width, height))
+    p.append('<rect x="%.1f" y="%.1f" width="%.1f" height="%.1f" fill="#fbfcfe" stroke="#cfd6e0" stroke-width="1"/>' % (offX, offY, drawW, drawH))
+    cid = "clp%d" % (int(abs(a * 97 + b * 13 + c * 7 + m * 3 + R)) % 100000)
+    p.append('<defs><clipPath id="%s"><rect x="%.1f" y="%.1f" width="%.1f" height="%.1f"/></clipPath></defs>' % (cid, offX, offY, drawW, drawH))
+
+    gx0, gx1 = _math.ceil(xmin), _math.floor(xmax)
+    gy0, gy1 = _math.ceil(ymin), _math.floor(ymax)
+    for gx in range(int(gx0), int(gx1) + 1):
+        X = sx(gx)
+        p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#e6e9ef" stroke-width="1"/>' % (X, offY, X, offY + drawH))
+    for gy in range(int(gy0), int(gy1) + 1):
+        Y = sy(gy)
+        p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#e6e9ef" stroke-width="1"/>' % (offX, Y, offX + drawW, Y))
+
+    x_axis_y = sy(0) if (ymin <= 0 <= ymax) else None
+    y_axis_x = sx(0) if (xmin <= 0 <= xmax) else None
+    if x_axis_y is not None:
+        p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.6"/>' % (offX, x_axis_y, offX + drawW, x_axis_y))
+        p.append('<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f" fill="#222"/>' % (offX + drawW, x_axis_y, offX + drawW - 7, x_axis_y - 4, offX + drawW - 7, x_axis_y + 4))
+        p.append('<text direction="ltr" style="unicode-bidi:bidi-override;" x="%.1f" y="%.1f" font-size="12" fill="#222">س</text>' % (offX + drawW - 2, x_axis_y - 6))
+    if y_axis_x is not None:
+        p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="#222" stroke-width="1.6"/>' % (y_axis_x, offY, y_axis_x, offY + drawH))
+        p.append('<polygon points="%.1f,%.1f %.1f,%.1f %.1f,%.1f" fill="#222"/>' % (y_axis_x, offY, y_axis_x - 4, offY + 7, y_axis_x + 4, offY + 7))
+        p.append('<text direction="ltr" style="unicode-bidi:bidi-override;" x="%.1f" y="%.1f" font-size="12" fill="#222">ص</text>' % (y_axis_x + 5, offY + 10))
+
+    if x_axis_y is not None:
+        for gx in range(int(gx0), int(gx1) + 1):
+            if gx == 0:
+                continue
+            p.append('<text direction="ltr" style="unicode-bidi:bidi-override;" x="%.1f" y="%.1f" font-size="10" fill="#555" text-anchor="middle">%s</text>' % (sx(gx), x_axis_y + 13, _ar(gx)))
+    if y_axis_x is not None:
+        for gy in range(int(gy0), int(gy1) + 1):
+            if gy == 0:
+                continue
+            p.append('<text direction="ltr" style="unicode-bidi:bidi-override;" x="%.1f" y="%.1f" font-size="10" fill="#555" text-anchor="end">%s</text>' % (y_axis_x - 4, sy(gy) + 3, _ar(gy)))
+
+    pts = " ".join("%.1f,%.1f" % (sx(x), sy(y)) for x, y in zip(xs, ys))
+    p.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#%s)"/>' % (pts, color, cid))
+
+    if kind == "parabola" and xmin <= h <= xmax and ymin <= k <= ymax:
+        _hx = sx(h); _ky = sy(k)
+        # خطوط إسقاط منقّطة: تدل على إحداثيات الرأس من المحاور مباشرة (بلا نص يُعكس)
+        if x_axis_y is not None:
+            p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>' % (_hx, _ky, _hx, x_axis_y, color))
+        if y_axis_x is not None:
+            p.append('<line x1="%.1f" y1="%.1f" x2="%.1f" y2="%.1f" stroke="%s" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>' % (_hx, _ky, y_axis_x, _ky, color))
+        p.append('<circle cx="%.1f" cy="%.1f" r="3.4" fill="%s"/>' % (sx(h), sy(k), color))
+        if show_vertex:
+            # الزوج المرتب: فاصلة لاتينية + كل محرف بموضع صريح (ترتيب مضمون هندسياً)
+            _pair = "(" + _ar(h) + ", " + _ar(k) + ")"
+            _adv = 5.8
+            _x0 = sx(h) - (len(_pair) * _adv) / 2.0
+            _yp = sy(k) - 7
+            for _ci, _ch in enumerate(_pair):
+                p.append('<text x="%.1f" y="%.1f" font-size="10" fill="%s" text-anchor="middle" direction="ltr">%s</text>' % (_x0 + _ci * _adv + _adv / 2.0, _yp, color, _ch))
+
+    p.append('</svg>')
+    return "".join(p)
+
+# ════════════════════════════════════════════════════════════
+# 🆕 تنسيق الرياضيات لمخرجات الاختبار (أُس/جذر/كسور/رموز) → يونيكود + <sup>
+#    يعمل مع تعريب المتصفح _arabicizeDigits لإخراج أرقام هندية ومتغيرات عربية
+# ════════════════════════════════════════════════════════════
+# ════════════════════════════════════════════════════════════
+# 🆕 راسم الدوال (SVG): قطع مكافئ y=ax²+bx+c أو خط y=mx+c — محاور + شبكة + منحنى
+#    يطلّع SVG نصّي جاهز للحقن في الاختبار (سيرفر) وشاشة الطالب. أرقام المحاور هندية.
+# ════════════════════════════════════════════════════════════
+def _plot_function_svg(kind="parabola", a=1.0, b=0.0, c=0.0, m=1.0,
+                       color="#c0392b", width=380, height=330):
+    import math as _math
+
+    def _ar(v):
+        # عدد صحيح → أرقام هندية، وإشارة السالب يمين العدد (٣- بدل -٣)
+        nn = int(round(v))
+        out = ""
+        for ch in str(abs(nn)):
+            out += "٠١٢٣٤٥٦٧٨٩"[int(ch)]
+        if nn < 0:
+            out += "-"
+        return out
+
+    kind = (kind or "parabola").lower()
+    if kind in ("line", "linear", "خط", "مستقيم"):
+        f = lambda x: m * x + c
+        # إطار حول نقطة التقاطع
+        xmin, xmax = -8.0, 8.0
+    else:
+        kind = "parabola"
+        a = a if a else 1.0
+        h = -b / (2.0 * a)          # محور التماثل
+        xmin, xmax = h - 4.0, h + 4.0
+        f = lambda x: a * x * x + b * x + c
+
+    # عيّنات المنحنى
+    N = 240
+    xs = [xmin + (xmax - xmin) * i / N for i in range(N + 1)]
+    ys = [f(x) for x in xs]
+    ymin, ymax = min(ys), max(ys)
+    if ymin == ymax:
+        ymin -= 1.0
+        ymax += 1.0
+    pad = (ymax - ymin) * 0.12
+    ymin -= pad
+    ymax += pad
+    # تأكد إن المحور الأفقي (y=0) ظاهر لو قريب
+    if ymin > 0:
+        ymin = -1.0
+    if ymax < 0:
+        ymax = 1.0
+
+    PADL, PADR, PADT, PADB = 34, 16, 16, 26
+    PW = width - PADL - PADR
+    PH = height - PADT - PADB
+
+    # 🆕 مقياس موحّد (نفس عدد البكسل للوحدة على المحورين) => شبكة مربعات حقيقية
+    scale = min(PW / (xmax - xmin), PH / (ymax - ymin))
+    # نوسّع النطاقين حول مركزهما ليملأ المساحة كاملة بنفس المقياس
+    _cx = (xmin + xmax) / 2.0
+    _cy = (ymin + ymax) / 2.0
+    xmin, xmax = _cx - (PW / scale) / 2.0, _cx + (PW / scale) / 2.0
+    ymin, ymax = _cy - (PH / scale) / 2.0, _cy + (PH / scale) / 2.0
+
+    # إعادة حساب المنحنى على النطاق الموسّع ليمتد على كامل العرض
+    xs = [xmin + (xmax - xmin) * i / N for i in range(N + 1)]
+    ys = [f(x) for x in xs]
+
+    def sx(x):
+        return PADL + (x - xmin) * scale
+
+    def sy(y):
+        return PADT + (ymax - y) * scale
+
+    parts = []
+    parts.append(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 %d %d" '
+        'width="%d" height="%d" font-family="Cairo,Arial,sans-serif">' % (width, height, width, height)
+    )
+    parts.append('<rect x="0" y="0" width="%d" height="%d" fill="#ffffff" rx="8"/>' % (width, height))
+    cid = "clip%d" % int(abs(a * 1000 + b * 100 + c * 10 + m) % 100000)
+    parts.append('<defs><clipPath id="%s"><rect x="%d" y="%d" width="%d" height="%d"/></clipPath></defs>'
+                 % (cid, PADL, PADT, PW, PH))
+
+    # شبكة عند الأعداد الصحيحة
+    gx0, gx1 = _math.ceil(xmin), _math.floor(xmax)
+    gy0, gy1 = _math.ceil(ymin), _math.floor(ymax)
+    for gx in range(int(gx0), int(gx1) + 1):
+        X = sx(gx)
+        parts.append('<line x1="%.1f" y1="%d" x2="%.1f" y2="%d" stroke="#e6e9ef" stroke-width="1"/>'
+                     % (X, PADT, X, PADT + PH))
+    for gy in range(int(gy0), int(gy1) + 1):
+        Y = sy(gy)
+        parts.append('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="#e6e9ef" stroke-width="1"/>'
+                     % (PADL, Y, PADL + PW, Y))
+
+    # المحاور
+    x_axis_y = sy(0) if (ymin <= 0 <= ymax) else None
+    y_axis_x = sx(0) if (xmin <= 0 <= xmax) else None
+    if x_axis_y is not None:
+        parts.append('<line x1="%d" y1="%.1f" x2="%d" y2="%.1f" stroke="#222" stroke-width="1.6"/>'
+                     % (PADL, x_axis_y, PADL + PW, x_axis_y))
+        parts.append('<polygon points="%d,%.1f %d,%.1f %d,%.1f" fill="#222"/>'
+                     % (PADL + PW, x_axis_y, PADL + PW - 7, x_axis_y - 4, PADL + PW - 7, x_axis_y + 4))
+        parts.append('<text x="%d" y="%.1f" font-size="12" fill="#222">س</text>'
+                     % (PADL + PW - 2, x_axis_y - 6))
+    if y_axis_x is not None:
+        parts.append('<line x1="%.1f" y1="%d" x2="%.1f" y2="%d" stroke="#222" stroke-width="1.6"/>'
+                     % (y_axis_x, PADT, y_axis_x, PADT + PH))
+        parts.append('<polygon points="%.1f,%d %.1f,%d %.1f,%d" fill="#222"/>'
+                     % (y_axis_x, PADT, y_axis_x - 4, PADT + 7, y_axis_x + 4, PADT + 7))
+        parts.append('<text x="%.1f" y="%d" font-size="12" fill="#222">ص</text>'
+                     % (y_axis_x + 5, PADT + 10))
+
+    # أرقام على المحاور (هندية) عند الأعداد الصحيحة
+    if x_axis_y is not None:
+        for gx in range(int(gx0), int(gx1) + 1):
+            if gx == 0:
+                continue
+            parts.append('<text x="%.1f" y="%.1f" font-size="10" fill="#555" text-anchor="middle">%s</text>'
+                         % (sx(gx), x_axis_y + 13, _ar(gx)))
+    if y_axis_x is not None:
+        for gy in range(int(gy0), int(gy1) + 1):
+            if gy == 0:
+                continue
+            parts.append('<text x="%.1f" y="%.1f" font-size="10" fill="#555" text-anchor="end">%s</text>'
+                         % (y_axis_x - 4, sy(gy) + 3, _ar(gy)))
+
+    # المنحنى
+    pts = " ".join("%.1f,%.1f" % (sx(x), sy(y)) for x, y in zip(xs, ys))
+    parts.append('<polyline points="%s" fill="none" stroke="%s" stroke-width="2.6" '
+                 'stroke-linejoin="round" clip-path="url(#%s)"/>' % (pts, color, cid))
+
+    # نقطة الرأس للقطع المكافئ
+    if kind == "parabola":
+        hx = -b / (2.0 * a)
+        hy = f(hx)
+        if xmin <= hx <= xmax:
+            parts.append('<circle cx="%.1f" cy="%.1f" r="3.4" fill="%s"/>' % (sx(hx), sy(hy), color))
+            parts.append('<text x="%.1f" y="%.1f" font-size="10" fill="%s" text-anchor="middle">(%s،%s)</text>'
+                         % (sx(hx), sy(hy) - 7, color, _ar(hx), _ar(hy)))
+
+    parts.append('</svg>')
+    return "".join(parts)
+
 def _fmt_math(s):
     import re as _re
     s = str(s or "")
@@ -5975,7 +6282,7 @@ async def teacher_exam_build_pdf(
         arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
         
         for i, q in enumerate(questions, 1):
-            q_text = _fmt_math(q.get("question"))
+            q_text = _render_plot_tags(_fmt_math(q.get("question")))
             options = q.get("options") or q.get("choices") or ""
             # نقرأ من كل الأعمدة المحتملة
             correct = (q.get("correct_answer") or q.get("answer") or 
@@ -6314,7 +6621,7 @@ async def teacher_exam_build_pdf_v2(
         q_counter = [0]  # mutable
         
         def esc(s):
-            return _fmt_math(s)
+            return _render_plot_tags(_fmt_math(s))
         
         section_defs = [
             ("essay", "✍️ السؤال الأول: أجب عن الأسئلة التالية", "essay"),
@@ -6644,7 +6951,7 @@ async def teacher_exam_build_from_questions(
         arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
         
         def esc(s):
-            return _fmt_math(s)
+            return _render_plot_tags(_fmt_math(s))
         
         # المجموع الكلي = مجموع درجات الأسئلة
         total_marks = sum(float(q.get("marks", 1) or 0) for q in questions)
