@@ -4801,6 +4801,14 @@
                 <span class="hub-card-arrow">←</span>
                 <div class="hub-card-divider"></div>
             </div>
+            <div class="hub-card" onclick="showSection('slides-gen', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">📊</div>
+                <h3 class="hub-card-title">عروض تقديمية</h3>
+                <p class="hub-card-desc">AI ينشئ شرائح عرض جاهزة لدرسك</p>
+                <span class="hub-card-arrow">←</span>
+                <div class="hub-card-divider"></div>
+            </div>
             
             <div class="hub-card" onclick="showSection('visual-maker', null); var b = document.querySelector('.btn-tools-hub'); if(b) b.classList.add('active');">
                 <div class="hub-card-shine"></div>
@@ -5630,7 +5638,16 @@
                 <div class="hub-card-divider"></div>
             </div>
             
-            <div class="hub-card" onclick="showSection('plan-gen', null); var b = document.querySelector('.btn-ai-hub'); if(b) b.classList.add('active');">
+            <div class="hub-card" onclick="openQuestionFactory()" style="position:relative;">
+                <div style="position:absolute;top:14px;left:14px;background:linear-gradient(135deg,#d4af37,#aa771c);color:#fff;font-size:0.68rem;padding:4px 10px;border-radius:14px;font-weight:bold;z-index:3;">🏭 جديد</div>
+                <div class="hub-card-shine"></div>
+                <div class="hub-card-icon">🏭</div>
+                <h3 class="hub-card-title">مصنع الأسئلة</h3>
+                <p class="hub-card-desc">ارفع ملف PDF → يستخرج النص → يولّد أسئلة بالـAI → يضيفها لبنك الأسئلة</p>
+                <span class="hub-card-arrow">←</span>
+                <div class="hub-card-divider"></div>
+            </div>
+                        <div class="hub-card" onclick="showSection('plan-gen', null); var b = document.querySelector('.btn-ai-hub'); if(b) b.classList.add('active');">
                 <div class="hub-card-shine"></div>
                 <div class="hub-card-icon">📓</div>
                 <h3 class="hub-card-title">منشئ التحضيرات AI</h3>
@@ -5990,13 +6007,7 @@
                     <div class="qa-sub">دباجة + 15 شكل</div>
                 </div>
                 
-                <!-- 2. 🎮 ورشة الألعاب (الجديد) -->
-                <div onclick="showSection('schedule-tpl', null)" class="qa-card qa-violet" style="position:relative;">
-                    <div class="qa-new-badge qa-badge-game">🎮 جديد</div>
-                    <div class="qa-icon-box"><i class="fas fa-gamepad"></i></div>
-                    <div class="qa-title">ورشة الألعاب</div>
-                    <div class="qa-sub">6 ألعاب تفاعلية</div>
-                </div>
+
                 
                 <!-- 3. 🚀 حزمة كاملة AI -->
                 <div onclick="showSection('lesson-pack', null)" class="qa-card qa-orange" style="position:relative;">
@@ -6013,20 +6024,9 @@
                     <div class="qa-sub">اختبار/نشاط</div>
                 </div>
                 
-                <!-- 4. 🏆 الشهادات -->
-                <div onclick="showSection('certificates', null)" class="qa-card qa-gold">
-                    <div class="qa-icon-box"><i class="fas fa-trophy"></i></div>
-                    <div class="qa-title">الشهادات</div>
-                    <div class="qa-sub">8 قوالب + صور</div>
-                </div>
+
                 
-                <!-- 🎬 العروض التقديمية (أداة معلم كاملة) -->
-                <div onclick="showSection('slides-gen', null)" class="qa-card qa-violet" style="position:relative;">
-                    <div class="qa-new-badge">جديد</div>
-                    <div class="qa-icon-box"><i class="fas fa-chalkboard"></i></div>
-                    <div class="qa-title">عروض تقديمية</div>
-                    <div class="qa-sub">AI ← شرائح للعرض</div>
-                </div>
+
 
                 <!-- 📝 أوراق العمل -->
                 <div onclick="showSection('worksheet-gen', null)" class="qa-card qa-orange" style="position:relative;">
@@ -6058,12 +6058,7 @@
                     <div class="qa-sub">إدارة الطلاب</div>
                 </div>
                 
-                <!-- 7. 🤖 المساعد AI -->
-                <div onclick="showSection('ai-assistant', null)" class="qa-card qa-teal">
-                    <div class="qa-icon-box"><i class="fas fa-robot"></i></div>
-                    <div class="qa-title">المساعد AI</div>
-                    <div class="qa-sub">اسأل أي شيء</div>
-                </div>
+
                 
             </div>
         </div>
@@ -6103,20 +6098,7 @@
                 </button>
             </div>
             
-            <!-- 🎯 إجراء سريع -->
-            <div class="glass-pro" style="padding:20px;position:relative;overflow:hidden;">
-                <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:radial-gradient(circle,rgba(212,175,55,0.2),transparent 70%);"></div>
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
-                    <div style="width:38px;height:38px;border-radius:10px;background:rgba(212,175,55,0.18);border:1px solid rgba(212,175,55,0.4);display:flex;align-items:center;justify-content:center;font-size:1.2rem;">🎯</div>
-                    <h4 style="color:#fcd34d;font-family:'Amiri';margin:0;font-size:1.05rem;">ابدأ بسرعة</h4>
-                </div>
-                <p style="color:rgba(255,255,255,0.7);margin:0 0 14px;font-size:0.85rem;line-height:1.8;">جاهز للتدريس؟ ابدأ بأهم الأدوات:</p>
-                <div style="display:flex;flex-wrap:wrap;gap:6px;">
-                    <button onclick="showSection('exam-gen', null)" style="background:rgba(231,76,60,0.15);color:#ff7676;border:1px solid #e74c3c;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📝 اختبار</button>
-                    <button onclick="showSection('certificates', null)" style="background:rgba(212,175,55,0.15);color:#fcd34d;border:1px solid #d4af37;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">🏆 شهادة</button>
-                    <button onclick="showSection('plan-gen', null)" style="background:rgba(99,102,241,0.15);color:#818cf8;border:1px solid #6366f1;padding:6px 12px;border-radius:8px;cursor:pointer;font-family:Cairo;font-size:0.78rem;font-weight:bold;">📓 تحضير</button>
-                </div>
-            </div>
+
         </div>
         
                 <!-- ⚡ CSS بطاقات الوصول السريع -->
@@ -19184,6 +19166,13 @@ function _mnorm(s) {
     return s;
 }
 
+function openQuestionFactory(){
+    try {
+        var td = JSON.parse(sessionStorage.getItem('teacherData') || localStorage.getItem('teacherData') || '{}');
+        if (td && td.token) { localStorage.setItem('adminToken', td.token); }
+    } catch(e) {}
+    window.open('/prep','_blank');
+}
 function _arabicizeDigits(html) {
     return html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>|[^<]+/gi, function(tok){
         if (tok.charAt(0) === '<') return tok;
