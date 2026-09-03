@@ -6320,6 +6320,7 @@ async def teacher_exam_build_pdf(
         # نبني الـ HTML الكامل
         css_styles = """
             * { box-sizing: border-box; margin: 0; padding: 0; }
+            sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
             body {
                 font-family: 'Cairo', sans-serif;
                 background: #fff; color: #000;
@@ -6680,6 +6681,7 @@ async def teacher_exam_build_pdf_v2(
         
         css_styles = """
             * { box-sizing: border-box; margin: 0; padding: 0; }
+            sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
             body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 30px 25px; max-width: 800px; margin: 0 auto; line-height: 1.9; }
             .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 18px; margin-bottom: 20px; }
             .school { font-size: 18px; font-weight: 700; }
@@ -7014,6 +7016,7 @@ async def teacher_exam_build_from_questions(
         
         css_styles = """
             * { box-sizing: border-box; margin: 0; padding: 0; }
+            sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
             body { font-family: 'Cairo', sans-serif; background: #fff; color: #000; padding: 30px 25px; max-width: 800px; margin: 0 auto; line-height: 1.9; }
             .header { text-align: center; border-bottom: 3px double #000; padding-bottom: 18px; margin-bottom: 20px; }
             .school { font-size: 18px; font-weight: 700; }
@@ -7163,6 +7166,7 @@ async def teacher_certificate_build(
         
         css = """
             * { box-sizing: border-box; margin: 0; padding: 0; }
+            sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
             body { font-family: 'Cairo', sans-serif; padding: 0; margin: 0; background: #fff; }
             .cert-page {
                 width: 297mm; height: 210mm;
@@ -7763,6 +7767,7 @@ async def lesson_plan_pdf(
         
         css = """
             * { box-sizing: border-box; margin: 0; padding: 0; }
+            sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
             body { font-family: 'Cairo', sans-serif; padding: 25px; max-width: 850px; margin: 0 auto; line-height: 1.8; color: #000; background: #fff; }
             .header { text-align: center; padding-bottom: 18px; margin-bottom: 24px; border-bottom: 3px double #1565c0; }
             .school { font-size: 17px; font-weight: 700; color: #555; margin-bottom: 4px; }

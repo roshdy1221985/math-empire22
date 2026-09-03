@@ -19128,9 +19128,39 @@ function regenerateLessonPack() {
 // 🔢 تحويل الأرقام والمتغيّرات للعربية في النص المرئي فقط — يحمي الوسوم وCSS والكلمات (sin/PDF/cm)
 var _VARMAP = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};
 var _SUP = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
+// 🆕 دالة الإشعارات (كانت مفقودة — كل النداءات محميّة بـ typeof فما كانت تظهر)
+function showToast(msg, type) {
+    try {
+        var box = document.getElementById('_meToastBox');
+        if (!box) {
+            box = document.createElement('div');
+            box.id = '_meToastBox';
+            box.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:99999;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;';
+            document.body.appendChild(box);
+        }
+        var t = document.createElement('div');
+        var bg = (type === 'error') ? '#dc2626' : (type === 'success') ? '#16a34a' : '#334155';
+        t.style.cssText = 'background:' + bg + ';color:#fff;padding:11px 20px;border-radius:10px;font-family:Cairo,Arial,sans-serif;font-size:14px;font-weight:600;box-shadow:0 6px 20px rgba(0,0,0,.25);opacity:0;transition:opacity .25s,transform .25s;transform:translateY(10px);max-width:90vw;text-align:center;';
+        t.textContent = String(msg == null ? '' : msg);
+        box.appendChild(t);
+        requestAnimationFrame(function () { t.style.opacity = '1'; t.style.transform = 'translateY(0)'; });
+        setTimeout(function () {
+            t.style.opacity = '0'; t.style.transform = 'translateY(10px)';
+            setTimeout(function () { if (t.parentNode) t.parentNode.removeChild(t); }, 300);
+        }, 2600);
+    } catch (e) {}
+}
+
 function _arabicizeDigits(html) {
     return html.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>|[^<]+/gi, function(tok){
         if (tok.charAt(0) === '<') return tok;
+        tok = tok.replace(/\$\$/g, '').replace(/\$/g, '');
+        tok = tok.replace(/\\\(/g, '').replace(/\\\)/g, '').replace(/\\\[/g, '').replace(/\\\]/g, '');
+        tok = tok.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return a + '/' + b; });
+        tok = tok.replace(/\\?sqrt\s*\{([^{}]*)\}/g, function (m, x) { return /[+\-*/ ]/.test(x) ? ('√(' + x + ')') : ('√' + x); });
+        tok = tok.replace(/\\pm/g, '±').replace(/\\mp/g, '∓').replace(/\\times/g, '×').replace(/\\cdot/g, '·').replace(/\\div/g, '÷').replace(/\\leq/g, '≤').replace(/\\geq/g, '≥').replace(/\\le/g, '≤').replace(/\\ge/g, '≥').replace(/\\neq/g, '≠').replace(/\\approx/g, '≈').replace(/\\infty/g, '∞').replace(/\\pi/g, 'π').replace(/\\theta/g, 'θ').replace(/\\alpha/g, 'α').replace(/\\beta/g, 'β').replace(/\\gamma/g, 'γ').replace(/\\Delta/g, 'Δ');
+        tok = tok.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?\d+|[A-Za-z])/g, '<sup>$1</sup>');
+        tok = tok.replace(/\\([A-Za-z]+)/g, '$1');
         tok = tok.replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+/g, function(sup){ var out=''; for(var i=0;i<sup.length;i++){ out += _SUP[sup.charAt(i)]||''; } return '<sup>'+out+'</sup>'; });
         tok = tok.replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.charAt(+d); });
         tok = tok.replace(/[A-Za-z]+/g, function(w){ if(w.length===1){ return _VARMAP[w.toLowerCase()]||w; } return w; });

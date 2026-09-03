@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
     <style>
+    sup { font-size: 0.72em; vertical-align: super; line-height: 0; }
         /* ============================================================
            CSS VARIABLES & ROOT
         ============================================================ */
@@ -3817,7 +3818,7 @@
         let html = `<div class="tilt-card" style="padding:30px; text-align:center; width:100%;">
             <div class="arena-q-counter">السؤال ${currentArenaQIndex + 1} من 5</div>`;
         if (q.image_url) html += `<img alt="صورة السؤال" src="${q.image_url}" class="question-image" style="max-height:200px;">`;
-        html += `<p class="battle-question">${_mathFmt(q.question)}</p>
+        html += `<p class="battle-question">${_renderQ(q.question)}</p>
             <div style="text-align:left; margin-bottom:15px;">
                 <button class="hint-btn" onclick="useHintArena()">🧙&#8205;♂️ مساعدة الحكيم (50 XP)</button>
             </div>
@@ -4377,7 +4378,7 @@
 
         let html = `${progressBar}${headerHtml}${timerDisplay}<div>`;
         if (q.image_url) html += `<div style="text-align:center;"><img alt="صورة السؤال" src="${q.image_url}" class="question-image"></div>`;
-        html += `<p style="font-size:1.3rem; margin-bottom:15px;">${_mathFmt(q.question)}</p>`;
+        html += `<p style="font-size:1.3rem; margin-bottom:15px;">${_renderQ(q.question)}</p>`;
 
         // 🆕 حفظ بيانات السؤال الحالي للأزرار (آمن ضد escaping)
         window._currentQForButtons = {
@@ -5416,7 +5417,7 @@
         card.style.display = 'block';
         document.getElementById('qotd-date').textContent =
             new Date().toLocaleDateString('ar-EG', { weekday:'long', day:'numeric', month:'long' });
-        document.getElementById('qotd-question').innerHTML = _mathFmt(q.question || '');
+        document.getElementById('qotd-question').innerHTML = _renderQ(q.question || '');
 
         const optsEl  = document.getElementById('qotd-options');
         const feedEl  = document.getElementById('qotd-feedback');
@@ -10676,6 +10677,103 @@ async function startExam(examId) {
 // 🆕 تنسيق الرياضيات + التعريب لعرض الأسئلة (أُس/جذر/كسور/رموز + أرقام هندية + متغيرات عربية)
 //    نسخة مستقلة (student.html لا تملك _arabicizeDigits) — نفس منطق السيرفر _fmt_math + تعريب الدرس
 // ════════════════════════════════════════════════════════════
+// ════════════════════════════════════════════════════════════
+// 🆕 راسم الدوال (JS) — نسخة مطابقة لراسم السيرفر _plot_function_svg
+//    + _renderQ: تفصل وسم [[plot:...]] عن النص (النص يتعرّب، الرسم يُحقن كما هو)
+// ════════════════════════════════════════════════════════════
+function _plotSvg(kind, a, b, c, m, color, showVertex) {
+    color = color || "#c0392b";
+    var W = 360, H = 360;
+    function ar(v) {
+        var nn = Math.round(v), s = Math.abs(nn).toString(), o = "";
+        for (var i = 0; i < s.length; i++) o += "٠١٢٣٤٥٦٧٨٩"[+s[i]];
+        if (nn < 0) o += "-";
+        return o;
+    }
+    var f, R, cx0, cy0, h = 0, k = 0;
+    kind = (kind || "parabola").toLowerCase();
+    if (kind === "line" || kind === "linear" || kind === "خط" || kind === "مستقيم") {
+        kind = "line"; f = function (x) { return m * x + c; }; R = 7; cx0 = 0; cy0 = 0;
+    } else {
+        kind = "parabola"; a = a || 1; h = -b / (2 * a); k = a * h * h + b * h + c;
+        f = function (x) { return a * x * x + b * x + c; };
+        R = 6; cx0 = h; cy0 = (a > 0) ? (k + (R - 1)) : (k - (R - 1));
+    }
+    var xmin = cx0 - R, xmax = cx0 + R, ymin = cy0 - R, ymax = cy0 + R;
+    var PADL = 30, PADR = 14, PADT = 14, PADB = 22;
+    var PW = W - PADL - PADR, PH = H - PADT - PADB;
+    var scale = Math.min(PW / (xmax - xmin), PH / (ymax - ymin));
+    var drawW = (xmax - xmin) * scale, drawH = (ymax - ymin) * scale;
+    var offX = PADL + (PW - drawW) / 2, offY = PADT + (PH - drawH) / 2;
+    function sx(x) { return offX + (x - xmin) * scale; }
+    function sy(y) { return offY + (ymax - y) * scale; }
+    var N = 240, xs = [], ys = [], i;
+    for (i = 0; i <= N; i++) { var x = xmin + (xmax - xmin) * i / N; xs.push(x); ys.push(f(x)); }
+    var p = [];
+    p.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" font-family="Cairo,Arial,sans-serif" direction="ltr" style="direction:ltr;">');
+    p.push('<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff" rx="8"/>');
+    p.push('<rect x="' + offX.toFixed(1) + '" y="' + offY.toFixed(1) + '" width="' + drawW.toFixed(1) + '" height="' + drawH.toFixed(1) + '" fill="#fbfcfe" stroke="#cfd6e0" stroke-width="1"/>');
+    var cid = "clp" + Math.floor(Math.abs(a * 97 + b * 13 + c * 7 + m * 3 + R) % 100000);
+    p.push('<defs><clipPath id="' + cid + '"><rect x="' + offX.toFixed(1) + '" y="' + offY.toFixed(1) + '" width="' + drawW.toFixed(1) + '" height="' + drawH.toFixed(1) + '"/></clipPath></defs>');
+    var gx0 = Math.ceil(xmin), gx1 = Math.floor(xmax), gy0 = Math.ceil(ymin), gy1 = Math.floor(ymax), g;
+    for (g = gx0; g <= gx1; g++) { var X = sx(g); p.push('<line x1="' + X.toFixed(1) + '" y1="' + offY.toFixed(1) + '" x2="' + X.toFixed(1) + '" y2="' + (offY + drawH).toFixed(1) + '" stroke="#e6e9ef" stroke-width="1"/>'); }
+    for (g = gy0; g <= gy1; g++) { var Y = sy(g); p.push('<line x1="' + offX.toFixed(1) + '" y1="' + Y.toFixed(1) + '" x2="' + (offX + drawW).toFixed(1) + '" y2="' + Y.toFixed(1) + '" stroke="#e6e9ef" stroke-width="1"/>'); }
+    var xAxisY = (ymin <= 0 && 0 <= ymax) ? sy(0) : null;
+    var yAxisX = (xmin <= 0 && 0 <= xmax) ? sx(0) : null;
+    if (xAxisY !== null) {
+        p.push('<line x1="' + offX.toFixed(1) + '" y1="' + xAxisY.toFixed(1) + '" x2="' + (offX + drawW).toFixed(1) + '" y2="' + xAxisY.toFixed(1) + '" stroke="#222" stroke-width="1.6"/>');
+        p.push('<polygon points="' + (offX + drawW).toFixed(1) + ',' + xAxisY.toFixed(1) + ' ' + (offX + drawW - 7).toFixed(1) + ',' + (xAxisY - 4).toFixed(1) + ' ' + (offX + drawW - 7).toFixed(1) + ',' + (xAxisY + 4).toFixed(1) + '" fill="#222"/>');
+        p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (offX + drawW - 2).toFixed(1) + '" y="' + (xAxisY - 6).toFixed(1) + '" font-size="12" fill="#222">س</text>');
+    }
+    if (yAxisX !== null) {
+        p.push('<line x1="' + yAxisX.toFixed(1) + '" y1="' + offY.toFixed(1) + '" x2="' + yAxisX.toFixed(1) + '" y2="' + (offY + drawH).toFixed(1) + '" stroke="#222" stroke-width="1.6"/>');
+        p.push('<polygon points="' + yAxisX.toFixed(1) + ',' + offY.toFixed(1) + ' ' + (yAxisX - 4).toFixed(1) + ',' + (offY + 7).toFixed(1) + ' ' + (yAxisX + 4).toFixed(1) + ',' + (offY + 7).toFixed(1) + '" fill="#222"/>');
+        p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (yAxisX + 5).toFixed(1) + '" y="' + (offY + 10).toFixed(1) + '" font-size="12" fill="#222">ص</text>');
+    }
+    if (xAxisY !== null) { for (g = gx0; g <= gx1; g++) { if (g === 0) continue; p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + sx(g).toFixed(1) + '" y="' + (xAxisY + 13).toFixed(1) + '" font-size="10" fill="#555" text-anchor="middle">' + ar(g) + '</text>'); } }
+    if (yAxisX !== null) { for (g = gy0; g <= gy1; g++) { if (g === 0) continue; p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (yAxisX - 4).toFixed(1) + '" y="' + (sy(g) + 3).toFixed(1) + '" font-size="10" fill="#555" text-anchor="end">' + ar(g) + '</text>'); } }
+    var pts = ""; for (i = 0; i < xs.length; i++) pts += sx(xs[i]).toFixed(1) + ',' + sy(ys[i]).toFixed(1) + ' ';
+    p.push('<polyline points="' + pts.replace(/\s+$/, '') + '" fill="none" stroke="' + color + '" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#' + cid + ')"/>');
+    if (kind === "parabola" && xmin <= h && h <= xmax && ymin <= k && k <= ymax) {
+        var hx = sx(h), ky = sy(k);
+        if (xAxisY !== null) p.push('<line x1="' + hx.toFixed(1) + '" y1="' + ky.toFixed(1) + '" x2="' + hx.toFixed(1) + '" y2="' + xAxisY.toFixed(1) + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>');
+        if (yAxisX !== null) p.push('<line x1="' + hx.toFixed(1) + '" y1="' + ky.toFixed(1) + '" x2="' + yAxisX.toFixed(1) + '" y2="' + ky.toFixed(1) + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>');
+        p.push('<circle cx="' + hx.toFixed(1) + '" cy="' + ky.toFixed(1) + '" r="3.4" fill="' + color + '"/>');
+        if (showVertex) {
+            var pair = "(" + ar(h) + ", " + ar(k) + ")", adv = 5.8, x0 = hx - (pair.length * adv) / 2, yp = ky - 7, ci;
+            for (ci = 0; ci < pair.length; ci++) p.push('<text x="' + (x0 + ci * adv + adv / 2).toFixed(1) + '" y="' + yp.toFixed(1) + '" font-size="10" fill="' + color + '" text-anchor="middle" direction="ltr">' + pair[ci] + '</text>');
+        }
+    }
+    p.push('</svg>');
+    return p.join("");
+}
+
+function _plotFromSpec(spec) {
+    var toks = spec.trim().split(/\s+/), kind = "parabola", kw = { a: 1, b: 0, c: 0, m: 1 }, color = "#c0392b", showV = false, i;
+    if (toks.length && toks[0].indexOf("=") < 0) { kind = toks[0].toLowerCase(); toks = toks.slice(1); }
+    for (i = 0; i < toks.length; i++) {
+        var pr = toks[i], e = pr.indexOf("="); if (e < 0) continue;
+        var key = pr.slice(0, e).toLowerCase(), val = pr.slice(e + 1);
+        if (key === "color") color = val;
+        else if (key === "vertex") showV = (["off", "no", "0", "false", "hide"].indexOf(val.toLowerCase()) < 0);
+        else if (key in kw) { var fv = parseFloat(val); if (!isNaN(fv)) kw[key] = fv; }
+    }
+    try { return '<div style="text-align:center;margin:8px auto;">' + _plotSvg(kind, kw.a, kw.b, kw.c, kw.m, color, showV) + '</div>'; }
+    catch (e) { return ""; }
+}
+
+// نص السؤال للطالب: النص العادي يمر بـ _mathFmt، ووسم [[plot:]] يتحوّل SVG بلا تعريب
+function _renderQ(s) {
+    s = String(s == null ? '' : s);
+    if (s.indexOf("[[plot:") < 0) return _mathFmt(s);
+    var parts = s.split(/(\[\[plot:[^\]]+\]\])/g), out = "", i;
+    for (i = 0; i < parts.length; i++) {
+        var mt = parts[i].match(/^\[\[plot:([^\]]+)\]\]$/);
+        out += mt ? _plotFromSpec(mt[1]) : _mathFmt(parts[i]);
+    }
+    return out;
+}
+
 function _mathFmt(s){
     s = String(s == null ? '' : s);
     // 1) escape زوايا HTML
@@ -10745,7 +10843,7 @@ function renderExamForm() {
         html += '<div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;padding:16px;">';
         html += '<div style="display:flex;gap:8px;margin-bottom:10px;align-items:flex-start;">';
         html += '<div style="background:#e74c3c;color:#fff;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:bold;flex-shrink:0;">' + (i+1) + '</div>';
-        html += '<div style="flex:1;color:#fff;font-weight:600;line-height:1.7;">' + _mathFmt(q.question || '') + '</div>';
+        html += '<div style="flex:1;color:#fff;font-weight:600;line-height:1.7;">' + _renderQ(q.question || '') + '</div>';
         html += '</div>';
         
         var options = q.options || [];
