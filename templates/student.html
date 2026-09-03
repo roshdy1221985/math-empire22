@@ -10756,7 +10756,7 @@ function _plotFromSpec(spec) {
         var key = pr.slice(0, e).toLowerCase(), val = pr.slice(e + 1);
         if (key === "color") color = val;
         else if (key === "vertex") showV = (["off", "no", "0", "false", "hide"].indexOf(val.toLowerCase()) < 0);
-        else if (key in kw) { var fv = parseFloat(val); if (!isNaN(fv)) kw[key] = fv; }
+        else if (key in kw) { var vv = val.replace(/[٠-٩]/g, function(d){ return "٠١٢٣٤٥٦٧٨٩".indexOf(d); }); var fv = parseFloat(vv); if (!isNaN(fv)) kw[key] = fv; }
     }
     try { return '<div style="text-align:center;margin:8px auto;">' + _plotSvg(kind, kw.a, kw.b, kw.c, kw.m, color, showV) + '</div>'; }
     catch (e) { return ""; }
@@ -10774,34 +10774,45 @@ function _renderQ(s) {
     return out;
 }
 
+// 🆕 تنسيق الرياضيات الموحّد (جذور/أسس/لوغاريتمات/توافيق/رموز هندسية) — يطابق _fmt_math بالسيرفر
+function _mnorm(s) {
+    s = String(s == null ? '' : s);
+    s = s.replace(/\$\$/g, '').replace(/\$/g, '');
+    s = s.replace(/\\[()\[\]]/g, '');
+    s = s.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return a + '/' + b; });
+    s = s.replace(/\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return 'C(' + a + '، ' + b + ')'; });
+    function _rad(idx, inner) { var pre = idx ? ('<sup>' + idx + '</sup>') : ''; return pre + '<span style="display:inline-flex;align-items:flex-start;direction:rtl;vertical-align:middle;"><svg viewBox="0 0 15 22" style="height:1.05em;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M1 2 L8 20 L11 12 L15 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span style="border-top:1.5px solid;padding:2px 5px 0;">' + inner + '</span></span>'; }
+    s = s.replace(/\\sqrt\s*\[\s*3\s*\]\s*\{([^{}]*)\}/g, function (m, x) { return _rad("3", x); });
+    s = s.replace(/\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}/g, function (m, n, x) { return _rad(n, x); });
+    s = s.replace(/\\?sqrt\s*\{([^{}]*)\}/g, function (m, x) { return _rad("", x); });
+    s = s.replace(/\\overline\s*\{([^{}]*)\}/g, function (m, x) { return '<span style="text-decoration:overline">' + x + '</span>'; });
+    s = s.replace(/\\vec\s*\{([^{}]*)\}/g, function (m, x) { return x + '\u20D7'; });
+    s = s.replace(/\^\s*\{?\s*\\circ\s*\}?/g, '°');
+    var _ops = [['pm', '±'], ['mp', '∓'], ['times', '×'], ['cdot', '·'], ['div', '÷'],
+        ['leq', '≤'], ['geq', '≥'], ['neq', '≠'], ['approx', '≈'], ['equiv', '≡'],
+        ['leftrightarrow', '⇔'], ['Leftrightarrow', '⇔'], ['iff', '⇔'],
+        ['rightarrow', '→'], ['Rightarrow', '⇒'], ['leftarrow', '←'], ['to', '→'],
+        ['le', '≤'], ['ge', '≥'],
+        ['infty', '∞'], ['propto', '∝'], ['pi', 'π'], ['theta', 'θ'], ['alpha', 'α'],
+        ['beta', 'β'], ['gamma', 'γ'], ['Delta', 'Δ'], ['delta', 'δ'], ['lambda', 'λ'],
+        ['sum', '∑'], ['int', '∫'], ['angle', '∠'], ['triangle', '△'], ['square', '□'],
+        ['parallel', '∥'], ['perp', '⊥'], ['cong', '≅'], ['simeq', '≃'], ['sim', '∼'],
+        ['subseteq', '⊆'], ['subset', '⊂'], ['supseteq', '⊇'], ['supset', '⊃'],
+        ['cup', '∪'], ['cap', '∩'], ['in', '∈'], ['notin', '∉'], ['forall', '∀'],
+        ['exists', '∃'], ['emptyset', '∅'], ['ldots', '…'], ['dots', '…'], ['degree', '°']];
+    for (var i = 0; i < _ops.length; i++) { s = s.replace(new RegExp('\\\\' + _ops[i][0] + '(?![A-Za-z])', 'g'), _ops[i][1]); }
+    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?\d+|[A-Za-z])/g, '<sup>$1</sup>');
+    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?\d+|[A-Za-z])/g, '<sub>$1</sub>');
+    s = s.replace(/\\([A-Za-z]+)/g, '$1');
+    return s;
+}
+
 function _mathFmt(s){
     s = String(s == null ? '' : s);
     // 1) escape زوايا HTML
     s = s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    // 2) إزالة حدود LaTeX ($$ $ \( \) \[ \])
-    s = s.replace(/\$\$/g,'').replace(/\$/g,'');
-    s = s.replace(/\\\(/g,'').replace(/\\\)/g,'').replace(/\\\[/g,'').replace(/\\\]/g,'');
-    // 3) الكسور: \frac{a}{b} أو frac{a}{b}
-    s = s.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function(m,a,b){ return a + '/' + b; });
-    // 4) الجذر: \sqrt{...} أو sqrt{...}
-    s = s.replace(/\\?sqrt\s*\{([^{}]*)\}/g, function(m,x){ return /[+\-*/ ]/.test(x) ? ('√(' + x + ')') : ('√' + x); });
-    // 5) رموز وعمليات
-    s = s.replace(/\\left/g,'').replace(/\\right/g,'').replace(/\\\{/g,'{').replace(/\\\}/g,'}');
-    var _ops = [[/\\pm/g,'±'],[/\\mp/g,'∓'],[/\\times/g,'×'],[/\\cdot/g,'·'],[/\\div/g,'÷'],
-        [/\\leq/g,'≤'],[/\\geq/g,'≥'],[/\\le/g,'≤'],[/\\ge/g,'≥'],
-        [/\\neq/g,'≠'],[/\\approx/g,'≈'],[/\\equiv/g,'≡'],
-        [/\\infty/g,'∞'],[/\\pi/g,'π'],[/\\theta/g,'θ'],
-        [/\\alpha/g,'α'],[/\\beta/g,'β'],[/\\gamma/g,'γ'],
-        [/\\Delta/g,'Δ'],[/\\delta/g,'δ'],[/\\lambda/g,'λ'],
-        [/\\sum/g,'∑'],[/\\int/g,'∫'],[/\\angle/g,'∠'],
-        [/\\%/g,'%'],[/\\,/g,' '],[/\\;/g,' '],[/\\!/g,'']];
-    for (var _i=0; _i<_ops.length; _i++){ s = s.replace(_ops[_i][0], _ops[_i][1]); }
-    // 6) الأُس: ^{...} ثم ^(...) ثم ^رمز مفرد
-    s = s.replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>');
-    s = s.replace(/\^\(([^()]*)\)/g,'<sup>$1</sup>');
-    s = s.replace(/\^(-?\d+|[A-Za-z])/g,'<sup>$1</sup>');
-    // 7) تنظيف أي أمر LaTeX غير معروف
-    s = s.replace(/\\([A-Za-z]+)/g,'$1');
+    s = _mnorm(s);
+
     // 8) التعريب (يتخطى الوسوم): أُس يونيكود → sup، أرقام هندية، متغيرات مفردة عربية
     var _SUPm = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
     var _VARm = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};

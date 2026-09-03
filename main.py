@@ -5758,6 +5758,13 @@ async def cache_clear(
 #    أمثلة: [[plot:parabola a=1 b=-4 c=3]]  ·  [[plot:line m=2 c=-1]]  ·  color=#1565c0
 #    يُشغَّل بعد _fmt_math حتى لا يتعرّض الـSVG لعملية escape
 # ════════════════════════════════════════════════════════════
+_PLOT_HINT = """
+
+🖼️ رسم بياني تلقائي (مهم): إذا كان السؤال يتناول قطعاً مكافئاً على الصورة y = ax²+bx+c أو خطاً مستقيماً على الصورة y = mx+c ويفيده رسم بياني، فأضِف في نهاية نص السؤال (حقل q) وسماً مطابقاً تماماً لمعاملات معادلة السؤال:
+• قطع مكافئ: [[plot:parabola a=<رقم> b=<رقم> c=<رقم>]]
+• خط مستقيم: [[plot:line m=<رقم> c=<رقم>]]
+اكتب معاملات الوسم بأرقام إنجليزية (0-9) فقط (يجوز السالب والعشري). لا تضع الوسم إلا لأسئلة تمثيل الدوال بيانياً، ولا تضعه في أي نوع آخر. مثال: مثّل الدالة y = x²-4x+3 وحدّد إحداثيات رأسها. [[plot:parabola a=1 b=-4 c=3]]"""
+
 def _render_plot_tags(s):
     import re as _re
     if not s or "[[plot:" not in s:
@@ -5785,7 +5792,7 @@ def _render_plot_tags(s):
                 show_vertex = val.lower() not in ("off", "no", "0", "false", "hide")
             elif key in kw:
                 try:
-                    kw[key] = float(val)
+                    kw[key] = float(val.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789")))
                 except Exception:
                     pass
         try:
@@ -6067,42 +6074,51 @@ def _plot_function_svg(kind="parabola", a=1.0, b=0.0, c=0.0, m=1.0,
 def _fmt_math(s):
     import re as _re
     s = str(s or "")
-    # 1) escape زوايا HTML أولاً (نفس سلوك esc القديم)
+    # 1) escape أولاً
     s = s.replace("<", "&lt;").replace(">", "&gt;")
-    # 2) إزالة حدود LaTeX ($$ $ \( \) \[ \])
+    # 2) إزالة حدود LaTeX
     s = s.replace("$$", "").replace("$", "")
-    s = s.replace("\\(", "").replace("\\)", "").replace("\\[", "").replace("\\]", "")
-    # 3) الكسور: \frac{a}{b} أو frac{a}{b}
-    s = _re.sub(r"\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}",
-                lambda m: m.group(1) + "/" + m.group(2), s)
-    # 4) الجذر: \sqrt{...} أو sqrt{...}
-    def _sqrt(m):
-        inner = m.group(1)
-        return ("\u221a(" + inner + ")") if _re.search(r"[+\-*/ ]", inner) else ("\u221a" + inner)
-    s = _re.sub(r"\\?sqrt\s*\{([^{}]*)\}", _sqrt, s)
-    # 5) رموز وعمليات يونانية / رياضية
-    _ops = [(r"\\left\\\{", "{"), (r"\\right\\\}", "}"),
-            (r"\\left\(", "("), (r"\\right\)", ")"),
-            (r"\\left", ""), (r"\\right", ""),
-            (r"\\pm", "\u00b1"), (r"\\mp", "\u2213"), (r"\\times", "\u00d7"),
-            (r"\\cdot", "\u00b7"), (r"\\div", "\u00f7"),
-            (r"\\leq", "\u2264"), (r"\\geq", "\u2265"), (r"\\le", "\u2264"), (r"\\ge", "\u2265"),
-            (r"\\neq", "\u2260"), (r"\\approx", "\u2248"), (r"\\equiv", "\u2261"),
-            (r"\\infty", "\u221e"), (r"\\pi", "\u03c0"), (r"\\theta", "\u03b8"),
-            (r"\\alpha", "\u03b1"), (r"\\beta", "\u03b2"), (r"\\gamma", "\u03b3"),
-            (r"\\Delta", "\u0394"), (r"\\delta", "\u03b4"), (r"\\lambda", "\u03bb"),
-            (r"\\sum", "\u2211"), (r"\\int", "\u222b"), (r"\\angle", "\u2220"),
-            (r"\\%", "%"), (r"\\,", " "), (r"\\;", " "), (r"\\!", "")]
-    for _pat, _rep in _ops:
-        s = _re.sub(_pat, _rep, s)
-    # 6) الأُس: ^{...} ثم ^(...) ثم ^رمز مفرد
+    s = _re.sub(r"\\[()\[\]]", "", s)
+    # 3) الكسور والتوافيق
+    s = _re.sub(r"\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}", lambda m: m.group(1) + "/" + m.group(2), s)
+    s = _re.sub(r"\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}", lambda m: "C(" + m.group(1) + "، " + m.group(2) + ")", s)
+    # 4) الجذور: تكعيبي ∛ ثم نوني ثم تربيعي
+    def _rad(idx, inner):
+        pre = ('<sup>' + idx + '</sup>') if idx else ''
+        return pre + '<span style="display:inline-flex;align-items:flex-start;direction:rtl;vertical-align:middle;"><svg viewBox="0 0 15 22" style="height:1.05em;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M1 2 L8 20 L11 12 L15 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span style="border-top:1.5px solid;padding:2px 5px 0;">' + inner + '</span></span>'
+    s = _re.sub(r"\\sqrt\s*\[\s*3\s*\]\s*\{([^{}]*)\}", lambda m: _rad("3", m.group(1)), s)
+    s = _re.sub(r"\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}", lambda m: _rad(m.group(1), m.group(2)), s)
+    s = _re.sub(r"\\?sqrt\s*\{([^{}]*)\}", lambda m: _rad("", m.group(1)), s)
+    # 5) خط علوي / متجه
+    s = _re.sub(r"\\overline\s*\{([^{}]*)\}", lambda m: '<span style="text-decoration:overline">' + m.group(1) + '</span>', s)
+    s = _re.sub(r"\\vec\s*\{([^{}]*)\}", lambda m: m.group(1) + "\u20D7", s)
+    # 6) الدرجة ^\circ
+    s = _re.sub(r"\^\s*\{?\s*\\circ\s*\}?", "°", s)
+    # 7) الرموز والعمليات (حدّ لاحق يمنع تعارض البادئات)
+    _ops = [("pm", "±"), ("mp", "∓"), ("times", "×"), ("cdot", "·"), ("div", "÷"),
+            ("leq", "≤"), ("geq", "≥"), ("neq", "≠"), ("approx", "≈"), ("equiv", "≡"),
+            ("leftrightarrow", "⇔"), ("Leftrightarrow", "⇔"), ("iff", "⇔"),
+            ("rightarrow", "→"), ("Rightarrow", "⇒"), ("leftarrow", "←"), ("to", "→"),
+            ("le", "≤"), ("ge", "≥"),
+            ("infty", "∞"), ("propto", "∝"), ("pi", "π"), ("theta", "θ"), ("alpha", "α"),
+            ("beta", "β"), ("gamma", "γ"), ("Delta", "Δ"), ("delta", "δ"), ("lambda", "λ"),
+            ("sum", "∑"), ("int", "∫"), ("angle", "∠"), ("triangle", "△"), ("square", "□"),
+            ("parallel", "∥"), ("perp", "⊥"), ("cong", "≅"), ("simeq", "≃"), ("sim", "∼"),
+            ("subseteq", "⊆"), ("subset", "⊂"), ("supseteq", "⊇"), ("supset", "⊃"),
+            ("cup", "∪"), ("cap", "∩"), ("in", "∈"), ("notin", "∉"), ("forall", "∀"),
+            ("exists", "∃"), ("emptyset", "∅"), ("ldots", "…"), ("dots", "…"), ("degree", "°")]
+    for _n, _sym in _ops:
+        s = _re.sub(r"\\" + _n + r"(?![A-Za-z])", _sym, s)
+    # 8) الأُس
     s = _re.sub(r"\^\{([^{}]*)\}", r"<sup>\1</sup>", s)
     s = _re.sub(r"\^\(([^()]*)\)", r"<sup>\1</sup>", s)
     s = _re.sub(r"\^(-?\d+|[A-Za-z])", r"<sup>\1</sup>", s)
-    # 7) تنظيف أي أمر LaTeX غير معروف متبقٍّ (نشيل الـ backslash)
+    # 9) الدليل السفلي (لوغاريتمات/دلائل)
+    s = _re.sub(r"_\{([^{}]*)\}", r"<sub>\1</sub>", s)
+    s = _re.sub(r"_(-?\d+|[A-Za-z])", r"<sub>\1</sub>", s)
+    # 10) تنظيف أوامر غير معروفة
     s = _re.sub(r"\\([A-Za-z]+)", r"\1", s)
     return s
-
 @app.get("/api/teacher/exam_generator/preview")
 async def teacher_exam_preview(
     grade: str,
@@ -6876,6 +6892,8 @@ async def teacher_exam_prepare_questions(
                 
                 for typ, cnt in needs_ai.items():
                     prompt = f"""أنت معلم رياضيات خبير في سلطنة عُمان. أنشئ {cnt} سؤال من نوع "{type_names[typ]}".\n\nالسياق: {ctx}\n\nأخرج JSON فقط:"""
+                    if typ in ("essay", "mcq"):
+                        prompt += _PLOT_HINT
                     if typ == "match":
                         prompt += """\n{"questions":[{"type":"match","q":"وصّل كل عبارة بما يناسبها","pairs":[{"left":"عبارة","right":"مقابلها"}],"answer":"1-أ"}]}"""
                     elif typ == "tf":
@@ -10982,7 +11000,7 @@ async def prep_ai_generate(
 - للصواب/خطأ: الإجابة "صواب" أو "خطأ" فقط
 - للإجابة القصيرة: إجابة مختصرة (كلمة أو رقم أو جملة قصيرة)
 - الأسئلة متنوعة وغير مكررة
-- ربط الأسئلة بمحتوى الدرس الفعلي
+- ربط الأسئلة بمحتوى الدرس الفعلي{_PLOT_HINT}
 
 أخرج JSON فقط بهذا الشكل بدون أي نص آخر:
 {{
