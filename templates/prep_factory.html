@@ -2713,11 +2713,17 @@ function _esc(s) {
 
 // 🆕 جلب admin token من localStorage
 function getAdminToken() {
-  return localStorage.getItem('adminToken') 
-      || localStorage.getItem('admin_token') 
+  var t = localStorage.getItem('adminToken')
+      || localStorage.getItem('admin_token')
       || sessionStorage.getItem('adminToken')
-      || sessionStorage.getItem('admin_token')
-      || '';
+      || sessionStorage.getItem('admin_token');
+  if (t) return t;
+  // 🆕 توكن المعلم (نفس صلاحية admin) — يفتح المصنع للمعلمين
+  try {
+    var td = JSON.parse(localStorage.getItem('teacherData') || sessionStorage.getItem('teacherData') || '{}');
+    if (td && td.token) return td.token;
+  } catch(e) {}
+  return '';
 }
 
 // 🆕 دالة fetch موحّدة ترسل الـ token إذا كان متوفراً
@@ -3742,6 +3748,58 @@ async function generateWorksheet() {
   }
 }
 
+
+// 🆕 منسّق الرياضيات (نفس منطق الاختبار/الطالب) لعرض مخرجات المصنع
+function _mnorm(s) {
+    s = String(s == null ? '' : s);
+    s = s.replace(/\$\$/g, '').replace(/\$/g, '');
+    s = s.replace(/\\[()\[\]]/g, '');
+    s = s.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return a + '/' + b; });
+    s = s.replace(/\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return 'C(' + a + '، ' + b + ')'; });
+    function _rad(idx, inner) { var pre = idx ? ('<sup>' + idx + '</sup>') : ''; return pre + '<span style="display:inline-flex;align-items:flex-start;direction:rtl;vertical-align:middle;"><svg viewBox="0 0 15 22" style="height:1.05em;flex-shrink:0;" xmlns="http://www.w3.org/2000/svg"><path d="M1 2 L8 20 L11 12 L15 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></svg><span style="border-top:1.5px solid;padding:2px 5px 0;">' + inner + '</span></span>'; }
+    s = s.replace(/\\sqrt\s*\[\s*3\s*\]\s*\{([^{}]*)\}/g, function (m, x) { return _rad("3", x); });
+    s = s.replace(/\\sqrt\s*\[([^\]]*)\]\s*\{([^{}]*)\}/g, function (m, n, x) { return _rad(n, x); });
+    s = s.replace(/\\?sqrt\s*\{([^{}]*)\}/g, function (m, x) { return _rad("", x); });
+    s = s.replace(/\\overline\s*\{([^{}]*)\}/g, function (m, x) { return '<span style="text-decoration:overline">' + x + '</span>'; });
+    s = s.replace(/\\vec\s*\{([^{}]*)\}/g, function (m, x) { return x + '\u20D7'; });
+    s = s.replace(/\^\s*\{?\s*\\circ\s*\}?/g, '°');
+    var _ops = [['pm', '±'], ['mp', '∓'], ['times', '×'], ['cdot', '·'], ['div', '÷'],
+        ['leq', '≤'], ['geq', '≥'], ['neq', '≠'], ['approx', '≈'], ['equiv', '≡'],
+        ['leftrightarrow', '⇔'], ['Leftrightarrow', '⇔'], ['iff', '⇔'],
+        ['rightarrow', '→'], ['Rightarrow', '⇒'], ['leftarrow', '←'], ['to', '→'],
+        ['le', '≤'], ['ge', '≥'],
+        ['infty', '∞'], ['propto', '∝'], ['pi', 'π'], ['theta', 'θ'], ['alpha', 'α'],
+        ['beta', 'β'], ['gamma', 'γ'], ['Delta', 'Δ'], ['delta', 'δ'], ['lambda', 'λ'],
+        ['sum', '∑'], ['int', '∫'], ['angle', '∠'], ['triangle', '△'], ['square', '□'],
+        ['parallel', '∥'], ['perp', '⊥'], ['cong', '≅'], ['simeq', '≃'], ['sim', '∼'],
+        ['subseteq', '⊆'], ['subset', '⊂'], ['supseteq', '⊇'], ['supset', '⊃'],
+        ['cup', '∪'], ['cap', '∩'], ['in', '∈'], ['notin', '∉'], ['forall', '∀'],
+        ['exists', '∃'], ['emptyset', '∅'], ['ldots', '…'], ['dots', '…'], ['degree', '°']];
+    for (var i = 0; i < _ops.length; i++) { s = s.replace(new RegExp('\\\\' + _ops[i][0] + '(?![A-Za-z])', 'g'), _ops[i][1]); }
+    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?\d+|[A-Za-z])/g, '<sup>$1</sup>');
+    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?\d+|[A-Za-z])/g, '<sub>$1</sub>');
+    s = s.replace(/\\([A-Za-z]+)/g, '$1');
+    return s;
+}
+function _mathFmt(s){
+    s = String(s == null ? '' : s);
+    // 1) escape زوايا HTML
+    s = s.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    s = _mnorm(s);
+
+    // 8) التعريب (يتخطى الوسوم): أُس يونيكود → sup، أرقام هندية، متغيرات مفردة عربية
+    var _SUPm = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
+    var _VARm = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};
+    s = s.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>|[^<]+/gi, function(tok){
+        if (tok.charAt(0) === '<') return tok;
+        tok = tok.replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+/g, function(sup){ var o=''; for(var j=0;j<sup.length;j++){ o += _SUPm[sup.charAt(j)]||''; } return '<sup>'+o+'</sup>'; });
+        tok = tok.replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.charAt(+d); });
+        tok = tok.replace(/[A-Za-z]+/g, function(w){ if(w.length===1){ return _VARm[w.toLowerCase()]||w; } return w; });
+        return tok;
+    });
+    return s;
+}
+
 function renderWorksheet() {
   if (!_wsData) return;
   const w = _wsData;
@@ -3781,14 +3839,14 @@ function renderWorksheet() {
     html += `<div class="ws-question">
       <div class="ws-q-header">
         <div class="ws-q-num">${arabicNum(num)}</div>
-        <div class="ws-q-text">${_esc(q.q || q.question || '')}</div>
+        <div class="ws-q-text">${_mathFmt(q.q || q.question || '')}</div>
         ${marks}
       </div>`;
     if (q.type === 'mcq' && q.options && q.options.length) {
       html += '<div class="ws-q-options">';
       const letters = ['أ', 'ب', 'ج', 'د', 'هـ', 'و'];
       q.options.forEach((opt, oi) => {
-        html += `<div class="ws-q-option"><span class="circle"></span> ${letters[oi] || ''}) ${_esc(opt)}</div>`;
+        html += `<div class="ws-q-option"><span class="circle"></span> ${letters[oi] || ''}) ${_mathFmt(opt)}</div>`;
       });
       html += '</div>';
     } else if (q.type === 'solve') {
@@ -3798,7 +3856,7 @@ function renderWorksheet() {
     }
     if (q.answer) {
       html += `<div class="ws-answer-key answer-only" style="display:${_wsShowAnswers ? 'block' : 'none'};">
-        <b>✓ الإجابة:</b> ${_esc(q.answer)}
+        <b>✓ الإجابة:</b> ${_mathFmt(q.answer)}
       </div>`;
     }
     html += '</div>';
