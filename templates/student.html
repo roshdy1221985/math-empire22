@@ -10778,6 +10778,7 @@ function _renderQ(s) {
 function _mnorm(s) {
     s = String(s == null ? '' : s);
     s = s.replace(/\$\$/g, '').replace(/\$/g, '');
+    s = s.replace(/\u0060/g, '').replace(/\u02c6/g, '^');
     s = s.replace(/\\[()\[\]]/g, '');
     s = s.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return a + '/' + b; });
     s = s.replace(/\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return 'C(' + a + '، ' + b + ')'; });
@@ -10801,8 +10802,9 @@ function _mnorm(s) {
         ['cup', '∪'], ['cap', '∩'], ['in', '∈'], ['notin', '∉'], ['forall', '∀'],
         ['exists', '∃'], ['emptyset', '∅'], ['ldots', '…'], ['dots', '…'], ['degree', '°']];
     for (var i = 0; i < _ops.length; i++) { s = s.replace(new RegExp('\\\\' + _ops[i][0] + '(?![A-Za-z])', 'g'), _ops[i][1]); }
-    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?\d+|[A-Za-z])/g, '<sup>$1</sup>');
-    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?\d+|[A-Za-z])/g, '<sub>$1</sub>');
+    s = s.replace(/\bln(?![a-zA-Z])/gi, 'لطـ').replace(/\blog(?![a-zA-Z])/gi, 'لو');
+    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sup>$1</sup>');
+    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sub>$1</sub>');
     s = s.replace(/\\([A-Za-z]+)/g, '$1');
     return s;
 }
@@ -10815,7 +10817,7 @@ function _mathFmt(s){
 
     // 8) التعريب (يتخطى الوسوم): أُس يونيكود → sup، أرقام هندية، متغيرات مفردة عربية
     var _SUPm = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
-    var _VARm = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};
+    var _VARm = {'x':'س','y':'ص','z':'ع','a':'أ','b':'ب','c':'ج','d':'د','e':'هـ','f':'ف','h':'ه','k':'ك','l':'ل','m':'م','n':'ن','q':'ق','r':'ر','t':'ت'};
     s = s.replace(/<style[\s\S]*?<\/style>|<script[\s\S]*?<\/script>|<[^>]+>|[^<]+/gi, function(tok){
         if (tok.charAt(0) === '<') return tok;
         tok = tok.replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+/g, function(sup){ var o=''; for(var j=0;j<sup.length;j++){ o += _SUPm[sup.charAt(j)]||''; } return '<sup>'+o+'</sup>'; });

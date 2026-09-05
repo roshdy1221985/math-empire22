@@ -6036,6 +6036,12 @@
                     <div class="qa-sub">تدريب · مراجعة · واجب</div>
                 </div>
 
+                <div onclick="showSection('slides-gen', null)" class="qa-card qa-emerald" style="position:relative;">
+                    <div class="qa-icon-box"><i class="fas fa-desktop"></i></div>
+                    <div class="qa-title">عروض تقديمية</div>
+                    <div class="qa-sub">AI ← شرائح للعرض</div>
+                </div>
+
                 <!-- 👑 الدرس الإمبراطوري -->
                 <div onclick="window.open('/prep#royal','_blank')" class="qa-card qa-gold" style="position:relative;">
                     <div class="qa-new-badge qa-badge-hot">👑 جديد</div>
@@ -8785,11 +8791,19 @@
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px;margin-bottom:14px;">
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">🎓 الصف *</label>
-                    <input type="text" id="pg-grade" placeholder="مثل: الصف السادس" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    <select id="pg-grade" onchange="pgLoadSemesters()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;"><option value="">— اختر الصف —</option></select>
                 </div>
                 <div>
-                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📖 اسم الدرس *</label>
-                    <input type="text" id="pg-lesson" placeholder="مثل: جمع الكسور" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;">
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📅 الفصل</label>
+                    <select id="pg-semester" onchange="pgLoadUnits()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;"><option value="">— الفصل —</option></select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📚 الوحدة</label>
+                    <select id="pg-unit" onchange="pgLoadLessons()" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;"><option value="">— الوحدة —</option></select>
+                </div>
+                <div>
+                    <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">📖 الدرس *</label>
+                    <select id="pg-lesson" disabled style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(52,152,219,0.3);color:#fff;padding:11px 14px;border-radius:10px;font-family:Cairo;font-weight:600;"><option value="">— الدرس —</option></select>
                 </div>
                 <div>
                     <label style="display:block;font-size:0.85rem;color:rgba(255,255,255,0.7);margin-bottom:6px;font-weight:600;">⏱️ المدة (دقيقة)</label>
@@ -9149,6 +9163,7 @@
                 document.getElementById('door-sfx')?.play();
                 sessionStorage.setItem('teacherAccess', 'true');
                 sessionStorage.setItem('teacherData', JSON.stringify(teacherData));
+                try { if (teacherData && teacherData.token) localStorage.setItem('adminToken', teacherData.token); } catch(e){}
                 setTimeout(() => {
                     document.getElementById('access-overlay').style.display = 'none';
                     initTeacher();
@@ -11264,6 +11279,51 @@ var _wsgType = 'practice';
 var _wsgData = null;
 var _wsgShowAnswers = false;
 
+// 🆕 ربط منشئ التحضيرات بشجرة المنهج (صف→فصل→وحدة→درس) — نفس نمط wsg
+function pgInitCurriculum() {
+    if (!_exgCurriculum || !_exgCurriculum.length) {
+        fetch(API_URL + '/api/curriculum/structure')
+            .then(function(r){ return r.ok ? r.json() : []; })
+            .then(function(data){ _exgCurriculum = data || []; pgFillGrades(); })
+            .catch(function(e){ console.warn('[pg] curr:', e); });
+    } else { pgFillGrades(); }
+}
+function pgFillGrades() {
+    var sel = document.getElementById('pg-grade'); if (!sel) return;
+    while (sel.options.length > 1) sel.remove(1);
+    _exgCurriculum.forEach(function(g){ if(!g||!g.name) return; var o=document.createElement('option'); o.value=g.name; o.textContent=g.name; sel.appendChild(o); });
+}
+function pgLoadSemesters() {
+    var grade=document.getElementById('pg-grade').value;
+    var semSel=document.getElementById('pg-semester'), unitSel=document.getElementById('pg-unit'), lessSel=document.getElementById('pg-lesson');
+    semSel.innerHTML='<option value="">— الفصل —</option>'; unitSel.innerHTML='<option value="">— الوحدة —</option>'; lessSel.innerHTML='<option value="">— الدرس —</option>';
+    if(!grade){ semSel.disabled=true; unitSel.disabled=true; lessSel.disabled=true; return; }
+    var g=_exgCurriculum.find(function(x){return x&&x.name===grade;});
+    if(g&&g.semesters) g.semesters.forEach(function(s){var o=document.createElement('option');o.value=s.name;o.textContent=s.name;semSel.appendChild(o);});
+    semSel.disabled=false; unitSel.disabled=true; lessSel.disabled=true;
+}
+function pgLoadUnits() {
+    var grade=document.getElementById('pg-grade').value, sem=document.getElementById('pg-semester').value;
+    var unitSel=document.getElementById('pg-unit'), lessSel=document.getElementById('pg-lesson');
+    unitSel.innerHTML='<option value="">— الوحدة —</option>'; lessSel.innerHTML='<option value="">— الدرس —</option>';
+    if(!grade||!sem){ unitSel.disabled=true; lessSel.disabled=true; return; }
+    var g=_exgCurriculum.find(function(x){return x&&x.name===grade;});
+    var s=g&&g.semesters?g.semesters.find(function(x){return x&&x.name===sem;}):null;
+    if(s&&s.units) s.units.forEach(function(u){var o=document.createElement('option');o.value=u.name;o.textContent=u.name;unitSel.appendChild(o);});
+    unitSel.disabled=false; lessSel.disabled=true;
+}
+function pgLoadLessons() {
+    var grade=document.getElementById('pg-grade').value, sem=document.getElementById('pg-semester').value, unit=document.getElementById('pg-unit').value;
+    var lessSel=document.getElementById('pg-lesson');
+    lessSel.innerHTML='<option value="">— الدرس —</option>';
+    if(!grade||!sem||!unit){ lessSel.disabled=true; return; }
+    var g=_exgCurriculum.find(function(x){return x&&x.name===grade;});
+    var s=g&&g.semesters?g.semesters.find(function(x){return x&&x.name===sem;}):null;
+    var u=s&&s.units?s.units.find(function(x){return x&&x.name===unit;}):null;
+    if(u&&u.lessons) u.lessons.forEach(function(l){var o=document.createElement('option');o.value=l.name;o.textContent=l.name;lessSel.appendChild(o);});
+    lessSel.disabled=false;
+}
+
 function wsgInitCurriculum() {
     if (!_exgCurriculum || !_exgCurriculum.length) {
         fetch(API_URL + '/api/curriculum/structure')
@@ -11394,18 +11454,18 @@ function wsgRender() {
         html += '<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed #ddd;">' +
             '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">' +
             '<div style="background:#d4af37;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">' + wsgArNum(num) + '</div>' +
-            '<div style="flex:1;font-size:0.98rem;color:#1a1a2e;line-height:1.6;padding-top:3px;">' + wsgEsc(q.q || q.question || '') + '</div>' + marks + '</div>';
+            '<div style="flex:1;font-size:0.98rem;color:#1a1a2e;line-height:1.6;padding-top:3px;">' + _arabicizeDigits(wsgEsc(q.q || q.question || '')) + '</div>' + marks + '</div>';
         if (q.type === 'mcq' && q.options && q.options.length) {
             html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 38px;">';
             var letters = ['أ','ب','ج','د','هـ','و'];
-            q.options.forEach(function(opt, oi){ html += '<div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;color:#333;"><span style="width:16px;height:16px;border:1.5px solid #999;border-radius:50%;flex-shrink:0;"></span> ' + (letters[oi]||'') + ') ' + wsgEsc(opt) + '</div>'; });
+            q.options.forEach(function(opt, oi){ html += '<div style="display:flex;align-items:center;gap:8px;font-size:0.9rem;color:#333;"><span style="width:16px;height:16px;border:1.5px solid #999;border-radius:50%;flex-shrink:0;"></span> ' + (letters[oi]||'') + ') ' + _arabicizeDigits(wsgEsc(opt)) + '</div>'; });
             html += '</div>';
         } else if (q.type === 'solve') {
             html += '<div style="margin:8px 38px;min-height:60px;border:1px dashed #ccc;border-radius:6px;background:#fafafa;"></div>';
         } else {
             html += '<div style="margin:8px 38px;border-bottom:1px solid #ccc;min-height:28px;"></div>';
         }
-        if (q.answer) html += '<div class="wsg-answer-only" style="display:' + (_wsgShowAnswers?'block':'none') + ';margin:6px 38px;padding:6px 12px;background:#e8f5e9;border-right:3px solid #4caf50;border-radius:4px;font-size:0.85rem;color:#2e7d32;"><b>✓ الإجابة:</b> ' + wsgEsc(q.answer) + '</div>';
+        if (q.answer) html += '<div class="wsg-answer-only" style="display:' + (_wsgShowAnswers?'block':'none') + ';margin:6px 38px;padding:6px 12px;background:#e8f5e9;border-right:3px solid #4caf50;border-radius:4px;font-size:0.85rem;color:#2e7d32;"><b>✓ الإجابة:</b> ' + _arabicizeDigits(wsgEsc(q.answer)) + '</div>';
         html += '</div>';
     });
     html += '<div style="text-align:center;margin-top:24px;padding-top:16px;border-top:2px solid #d4af37;font-size:0.85rem;color:#888;">';
@@ -15864,6 +15924,8 @@ async function pgGenerate() {
         fd.append('duration', document.getElementById('pg-duration').value || '45');
         fd.append('style', document.getElementById('pg-style').value);
         fd.append('objectives_focus', document.getElementById('pg-focus').value || '');
+        fd.append('semester', (document.getElementById('pg-semester')||{}).value || '');
+        fd.append('unit', (document.getElementById('pg-unit')||{}).value || '');
         
         var res = await fetch(API_URL + '/api/teacher/generate_lesson_plan', {
             method: 'POST',
@@ -16847,6 +16909,12 @@ function applyDefaults() {
             if (name === 'worksheet-gen') {
                 setTimeout(function() {
                     if (typeof wsgInitCurriculum === 'function') wsgInitCurriculum();
+                }, 100);
+            }
+
+            if (name === 'plan-gen') {
+                setTimeout(function() {
+                    if (typeof pgInitCurriculum === 'function') pgInitCurriculum();
                 }, 100);
             }
             if (name === 'home') {
@@ -19108,7 +19176,7 @@ function regenerateLessonPack() {
 // 🖨️ Section-specific Print Functions
 // ════════════════════════════════════════════════════════════
 // 🔢 تحويل الأرقام والمتغيّرات للعربية في النص المرئي فقط — يحمي الوسوم وCSS والكلمات (sin/PDF/cm)
-var _VARMAP = {'x':'س','y':'ص','z':'ع','a':'ل','b':'م','c':'ك','d':'ن','h':'ط','k':'هـ','m':'ز','n':'ح','r':'ش','t':'ر'};
+var _VARMAP = {'x':'س','y':'ص','z':'ع','a':'أ','b':'ب','c':'ج','d':'د','e':'هـ','f':'ف','h':'ه','k':'ك','l':'ل','m':'م','n':'ن','q':'ق','r':'ر','t':'ت'};
 var _SUP = {'⁰':'٠','¹':'١','²':'٢','³':'٣','⁴':'٤','⁵':'٥','⁶':'٦','⁷':'٧','⁸':'٨','⁹':'٩'};
 // 🆕 دالة الإشعارات (كانت مفقودة — كل النداءات محميّة بـ typeof فما كانت تظهر)
 function showToast(msg, type) {
@@ -19137,6 +19205,7 @@ function showToast(msg, type) {
 function _mnorm(s) {
     s = String(s == null ? '' : s);
     s = s.replace(/\$\$/g, '').replace(/\$/g, '');
+    s = s.replace(/\u0060/g, '').replace(/\u02c6/g, '^');
     s = s.replace(/\\[()\[\]]/g, '');
     s = s.replace(/\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return a + '/' + b; });
     s = s.replace(/\\binom\s*\{([^{}]*)\}\s*\{([^{}]*)\}/g, function (m, a, b) { return 'C(' + a + '، ' + b + ')'; });
@@ -19160,8 +19229,9 @@ function _mnorm(s) {
         ['cup', '∪'], ['cap', '∩'], ['in', '∈'], ['notin', '∉'], ['forall', '∀'],
         ['exists', '∃'], ['emptyset', '∅'], ['ldots', '…'], ['dots', '…'], ['degree', '°']];
     for (var i = 0; i < _ops.length; i++) { s = s.replace(new RegExp('\\\\' + _ops[i][0] + '(?![A-Za-z])', 'g'), _ops[i][1]); }
-    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?\d+|[A-Za-z])/g, '<sup>$1</sup>');
-    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?\d+|[A-Za-z])/g, '<sub>$1</sub>');
+    s = s.replace(/\bln(?![a-zA-Z])/gi, 'لطـ').replace(/\blog(?![a-zA-Z])/gi, 'لو');
+    s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sup>$1</sup>');
+    s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sub>$1</sub>');
     s = s.replace(/\\([A-Za-z]+)/g, '$1');
     return s;
 }

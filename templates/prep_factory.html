@@ -1402,6 +1402,12 @@ body {
     <button class="gen-btn" id="gen-btn" onclick="startGeneration()">
       ✨ توليد الأسئلة
     </button>
+    <button class="gen-btn" id="vision-btn" onclick="startVisionGeneration()" style="margin-top:10px;background:linear-gradient(135deg,#7c3aed,#4f46e5);">
+      👁️ توليد بالرؤية <span style="opacity:.75;font-size:.82em;">(للكتب المصوّرة)</span>
+    </button>
+    <button class="gen-btn" id="save-content-btn" onclick="saveLessonContentVision()" style="margin-top:10px;background:linear-gradient(135deg,#0d9488,#0f766e);">
+      📚 احفظ محتوى الدرس للمكتبة
+    </button>
   </aside>
 
   <!-- ══════════ MAIN ══════════ -->
@@ -2476,6 +2482,85 @@ async function startGeneration() {
 // ════════════════════════════════════════════════════════════
 // 🎨 RENDER
 // ════════════════════════════════════════════════════════════
+async function startVisionGeneration() {
+  if (!state || !state.pdfFile) { toast('⚠️ ارفع ملف الكتاب أولاً', 'error'); return; }
+  const pStart = parseInt(document.getElementById('page-start').value) || 1;
+  const pEnd = parseInt(document.getElementById('page-end').value) || 10;
+  if (pStart > pEnd) { toast('⚠️ صفحة البداية أكبر من النهاية', 'error'); return; }
+  const nMcq = +(document.getElementById('n-mcq').value) || 0;
+  const nTf = +(document.getElementById('n-tf').value) || 0;
+  const nSh = +(document.getElementById('n-short').value) || 0;
+  const total = nMcq + nTf + nSh;
+  if (total < 1) { toast('⚠️ حدد عدد الأسئلة', 'error'); return; }
+  if (total > 50) { toast('⚠️ الحد الأقصى 50 سؤال', 'error'); return; }
+  if (pEnd - pStart + 1 > 12) { toast('👁️ الرؤية تقرأ حتى 12 صفحة في المرة — سيُقصّ النطاق تلقائياً', 'info'); }
+
+  const vbtn = document.getElementById('vision-btn');
+  if (vbtn) { vbtn.disabled = true; vbtn.textContent = '⏳ Gemini يقرأ الصفحات...'; }
+  try { showProgress(true); setProgress(25, '👁️ Gemini يقرأ صفحات الكتاب مباشرة...'); } catch (e) {}
+  var es = document.getElementById('empty-state'); if (es) es.style.display = 'none';
+
+  try {
+    const fd = new FormData();
+    fd.append('pdf_file', state.pdfFile);
+    fd.append('page_start', String(pStart));
+    fd.append('page_end', String(pEnd));
+    fd.append('grade', document.getElementById('cr-grade').value || '');
+    fd.append('semester', document.getElementById('cr-semester').value || '');
+    fd.append('unit', document.getElementById('cr-unit').value || '');
+    fd.append('lesson', document.getElementById('cr-lesson').value || '');
+    fd.append('n_mcq', String(nMcq));
+    fd.append('n_tf', String(nTf));
+    fd.append('n_short', String(nSh));
+    fd.append('difficulty', (state.difficulty || 'medium'));
+
+    try { setProgress(55, '👁️ يستنبط الأسئلة من محتوى الصفحات...'); } catch (e) {}
+    const res = await apiCall('/api/prep/ai_generate_vision', { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || ('HTTP ' + res.status)); }
+    const data = await res.json();
+    try { setProgress(90, 'عرض النتائج...'); } catch (e) {}
+    state.questions = data.questions || [];
+    renderQuestions();
+    toast('✅ تم التوليد بالرؤية من صفحات ' + (data.pages || ''), 'success');
+    try { setProgress(100, 'تم'); setTimeout(function () { showProgress(false); }, 600); } catch (e) {}
+  } catch (e) {
+    toast('❌ ' + (e.message || e), 'error');
+    try { showProgress(false); } catch (er) {}
+  } finally {
+    if (vbtn) { vbtn.disabled = false; vbtn.innerHTML = '👁️ توليد بالرؤية <span style="opacity:.75;font-size:.82em;">(للكتب المصوّرة)</span>'; }
+  }
+}
+
+async function saveLessonContentVision() {
+  if (!state || !state.pdfFile) { toast('⚠️ ارفع ملف الكتاب أولاً', 'error'); return; }
+  const grade = document.getElementById('cr-grade').value || '';
+  const lesson = document.getElementById('cr-lesson').value || '';
+  if (!grade || !lesson) { toast('⚠️ اختر الصف والدرس أولاً (لربط المحتوى بالمنهج)', 'error'); return; }
+  const pStart = parseInt(document.getElementById('page-start').value) || 1;
+  const pEnd = parseInt(document.getElementById('page-end').value) || 10;
+  if (pStart > pEnd) { toast('⚠️ صفحة البداية أكبر من النهاية', 'error'); return; }
+  const btn = document.getElementById('save-content-btn');
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ يقرأ ويحفظ محتوى الدرس...'; }
+  try {
+    const fd = new FormData();
+    fd.append('pdf_file', state.pdfFile);
+    fd.append('page_start', String(pStart));
+    fd.append('page_end', String(pEnd));
+    fd.append('grade', grade);
+    fd.append('semester', document.getElementById('cr-semester').value || '');
+    fd.append('unit', document.getElementById('cr-unit').value || '');
+    fd.append('lesson', lesson);
+    const res = await apiCall('/api/prep/save_lesson_content_vision', { method: 'POST', body: fd });
+    if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.detail || ('HTTP ' + res.status)); }
+    const data = await res.json();
+    toast('✅ حُفظ محتوى الدرس في المكتبة (' + (data.length || 0) + ' حرف · صفحات ' + (data.pages || '') + ')', 'success');
+  } catch (e) {
+    toast('❌ ' + (e.message || e), 'error');
+  } finally {
+    if (btn) { btn.disabled = false; btn.innerHTML = '📚 احفظ محتوى الدرس للمكتبة'; }
+  }
+}
+
 function renderQuestions() {
   const wrap = document.getElementById('questions-wrap');
   const list = document.getElementById('questions-list');

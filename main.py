@@ -6078,6 +6078,7 @@ def _fmt_math(s):
     s = s.replace("<", "&lt;").replace(">", "&gt;")
     # 2) إزالة حدود LaTeX
     s = s.replace("$$", "").replace("$", "")
+    s = s.replace("\u0060", "").replace("\u02c6", "^")
     s = _re.sub(r"\\[()\[\]]", "", s)
     # 3) الكسور والتوافيق
     s = _re.sub(r"\\?frac\s*\{([^{}]*)\}\s*\{([^{}]*)\}", lambda m: m.group(1) + "/" + m.group(2), s)
@@ -6110,12 +6111,14 @@ def _fmt_math(s):
     for _n, _sym in _ops:
         s = _re.sub(r"\\" + _n + r"(?![A-Za-z])", _sym, s)
     # 8) الأُس
+    s = _re.sub(r"\bln(?![a-zA-Z])", "لطـ", s)
+    s = _re.sub(r"\blog(?![a-zA-Z])", "لو", s)
     s = _re.sub(r"\^\{([^{}]*)\}", r"<sup>\1</sup>", s)
     s = _re.sub(r"\^\(([^()]*)\)", r"<sup>\1</sup>", s)
-    s = _re.sub(r"\^(-?\d+|[A-Za-z])", r"<sup>\1</sup>", s)
+    s = _re.sub(r"\^(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)", r"<sup>\1</sup>", s)
     # 9) الدليل السفلي (لوغاريتمات/دلائل)
     s = _re.sub(r"_\{([^{}]*)\}", r"<sub>\1</sub>", s)
-    s = _re.sub(r"_(-?\d+|[A-Za-z])", r"<sub>\1</sub>", s)
+    s = _re.sub(r"_(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)", r"<sub>\1</sub>", s)
     # 10) تنظيف أوامر غير معروفة
     s = _re.sub(r"\\([A-Za-z]+)", r"\1", s)
     return s
@@ -7569,6 +7572,8 @@ async def generate_lesson_plan(
     request: Request,
     grade: str           = Form(...),
     lesson_name: str     = Form(...),
+    unit: str            = Form(default=""),         # الوحدة من المنهج
+    semester: str        = Form(default=""),         # الفصل الدراسي
     duration: int        = Form(default=45),    # بالدقائق
     objectives_focus: str = Form(default=""),    # محاور تركيز خاصة
     style: str           = Form(default="standard"),  # standard | interactive | discovery
@@ -7598,6 +7603,8 @@ async def generate_lesson_plan(
 
 📚 المعلومات الأساسية:
 - الصف: {grade}
+{f'- الفصل الدراسي: {semester}' if semester else ''}
+{f'- الوحدة: {unit}' if unit else ''}
 - الدرس: {lesson_name}
 - المدة: {duration} دقيقة
 - الأسلوب: {style_text}
@@ -11068,6 +11075,330 @@ async def prep_ai_generate(
             continue
     
     raise HTTPException(status_code=502, detail=f"❌ فشل التوليد. آخر خطأ: {last_error}")
+
+
+@app.post("/api/prep/ai_generate_vision")
+async def prep_ai_generate_vision(
+    request: Request,
+    pdf_file: UploadFile = File(...),
+    page_start: int = Form(default=1),
+    page_end: int = Form(default=10),
+    grade: str = Form(default=""),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(default=""),
+    n_mcq: int = Form(default=5),
+    n_tf: int = Form(default=3),
+    n_short: int = Form(default=2),
+    difficulty: str = Form(default="medium"),
+    admin = Depends(get_current_admin)
+):
+    """
+    👁️ توليد أسئلة بالرؤية (Vision): يقصّ نطاق صفحات من الـPDF ويرسله لـGEMINI مباشرة
+    يقرأ حتى الكتب المصوّرة (scanned) والنص العربي المعقّد — بلا OCR خارجي.
+    نفس صيغة إخراج prep_ai_generate (questions[]).
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=12, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+
+    total = n_mcq + n_tf + n_short
+    if total < 1:
+        raise HTTPException(status_code=400, detail="حدد عدداً للأسئلة")
+    if total > 50:
+        raise HTTPException(status_code=400, detail="الحد الأقصى 50 سؤال في المرة الواحدة")
+
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+
+    content = await pdf_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="الملف فارغ أو لم يُرفع")
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
+
+    # قصّ نطاق الصفحات إلى PDF صغير (Vision inline محدود الحجم)
+    import io as _io, base64 as _b64
+    try:
+        try:
+            from pypdf import PdfReader, PdfWriter
+        except ImportError:
+            from PyPDF2 import PdfReader, PdfWriter  # type: ignore
+        reader = PdfReader(_io.BytesIO(content))
+        if getattr(reader, "is_encrypted", False):
+            try:
+                reader.decrypt("")
+            except Exception:
+                raise HTTPException(status_code=400, detail="❌ الـPDF مشفّر بكلمة مرور")
+        total_pages = len(reader.pages)
+        if total_pages == 0:
+            raise HTTPException(status_code=400, detail="❌ الـPDF لا يحتوي صفحات")
+        p_start = max(1, min(page_start, total_pages))
+        p_end = max(p_start, min(page_end, total_pages))
+        # حدّ أقصى 12 صفحة في المرة (يبقى الملف صغيراً وسريعاً)
+        if p_end - p_start + 1 > 12:
+            p_end = p_start + 11
+        writer = PdfWriter()
+        for i in range(p_start - 1, p_end):
+            writer.add_page(reader.pages[i])
+        buf = _io.BytesIO()
+        writer.write(buf)
+        sliced = buf.getvalue()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"❌ فشل قراءة/قصّ الـPDF: {str(e)[:120]}")
+
+    b64_pdf = _b64.b64encode(sliced).decode("ascii")
+
+    diff_ar = {"easy": "سهلة ومباشرة", "medium": "متوسطة الصعوبة", "hard": "تحليلية وتطبيقية"}.get(difficulty, "متوسطة")
+    context_parts = []
+    if grade: context_parts.append(f"الصف: {grade}")
+    if semester: context_parts.append(f"الفصل: {semester}")
+    if unit: context_parts.append(f"الوحدة: {unit}")
+    if lesson: context_parts.append(f"الدرس: {lesson}")
+    context = " | ".join(context_parts) if context_parts else "غير محدد"
+
+    prompt = f"""أنت خبير في تعليم الرياضيات للمرحلة الأساسية في سلطنة عُمان.
+
+بين يديك صفحات من كتاب الوزارة الرسمي (مرفقة كملف PDF). اقرأ محتواها بدقّة (حتى لو كانت صوراً ممسوحة) واستنبط منها الأسئلة — لا تستخدم معرفتك العامة، اعتمد حصريًا على محتوى الصفحات المرفقة.
+
+المهمة: أنشئ {total} سؤالاً مستنبطاً من محتوى الصفحات المرفقة.
+
+السياق: {context}
+الصعوبة: {diff_ar}
+التوزيع المطلوب:
+- {n_mcq} سؤال اختياري (4 خيارات)
+- {n_tf} سؤال صواب/خطأ
+- {n_short} سؤال إجابة قصيرة
+
+قواعد صارمة:
+- العربية الفصحى، أرقام عربية (٠١٢٣٤٥٦٧٨٩)
+- للاختياري: 4 خيارات، الإجابة تطابق أحد الخيارات نصاً
+- للصواب/خطأ: الإجابة "صواب" أو "خطأ" فقط
+- للإجابة القصيرة: إجابة مختصرة
+- الأسئلة متنوعة وغير مكررة ومرتبطة بمحتوى الصفحات الفعلي{_PLOT_HINT}
+
+أخرج JSON فقط بهذا الشكل بدون أي نص آخر:
+{{
+  "questions": [
+    {{"type": "mcq", "q": "نص السؤال", "options": ["خيار1", "خيار2", "خيار3", "خيار4"], "answer": "خيار1"}},
+    {{"type": "tf", "q": "نص السؤال", "options": [], "answer": "صواب"}},
+    {{"type": "short", "q": "نص السؤال", "options": [], "answer": "الإجابة"}}
+  ]
+}}"""
+
+    import httpx
+    import json as json_lib
+    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash"]
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "application/pdf", "data": b64_pdf}}
+                ]}],
+                "generationConfig": {
+                    "temperature": 0.5,
+                    "maxOutputTokens": 8000,
+                    "topP": 0.9,
+                    "responseMimeType": "application/json"
+                }
+            }
+            with httpx.Client(timeout=90.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    out = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if out.startswith("```"):
+                        out = out.split("\n", 1)[1] if "\n" in out else out
+                        out = out.rsplit("```", 1)[0] if "```" in out else out
+                    parsed = json_lib.loads(out)
+                    questions = parsed.get("questions", [])
+                    if not isinstance(questions, list) or len(questions) == 0:
+                        raise ValueError("استجابة AI فارغة — قد تكون الصفحات غير واضحة")
+                    return {
+                        "status": "ok",
+                        "count": len(questions),
+                        "questions": questions,
+                        "model": model_name,
+                        "pages": f"{p_start}-{p_end}",
+                        "mode": "vision"
+                    }
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except json_lib.JSONDecodeError as e:
+            last_error = f"JSON parse: {str(e)[:100]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:200]}"
+            continue
+
+    raise HTTPException(status_code=502, detail=f"❌ فشل التوليد بالرؤية. آخر خطأ: {last_error}")
+
+
+@app.post("/api/prep/save_lesson_content_vision")
+async def prep_save_lesson_content_vision(
+    request: Request,
+    pdf_file: UploadFile = File(...),
+    page_start: int = Form(default=1),
+    page_end: int = Form(default=10),
+    grade: str = Form(...),
+    semester: str = Form(default=""),
+    unit: str = Form(default=""),
+    lesson: str = Form(...),
+    admin = Depends(get_current_admin)
+):
+    """
+    📚 [RAG المرحلة 1] يقرأ صفحات الدرس بالرؤية، يستخرج محتواه المنظّم، ويحفظه في مكتبة lesson_content
+    مربوطاً بالمنهج — ليكون مصدراً موثوقاً لباقي الأدوات (حزمة الدرس/أوراق العمل/التحضير).
+    """
+    ip = request.client.host if request.client else "unknown"
+    if _is_rate_limited(ip, max_calls=12, window_seconds=120):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة، انتظر دقيقتين")
+    if not grade.strip() or not lesson.strip():
+        raise HTTPException(status_code=400, detail="الصف والدرس مطلوبان لربط المحتوى بالمنهج")
+
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
+
+    content = await pdf_file.read()
+    if not content:
+        raise HTTPException(status_code=400, detail="الملف فارغ أو لم يُرفع")
+    if len(content) > 50 * 1024 * 1024:
+        raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
+
+    import io as _io, base64 as _b64
+    try:
+        try:
+            from pypdf import PdfReader, PdfWriter
+        except ImportError:
+            from PyPDF2 import PdfReader, PdfWriter  # type: ignore
+        reader = PdfReader(_io.BytesIO(content))
+        if getattr(reader, "is_encrypted", False):
+            try:
+                reader.decrypt("")
+            except Exception:
+                raise HTTPException(status_code=400, detail="❌ الـPDF مشفّر بكلمة مرور")
+        total_pages = len(reader.pages)
+        if total_pages == 0:
+            raise HTTPException(status_code=400, detail="❌ الـPDF لا يحتوي صفحات")
+        p_start = max(1, min(page_start, total_pages))
+        p_end = max(p_start, min(page_end, total_pages))
+        if p_end - p_start + 1 > 12:
+            p_end = p_start + 11
+        writer = PdfWriter()
+        for i in range(p_start - 1, p_end):
+            writer.add_page(reader.pages[i])
+        buf = _io.BytesIO()
+        writer.write(buf)
+        sliced = buf.getvalue()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"❌ فشل قراءة/قصّ الـPDF: {str(e)[:120]}")
+
+    b64_pdf = _b64.b64encode(sliced).decode("ascii")
+
+    ctx = " | ".join([p for p in [
+        f"الصف: {grade}" if grade else "",
+        f"الفصل: {semester}" if semester else "",
+        f"الوحدة: {unit}" if unit else "",
+        f"الدرس: {lesson}" if lesson else "",
+    ] if p]) or "غير محدد"
+
+    prompt = f"""أنت خبير مناهج رياضيات في سلطنة عُمان.
+بين يديك صفحات من كتاب الوزارة الرسمي (مرفقة PDF). اقرأها بدقّة (حتى لو صوراً ممسوحة) واستخرج محتوى الدرس كاملاً ومنظّماً — اعتمد حصريًا على المرفق، وانسخ المعادلات والرموز الرياضية بدقّة.
+
+السياق: {ctx}
+
+أخرج JSON فقط بهذا الشكل بدون أي نص آخر:
+{{
+  "title": "عنوان الدرس كما في الكتاب",
+  "content": "المحتوى الكامل المنظّم كنص: التعريفات، القواعد والقوانين، الشرح خطوة بخطوة، والأمثلة المحلولة مع حلولها. اكتبه بحيث يصلح كمرجع يُستنبط منه أسئلة وتحضير."
+}}"""
+
+    import httpx
+    import json as json_lib
+    result_json = None
+    last_error = None
+    for model_name in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [
+                    {"text": prompt},
+                    {"inline_data": {"mime_type": "application/pdf", "data": b64_pdf}}
+                ]}],
+                "generationConfig": {"temperature": 0.2, "maxOutputTokens": 8000, "topP": 0.9, "responseMimeType": "application/json"}
+            }
+            with httpx.Client(timeout=90.0) as client:
+                resp = client.post(url, json=payload)
+                if resp.status_code == 200:
+                    data = resp.json()
+                    out = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "").strip()
+                    if out.startswith("```"):
+                        out = out.split("\n", 1)[1] if "\n" in out else out
+                        out = out.rsplit("```", 1)[0] if "```" in out else out
+                    result_json = json_lib.loads(out)
+                    break
+                else:
+                    last_error = f"HTTP {resp.status_code}: {resp.text[:200]}"
+        except Exception as e:
+            last_error = f"{model_name}: {str(e)[:200]}"
+            continue
+
+    if not result_json:
+        raise HTTPException(status_code=502, detail=f"❌ فشل استخراج المحتوى بالرؤية. آخر خطأ: {last_error}")
+
+    title = (result_json.get("title") or "").strip()[:300]
+    body = (result_json.get("content") or "").strip()
+    if len(body) < 30:
+        raise HTTPException(status_code=422, detail="المحتوى المُستخرج قصير جداً — قد تكون الصفحات غير واضحة")
+
+    try:
+        supabase.table("lesson_content").upsert({
+            "grade": grade.strip()[:80],
+            "semester": (semester or "").strip()[:80],
+            "unit": (unit or "").strip()[:120],
+            "lesson": lesson.strip()[:120],
+            "title": title,
+            "content": body[:20000],
+            "source": "vision",
+            "pages": f"{p_start}-{p_end}",
+        }, on_conflict="grade,semester,unit,lesson").execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"❌ فشل حفظ المحتوى (تأكد من إنشاء جدول lesson_content): {str(e)[:150]}")
+
+    return {"status": "ok", "message": "✅ حُفظ محتوى الدرس في المكتبة", "title": title, "length": len(body), "pages": f"{p_start}-{p_end}"}
+
+
+@app.get("/api/lesson_content/get")
+async def get_lesson_content(
+    grade: str = "",
+    semester: str = "",
+    unit: str = "",
+    lesson: str = "",
+):
+    """📚 يجلب محتوى درس محفوظ من مكتبة lesson_content (للأدوات لتستنبط منه)."""
+    if not grade.strip() or not lesson.strip():
+        return {"found": False, "content": ""}
+    try:
+        q = supabase.table("lesson_content").select("title,content,pages,updated_at").eq("grade", grade.strip()).eq("lesson", lesson.strip())
+        if semester.strip():
+            q = q.eq("semester", semester.strip())
+        if unit.strip():
+            q = q.eq("unit", unit.strip())
+        res = q.limit(1).execute()
+        rows = res.data or []
+        if rows:
+            return {"found": True, **rows[0]}
+        return {"found": False, "content": ""}
+    except Exception as e:
+        return {"found": False, "content": "", "error": str(e)[:150]}
 
 
 @app.post("/api/prep/save_to_bank")
