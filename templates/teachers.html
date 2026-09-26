@@ -11134,6 +11134,17 @@ async function slgGenerate() {
 }
 
 function slgEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 🆕 تنسيق رموز الشرائح (أس/جذر + رموز عُمانية e→هـ ln→لطـ) قبل العرض
+function slgFmt(s){ return (typeof _arabicizeDigits==='function') ? _arabicizeDigits(slgEsc(s)) : slgEsc(s); }
+function slgFmtSlides(slides){ return (slides||[]).map(function(s){ var o={}; for(var k in s) o[k]=s[k];
+  var _figs='', _hasPlot=false;
+  function _strip(v){ if(typeof v!=='string')return v; return v.replace(/\[\[(plot|shape):([^\]]+)\]\]/g,function(_m,kind,spec){ if(kind==='plot')_hasPlot=true; _figs+=_renderVizTag(kind,spec); return ''; }); }
+  ['title','subtitle','question','answer','problem','result'].forEach(function(f){ if(o[f]) o[f]=slgFmt(_strip(o[f])); });
+  if(Array.isArray(o.points)) o.points=o.points.map(function(p){return slgFmt(_strip(p));});
+  if(Array.isArray(o.steps)) o.steps=o.steps.map(function(p){return slgFmt(_strip(p));});
+  try{ if(!_hasPlot){ var _ps=s.problem||s.question||(s.points&&s.points[0])||s.title||''; _figs+=_autoPlot(_ps); } }catch(e){}
+  if(_figs){ if(o.problem) o.problem+=_figs; else if(o.question) o.question+=_figs; else if(Array.isArray(o.points)&&o.points.length) o.points[o.points.length-1]+=_figs; else o.subtitle=(o.subtitle||'')+_figs; }
+  return o; }); }
 function slgAr(n){ return String(n).replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'[d]; }); }
 
 function slgTypeName(type) {
@@ -11152,9 +11163,9 @@ function slgRenderPreview() {
         html += '<span style="background:#a855f7;color:#fff;width:24px;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;">' + slgAr(i+1) + '</span>';
         html += '<span style="font-size:0.7rem;color:rgba(255,255,255,0.5);">' + slgTypeName(s.type) + '</span>';
         html += '</div>';
-        html += '<div style="font-weight:700;color:#c4a0ff;font-size:0.92rem;margin-bottom:4px;">' + slgEsc(s.title || '') + '</div>';
+        html += '<div style="font-weight:700;color:#c4a0ff;font-size:0.92rem;margin-bottom:4px;">' + slgFmt(s.title || '') + '</div>';
         var pv = s.subtitle || s.problem || s.question || (s.points ? s.points[0] : '') || '';
-        if (pv) html += '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);line-height:1.5;">' + slgEsc(String(pv).substring(0, 60)) + '</div>';
+        if (pv) html += '<div style="font-size:0.78rem;color:rgba(255,255,255,0.5);line-height:1.5;">' + slgFmt(String(pv).substring(0, 60)) + '</div>';
         html += '</div>';
     });
     html += '</div>';
@@ -11201,7 +11212,7 @@ async function slgDownloadPptx() {
 }
 
 function slgPresentHTML(slides, ctx, startIndex) {
-    var slidesJson = JSON.stringify(slides).replace(/<\/script>/g, '<\\/script>');
+    var slidesJson = JSON.stringify(slgFmtSlides(slides)).replace(/<\/script>/g, '<\\/script>');
     var ctxJson = JSON.stringify(ctx);
     var titleText = slgEsc(_slgData.title || 'عرض تقديمي');
     return '<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8">' +
@@ -11218,7 +11229,7 @@ function slgPresentHTML(slides, ctx, startIndex) {
         '<script>' +
         'var SLIDES=' + slidesJson + ';var CTX=' + ctxJson + ';var cur=' + startIndex + ';' +
         'function ar(n){return String(n).replace(/[0-9]/g,function(d){return "٠١٢٣٤٥٦٧٨٩"[d];});}' +
-        'function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}' +
+        'function esc(s){return String(s||"");}' +
         'function renderSlide(){var s=SLIDES[cur];if(!s)return;var h="";' +
           'if(s.type==="title"){h+="<div class=\\"slide slide-title\\"><div class=\\"crown\\">👑</div><h1>"+esc(s.title)+"</h1>";if(s.subtitle)h+="<div class=\\"subtitle\\">"+esc(s.subtitle)+"</div>";h+="<div class=\\"brand\\">إمبراطورية الرياضيات</div></div>";}' +
           'else if(s.type==="question"){h+="<div class=\\"slide slide-question\\"><div class=\\"q-badge\\">❓ سؤال تفاعلي</div><h2>"+esc(s.title)+"</h2><div class=\\"q-text\\">"+esc(s.question)+"</div>";h+="<button class=\\"reveal-btn\\" onclick=\\"document.getElementById(\\x27ans\\x27).style.display=\\x27block\\x27;this.style.display=\\x27none\\x27\\">💡 كشف الإجابة</button>";h+="<div class=\\"answer\\" id=\\"ans\\"><b>الإجابة:</b> "+esc(s.answer)+"</div></div>";}' +
@@ -11234,6 +11245,7 @@ function slgPresentHTML(slides, ctx, startIndex) {
 
 function slgPresentCSS() {
     return '*{margin:0;padding:0;box-sizing:border-box;}' +
+        'sup{font-size:0.72em;vertical-align:super;line-height:0;}sub{font-size:0.72em;vertical-align:sub;line-height:0;}' +
         'body{font-family:Cairo,sans-serif;background:#040d21;overflow:hidden;height:100vh;}' +
         '#slide-stage{height:calc(100vh - 70px);display:flex;align-items:center;justify-content:center;padding:40px;}' +
         '.slide{width:100%;max-width:1000px;min-height:70vh;border-radius:24px;padding:60px;display:flex;flex-direction:column;justify-content:center;animation:slideIn 0.4s ease;}' +
@@ -11454,7 +11466,7 @@ function wsgRender() {
         html += '<div style="margin-bottom:18px;padding-bottom:14px;border-bottom:1px dashed #ddd;">' +
             '<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px;">' +
             '<div style="background:#d4af37;color:#fff;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;flex-shrink:0;">' + wsgArNum(num) + '</div>' +
-            '<div style="flex:1;font-size:0.98rem;color:#1a1a2e;line-height:1.6;padding-top:3px;">' + _arabicizeDigits(wsgEsc(q.q || q.question || '')) + '</div>' + marks + '</div>';
+            '<div style="flex:1;font-size:0.98rem;color:#1a1a2e;line-height:1.6;padding-top:3px;">' + _vizRender(q.q || q.question || '') + '</div>' + marks + '</div>';
         if (q.type === 'mcq' && q.options && q.options.length) {
             html += '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 38px;">';
             var letters = ['أ','ب','ج','د','هـ','و'];
@@ -18945,11 +18957,11 @@ function renderPlanTab(plan) {
     }
     
     if (plan.introduction) {
-        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🌅 التمهيد</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + escapeHtmlPack(plan.introduction) + '</p></div>';
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🌅 التمهيد</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + _arabicizeDigits(escapeHtmlPack(plan.introduction)) + '</p></div>';
     }
     
     if (plan.main_content) {
-        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">📖 المحتوى الأساسي</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;white-space:pre-wrap;">' + escapeHtmlPack(plan.main_content) + '</p></div>';
+        h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">📖 المحتوى الأساسي</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;white-space:pre-wrap;">' + _arabicizeDigits(escapeHtmlPack(plan.main_content)) + '</p></div>';
     }
     
     if (plan.examples && plan.examples.length) {
@@ -18970,7 +18982,7 @@ function renderPlanTab(plan) {
     }
     
     if (plan.closure) {
-        h += '<div><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎬 الختام</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + escapeHtmlPack(plan.closure) + '</p></div>';
+        h += '<div><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎬 الختام</h3><p style="color:rgba(255,255,255,0.85);line-height:1.9;">' + _arabicizeDigits(escapeHtmlPack(plan.closure)) + '</p></div>';
     }
     
     return h;
@@ -18990,7 +19002,7 @@ function renderQuestionsTab(qs) {
         var lbl = diffLabels[q.difficulty] || '—';
         h += '<div style="background:rgba(255,255,255,0.03);border-right:3px solid ' + col + ';border-radius:10px;padding:14px;margin-bottom:10px;">';
         h += '<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;margin-bottom:8px;">';
-        h += '<div style="color:#fff;font-weight:600;line-height:1.8;flex:1;min-width:200px;"><span style="color:#fcd34d;">السؤال ' + (idx+1) + ':</span> ' + escapeHtmlPack(q.q || q.question) + '</div>';
+        h += '<div style="color:#fff;font-weight:600;line-height:1.8;flex:1;min-width:200px;"><span style="color:#fcd34d;">السؤال ' + (idx+1) + ':</span> ' + _packQ(q.q || q.question) + '</div>';
         h += '<span style="background:' + col + '20;color:' + col + ';font-size:0.72rem;padding:3px 10px;border-radius:12px;border:1px solid ' + col + '50;flex-shrink:0;">' + lbl + '</span>';
         h += '</div>';
         h += '<details style="margin-top:8px;"><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 عرض الإجابة</summary>';
@@ -19029,7 +19041,7 @@ function renderHomeworkTab(hw) {
     if (hw.questions && hw.questions.length) {
         hw.questions.forEach(function(q, idx) {
             h += '<div style="background:rgba(155,89,182,0.06);border:1px solid rgba(155,89,182,0.25);border-radius:10px;padding:14px;margin-bottom:10px;">';
-            h += '<div style="color:#fff;font-weight:600;line-height:1.8;margin-bottom:8px;"><span style="color:#bb86fc;">' + (idx+1) + ')</span> ' + escapeHtmlPack(q.q || q) + '</div>';
+            h += '<div style="color:#fff;font-weight:600;line-height:1.8;margin-bottom:8px;"><span style="color:#bb86fc;">' + (idx+1) + ')</span> ' + _packQ(q.q || q) + '</div>';
             if (q.answer) {
                 h += '<details><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 الإجابة</summary>';
                 h += '<div style="background:rgba(155,89,182,0.1);border-radius:8px;padding:10px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + escapeHtmlPack(q.answer) + '</div></details>';
@@ -19202,6 +19214,189 @@ function showToast(msg, type) {
 }
 
 // 🆕 تنسيق الرياضيات الموحّد (جذور/أسس/لوغاريتمات/توافيق/رموز هندسية) — يطابق _fmt_math بالسيرفر
+// 🆕 رسم الدوال تلقائياً من نص السؤال (كشف معادلة تربيعية/خطية)
+function _plotSvg(kind, a, b, c, m, color, showVertex) {
+    color = color || "#c0392b";
+    var W = 360, H = 360;
+    function ar(v) {
+        var nn = Math.round(v), s = Math.abs(nn).toString(), o = "";
+        for (var i = 0; i < s.length; i++) o += "٠١٢٣٤٥٦٧٨٩"[+s[i]];
+        if (nn < 0) o += "-";
+        return o;
+    }
+    var f, R, cx0, cy0, h = 0, k = 0;
+    kind = (kind || "parabola").toLowerCase();
+    if (kind === "line" || kind === "linear" || kind === "خط" || kind === "مستقيم") {
+        kind = "line"; f = function (x) { return m * x + c; }; R = 7; cx0 = 0; cy0 = 0;
+    } else {
+        kind = "parabola"; a = a || 1; h = -b / (2 * a); k = a * h * h + b * h + c;
+        f = function (x) { return a * x * x + b * x + c; };
+        R = 6; cx0 = h; cy0 = (a > 0) ? (k + (R - 1)) : (k - (R - 1));
+    }
+    var xmin = cx0 - R, xmax = cx0 + R, ymin = cy0 - R, ymax = cy0 + R;
+    var PADL = 30, PADR = 14, PADT = 14, PADB = 22;
+    var PW = W - PADL - PADR, PH = H - PADT - PADB;
+    var scale = Math.min(PW / (xmax - xmin), PH / (ymax - ymin));
+    var drawW = (xmax - xmin) * scale, drawH = (ymax - ymin) * scale;
+    var offX = PADL + (PW - drawW) / 2, offY = PADT + (PH - drawH) / 2;
+    function sx(x) { return offX + (x - xmin) * scale; }
+    function sy(y) { return offY + (ymax - y) * scale; }
+    var N = 240, xs = [], ys = [], i;
+    for (i = 0; i <= N; i++) { var x = xmin + (xmax - xmin) * i / N; xs.push(x); ys.push(f(x)); }
+    var p = [];
+    p.push('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" font-family="Cairo,Arial,sans-serif" direction="ltr" style="direction:ltr;">');
+    p.push('<rect x="0" y="0" width="' + W + '" height="' + H + '" fill="#ffffff" rx="8"/>');
+    p.push('<rect x="' + offX.toFixed(1) + '" y="' + offY.toFixed(1) + '" width="' + drawW.toFixed(1) + '" height="' + drawH.toFixed(1) + '" fill="#fbfcfe" stroke="#cfd6e0" stroke-width="1"/>');
+    var cid = "clp" + Math.floor(Math.abs(a * 97 + b * 13 + c * 7 + m * 3 + R) % 100000);
+    p.push('<defs><clipPath id="' + cid + '"><rect x="' + offX.toFixed(1) + '" y="' + offY.toFixed(1) + '" width="' + drawW.toFixed(1) + '" height="' + drawH.toFixed(1) + '"/></clipPath></defs>');
+    var gx0 = Math.ceil(xmin), gx1 = Math.floor(xmax), gy0 = Math.ceil(ymin), gy1 = Math.floor(ymax), g;
+    for (g = gx0; g <= gx1; g++) { var X = sx(g); p.push('<line x1="' + X.toFixed(1) + '" y1="' + offY.toFixed(1) + '" x2="' + X.toFixed(1) + '" y2="' + (offY + drawH).toFixed(1) + '" stroke="#e6e9ef" stroke-width="1"/>'); }
+    for (g = gy0; g <= gy1; g++) { var Y = sy(g); p.push('<line x1="' + offX.toFixed(1) + '" y1="' + Y.toFixed(1) + '" x2="' + (offX + drawW).toFixed(1) + '" y2="' + Y.toFixed(1) + '" stroke="#e6e9ef" stroke-width="1"/>'); }
+    var xAxisY = (ymin <= 0 && 0 <= ymax) ? sy(0) : null;
+    var yAxisX = (xmin <= 0 && 0 <= xmax) ? sx(0) : null;
+    if (xAxisY !== null) {
+        p.push('<line x1="' + offX.toFixed(1) + '" y1="' + xAxisY.toFixed(1) + '" x2="' + (offX + drawW).toFixed(1) + '" y2="' + xAxisY.toFixed(1) + '" stroke="#222" stroke-width="1.6"/>');
+        p.push('<polygon points="' + (offX + drawW).toFixed(1) + ',' + xAxisY.toFixed(1) + ' ' + (offX + drawW - 7).toFixed(1) + ',' + (xAxisY - 4).toFixed(1) + ' ' + (offX + drawW - 7).toFixed(1) + ',' + (xAxisY + 4).toFixed(1) + '" fill="#222"/>');
+        p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (offX + drawW - 2).toFixed(1) + '" y="' + (xAxisY - 6).toFixed(1) + '" font-size="12" fill="#222">س</text>');
+    }
+    if (yAxisX !== null) {
+        p.push('<line x1="' + yAxisX.toFixed(1) + '" y1="' + offY.toFixed(1) + '" x2="' + yAxisX.toFixed(1) + '" y2="' + (offY + drawH).toFixed(1) + '" stroke="#222" stroke-width="1.6"/>');
+        p.push('<polygon points="' + yAxisX.toFixed(1) + ',' + offY.toFixed(1) + ' ' + (yAxisX - 4).toFixed(1) + ',' + (offY + 7).toFixed(1) + ' ' + (yAxisX + 4).toFixed(1) + ',' + (offY + 7).toFixed(1) + '" fill="#222"/>');
+        p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (yAxisX + 5).toFixed(1) + '" y="' + (offY + 10).toFixed(1) + '" font-size="12" fill="#222">ص</text>');
+    }
+    if (xAxisY !== null) { for (g = gx0; g <= gx1; g++) { if (g === 0) continue; p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + sx(g).toFixed(1) + '" y="' + (xAxisY + 13).toFixed(1) + '" font-size="10" fill="#555" text-anchor="middle">' + ar(g) + '</text>'); } }
+    if (yAxisX !== null) { for (g = gy0; g <= gy1; g++) { if (g === 0) continue; p.push('<text direction="ltr" style="unicode-bidi:bidi-override;" x="' + (yAxisX - 4).toFixed(1) + '" y="' + (sy(g) + 3).toFixed(1) + '" font-size="10" fill="#555" text-anchor="end">' + ar(g) + '</text>'); } }
+    var pts = ""; for (i = 0; i < xs.length; i++) pts += sx(xs[i]).toFixed(1) + ',' + sy(ys[i]).toFixed(1) + ' ';
+    p.push('<polyline points="' + pts.replace(/\s+$/, '') + '" fill="none" stroke="' + color + '" stroke-width="2.6" stroke-linejoin="round" clip-path="url(#' + cid + ')"/>');
+    if (kind === "parabola" && xmin <= h && h <= xmax && ymin <= k && k <= ymax) {
+        var hx = sx(h), ky = sy(k);
+        if (xAxisY !== null) p.push('<line x1="' + hx.toFixed(1) + '" y1="' + ky.toFixed(1) + '" x2="' + hx.toFixed(1) + '" y2="' + xAxisY.toFixed(1) + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>');
+        if (yAxisX !== null) p.push('<line x1="' + hx.toFixed(1) + '" y1="' + ky.toFixed(1) + '" x2="' + yAxisX.toFixed(1) + '" y2="' + ky.toFixed(1) + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="3,3" opacity="0.75"/>');
+        p.push('<circle cx="' + hx.toFixed(1) + '" cy="' + ky.toFixed(1) + '" r="3.4" fill="' + color + '"/>');
+        if (showVertex) {
+            var pair = "(" + ar(h) + ", " + ar(k) + ")", adv = 5.8, x0 = hx - (pair.length * adv) / 2, yp = ky - 7, ci;
+            for (ci = 0; ci < pair.length; ci++) p.push('<text x="' + (x0 + ci * adv + adv / 2).toFixed(1) + '" y="' + yp.toFixed(1) + '" font-size="10" fill="' + color + '" text-anchor="middle" direction="ltr">' + pair[ci] + '</text>');
+        }
+    }
+    p.push('</svg>');
+    return p.join("");
+}
+function _detectEquation(text) {
+    var t = String(text || '');
+    t = t.replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); });
+    t = t.replace(/ص/g, 'y').replace(/س/g, 'x').replace(/²/g, '^2').replace(/³/g, '^3');
+    t = t.replace(/د\(x\)|f\(x\)|ع\(x\)/g, 'y');
+    t = t.replace(/×/g, '*').replace(/−/g, '-').replace(/–/g, '-');
+    var m = t.match(/y\s*=\s*([^=\n,;]+)/); if (!m) m = t.match(/([^=\n,;]+?)\s*=\s*y/);
+    if (!m) return null;
+    var rhs = m[1].trim();
+    if (rhs.indexOf('x') < 0) return null;
+    // نستبعد ما ليس تربيعياً/خطياً (أسّي/لوغاريتمي/جذري/مثلثي/كسور فيها x)
+    var bad = ['هـ', 'ln', 'log', 'لطـ', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
+    for (var i = 0; i < bad.length; i++) { if (rhs.indexOf(bad[i]) >= 0) return null; }
+    if (/\be\b/.test(rhs)) return null;
+    function coef(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
+    if (/x\s*\^?\s*2/.test(rhs)) {
+        var a = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2/);
+        var b = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)/);
+        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
+        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
+        var av = a ? coef(a[1]) : null; if (av === null) return null;
+        var bv = b ? coef(b[1]) : 0; if (bv === null) bv = 0;
+        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
+    } else {
+        var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
+        var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
+        var mv = mm ? coef(mm[1]) : null; if (mv === null) return null;
+        return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
+    }
+}
+function _autoPlot(text) {
+    try {
+        var eq = _detectEquation(text); if (!eq) return '';
+        var svg = (eq.kind === 'parabola')
+            ? _plotSvg('parabola', eq.a, eq.b, eq.c, 1, '#c0392b', false)
+            : _plotSvg('line', 1, 0, eq.c, eq.m, '#1e8449', false);
+        return '<div style="text-align:center;margin:10px auto;max-width:340px;">' + svg + '</div>';
+    } catch (e) { return ''; }
+}
+
+function _packQ(v){ return _vizRender(v); }
+
+// ════════════════════════════════════════════════════════════
+// 🆕 محرك الأشكال الهندسية (SVG) + معالجة وسم [[shape:]] و [[plot:]]
+// ════════════════════════════════════════════════════════════
+function _arNum(x){ if(x===null||x===undefined||x==='')return ''; if(typeof x==='number'&&x%1===0)x=Math.round(x); return String(x).replace(/[0-9]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];}); }
+function _svgTxt(x,y,s,size,color,anchor){ return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="Cairo,Arial" font-size="'+(size||15)+'" font-weight="600" fill="'+(color||'#1a2b4a')+'" text-anchor="'+(anchor||'middle')+'" direction="rtl" style="unicode-bidi:plaintext;">'+s+'</text>'; }
+function _svgNum(x,y,s,size,color){ return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="Cairo,Arial" font-size="'+(size||14)+'" font-weight="700" fill="'+(color||'#b45309')+'" text-anchor="middle" direction="ltr" style="unicode-bidi:bidi-override;">'+s+'</text>'; }
+function _shapeWrap(inner,w,h){ w=w||300;h=h||240; return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg" style="background:#fbfcfe;border:1px solid #e5e9f0;border-radius:12px;max-width:100%;height:auto;">'+inner+'</svg>'; }
+
+function _shapeTriangle(base,height,right){
+  var W=300,H=240,m=46,bw=W-2*m,bh=H-2*m-14;
+  var bx=m,by=H-m,cx=W-m,cy=H-m, ax=right?bx:(bx+bw*0.42), ay=by-bh, p=[];
+  p.push('<polygon points="'+bx+','+by+' '+cx+','+cy+' '+ax.toFixed(0)+','+ay.toFixed(0)+'" fill="rgba(37,99,235,0.10)" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>');
+  p.push('<line x1="'+ax.toFixed(0)+'" y1="'+ay.toFixed(0)+'" x2="'+ax.toFixed(0)+'" y2="'+by+'" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>');
+  if(right){ var s=13; p.push('<path d="M'+(bx+s)+','+by+' L'+(bx+s)+','+(by-s)+' L'+bx+','+(by-s)+'" fill="none" stroke="#2563eb" stroke-width="1.6"/>'); }
+  p.push(_svgTxt(ax,ay-9,'أ',16,'#1e3a8a')); p.push(_svgTxt(bx-12,by+6,'ب',16,'#1e3a8a')); p.push(_svgTxt(cx+12,by+6,'جـ',16,'#1e3a8a'));
+  p.push(_svgNum((bx+cx)/2,by+26,_arNum(base),15)); p.push(_svgNum(ax-16,(ay+by)/2,_arNum(height),14));
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeCircle(r,diameter){
+  var W=260,H=240,cx=W/2,cy=H/2-4,R=78,p=[];
+  p.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(16,185,129,0.10)" stroke="#059669" stroke-width="2.5"/>');
+  p.push('<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#059669"/>'); p.push(_svgTxt(cx+12,cy+4,'م',15,'#065f46'));
+  if(diameter){ p.push('<line x1="'+(cx-R)+'" y1="'+cy+'" x2="'+(cx+R)+'" y2="'+cy+'" stroke="#059669" stroke-width="2"/>'); p.push(_svgNum(cx,cy-8,_arNum(r),14)); }
+  else { var ex=cx+R*Math.cos(-Math.PI/4), ey=cy+R*Math.sin(-Math.PI/4); p.push('<line x1="'+cx+'" y1="'+cy+'" x2="'+ex.toFixed(0)+'" y2="'+ey.toFixed(0)+'" stroke="#059669" stroke-width="2"/>'); p.push(_svgNum((cx+ex)/2+6,(cy+ey)/2-6,'نق='+_arNum(r),14)); }
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeRect(length,width){
+  var W=300,H=220,m=44,rw=W-2*m,rh=H-2*m,x=m,y=m,p=[];
+  p.push('<rect x="'+x+'" y="'+y+'" width="'+rw+'" height="'+rh+'" rx="3" fill="rgba(217,119,6,0.09)" stroke="#d97706" stroke-width="2.5"/>');
+  p.push(_svgNum(x+rw/2,y+rh+24,_arNum(length),15)); p.push(_svgNum(x-14,y+rh/2+5,_arNum(width),15));
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeAngle(deg){
+  var W=280,H=220,vx=60,vy=H-50,L=165,p=[],a=deg*Math.PI/180;
+  var x1=vx+L,y1=vy,x2=vx+L*Math.cos(-a),y2=vy+L*Math.sin(-a);
+  p.push('<line x1="'+vx+'" y1="'+vy+'" x2="'+x1.toFixed(0)+'" y2="'+y1.toFixed(0)+'" stroke="#7c3aed" stroke-width="2.5"/>');
+  p.push('<line x1="'+vx+'" y1="'+vy+'" x2="'+x2.toFixed(0)+'" y2="'+y2.toFixed(0)+'" stroke="#7c3aed" stroke-width="2.5"/>');
+  var ar=40, ax1=vx+ar, ay1=vy, ax2=vx+ar*Math.cos(-a), ay2=vy+ar*Math.sin(-a);
+  p.push('<path d="M'+ax1.toFixed(0)+','+ay1.toFixed(0)+' A'+ar+','+ar+' 0 0 0 '+ax2.toFixed(0)+','+ay2.toFixed(0)+'" fill="none" stroke="#7c3aed" stroke-width="1.8"/>');
+  var mid=(deg/2)*Math.PI/180, tx=vx+(ar+20)*Math.cos(-mid), ty=vy+(ar+20)*Math.sin(-mid);
+  p.push(_svgNum(tx+6,ty+4,_arNum(deg)+'°',15,'#6d28d9')); p.push('<circle cx="'+vx+'" cy="'+vy+'" r="3" fill="#7c3aed"/>');
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeSvg(kind,kw){
+  try{
+    kw=kw||{};
+    if(kind==='triangle') return _shapeTriangle(kw.base!=null?kw.base:6, kw.height!=null?kw.height:4, !!kw.right);
+    if(kind==='circle') return _shapeCircle(kw.r!=null?kw.r:5, !!kw.diameter);
+    if(kind==='rect'||kind==='rectangle'||kind==='square'){ var L=(kw.length!=null?kw.length:(kw.side!=null?kw.side:6)); var Wd=kind==='square'?L:(kw.width!=null?kw.width:(kw.side!=null?kw.side:4)); return _shapeRect(L,Wd); }
+    if(kind==='angle') return _shapeAngle(kw.deg!=null?kw.deg:45);
+  }catch(e){ return ''; }
+  return '';
+}
+// يعالج وسماً واحداً ([[plot:...]] أو [[shape:...]]) ويرجّع SVG
+function _renderVizTag(kind, spec){
+  try{
+    var toks=String(spec).trim().split(/\s+/), k='';
+    if(toks.length && toks[0].indexOf('=')<0){ k=toks.shift().toLowerCase(); } else { k=(kind==='shape')?'triangle':'parabola'; }
+    var kw={}; toks.forEach(function(pr){ var i=pr.indexOf('='); if(i>0){ var v=parseFloat(pr.slice(i+1)); kw[pr.slice(0,i)]=isNaN(v)?pr.slice(i+1):v; } });
+    var svg='';
+    if(kind==='shape'){ svg=_shapeSvg(k,kw); }
+    else { svg=(k==='line')?_plotSvg('line',1,0,kw.c||0,kw.m||1,'#c0392b',false):_plotSvg('parabola',kw.a||1,kw.b||0,kw.c||0,1,'#c0392b',false); }
+    return svg ? ('<div style="text-align:center;margin:10px auto;max-width:340px;">'+svg+'</div>') : '';
+  }catch(e){ return ''; }
+}
+// 🆕 عرض السؤال كاملاً: يفصل الوسوم، يعرّب النص، يرسم الوسوم + كشف تلقائي للمعادلة
+function _vizRender(text){
+  var s=String(text==null?'':text), figs='', hasPlot=false;
+  var body=s.replace(/\[\[(plot|shape):([^\]]+)\]\]/g, function(_m,kind,spec){ if(kind==='plot')hasPlot=true; figs+=_renderVizTag(kind,spec); return ''; });
+  var txt=(typeof _arabicizeDigits==='function') ? _arabicizeDigits(escapeHtmlPack(body)) : escapeHtmlPack(body);
+  if(!hasPlot) figs += _autoPlot(body);
+  return txt + figs;
+}
+
 function _mnorm(s) {
     s = String(s == null ? '' : s);
     s = s.replace(/\$\$/g, '').replace(/\$/g, '');
@@ -19340,8 +19535,8 @@ function printPlanOnly() {
         pl.materials.forEach(function(m) { c += '<li>' + escapeHtmlPack(m) + '</li>'; });
         c += '</ul>';
     }
-    if (pl.introduction) c += '<h2>🌅 التمهيد</h2><p>' + escapeHtmlPack(pl.introduction) + '</p>';
-    if (pl.main_content) c += '<h2>📖 العرض والشرح</h2><p style="white-space:pre-wrap;">' + escapeHtmlPack(pl.main_content) + '</p>';
+    if (pl.introduction) c += '<h2>🌅 التمهيد</h2><p>' + _arabicizeDigits(escapeHtmlPack(pl.introduction)) + '</p>';
+    if (pl.main_content) c += '<h2>📖 العرض والشرح</h2><p style="white-space:pre-wrap;">' + _arabicizeDigits(escapeHtmlPack(pl.main_content)) + '</p>';
     if (pl.examples && pl.examples.length) {
         c += '<h2>💡 الأمثلة المحلولة</h2>';
         pl.examples.forEach(function(ex, i) {
@@ -19355,7 +19550,7 @@ function printPlanOnly() {
         pl.common_mistakes.forEach(function(m) { c += '<li>' + escapeHtmlPack(m) + '</li>'; });
         c += '</ul>';
     }
-    if (pl.closure) c += '<h2>🎬 الختام</h2><p>' + escapeHtmlPack(pl.closure) + '</p>';
+    if (pl.closure) c += '<h2>🎬 الختام</h2><p>' + _arabicizeDigits(escapeHtmlPack(pl.closure)) + '</p>';
     
     _printHtml('📋 تحضير الدرس الكامل', c, '#1565c0');
 }
@@ -19372,7 +19567,7 @@ function printQuestionsOnly() {
         var diffLabel = diff === 'easy' ? 'سهل' : diff === 'medium' ? 'متوسط' : 'صعب';
         c += '<div class="q-box">';
         c += '<span class="difficulty-badge d-' + diff + '">' + diffLabel + '</span>';
-        c += '<span class="q-num">السؤال ' + (i+1) + ':</span> ' + escapeHtmlPack(q.q || q.question);
+        c += '<span class="q-num">السؤال ' + (i+1) + ':</span> ' + _packQ(q.q || q.question);
         c += '<div class="answer-line"></div><div class="answer-line"></div>';
         c += '</div>';
     });
@@ -19440,7 +19635,7 @@ function printHomeworkOnly() {
     if (hw.questions && hw.questions.length) {
         hw.questions.forEach(function(q, i) {
             c += '<div class="q-box" style="border-right-color:#9333ea;">';
-            c += '<div><span class="q-num" style="color:#9333ea;">' + (i+1) + ')</span> ' + escapeHtmlPack(q.q || q) + '</div>';
+            c += '<div><span class="q-num" style="color:#9333ea;">' + (i+1) + ')</span> ' + _packQ(q.q || q) + '</div>';
             c += '<div class="answer-line"></div><div class="answer-line"></div><div class="answer-line"></div>';
             c += '</div>';
         });
@@ -19599,7 +19794,7 @@ function printLessonPack() {
     if (p.exam_questions && p.exam_questions.length) {
         content += '<div class="section"><h2>📝 أسئلة التقويم</h2>';
         p.exam_questions.forEach(function(q, i) {
-            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + escapeHtmlPack(q.q || q.question) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
+            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + _packQ(q.q || q.question) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
         });
         content += '</div>';
     }
@@ -19617,7 +19812,7 @@ function printLessonPack() {
     if (p.homework && p.homework.questions) {
         content += '<div class="section"><h2>📚 ' + escapeHtmlPack(p.homework.title || 'الواجب المنزلي') + '</h2>';
         p.homework.questions.forEach(function(q, i) {
-            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + escapeHtmlPack(q.q || q) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
+            content += '<div class="q-box"><b>' + (i+1) + ')</b> ' + _packQ(q.q || q) + '<div class="answer-line"></div><div class="answer-line"></div></div>';
         });
         content += '</div>';
     }

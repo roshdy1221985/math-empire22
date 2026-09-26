@@ -10763,14 +10763,131 @@ function _plotFromSpec(spec) {
 }
 
 // نص السؤال للطالب: النص العادي يمر بـ _mathFmt، ووسم [[plot:]] يتحوّل SVG بلا تعريب
+function _detectEquation(text) {
+    var t = String(text || '');
+    t = t.replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); });
+    t = t.replace(/ص/g, 'y').replace(/س/g, 'x').replace(/²/g, '^2').replace(/³/g, '^3');
+    t = t.replace(/د\(x\)|f\(x\)|ع\(x\)/g, 'y');
+    t = t.replace(/×/g, '*').replace(/−/g, '-').replace(/–/g, '-');
+    var m = t.match(/y\s*=\s*([^=\n,;]+)/); if (!m) m = t.match(/([^=\n,;]+?)\s*=\s*y/);
+    if (!m) return null;
+    var rhs = m[1].trim();
+    if (rhs.indexOf('x') < 0) return null;
+    // نستبعد ما ليس تربيعياً/خطياً (أسّي/لوغاريتمي/جذري/مثلثي/كسور فيها x)
+    var bad = ['هـ', 'ln', 'log', 'لطـ', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
+    for (var i = 0; i < bad.length; i++) { if (rhs.indexOf(bad[i]) >= 0) return null; }
+    if (/\be\b/.test(rhs)) return null;
+    function coef(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
+    if (/x\s*\^?\s*2/.test(rhs)) {
+        var a = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2/);
+        var b = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)/);
+        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
+        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
+        var av = a ? coef(a[1]) : null; if (av === null) return null;
+        var bv = b ? coef(b[1]) : 0; if (bv === null) bv = 0;
+        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
+    } else {
+        var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
+        var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
+        var mv = mm ? coef(mm[1]) : null; if (mv === null) return null;
+        return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
+    }
+}
+function _autoPlot(text) {
+    try {
+        var eq = _detectEquation(text); if (!eq) return '';
+        var svg = (eq.kind === 'parabola')
+            ? _plotSvg('parabola', eq.a, eq.b, eq.c, 1, '#c0392b', false)
+            : _plotSvg('line', 1, 0, eq.c, eq.m, '#1e8449', false);
+        return '<div style="text-align:center;margin:10px auto;max-width:340px;">' + svg + '</div>';
+    } catch (e) { return ''; }
+}
+
+// ════════════════════════════════════════════════════════════
+// 🆕 محرك الأشكال الهندسية (SVG) + معالجة وسم [[shape:]] و [[plot:]]
+// ════════════════════════════════════════════════════════════
+function _arNum(x){ if(x===null||x===undefined||x==='')return ''; if(typeof x==='number'&&x%1===0)x=Math.round(x); return String(x).replace(/[0-9]/g,function(d){return '٠١٢٣٤٥٦٧٨٩'[d];}); }
+function _svgTxt(x,y,s,size,color,anchor){ return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="Cairo,Arial" font-size="'+(size||15)+'" font-weight="600" fill="'+(color||'#1a2b4a')+'" text-anchor="'+(anchor||'middle')+'" direction="rtl" style="unicode-bidi:plaintext;">'+s+'</text>'; }
+function _svgNum(x,y,s,size,color){ return '<text x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" font-family="Cairo,Arial" font-size="'+(size||14)+'" font-weight="700" fill="'+(color||'#b45309')+'" text-anchor="middle" direction="ltr" style="unicode-bidi:bidi-override;">'+s+'</text>'; }
+function _shapeWrap(inner,w,h){ w=w||300;h=h||240; return '<svg viewBox="0 0 '+w+' '+h+'" width="'+w+'" height="'+h+'" xmlns="http://www.w3.org/2000/svg" style="background:#fbfcfe;border:1px solid #e5e9f0;border-radius:12px;max-width:100%;height:auto;">'+inner+'</svg>'; }
+
+function _shapeTriangle(base,height,right){
+  var W=300,H=240,m=46,bw=W-2*m,bh=H-2*m-14;
+  var bx=m,by=H-m,cx=W-m,cy=H-m, ax=right?bx:(bx+bw*0.42), ay=by-bh, p=[];
+  p.push('<polygon points="'+bx+','+by+' '+cx+','+cy+' '+ax.toFixed(0)+','+ay.toFixed(0)+'" fill="rgba(37,99,235,0.10)" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>');
+  p.push('<line x1="'+ax.toFixed(0)+'" y1="'+ay.toFixed(0)+'" x2="'+ax.toFixed(0)+'" y2="'+by+'" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>');
+  if(right){ var s=13; p.push('<path d="M'+(bx+s)+','+by+' L'+(bx+s)+','+(by-s)+' L'+bx+','+(by-s)+'" fill="none" stroke="#2563eb" stroke-width="1.6"/>'); }
+  p.push(_svgTxt(ax,ay-9,'أ',16,'#1e3a8a')); p.push(_svgTxt(bx-12,by+6,'ب',16,'#1e3a8a')); p.push(_svgTxt(cx+12,by+6,'جـ',16,'#1e3a8a'));
+  p.push(_svgNum((bx+cx)/2,by+26,_arNum(base),15)); p.push(_svgNum(ax-16,(ay+by)/2,_arNum(height),14));
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeCircle(r,diameter){
+  var W=260,H=240,cx=W/2,cy=H/2-4,R=78,p=[];
+  p.push('<circle cx="'+cx+'" cy="'+cy+'" r="'+R+'" fill="rgba(16,185,129,0.10)" stroke="#059669" stroke-width="2.5"/>');
+  p.push('<circle cx="'+cx+'" cy="'+cy+'" r="3" fill="#059669"/>'); p.push(_svgTxt(cx+12,cy+4,'م',15,'#065f46'));
+  if(diameter){ p.push('<line x1="'+(cx-R)+'" y1="'+cy+'" x2="'+(cx+R)+'" y2="'+cy+'" stroke="#059669" stroke-width="2"/>'); p.push(_svgNum(cx,cy-8,_arNum(r),14)); }
+  else { var ex=cx+R*Math.cos(-Math.PI/4), ey=cy+R*Math.sin(-Math.PI/4); p.push('<line x1="'+cx+'" y1="'+cy+'" x2="'+ex.toFixed(0)+'" y2="'+ey.toFixed(0)+'" stroke="#059669" stroke-width="2"/>'); p.push(_svgNum((cx+ex)/2+6,(cy+ey)/2-6,'نق='+_arNum(r),14)); }
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeRect(length,width){
+  var W=300,H=220,m=44,rw=W-2*m,rh=H-2*m,x=m,y=m,p=[];
+  p.push('<rect x="'+x+'" y="'+y+'" width="'+rw+'" height="'+rh+'" rx="3" fill="rgba(217,119,6,0.09)" stroke="#d97706" stroke-width="2.5"/>');
+  p.push(_svgNum(x+rw/2,y+rh+24,_arNum(length),15)); p.push(_svgNum(x-14,y+rh/2+5,_arNum(width),15));
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeAngle(deg){
+  var W=280,H=220,vx=60,vy=H-50,L=165,p=[],a=deg*Math.PI/180;
+  var x1=vx+L,y1=vy,x2=vx+L*Math.cos(-a),y2=vy+L*Math.sin(-a);
+  p.push('<line x1="'+vx+'" y1="'+vy+'" x2="'+x1.toFixed(0)+'" y2="'+y1.toFixed(0)+'" stroke="#7c3aed" stroke-width="2.5"/>');
+  p.push('<line x1="'+vx+'" y1="'+vy+'" x2="'+x2.toFixed(0)+'" y2="'+y2.toFixed(0)+'" stroke="#7c3aed" stroke-width="2.5"/>');
+  var ar=40, ax1=vx+ar, ay1=vy, ax2=vx+ar*Math.cos(-a), ay2=vy+ar*Math.sin(-a);
+  p.push('<path d="M'+ax1.toFixed(0)+','+ay1.toFixed(0)+' A'+ar+','+ar+' 0 0 0 '+ax2.toFixed(0)+','+ay2.toFixed(0)+'" fill="none" stroke="#7c3aed" stroke-width="1.8"/>');
+  var mid=(deg/2)*Math.PI/180, tx=vx+(ar+20)*Math.cos(-mid), ty=vy+(ar+20)*Math.sin(-mid);
+  p.push(_svgNum(tx+6,ty+4,_arNum(deg)+'°',15,'#6d28d9')); p.push('<circle cx="'+vx+'" cy="'+vy+'" r="3" fill="#7c3aed"/>');
+  return _shapeWrap(p.join(''),W,H);
+}
+function _shapeSvg(kind,kw){
+  try{
+    kw=kw||{};
+    if(kind==='triangle') return _shapeTriangle(kw.base!=null?kw.base:6, kw.height!=null?kw.height:4, !!kw.right);
+    if(kind==='circle') return _shapeCircle(kw.r!=null?kw.r:5, !!kw.diameter);
+    if(kind==='rect'||kind==='rectangle'||kind==='square'){ var L=(kw.length!=null?kw.length:(kw.side!=null?kw.side:6)); var Wd=kind==='square'?L:(kw.width!=null?kw.width:(kw.side!=null?kw.side:4)); return _shapeRect(L,Wd); }
+    if(kind==='angle') return _shapeAngle(kw.deg!=null?kw.deg:45);
+  }catch(e){ return ''; }
+  return '';
+}
+// يعالج وسماً واحداً ([[plot:...]] أو [[shape:...]]) ويرجّع SVG
+function _renderVizTag(kind, spec){
+  try{
+    var toks=String(spec).trim().split(/\s+/), k='';
+    if(toks.length && toks[0].indexOf('=')<0){ k=toks.shift().toLowerCase(); } else { k=(kind==='shape')?'triangle':'parabola'; }
+    var kw={}; toks.forEach(function(pr){ var i=pr.indexOf('='); if(i>0){ var v=parseFloat(pr.slice(i+1)); kw[pr.slice(0,i)]=isNaN(v)?pr.slice(i+1):v; } });
+    var svg='';
+    if(kind==='shape'){ svg=_shapeSvg(k,kw); }
+    else { svg=(k==='line')?_plotSvg('line',1,0,kw.c||0,kw.m||1,'#c0392b',false):_plotSvg('parabola',kw.a||1,kw.b||0,kw.c||0,1,'#c0392b',false); }
+    return svg ? ('<div style="text-align:center;margin:10px auto;max-width:340px;">'+svg+'</div>') : '';
+  }catch(e){ return ''; }
+}
+// 🆕 عرض السؤال كاملاً: يفصل الوسوم، يعرّب النص، يرسم الوسوم + كشف تلقائي للمعادلة
+function _vizRender(text){
+  var s=String(text==null?'':text), figs='', hasPlot=false;
+  var body=s.replace(/\[\[(plot|shape):([^\]]+)\]\]/g, function(_m,kind,spec){ if(kind==='plot')hasPlot=true; figs+=_renderVizTag(kind,spec); return ''; });
+  var txt=(typeof _arabicizeDigits==='function') ? _arabicizeDigits(escapeHtmlPack(body)) : escapeHtmlPack(body);
+  if(!hasPlot) figs += _autoPlot(body);
+  return txt + figs;
+}
+
 function _renderQ(s) {
     s = String(s == null ? '' : s);
-    if (s.indexOf("[[plot:") < 0) return _mathFmt(s);
-    var parts = s.split(/(\[\[plot:[^\]]+\]\])/g), out = "", i;
+    var hasTag = s.indexOf("[[plot:") >= 0 || s.indexOf("[[shape:") >= 0;
+    if (!hasTag) return _mathFmt(s) + _autoPlot(s);
+    var parts = s.split(/(\[\[(?:plot|shape):[^\]]+\]\])/g), out = "", i, hasPlot = false;
     for (i = 0; i < parts.length; i++) {
-        var mt = parts[i].match(/^\[\[plot:([^\]]+)\]\]$/);
-        out += mt ? _plotFromSpec(mt[1]) : _mathFmt(parts[i]);
+        var mt = parts[i].match(/^\[\[(plot|shape):([^\]]+)\]\]$/);
+        if (mt) { out += _renderVizTag(mt[1], mt[2]); if (mt[1] === 'plot') hasPlot = true; }
+        else out += _mathFmt(parts[i]);
     }
+    if (!hasPlot) out += _autoPlot(s);
     return out;
 }
 

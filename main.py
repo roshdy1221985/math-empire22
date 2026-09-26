@@ -5763,11 +5763,214 @@ _PLOT_HINT = """
 🖼️ رسم بياني تلقائي (مهم): إذا كان السؤال يتناول قطعاً مكافئاً على الصورة y = ax²+bx+c أو خطاً مستقيماً على الصورة y = mx+c ويفيده رسم بياني، فأضِف في نهاية نص السؤال (حقل q) وسماً مطابقاً تماماً لمعاملات معادلة السؤال:
 • قطع مكافئ: [[plot:parabola a=<رقم> b=<رقم> c=<رقم>]]
 • خط مستقيم: [[plot:line m=<رقم> c=<رقم>]]
-اكتب معاملات الوسم بأرقام إنجليزية (0-9) فقط (يجوز السالب والعشري). لا تضع الوسم إلا لأسئلة تمثيل الدوال بيانياً، ولا تضعه في أي نوع آخر. مثال: مثّل الدالة y = x²-4x+3 وحدّد إحداثيات رأسها. [[plot:parabola a=1 b=-4 c=3]]"""
+اكتب معاملات الوسم بأرقام إنجليزية (0-9) فقط (يجوز السالب والعشري). لا تضع الوسم إلا لأسئلة تمثيل الدوال بيانياً، ولا تضعه في أي نوع آخر. مثال: مثّل الدالة y = x²-4x+3 وحدّد إحداثيات رأسها. [[plot:parabola a=1 b=-4 c=3]]\n\n🔺 أشكال هندسية (مهم): إذا تناول السؤال شكلاً هندسياً بمعطيات عددية واضحة ويفيده رسم، فأضِف في نهاية نص السؤال وسماً واحداً بأرقام إنجليزية يطابق المعطيات:\n• مثلث: [[shape:triangle base=<القاعدة> height=<الارتفاع>]] (أضِف right=1 إن كان قائم الزاوية)\n• دائرة: [[shape:circle r=<نصف القطر>]]\n• مستطيل: [[shape:rect length=<الطول> width=<العرض>]]\n• زاوية: [[shape:angle deg=<القياس بالدرجات>]]\nلا تضع وسم الشكل إلا حين تتوفر معطيات عددية، ولا تضع أكثر من وسم واحد."""
+
+def _detect_equation(text):
+    import re as _re
+    t = str(text or "")
+    t = t.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩", "0123456789"))
+    t = t.replace("ص", "y").replace("س", "x").replace("²", "^2").replace("³", "^3")
+    t = t.replace("د(x)", "y").replace("f(x)", "y").replace("ع(x)", "y")
+    t = t.replace("×", "*").replace("−", "-").replace("–", "-")
+    m = _re.search(r"y\s*=\s*([^=\n,;]+)", t)
+    if not m:
+        m = _re.search(r"([^=\n,;]+?)\s*=\s*y", t)
+    if not m:
+        return None
+    rhs = m.group(1).strip()
+    if "x" not in rhs:
+        return None
+    for tok in ["هـ", "ln", "log", "لطـ", "لو", "sqrt", "√", "sin", "cos", "tan", "جا", "جتا", "^x", "^(", "^{", "/x", "x/", "|"]:
+        if tok in rhs:
+            return None
+    if _re.search(r"\be\b", rhs):
+        return None
+
+    def coef(s):
+        s = (s or "").replace(" ", "")
+        if s in ("", "+"):
+            return 1.0
+        if s == "-":
+            return -1.0
+        try:
+            return float(s)
+        except Exception:
+            return None
+
+    if _re.search(r"x\s*\^?\s*2", rhs):
+        a = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2", rhs)
+        b = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)", rhs)
+        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2", "", rhs)
+        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x", "", rest)
+        cc = _re.search(r"([+-]?\s*\d+\.?\d*)", rest)
+        av = coef(a.group(1)) if a else None
+        if av is None:
+            return None
+        bv = coef(b.group(1)) if b else 0.0
+        cv = float(cc.group(1).replace(" ", "")) if cc else 0.0
+        return ("parabola", {"a": av, "b": bv if bv is not None else 0.0, "c": cv})
+    else:
+        mm = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x", rhs)
+        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x", "", rhs)
+        cc = _re.search(r"([+-]?\s*\d+\.?\d*)", rest)
+        mv = coef(mm.group(1)) if mm else None
+        if mv is None:
+            return None
+        cv = float(cc.group(1).replace(" ", "")) if cc else 0.0
+        return ("line", {"m": mv, "c": cv})
+
+
+def _auto_plot_svg(text):
+    try:
+        eq = _detect_equation(text)
+        if not eq:
+            return ""
+        kind, co = eq
+        if kind == "parabola":
+            svg = _plot_function_svg("parabola", a=co["a"], b=co["b"], c=co["c"], color="#c0392b", show_vertex=False)
+        else:
+            svg = _plot_function_svg("line", m=co["m"], c=co["c"], color="#1e8449", show_vertex=False)
+        return '<div style="text-align:center;margin:10px auto;max-width:340px;">' + svg + '</div>'
+    except Exception:
+        return ""
+
+
+import math as _math
+
+def _ar_num(x):
+    """رقم عربي (هندي) نظيف بدون أصفار زائدة."""
+    if x is None:
+        return ""
+    if isinstance(x, float) and x.is_integer():
+        x = int(x)
+    s = str(x)
+    return s.translate(str.maketrans("0123456789", "٠١٢٣٤٥٦٧٨٩"))
+
+def _svg_text(x, y, s, size=15, color="#1a2b4a", weight="600", anchor="middle"):
+    """نص بأرقام عربية آمن للاتجاه (bidi-override)."""
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="Cairo,Arial" font-size="{size}" '
+            f'font-weight="{weight}" fill="{color}" text-anchor="{anchor}" '
+            f'direction="rtl" style="unicode-bidi:plaintext;">{s}</text>')
+
+def _svg_num(x, y, s, size=14, color="#b45309", weight="700", anchor="middle"):
+    """قياس رقمي (لاتيني/عربي) — يبقى LTR ثابت."""
+    return (f'<text x="{x:.1f}" y="{y:.1f}" font-family="Cairo,Arial" font-size="{size}" '
+            f'font-weight="{weight}" fill="{color}" text-anchor="{anchor}" '
+            f'direction="ltr" style="unicode-bidi:bidi-override;">{s}</text>')
+
+def _shape_wrap(inner, w=300, h=240):
+    return (f'<svg viewBox="0 0 {w} {h}" width="{w}" height="{h}" xmlns="http://www.w3.org/2000/svg" '
+            f'style="background:#fbfcfe;border:1px solid #e5e9f0;border-radius:12px;max-width:100%;height:auto;">'
+            f'{inner}</svg>')
+
+def _shape_triangle(base=6, height=4, right=False, label=True):
+    W, H = 300, 240
+    m = 46
+    bw = W - 2 * m
+    bh = H - 2 * m - 14
+    # الرؤوس: ب (يسار-أسفل), ج (يمين-أسفل), أ (القمة)
+    bx, by = m, H - m
+    cx, cy = W - m, H - m
+    ax = bx if right else (bx + bw * 0.42)
+    ay = by - bh
+    p = []
+    # المثلث
+    p.append(f'<polygon points="{bx:.0f},{by:.0f} {cx:.0f},{cy:.0f} {ax:.0f},{ay:.0f}" '
+             f'fill="rgba(37,99,235,0.10)" stroke="#2563eb" stroke-width="2.5" stroke-linejoin="round"/>')
+    # الارتفاع (منقّط) من القمة للقاعدة
+    p.append(f'<line x1="{ax:.0f}" y1="{ay:.0f}" x2="{ax:.0f}" y2="{by:.0f}" '
+             f'stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>')
+    # علامة القائمة عند القدم لو قائم الزاوية
+    if right:
+        s = 13
+        p.append(f'<path d="M{bx+s},{by} L{bx+s},{by-s} L{bx},{by-s}" fill="none" stroke="#2563eb" stroke-width="1.6"/>')
+    # رؤوس مسمّاة
+    if label:
+        p.append(_svg_text(ax, ay - 9, "أ", 16, "#1e3a8a"))
+        p.append(_svg_text(bx - 12, by + 6, "ب", 16, "#1e3a8a"))
+        p.append(_svg_text(cx + 12, by + 6, "جـ", 16, "#1e3a8a"))
+    # القاعدة والارتفاع
+    p.append(_svg_num((bx + cx) / 2, by + 26, _ar_num(base), 15))
+    p.append(_svg_num(ax - 16, (ay + by) / 2, _ar_num(height), 14))
+    return _shape_wrap("".join(p), W, H)
+
+def _shape_circle(r=5, show_diameter=False):
+    W, H = 260, 240
+    cx, cy = W / 2, H / 2 - 4
+    R = 78
+    p = []
+    p.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="{R}" fill="rgba(16,185,129,0.10)" stroke="#059669" stroke-width="2.5"/>')
+    # المركز
+    p.append(f'<circle cx="{cx:.0f}" cy="{cy:.0f}" r="3" fill="#059669"/>')
+    p.append(_svg_text(cx + 12, cy + 4, "م", 15, "#065f46"))
+    if show_diameter:
+        p.append(f'<line x1="{cx-R:.0f}" y1="{cy:.0f}" x2="{cx+R:.0f}" y2="{cy:.0f}" stroke="#059669" stroke-width="2"/>')
+        p.append(_svg_num(cx, cy - 8, _ar_num(r), 14))
+    else:
+        # نصف القطر لأعلى-يمين
+        ex, ey = cx + R * _math.cos(-_math.pi / 4), cy + R * _math.sin(-_math.pi / 4)
+        p.append(f'<line x1="{cx:.0f}" y1="{cy:.0f}" x2="{ex:.0f}" y2="{ey:.0f}" stroke="#059669" stroke-width="2"/>')
+        p.append(_svg_num((cx + ex) / 2 + 6, (cy + ey) / 2 - 6, "نق=" + _ar_num(r), 14))
+    return _shape_wrap("".join(p), W, H)
+
+def _shape_rect(length=6, width=4):
+    W, H = 300, 220
+    m = 44
+    rw = W - 2 * m
+    rh = H - 2 * m
+    x, y = m, m
+    p = []
+    p.append(f'<rect x="{x}" y="{y}" width="{rw}" height="{rh}" rx="3" '
+             f'fill="rgba(217,119,6,0.09)" stroke="#d97706" stroke-width="2.5"/>')
+    p.append(_svg_num(x + rw / 2, y + rh + 24, _ar_num(length), 15))
+    p.append(_svg_num(x - 14, y + rh / 2 + 5, _ar_num(width), 15))
+    return _shape_wrap("".join(p), W, H)
+
+def _shape_angle(deg=45):
+    W, H = 280, 220
+    vx, vy = 60, H - 50   # الرأس
+    L = 165
+    p = []
+    a = _math.radians(deg)
+    # ضلع أفقي + ضلع مائل
+    x1, y1 = vx + L, vy
+    x2, y2 = vx + L * _math.cos(-a), vy + L * _math.sin(-a)
+    p.append(f'<line x1="{vx}" y1="{vy}" x2="{x1:.0f}" y2="{y1:.0f}" stroke="#7c3aed" stroke-width="2.5"/>')
+    p.append(f'<line x1="{vx}" y1="{vy}" x2="{x2:.0f}" y2="{y2:.0f}" stroke="#7c3aed" stroke-width="2.5"/>')
+    # قوس الزاوية
+    ar = 40
+    ax1, ay1 = vx + ar, vy
+    ax2, ay2 = vx + ar * _math.cos(-a), vy + ar * _math.sin(-a)
+    large = 0
+    p.append(f'<path d="M{ax1:.0f},{ay1:.0f} A{ar},{ar} 0 {large} 0 {ax2:.0f},{ay2:.0f}" fill="none" stroke="#7c3aed" stroke-width="1.8"/>')
+    # القياس
+    mid = _math.radians(deg / 2)
+    tx, ty = vx + (ar + 20) * _math.cos(-mid), vy + (ar + 20) * _math.sin(-mid)
+    p.append(_svg_num(tx + 6, ty + 4, _ar_num(deg) + "°", 15, "#6d28d9"))
+    p.append(f'<circle cx="{vx}" cy="{vy}" r="3" fill="#7c3aed"/>')
+    return _shape_wrap("".join(p), W, H)
+
+def _shape_svg(kind, **kw):
+    try:
+        if kind == "triangle":
+            return _shape_triangle(base=kw.get("base", 6), height=kw.get("height", 4),
+                                   right=bool(kw.get("right", False)))
+        if kind == "circle":
+            return _shape_circle(r=kw.get("r", 5), show_diameter=bool(kw.get("diameter", False)))
+        if kind in ("rect", "rectangle", "square"):
+            L = kw.get("length", kw.get("side", 6))
+            Wd = kw.get("width", kw.get("side", 4)) if kind != "square" else L
+            return _shape_rect(length=L, width=Wd)
+        if kind == "angle":
+            return _shape_angle(deg=kw.get("deg", 45))
+    except Exception:
+        return ""
+    return ""
+
 
 def _render_plot_tags(s):
     import re as _re
-    if not s or "[[plot:" not in s:
+    if not s or ("[[plot:" not in s and "[[shape:" not in s):
         return s
 
     def _one(m):
@@ -5803,7 +6006,26 @@ def _render_plot_tags(s):
             return ""
         return '<div class="q-figure" style="text-align:center;margin:10px auto;break-inside:avoid;">' + svg + '</div>'
 
-    return _re.sub(r"\[\[plot:([^\]]+)\]\]", _one, s)
+    s = _re.sub(r"\[\[plot:([^\]]+)\]\]", _one, s)
+    def _oneshape(m):
+        spec = (m.group(1) or "").strip()
+        toks = spec.split()
+        kind = "triangle"
+        kw = {}
+        if toks and "=" not in toks[0]:
+            kind = toks[0].lower(); toks = toks[1:]
+        for pr in toks:
+            if "=" not in pr:
+                continue
+            k, v = pr.split("=", 1)
+            try: kw[k] = float(v)
+            except Exception: kw[k] = v
+        try:
+            svg = _shape_svg(kind, **kw)
+        except Exception:
+            return ""
+        return ('<div class="q-figure" style="text-align:center;margin:10px auto;break-inside:avoid;">' + svg + '</div>') if svg else ""
+    return _re.sub(r"\[\[shape:([^\]]+)\]\]", _oneshape, s)
 
 # ════════════════════════════════════════════════════════════
 # 🆕 تنسيق الرياضيات لمخرجات الاختبار (أُس/جذر/كسور/رموز) → يونيكود + <sup>
@@ -6301,7 +6523,7 @@ async def teacher_exam_build_pdf(
         arabic_letters = ["أ", "ب", "ج", "د", "هـ", "و"]
         
         for i, q in enumerate(questions, 1):
-            q_text = _render_plot_tags(_fmt_math(q.get("question")))
+            q_text = _render_plot_tags(_fmt_math(q.get("question"))) + _auto_plot_svg(q.get("question"))
             options = q.get("options") or q.get("choices") or ""
             # نقرأ من كل الأعمدة المحتملة
             correct = (q.get("correct_answer") or q.get("answer") or 
@@ -11080,7 +11302,8 @@ async def prep_ai_generate(
 @app.post("/api/prep/ai_generate_vision")
 async def prep_ai_generate_vision(
     request: Request,
-    pdf_file: UploadFile = File(...),
+    pdf_file: UploadFile = File(default=None),
+    resource_url: str = Form(default=""),
     page_start: int = Form(default=1),
     page_end: int = Form(default=10),
     grade: str = Form(default=""),
@@ -11112,9 +11335,19 @@ async def prep_ai_generate_vision(
     if not api_key:
         raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
 
-    content = await pdf_file.read()
+    import httpx as _hx0
+    if resource_url.strip():
+        try:
+            with _hx0.Client(timeout=60.0, follow_redirects=True) as _c0:
+                _r0 = _c0.get(resource_url.strip())
+                _r0.raise_for_status()
+                content = _r0.content
+        except Exception as _e0:
+            raise HTTPException(status_code=400, detail=f"❌ فشل تنزيل الكتاب من الموارد: {str(_e0)[:120]}")
+    else:
+        content = await pdf_file.read() if pdf_file is not None else b""
     if not content:
-        raise HTTPException(status_code=400, detail="الملف فارغ أو لم يُرفع")
+        raise HTTPException(status_code=400, detail="ارفع ملفاً أو اختر كتاباً من الموارد")
     if len(content) > 50 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
 
@@ -11242,7 +11475,8 @@ async def prep_ai_generate_vision(
 @app.post("/api/prep/save_lesson_content_vision")
 async def prep_save_lesson_content_vision(
     request: Request,
-    pdf_file: UploadFile = File(...),
+    pdf_file: UploadFile = File(default=None),
+    resource_url: str = Form(default=""),
     page_start: int = Form(default=1),
     page_end: int = Form(default=10),
     grade: str = Form(...),
@@ -11265,9 +11499,19 @@ async def prep_save_lesson_content_vision(
     if not api_key:
         raise HTTPException(status_code=503, detail="❌ GEMINI_API_KEY مفقود")
 
-    content = await pdf_file.read()
+    import httpx as _hx0
+    if resource_url.strip():
+        try:
+            with _hx0.Client(timeout=60.0, follow_redirects=True) as _c0:
+                _r0 = _c0.get(resource_url.strip())
+                _r0.raise_for_status()
+                content = _r0.content
+        except Exception as _e0:
+            raise HTTPException(status_code=400, detail=f"❌ فشل تنزيل الكتاب من الموارد: {str(_e0)[:120]}")
+    else:
+        content = await pdf_file.read() if pdf_file is not None else b""
     if not content:
-        raise HTTPException(status_code=400, detail="الملف فارغ أو لم يُرفع")
+        raise HTTPException(status_code=400, detail="ارفع ملفاً أو اختر كتاباً من الموارد")
     if len(content) > 50 * 1024 * 1024:
         raise HTTPException(status_code=413, detail="حجم الملف أكبر من 50 ميجابايت")
 
