@@ -11516,15 +11516,19 @@ function empirePrint(title, contentHtml) {
         '.sheet.portrait{width:210mm;height:297mm;}' +
         '.sheet.landscape{width:297mm;height:210mm;}' +
         '.sheet-pad{position:absolute;top:12mm;left:12mm;right:12mm;bottom:20mm;overflow:hidden;}' +
-        '.sheet-inner{transform-origin:top center;width:100%;}' +
+        '.sheet-inner{transform-origin:top right;width:100%;column-gap:9mm;}' +
+        '.sheet-inner > *{break-inside:avoid;}' +
         '.print-footer{position:absolute;bottom:7mm;left:12mm;right:12mm;display:flex;justify-content:center;align-items:center;gap:12px;' +
         'border-top:2px solid #d4af37;padding-top:4mm;font-size:11pt;font-weight:700;color:#0f2340;direction:rtl;}' +
         '.print-footer .pf-sep{color:#d4af37;}.print-footer .pf-phone{direction:ltr;unicode-bidi:bidi-override;letter-spacing:.5px;}' +
         'sup{font-size:.72em;vertical-align:super;line-height:0}sub{font-size:.72em;vertical-align:sub;line-height:0}' +
         '@media print{.bar{display:none;}body{background:#fff;}.sheet{margin:0;box-shadow:none;}}';
     var js =
-        'function fitSheet(){var pad=document.querySelector(".sheet-pad"),inr=document.getElementById("sheetInner");if(!pad||!inr)return;inr.style.transform="none";' +
-        'var s=Math.min(pad.clientWidth/inr.scrollWidth, pad.clientHeight/inr.scrollHeight, 1);if(s<1){inr.style.transform="scale("+s+")";}}' +
+        'function fitSheet(){var pad=document.querySelector(".sheet-pad"),inr=document.getElementById("sheetInner");if(!pad||!inr)return;inr.style.transform="none";inr.style.columnCount="1";' +
+        'var s1=Math.min(pad.clientWidth/inr.scrollWidth,pad.clientHeight/inr.scrollHeight,1);' +
+        'if(s1<0.72){inr.style.columnCount="2";var s2=Math.min(pad.clientWidth/inr.scrollWidth,pad.clientHeight/inr.scrollHeight,1);' +
+        'if(s2>=s1){if(s2<1)inr.style.transform="scale("+s2+")";return;}inr.style.columnCount="1";}' +
+        'if(s1<1){inr.style.transform="scale("+s1+")";}}' +
         'function setOrient(o){document.getElementById("pageStyle").textContent="@page { size: A4 "+o+"; margin: 0; }";' +
         'document.querySelector(".sheet").className="sheet "+o;setTimeout(function(){fitSheet();setTimeout(function(){window.print();},350);},60);}' +
         'window.onload=function(){fitSheet();};';
