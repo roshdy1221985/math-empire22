@@ -10787,30 +10787,45 @@ function _detectEquation(text) {
     t = t.replace(/ص/g, 'y').replace(/س/g, 'x').replace(/²/g, '^2').replace(/³/g, '^3');
     t = t.replace(/د\(x\)|f\(x\)|ع\(x\)/g, 'y');
     t = t.replace(/×/g, '*').replace(/−/g, '-').replace(/–/g, '-');
+    t = t.replace(/\^\s*\{([^}]*)\}/g, '^$1');
     var m = t.match(/y\s*=\s*([^=\n,;]+)/); if (!m) m = t.match(/([^=\n,;]+?)\s*=\s*y/);
     if (!m) return null;
     var rhs = m[1].trim();
     if (rhs.indexOf('x') < 0) return null;
-    // نستبعد ما ليس تربيعياً/خطياً (أسّي/لوغاريتمي/جذري/مثلثي/كسور فيها x)
-    var bad = ['هـ', 'ln', 'log', 'لطـ', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
+    var bad = ['هـ', 'ln', 'log', 'لط', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '/x', 'x/', '|'];
     for (var i = 0; i < bad.length; i++) { if (rhs.indexOf(bad[i]) >= 0) return null; }
     if (/\be\b/.test(rhs)) return null;
-    function coef(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
-    if (/x\s*\^?\s*2/.test(rhs)) {
-        var a = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2/);
-        var b = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)/);
-        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
-        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
-        var av = a ? coef(a[1]) : null; if (av === null) return null;
-        var bv = b ? coef(b[1]) : 0; if (bv === null) bv = 0;
-        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
-    } else {
-        var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
-        var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
-        var mv = mm ? coef(mm[1]) : null; if (mv === null) return null;
-        return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
+    if (/\^\s*[3-9]/.test(rhs)) return null;
+    function num(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
+    var fac = rhs.match(/([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)/);
+    if (fac) {
+        var a = num(fac[1]); if (a === null) a = 1;
+        var r1 = -(fac[2] ? parseFloat(fac[2].replace(/\s/g, '')) : 0);
+        var r2 = -(fac[3] ? parseFloat(fac[3].replace(/\s/g, '')) : 0);
+        return { kind: 'parabola', a: a, b: -a * (r1 + r2), c: a * r1 * r2 };
     }
+    var ver = rhs.match(/([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\^\s*2\s*([+-]\s*\d+\.?\d*)?/);
+    if (ver) {
+        var a2 = num(ver[1]); if (a2 === null) a2 = 1;
+        var h = -(ver[2] ? parseFloat(ver[2].replace(/\s/g, '')) : 0);
+        var k = ver[3] ? parseFloat(ver[3].replace(/\s/g, '')) : 0;
+        return { kind: 'parabola', a: a2, b: -2 * a2 * h, c: a2 * h * h + k };
+    }
+    if (/\^\s*2\b/.test(rhs)) {
+        var am = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^\s*2/);
+        var bm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^)/);
+        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
+        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
+        var av = am ? num(am[1]) : null; if (av === null) return null;
+        var bv = bm ? num(bm[1]) : 0; if (bv === null) bv = 0;
+        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
+    }
+    var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
+    var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
+    var mv = mm ? num(mm[1]) : null; if (mv === null) return null;
+    return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
 }
+
 function _autoPlot(text) {
     try {
         var eq = _detectEquation(text); if (!eq) return '';

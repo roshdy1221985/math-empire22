@@ -11495,29 +11495,53 @@ function wsgToggleAnswers() {
     document.getElementById('wsg-answers-label').textContent = _wsgShowAnswers ? '🙈 إخفاء الإجابات' : '👁️ إظهار الإجابات';
 }
 
+// ════════════════════════════════════════════════════════════
+// 🖨️ طباعة ملكية موحّدة: footer (الاسم + الرقم) + ورقة A4 واحدة + رأسي/أفقي
+// ════════════════════════════════════════════════════════════
+function empirePrint(title, contentHtml) {
+    var win = window.open('', '_blank');
+    var footer = '<div class="print-footer">' +
+        '<span class="pf-name">👑 أ. رشدي سيد</span>' +
+        '<span class="pf-sep">•</span>' +
+        '<span class="pf-phone">📱 ٩٦٦٩٠١٢٣</span>' +
+        '</div>';
+    var css =
+        '@page { size: A4 portrait; margin: 0; }' +
+        '*{margin:0;padding:0;box-sizing:border-box;}' +
+        'body{font-family:Cairo,sans-serif;color:#16203a;direction:rtl;background:#e9edf5;}' +
+        '.bar{position:fixed;top:0;left:0;right:0;background:#0f2340;color:#fff;padding:10px;text-align:center;z-index:99;display:flex;gap:10px;justify-content:center;align-items:center;}' +
+        '.bar button{background:#d4af37;color:#16203a;border:0;border-radius:8px;padding:8px 18px;font-family:Cairo;font-weight:700;font-size:.9rem;cursor:pointer;}' +
+        '.bar button.alt{background:#fff;}' +
+        '.sheet{position:relative;background:#fff;margin:64px auto 20px;box-shadow:0 3px 16px rgba(0,0,0,.2);overflow:hidden;}' +
+        '.sheet.portrait{width:210mm;height:297mm;}' +
+        '.sheet.landscape{width:297mm;height:210mm;}' +
+        '.sheet-pad{position:absolute;top:12mm;left:12mm;right:12mm;bottom:20mm;overflow:hidden;}' +
+        '.sheet-inner{transform-origin:top center;width:100%;}' +
+        '.print-footer{position:absolute;bottom:7mm;left:12mm;right:12mm;display:flex;justify-content:center;align-items:center;gap:12px;' +
+        'border-top:2px solid #d4af37;padding-top:4mm;font-size:11pt;font-weight:700;color:#0f2340;direction:rtl;}' +
+        '.print-footer .pf-sep{color:#d4af37;}.print-footer .pf-phone{direction:ltr;unicode-bidi:bidi-override;letter-spacing:.5px;}' +
+        'sup{font-size:.72em;vertical-align:super;line-height:0}sub{font-size:.72em;vertical-align:sub;line-height:0}' +
+        '@media print{.bar{display:none;}body{background:#fff;}.sheet{margin:0;box-shadow:none;}}';
+    var js =
+        'function fitSheet(){var pad=document.querySelector(".sheet-pad"),inr=document.getElementById("sheetInner");if(!pad||!inr)return;inr.style.transform="none";' +
+        'var s=Math.min(pad.clientWidth/inr.scrollWidth, pad.clientHeight/inr.scrollHeight, 1);if(s<1){inr.style.transform="scale("+s+")";}}' +
+        'function setOrient(o){document.getElementById("pageStyle").textContent="@page { size: A4 "+o+"; margin: 0; }";' +
+        'document.querySelector(".sheet").className="sheet "+o;setTimeout(function(){fitSheet();setTimeout(function(){window.print();},350);},60);}' +
+        'window.onload=function(){fitSheet();};';
+    win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + title + '</title>' +
+        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
+        '<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style><style>' + css + '</style></head><body>' +
+        '<div class="bar">🖨️ اختر الاتجاه: <button onclick="setOrient(\'portrait\')">📄 رأسي</button>' +
+        '<button class="alt" onclick="setOrient(\'landscape\')">📃 أفقي</button></div>' +
+        '<div class="sheet portrait"><div class="sheet-pad"><div class="sheet-inner" id="sheetInner">' + contentHtml + '</div></div>' + footer + '</div>' +
+        '<scr' + 'ipt>' + js + '</scr' + 'ipt></body></html>');
+    win.document.close();
+}
+
 function wsgPrint() {
     if (!_wsgData) { if (typeof showToast === 'function') showToast('لا توجد ورقة', 'error'); return; }
     var content = document.getElementById('wsg-preview').innerHTML;
-    var win = window.open('', '_blank');
-    var css = '@page { size: A4; margin: 0; }' +
-        '*{margin:0;padding:0;box-sizing:border-box;}' +
-        'body{font-family:Cairo,sans-serif;color:#1a1a2e;direction:rtl;background:#e9edf5;}' +
-        '.sheet{width:210mm;height:297mm;overflow:hidden;box-sizing:border-box;padding:12mm;margin:8mm auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.18);}' +
-        '.sheet-inner{transform-origin:top center;width:100%;}' +
-        'sup{font-size:.72em;vertical-align:super;line-height:0}sub{font-size:.72em;vertical-align:sub;line-height:0}' +
-        '@media print{body{background:#fff;}.sheet{margin:0;box-shadow:none;}}';
-    var js = 'function fitSheet(){var sh=document.querySelector(".sheet"),inr=document.getElementById("sheetInner");if(!sh||!inr)return;inr.style.transform="none";var cs=getComputedStyle(sh);' +
-        'var padX=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight);var padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);' +
-        'var aw=sh.clientWidth-padX,ah=sh.clientHeight-padY;var s=Math.min(aw/inr.scrollWidth,ah/inr.scrollHeight,1);' +
-        'if(s<1){inr.style.transform="scale("+s+")";}}' +
-        'window.onload=function(){setTimeout(function(){fitSheet();setTimeout(function(){window.print();},350);},450);};';
-    win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + wsgEsc(_wsgData.title || 'ورقة عمل') + '</title>' +
-        '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
-        '<style>' + css + '</style></head><body>' +
-        '<div class="sheet"><div class="sheet-inner" id="sheetInner">' + content + '</div></div>' +
-        '<scr' + 'ipt>' + js + '</scr' + 'ipt>' +
-        '</body></html>');
-    win.document.close();
+    empirePrint(wsgEsc(_wsgData.title || 'ورقة عمل'), content);
 }
 
 
@@ -19300,30 +19324,45 @@ function _detectEquation(text) {
     t = t.replace(/ص/g, 'y').replace(/س/g, 'x').replace(/²/g, '^2').replace(/³/g, '^3');
     t = t.replace(/د\(x\)|f\(x\)|ع\(x\)/g, 'y');
     t = t.replace(/×/g, '*').replace(/−/g, '-').replace(/–/g, '-');
+    t = t.replace(/\^\s*\{([^}]*)\}/g, '^$1');
     var m = t.match(/y\s*=\s*([^=\n,;]+)/); if (!m) m = t.match(/([^=\n,;]+?)\s*=\s*y/);
     if (!m) return null;
     var rhs = m[1].trim();
     if (rhs.indexOf('x') < 0) return null;
-    // نستبعد ما ليس تربيعياً/خطياً (أسّي/لوغاريتمي/جذري/مثلثي/كسور فيها x)
-    var bad = ['هـ', 'ln', 'log', 'لط', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
+    var bad = ['هـ', 'ln', 'log', 'لط', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '/x', 'x/', '|'];
     for (var i = 0; i < bad.length; i++) { if (rhs.indexOf(bad[i]) >= 0) return null; }
     if (/\be\b/.test(rhs)) return null;
-    function coef(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
-    if (/x\s*\^?\s*2/.test(rhs)) {
-        var a = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2/);
-        var b = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)/);
-        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
-        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
-        var av = a ? coef(a[1]) : null; if (av === null) return null;
-        var bv = b ? coef(b[1]) : 0; if (bv === null) bv = 0;
-        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
-    } else {
-        var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
-        var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
-        var mv = mm ? coef(mm[1]) : null; if (mv === null) return null;
-        return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
+    if (/\^\s*[3-9]/.test(rhs)) return null;
+    function num(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
+    var fac = rhs.match(/([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)/);
+    if (fac) {
+        var a = num(fac[1]); if (a === null) a = 1;
+        var r1 = -(fac[2] ? parseFloat(fac[2].replace(/\s/g, '')) : 0);
+        var r2 = -(fac[3] ? parseFloat(fac[3].replace(/\s/g, '')) : 0);
+        return { kind: 'parabola', a: a, b: -a * (r1 + r2), c: a * r1 * r2 };
     }
+    var ver = rhs.match(/([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\^\s*2\s*([+-]\s*\d+\.?\d*)?/);
+    if (ver) {
+        var a2 = num(ver[1]); if (a2 === null) a2 = 1;
+        var h = -(ver[2] ? parseFloat(ver[2].replace(/\s/g, '')) : 0);
+        var k = ver[3] ? parseFloat(ver[3].replace(/\s/g, '')) : 0;
+        return { kind: 'parabola', a: a2, b: -2 * a2 * h, c: a2 * h * h + k };
+    }
+    if (/\^\s*2\b/.test(rhs)) {
+        var am = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x\s*\^\s*2/);
+        var bm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^)/);
+        var rest = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x\s*\^\s*2/, '').replace(/[+-]?\s*\d*\.?\d*\s*x/, '');
+        var cc = rest.match(/([+-]?\s*\d+\.?\d*)/);
+        var av = am ? num(am[1]) : null; if (av === null) return null;
+        var bv = bm ? num(bm[1]) : 0; if (bv === null) bv = 0;
+        return { kind: 'parabola', a: av, b: bv, c: cc ? parseFloat(cc[1].replace(/\s/g, '')) : 0 };
+    }
+    var mm = rhs.match(/([+-]?\s*\d*\.?\d*)\s*x/);
+    var rest2 = rhs.replace(/[+-]?\s*\d*\.?\d*\s*x/, ''); var cc2 = rest2.match(/([+-]?\s*\d+\.?\d*)/);
+    var mv = mm ? num(mm[1]) : null; if (mv === null) return null;
+    return { kind: 'line', m: mv, c: cc2 ? parseFloat(cc2[1].replace(/\s/g, '')) : 0 };
 }
+
 function _autoPlot(text) {
     try {
         var eq = _detectEquation(text); if (!eq) return '';
@@ -19520,7 +19559,7 @@ function _printHtml(title, contentHtml, themeColor) {
     hdr += contentHtml;
     
     // التذييل
-    hdr += '<div class="print-footer">🎓 إمبراطورية الرياضيات · مع تمنياتي بالتوفيق</div>';
+    hdr += '<div class="print-footer" style="border-top:2px solid #d4af37;padding-top:8px;text-align:center;font-weight:700;color:#0f2340;">👑 أ. رشدي سيد &nbsp;•&nbsp; <span style="direction:ltr;unicode-bidi:bidi-override;">📱 ٩٦٦٩٠١٢٣</span></div>';
     hdr += '</body></html>';
     
     w.document.write(_arabicizeDigits(hdr));

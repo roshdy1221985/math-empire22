@@ -5806,6 +5806,7 @@ def _detect_equation(text):
     t = t.replace("ص", "y").replace("س", "x").replace("²", "^2").replace("³", "^3")
     t = t.replace("د(x)", "y").replace("f(x)", "y").replace("ع(x)", "y")
     t = t.replace("×", "*").replace("−", "-").replace("–", "-")
+    t = _re.sub(r"\^\s*\{([^}]*)\}", r"^\1", t)  # ^{2} -> ^2
     m = _re.search(r"y\s*=\s*([^=\n,;]+)", t)
     if not m:
         m = _re.search(r"([^=\n,;]+?)\s*=\s*y", t)
@@ -5814,13 +5815,15 @@ def _detect_equation(text):
     rhs = m.group(1).strip()
     if "x" not in rhs:
         return None
-    for tok in ["هـ", "ln", "log", "لطـ", "لو", "sqrt", "√", "sin", "cos", "tan", "جا", "جتا", "^x", "^(", "^{", "/x", "x/", "|"]:
+    for tok in ["هـ", "ln", "log", "لط", "لو", "sqrt", "√", "sin", "cos", "tan", "جا", "جتا", "^x", "^(", "/x", "x/", "|"]:
         if tok in rhs:
             return None
     if _re.search(r"\be\b", rhs):
         return None
+    if _re.search(r"\^\s*[3-9]", rhs):   # تكعيبي فأعلى → لا نرسم
+        return None
 
-    def coef(s):
+    def num(s):
         s = (s or "").replace(" ", "")
         if s in ("", "+"):
             return 1.0
@@ -5831,28 +5834,50 @@ def _detect_equation(text):
         except Exception:
             return None
 
-    if _re.search(r"x\s*\^?\s*2", rhs):
-        a = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x\s*\^?\s*2", rhs)
-        b = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^?\s*2)", rhs)
-        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x\s*\^?\s*2", "", rhs)
+    # 1) الصيغة المحلّلة: a(x±r1)(x±r2)
+    fac = _re.search(r"([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)", rhs)
+    if fac:
+        a = num(fac.group(1))
+        if a is None:
+            a = 1.0
+        r1 = -(float(fac.group(2).replace(" ", "")) if fac.group(2) else 0.0)
+        r2 = -(float(fac.group(3).replace(" ", "")) if fac.group(3) else 0.0)
+        return ("parabola", {"a": a, "b": -a * (r1 + r2), "c": a * r1 * r2})
+
+    # 2) الصيغة الرأسية: a(x±h)^2 ± k
+    ver = _re.search(r"([+-]?\d*\.?\d*)\s*\(\s*x\s*([+-]\s*\d+\.?\d*)?\s*\)\s*\^\s*2\s*([+-]\s*\d+\.?\d*)?", rhs)
+    if ver:
+        a = num(ver.group(1))
+        if a is None:
+            a = 1.0
+        h = -(float(ver.group(2).replace(" ", "")) if ver.group(2) else 0.0)
+        k = float(ver.group(3).replace(" ", "")) if ver.group(3) else 0.0
+        return ("parabola", {"a": a, "b": -2 * a * h, "c": a * h * h + k})
+
+    has_sq = bool(_re.search(r"\^\s*2\b", rhs))
+    if has_sq:
+        # 3) الصيغة القياسية: ax^2 + bx + c
+        a = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x\s*\^\s*2", rhs)
+        b = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x(?!\s*\^)", rhs)
+        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x\s*\^\s*2", "", rhs)
         rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x", "", rest)
         cc = _re.search(r"([+-]?\s*\d+\.?\d*)", rest)
-        av = coef(a.group(1)) if a else None
+        av = num(a.group(1)) if a else None
         if av is None:
-            return None
-        bv = coef(b.group(1)) if b else 0.0
+            return None  # مربّع موجود لكن غير قابل للاستخراج → لا نرسم خطاً خاطئاً
+        bv = num(b.group(1)) if b else 0.0
         cv = float(cc.group(1).replace(" ", "")) if cc else 0.0
         return ("parabola", {"a": av, "b": bv if bv is not None else 0.0, "c": cv})
-    else:
-        mm = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x", rhs)
-        rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x", "", rhs)
-        cc = _re.search(r"([+-]?\s*\d+\.?\d*)", rest)
-        mv = coef(mm.group(1)) if mm else None
-        if mv is None:
-            return None
-        cv = float(cc.group(1).replace(" ", "")) if cc else 0.0
-        return ("line", {"m": mv, "c": cv})
 
+    # 4) خطي: y = mx + c  (فقط عند عدم وجود أي مربّع)
+    mm = _re.search(r"([+-]?\s*\d*\.?\d*)\s*x", rhs)
+    rest = _re.sub(r"[+-]?\s*\d*\.?\d*\s*x", "", rhs)
+    cc = _re.search(r"([+-]?\s*\d+\.?\d*)", rest)
+    mv = num(mm.group(1)) if mm else None
+    if mv is None:
+        return None
+    cv = float(cc.group(1).replace(" ", "")) if cc else 0.0
+    return ("line", {"m": mv, "c": cv})
 
 def _auto_plot_svg(text):
     try:
@@ -6367,7 +6392,7 @@ def _fmt_math(s):
     for _n, _sym in _ops:
         s = _re.sub(r"\\" + _n + r"(?![A-Za-z])", _sym, s)
     # 8) الأُس
-    s = _re.sub(r"\bln(?![a-zA-Z])", "لطـ", s)
+    s = _re.sub(r"\bln(?![a-zA-Z])", "لط", s)
     s = _re.sub(r"\blog(?![a-zA-Z])", "لو", s)
     s = _re.sub(r"\^\{([^{}]*)\}", r"<sup>\1</sup>", s)
     s = _re.sub(r"\^\(([^()]*)\)", r"<sup>\1</sup>", s)
@@ -17593,10 +17618,7 @@ async def activate_teacher_subscription(
         expiry = None
     else:
         now    = datetime.now(timezone.utc)
-        expiry = (now.replace(
-            month=(((now.month - 1) + months) % 12) + 1,
-            year=now.year + (((now.month - 1) + months) // 12)
-        )).isoformat()
+        expiry = (now + relativedelta(months=int(months))).isoformat()
 
     update_data = {
         "is_used":              True,
@@ -17638,10 +17660,8 @@ async def check_teacher_subscription(teacher_id: int):
         if used_at:
             from datetime import timezone as _tz
             activated = datetime.fromisoformat(used_at.replace("Z", "+00:00"))
-            expiry_dt = activated.replace(
-                month=(((activated.month - 1) + months) % 12) + 1,
-                year=activated.year + (((activated.month - 1) + months) // 12)
-            )
+            if activated.tzinfo is None: activated = activated.replace(tzinfo=timezone.utc)
+            expiry_dt = activated + relativedelta(months=int(months))
             now_utc = datetime.now(timezone.utc)
             expiry  = expiry_dt.isoformat()
             active  = expiry_dt > now_utc
