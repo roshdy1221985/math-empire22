@@ -3431,6 +3431,23 @@
         return { type: 'expired', valid: false, label: '🔒 انتهت الفترة التجريبية' };
     }
 
+    // 🆕 تحديث الاشتراك من السيرفر (المصدر الموثوق) — يعمل عبر كل الأجهزة ويصلح القفل بعد مسح البيانات
+    async function refreshSubFromServer() {
+        try {
+            const sd = JSON.parse(localStorage.getItem('currentStudent') || 'null');
+            if (!sd || !sd.id) return;
+            const res = await fetch(`${API_BASE}/api/subscription/status?student_id=${sd.id}`);
+            if (!res.ok) return;
+            const d = await res.json();
+            if (d && d.subscribed) {
+                localStorage.setItem(SUB_KEY, JSON.stringify({ months: d.type === 'lifetime' ? -1 : 1, expiry: d.expiry || null, activated: new Date().toISOString(), server: true }));
+                try { closeSubOverlay(); } catch(e){}
+            } else if (d && d.type === 'expired') {
+                localStorage.removeItem(SUB_KEY);
+            }
+            updateSubBadge();
+        } catch(e) {}
+    }
     async function activateSubCode() {
         const raw = (document.getElementById('sub-code-input')?.value || '').trim().toUpperCase();
         if (!raw) { showToast('⚠️ أدخل الكود أولاً!'); return; }
@@ -7603,6 +7620,7 @@
         loadGlobalCurriculum();
         checkInviteLink();
         updateSubBadge();
+        refreshSubFromServer();
 
         // ═══ Supabase Realtime — يبدأ بعد ثانيتين (بعد تهيّؤ الـ client) ═══
         setTimeout(() => initRealtimeChannels(), 2000);

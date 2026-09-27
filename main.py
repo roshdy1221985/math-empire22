@@ -2941,6 +2941,40 @@ async def activate_subscription_code(
     }
 
 
+
+@app.get("/api/subscription/status")
+async def subscription_status(student_id: int):
+    """يحسب حالة اشتراك الطالب من الأكواد المفعّلة فعلياً (المصدر الموثوق — يعمل عبر كل الأجهزة)."""
+    try:
+        res = supabase.table("subscription_codes").select("months, used_at").eq(
+            "activated_by_student", student_id).eq("is_used", True).execute()
+        rows = res.data or []
+        if not rows:
+            return {"subscribed": False, "type": "none", "expiry": None}
+        now = datetime.now(timezone.utc)
+        best_expiry = None
+        for r in rows:
+            m = r.get("months", 1)
+            if m == -1:
+                return {"subscribed": True, "type": "lifetime", "expiry": None}
+            ua = r.get("used_at")
+            if not ua:
+                continue
+            try:
+                base = datetime.fromisoformat(str(ua).replace("Z", "+00:00"))
+                if base.tzinfo is None:
+                    base = base.replace(tzinfo=timezone.utc)
+            except Exception:
+                continue
+            exp = base + relativedelta(months=int(m))
+            if best_expiry is None or exp > best_expiry:
+                best_expiry = exp
+        if best_expiry and best_expiry > now:
+            return {"subscribed": True, "type": "active", "expiry": best_expiry.isoformat()}
+        return {"subscribed": False, "type": "expired", "expiry": best_expiry.isoformat() if best_expiry else None}
+    except Exception as e:
+        return {"subscribed": False, "type": "error", "expiry": None, "error": str(e)[:120]}
+
 @app.get("/api/admin/subscription/codes")
 async def get_all_subscription_codes(admin=Depends(get_current_admin)):
     """جلب جميع أكواد الاشتراك للأدمن"""
