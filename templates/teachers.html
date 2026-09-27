@@ -11134,7 +11134,7 @@ async function slgGenerate() {
 }
 
 function slgEsc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-// 🆕 تنسيق رموز الشرائح (أس/جذر + رموز عُمانية e→هـ ln→لطـ) قبل العرض
+// 🆕 تنسيق رموز الشرائح (أس/جذر + رموز عُمانية e→هـ ln→لط) قبل العرض
 function slgFmt(s){ return (typeof _arabicizeDigits==='function') ? _arabicizeDigits(slgEsc(s)) : slgEsc(s); }
 function slgFmtSlides(slides){ return (slides||[]).map(function(s){ var o={}; for(var k in s) o[k]=s[k];
   var _figs='', _hasPlot=false;
@@ -11499,12 +11499,25 @@ function wsgPrint() {
     if (!_wsgData) { if (typeof showToast === 'function') showToast('لا توجد ورقة', 'error'); return; }
     var content = document.getElementById('wsg-preview').innerHTML;
     var win = window.open('', '_blank');
+    var css = '@page { size: A4; margin: 0; }' +
+        '*{margin:0;padding:0;box-sizing:border-box;}' +
+        'body{font-family:Cairo,sans-serif;color:#1a1a2e;direction:rtl;background:#e9edf5;}' +
+        '.sheet{width:210mm;height:297mm;overflow:hidden;box-sizing:border-box;padding:12mm;margin:8mm auto;background:#fff;box-shadow:0 2px 14px rgba(0,0,0,.18);}' +
+        '.sheet-inner{transform-origin:top center;width:100%;}' +
+        'sup{font-size:.72em;vertical-align:super;line-height:0}sub{font-size:.72em;vertical-align:sub;line-height:0}' +
+        '@media print{body{background:#fff;}.sheet{margin:0;box-shadow:none;}}';
+    var js = 'function fitSheet(){var sh=document.querySelector(".sheet"),inr=document.getElementById("sheetInner");if(!sh||!inr)return;inr.style.transform="none";var cs=getComputedStyle(sh);' +
+        'var padX=parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight);var padY=parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);' +
+        'var aw=sh.clientWidth-padX,ah=sh.clientHeight-padY;var s=Math.min(aw/inr.scrollWidth,ah/inr.scrollHeight,1);' +
+        'if(s<1){inr.style.transform="scale("+s+")";}}' +
+        'window.onload=function(){setTimeout(function(){fitSheet();setTimeout(function(){window.print();},350);},450);};';
     win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + wsgEsc(_wsgData.title || 'ورقة عمل') + '</title>' +
         '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
-        '<style>*{margin:0;padding:0;box-sizing:border-box;}body{font-family:Cairo,sans-serif;padding:30px;color:#1a1a2e;direction:rtl;}@media print{body{padding:15px;}}</style>' +
-        '</head><body>' + content + '</body></html>');
+        '<style>' + css + '</style></head><body>' +
+        '<div class="sheet"><div class="sheet-inner" id="sheetInner">' + content + '</div></div>' +
+        '<scr' + 'ipt>' + js + '</scr' + 'ipt>' +
+        '</body></html>');
     win.document.close();
-    setTimeout(function(){ win.print(); }, 500);
 }
 
 
@@ -18936,7 +18949,7 @@ function renderPlanTab(plan) {
     
     if (plan.objectives && plan.objectives.length) {
         h += '<div style="margin-bottom:20px;"><h3 style="color:#fcd34d;font-family:Amiri;margin:0 0 10px;">🎯 الأهداف</h3><ul style="color:rgba(255,255,255,0.85);line-height:2;padding-right:20px;">';
-        plan.objectives.forEach(function(o) { h += '<li>' + escapeHtmlPack(o) + '</li>'; });
+        plan.objectives.forEach(function(o) { h += '<li>' + _arabicizeDigits(escapeHtmlPack(o)) + '</li>'; });
         h += '</ul></div>';
     }
     
@@ -19006,7 +19019,7 @@ function renderQuestionsTab(qs) {
         h += '<span style="background:' + col + '20;color:' + col + ';font-size:0.72rem;padding:3px 10px;border-radius:12px;border:1px solid ' + col + '50;flex-shrink:0;">' + lbl + '</span>';
         h += '</div>';
         h += '<details style="margin-top:8px;"><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 عرض الإجابة</summary>';
-        h += '<div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:8px;padding:10px 14px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + escapeHtmlPack(q.answer || q.a) + '</div>';
+        h += '<div style="background:rgba(46,204,113,0.08);border:1px solid rgba(46,204,113,0.25);border-radius:8px;padding:10px 14px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + _arabicizeDigits(escapeHtmlPack(q.answer || q.a)) + '</div>';
         h += '</details></div>';
     });
     return h;
@@ -19044,7 +19057,7 @@ function renderHomeworkTab(hw) {
             h += '<div style="color:#fff;font-weight:600;line-height:1.8;margin-bottom:8px;"><span style="color:#bb86fc;">' + (idx+1) + ')</span> ' + _packQ(q.q || q) + '</div>';
             if (q.answer) {
                 h += '<details><summary style="cursor:pointer;color:rgba(255,255,255,0.5);font-size:0.82rem;">💡 الإجابة</summary>';
-                h += '<div style="background:rgba(155,89,182,0.1);border-radius:8px;padding:10px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + escapeHtmlPack(q.answer) + '</div></details>';
+                h += '<div style="background:rgba(155,89,182,0.1);border-radius:8px;padding:10px;margin-top:8px;color:rgba(255,255,255,0.85);line-height:1.8;">' + _arabicizeDigits(escapeHtmlPack(q.answer)) + '</div></details>';
             }
             h += '</div>';
         });
@@ -19065,12 +19078,12 @@ function renderFlashcardsTab(cards) {
         // الوجه الأمامي
         h += '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;background:linear-gradient(135deg,#1a1a3e,#0a0d28);border:1px solid rgba(212,175,55,0.3);border-radius:14px;padding:16px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;">';
         h += '<div style="color:#fcd34d;font-size:0.72rem;margin-bottom:6px;">' + (idx+1) + ' / ' + cards.length + '</div>';
-        h += '<div style="color:#fff;font-weight:600;line-height:1.7;">' + escapeHtmlPack(c.front) + '</div>';
+        h += '<div style="color:#fff;font-weight:600;line-height:1.7;">' + _arabicizeDigits(escapeHtmlPack(c.front)) + '</div>';
         h += '<div style="color:rgba(255,255,255,0.4);font-size:0.7rem;margin-top:auto;">اضغط للقلب</div>';
         h += '</div>';
         // الوجه الخلفي
         h += '<div style="position:absolute;width:100%;height:100%;backface-visibility:hidden;transform:rotateY(180deg);background:linear-gradient(135deg,#3a1a3e,#1a0d28);border:1px solid rgba(155,89,182,0.4);border-radius:14px;padding:16px;display:flex;align-items:center;justify-content:center;text-align:center;">';
-        h += '<div style="color:rgba(255,255,255,0.95);line-height:1.7;">' + escapeHtmlPack(c.back) + '</div>';
+        h += '<div style="color:rgba(255,255,255,0.95);line-height:1.7;">' + _arabicizeDigits(escapeHtmlPack(c.back)) + '</div>';
         h += '</div></div></div>';
     });
     h += '</div>';
@@ -19292,7 +19305,7 @@ function _detectEquation(text) {
     var rhs = m[1].trim();
     if (rhs.indexOf('x') < 0) return null;
     // نستبعد ما ليس تربيعياً/خطياً (أسّي/لوغاريتمي/جذري/مثلثي/كسور فيها x)
-    var bad = ['هـ', 'ln', 'log', 'لطـ', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
+    var bad = ['هـ', 'ln', 'log', 'لط', 'لو', 'sqrt', '√', 'sin', 'cos', 'tan', 'جا', 'جتا', '^x', '^(', '^{', '/x', 'x/', '|'];
     for (var i = 0; i < bad.length; i++) { if (rhs.indexOf(bad[i]) >= 0) return null; }
     if (/\be\b/.test(rhs)) return null;
     function coef(s) { s = (s || '').replace(/\s/g, ''); if (s === '' || s === '+') return 1; if (s === '-') return -1; var f = parseFloat(s); return isNaN(f) ? null : f; }
@@ -19424,7 +19437,7 @@ function _mnorm(s) {
         ['cup', '∪'], ['cap', '∩'], ['in', '∈'], ['notin', '∉'], ['forall', '∀'],
         ['exists', '∃'], ['emptyset', '∅'], ['ldots', '…'], ['dots', '…'], ['degree', '°']];
     for (var i = 0; i < _ops.length; i++) { s = s.replace(new RegExp('\\\\' + _ops[i][0] + '(?![A-Za-z])', 'g'), _ops[i][1]); }
-    s = s.replace(/\bln(?![a-zA-Z])/gi, 'لطـ').replace(/\blog(?![a-zA-Z])/gi, 'لو');
+    s = s.replace(/\bln(?![a-zA-Z])/gi, 'لط').replace(/\blog(?![a-zA-Z])/gi, 'لو');
     s = s.replace(/\^\{([^{}]*)\}/g, '<sup>$1</sup>').replace(/\^\(([^()]*)\)/g, '<sup>$1</sup>').replace(/\^(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sup>$1</sup>');
     s = s.replace(/_\{([^{}]*)\}/g, '<sub>$1</sub>').replace(/_(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)/g, '<sub>$1</sub>');
     s = s.replace(/\\([A-Za-z]+)/g, '$1');
@@ -19522,7 +19535,7 @@ function printPlanOnly() {
     
     if (pl.objectives && pl.objectives.length) {
         c += '<h2>🎯 أهداف الدرس</h2><ul>';
-        pl.objectives.forEach(function(o) { c += '<li>' + escapeHtmlPack(o) + '</li>'; });
+        pl.objectives.forEach(function(o) { c += '<li>' + _arabicizeDigits(escapeHtmlPack(o)) + '</li>'; });
         c += '</ul>';
     }
     if (pl.vocabulary && pl.vocabulary.length) {
@@ -19578,7 +19591,7 @@ function printQuestionsOnly() {
     p.exam_questions.forEach(function(q, i) {
         c += '<div class="q-box">';
         c += '<span class="q-num">' + (i+1) + ')</span> ';
-        c += '<b>الإجابة:</b> ' + escapeHtmlPack(q.answer || q.a);
+        c += '<b>الإجابة:</b> ' + _arabicizeDigits(escapeHtmlPack(q.answer || q.a));
         c += '</div>';
     });
     
@@ -19645,7 +19658,7 @@ function printHomeworkOnly() {
         c += '<h2>✅ الإجابات النموذجية (للمعلم)</h2>';
         hw.questions.forEach(function(q, i) {
             if (q.answer) {
-                c += '<div class="q-box"><span class="q-num">' + (i+1) + ')</span> <b>' + escapeHtmlPack(q.q) + '</b><div class="answer-area">' + escapeHtmlPack(q.answer) + '</div></div>';
+                c += '<div class="q-box"><span class="q-num">' + (i+1) + ')</span> <b>' + _packQ(q.q) + '</b><div class="answer-area">' + _arabicizeDigits(escapeHtmlPack(q.answer)) + '</div></div>';
             }
         });
     }
@@ -19776,7 +19789,7 @@ function printLessonPack() {
         content += '<div class="section"><h2>📋 التحضير</h2>';
         if (p.lesson_plan.objectives) {
             content += '<h3>🎯 الأهداف</h3><ul>';
-            p.lesson_plan.objectives.forEach(function(o) { content += '<li>' + escapeHtmlPack(o) + '</li>'; });
+            p.lesson_plan.objectives.forEach(function(o) { content += '<li>' + _arabicizeDigits(escapeHtmlPack(o)) + '</li>'; });
             content += '</ul>';
         }
         if (p.lesson_plan.introduction) content += '<h3>🌅 التمهيد</h3><p>' + escapeHtmlPack(p.lesson_plan.introduction) + '</p>';
