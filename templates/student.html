@@ -10959,6 +10959,29 @@ function _mnorm(s) {
     return s;
 }
 
+// يعزل التعابير الرياضية اتجاهياً (LTR) لمنع تبعثرها في سياق RTL — دون لمس الكلمات العربية
+function _bidiMath(s) {
+    s = String(s == null ? '' : s);
+    // احفظ الأسس/الدلائل مؤقتاً (عشان لا تكسر المطابقة)
+    var keep = [];
+    s = s.replace(/<su[pb]>[^<]*<\/su[pb]>/g, function (m) { keep.push(m); return '\u0001' + (keep.length - 1) + '\u0002'; });
+    // ذرّة رياضية: رقم | متغير مفرد (حرف غير متبوع بحرف) | أس محفوظ
+    var atom = '(?:[0-9٠-٩.]+|(?<![A-Za-z\\u0621-\\u064A])[A-Za-z\\u0621-\\u064A](?![A-Za-z\\u0621-\\u064A])|\\u0001\\d+\\u0002)';
+    var op = '[()+\\-*/×÷=]';
+    var re = new RegExp('\\(?\\s*' + atom + '(?:\\s*' + op + '\\s*|\\s*' + atom + ')*', 'g');
+    s = s.replace(re, function (m) {
+        var hasOp = /[+\-*/×÷=]|\u0001/.test(m);   // فيه عملية أو أس
+        var hasNum = /[0-9٠-٩]/.test(m);            // فيه رقم
+        if (hasOp && hasNum && m.trim().length > 1) {
+            return '<span style="unicode-bidi:isolate;direction:ltr;">' + m + '</span>';
+        }
+        return m;
+    });
+    // استرجع الأسس
+    s = s.replace(/\u0001(\d+)\u0002/g, function (_m, i) { return keep[+i]; });
+    return s;
+}
+
 function _mathFmt(s){
     s = String(s == null ? '' : s);
     // 1) escape زوايا HTML
@@ -10973,7 +10996,7 @@ function _mathFmt(s){
         tok = tok.replace(/[\u2070\u00B9\u00B2\u00B3\u2074-\u2079]+/g, function(sup){ var o=''; for(var j=0;j<sup.length;j++){ o += _SUPm[sup.charAt(j)]||''; } return '<sup>'+o+'</sup>'; });
         tok = tok.replace(/[0-9]/g, function(d){ return '٠١٢٣٤٥٦٧٨٩'.charAt(+d); });
         tok = tok.replace(/[A-Za-z]+/g, function(w){ if(w.length===1){ return _VARm[w.toLowerCase()]||w; } return w; });
-        return tok;
+        return _bidiMath(tok);
     });
     return s;
 }

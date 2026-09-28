@@ -6027,6 +6027,26 @@ def _shape_svg(kind, **kw):
     return ""
 
 
+def _bidi_math(s):
+    """يعزل التعابير الرياضية اتجاهياً (LTR) لمنع تبعثرها في RTL — دون لمس الكلمات العربية."""
+    import re as _re
+    s = str(s or "")
+    keep = []
+    def _save(m):
+        keep.append(m.group(0)); return "\u0001%d\u0002" % (len(keep) - 1)
+    s = _re.sub(r"<su[pb]>[^<]*</su[pb]>", _save, s)
+    atom = r"(?:[0-9٠-٩.]+|(?<![A-Za-z\u0621-\u064A])[A-Za-z\u0621-\u064A](?![A-Za-z\u0621-\u064A])|\u0001\d+\u0002)"
+    op = r"[()+\-*/×÷=]"
+    rx = _re.compile(r"\(?\s*" + atom + r"(?:\s*" + op + r"\s*|\s*" + atom + r")*")
+    def _wrap(m):
+        t = m.group(0)
+        if _re.search(r"[+\-*/×÷=]|\u0001", t) and _re.search(r"[0-9٠-٩]", t) and len(t.strip()) > 1:
+            return '<span style="unicode-bidi:isolate;direction:ltr;">' + t + '</span>'
+        return t
+    s = rx.sub(_wrap, s)
+    s = _re.sub(r"\u0001(\d+)\u0002", lambda m: keep[int(m.group(1))], s)
+    return s
+
 def _render_plot_tags(s):
     import re as _re
     if not s or ("[[plot:" not in s and "[[shape:" not in s):
@@ -6402,6 +6422,7 @@ def _fmt_math(s):
     s = _re.sub(r"_(-?[0-9\u0660-\u0669A-Za-z\u0621-\u064A]+)", r"<sub>\1</sub>", s)
     # 10) تنظيف أوامر غير معروفة
     s = _re.sub(r"\\([A-Za-z]+)", r"\1", s)
+    s = _bidi_math(s)
     return s
 @app.get("/api/teacher/exam_generator/preview")
 async def teacher_exam_preview(
