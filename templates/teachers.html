@@ -4642,7 +4642,7 @@
                 <div class="empire-greeting" id="teacher-greeting">صباح الخير، أيها الأستاذ</div>
                 <h1 class="empire-hero-title">ديوان المعلمين</h1>
                 <div class="empire-hero-subtitle" id="teacher-now">
-                    <i class="fas fa-mortarboard"></i> إمبراطورية الرياضيات — سلطنة عُمان 2026
+                    <i class="fas fa-mortarboard"></i> إمبراطورية الرياضيات 2026
                 </div>
             </div>
             <div class="empire-hero-actions">
@@ -5279,7 +5279,7 @@
         <div id="gb-print-area">
             <div class="gb-header">
                 <div class="gb-h-col" style="text-align:right;">
-                    <div class="gb-h-line"><b>وزارة التربية والتعليم</b></div>
+                    <div class="gb-h-line"><b>إمبراطورية الرياضيات</b></div>
                     <div class="gb-h-line">المديرية العامة بمحافظة 
                         <input type="text" id="gb-gov" class="gb-h-input" value="مسقط" onchange="gbSaveHeader()">
                     </div>
@@ -5432,7 +5432,7 @@
                 <div onclick="gbApplyTemplate('official')" style="background:linear-gradient(135deg,rgba(212,175,55,0.1),rgba(184,134,11,0.05));border:2px solid rgba(212,175,55,0.4);border-radius:14px;padding:18px;cursor:pointer;transition:all 0.2s;text-align:center;" onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='#d4af37';" onmouseout="this.style.transform='';this.style.borderColor='rgba(212,175,55,0.4)';">
                     <div style="font-size:2.5rem;margin-bottom:8px;">📊</div>
                     <h4 style="color:#d4af37;font-family:Amiri,serif;margin-bottom:6px;">القالب الرسمي</h4>
-                    <p style="color:rgba(255,255,255,0.65);font-size:0.78rem;line-height:1.6;">وزارة التربية - 17 عمود<br><b>شفوي، واجبات، اختبارات، مشروع، نهائي + مستويات تلقائية</b></p>
+                    <p style="color:rgba(255,255,255,0.65);font-size:0.78rem;line-height:1.6;">قالب 17 عمود<br><b>شفوي، واجبات، اختبارات، مشروع، نهائي + مستويات تلقائية</b></p>
                     <div style="background:rgba(212,175,55,0.15);color:#d4af37;padding:4px 10px;border-radius:6px;font-size:0.7rem;margin-top:8px;display:inline-block;">🔒 محمي المعادلات</div>
                 </div>
                 
@@ -7820,7 +7820,7 @@
                     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;">
                         <div>
                             <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">🏛️ الوزارة / الجهة العليا</label>
-                            <input id="exam-ministry" type="text" value="سلطنة عُمان — وزارة التربية والتعليم" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
+                            <input id="exam-ministry" type="text" value="إمبراطورية الرياضيات" onchange="examUpdateHeader()" style="width:100%;background:rgba(0,0,0,.4);border:1px solid rgba(212,175,55,.3);color:#fff;padding:8px 11px;border-radius:8px;font-family:Cairo;box-sizing:border-box;font-size:0.85rem;">
                         </div>
                         <div>
                             <label style="color:rgba(255,255,255,0.7);font-size:0.78rem;font-weight:600;display:block;margin-bottom:4px;">📍 المحافظة</label>
@@ -11435,7 +11435,7 @@ function wsgRender() {
     var typeLabels = { practice:'ورقة تدريب', review:'ورقة مراجعة', homework:'واجب منزلي', quiz:'اختبار قصير' };
     var typeLabel = typeLabels[_wsgType] || 'ورقة عمل';
     var html = '<div style="text-align:center;border-bottom:3px double #d4af37;padding-bottom:16px;margin-bottom:20px;">' +
-        '<div style="font-size:0.9rem;color:#666;">سلطنة عُمان · وزارة التربية والتعليم</div>' +
+        '<div style="font-size:0.9rem;color:#666;">إمبراطورية الرياضيات</div>' +
         '<div style="font-size:0.9rem;color:#666;">إمبراطورية الرياضيات 👑</div>' +
         '<div style="font-family:Amiri,serif;font-size:1.6rem;color:#1a1a2e;font-weight:700;margin:8px 0;">' + wsgEsc(w.title || typeLabel) + '</div>' +
         '<div style="display:flex;justify-content:center;gap:10px;font-size:0.85rem;margin-top:12px;flex-wrap:wrap;">' +
@@ -11502,7 +11502,7 @@ function _injectRoyal(html) {
     var bar = '<div class="eb-bar">🖨️ اطبع: <button onclick="setOrient(\'portrait\')">📄 رأسي</button>' +
         '<button class="alt" onclick="setOrient(\'landscape\')">📃 أفقي</button></div>';
     var foot = '<div class="eb-foot">👑 أ. رشدي سيد &nbsp;<span style="color:#d4af37">•</span>&nbsp; <span class="ph">📱 ٩٦٦٩٠١٢٣</span></div>';
-    var js = '<scr' + 'ipt>function setOrient(o){document.getElementById("ebPage").textContent="@page{size:A4 "+o+";margin:14mm 12mm 18mm;}";setTimeout(function(){window.print();},60);}</scr' + 'ipt>';
+    var js = '<scr' + 'ipt>function setOrient(o){document.getElementById("ebPage").textContent="@page{size:A4 "+o+";margin:14mm 12mm 18mm;}";window.print();}setTimeout(function(){try{window.print();}catch(e){}},500);</scr' + 'ipt>';
     html = String(html || '');
     if (html.indexOf('</head>') >= 0) html = html.replace('</head>', head + '</head>'); else html = head + html;
     if (html.indexOf('</body>') >= 0) html = html.replace('</body>', bar + foot + js + '</body>'); else html = html + bar + foot + js;
@@ -11529,7 +11529,7 @@ function empirePrintDoc(title, contentHtml, extraCss) {
         (extraCss || '');
     var js =
         'function setOrient(o){document.getElementById("ebPage").textContent="@page{size:A4 "+o+";margin:14mm 12mm 18mm;}";' +
-        'setTimeout(function(){window.print();},60);}';
+        'window.print();}setTimeout(function(){try{window.print();}catch(e){}},500);';
     var footer = '<div class="eb-foot">👑 أ. رشدي سيد &nbsp;<span style="color:#d4af37">•</span>&nbsp; <span class="ph">📱 ٩٦٦٩٠١٢٣</span></div>';
     win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + title + '</title>' +
         '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Amiri:wght@700&display=swap" rel="stylesheet">' +
@@ -11543,6 +11543,7 @@ function empirePrintDoc(title, contentHtml, extraCss) {
 
 function empirePrint(title, contentHtml) {
     var win = window.open('', '_blank');
+    if (!win) { alert('⚠️ فعّل السماح بالنوافذ المنبثقة (popup) للطباعة'); return; }
     var footer = '<div class="print-footer">' +
         '<span class="pf-name">👑 أ. رشدي سيد</span>' +
         '<span class="pf-sep">•</span>' +
@@ -11573,8 +11574,8 @@ function empirePrint(title, contentHtml) {
         'if(s2>=s1){if(s2<1)inr.style.transform="scale("+s2+")";return;}inr.style.columnCount="1";}' +
         'if(s1<1){inr.style.transform="scale("+s1+")";}}' +
         'function setOrient(o){document.getElementById("pageStyle").textContent="@page { size: A4 "+o+"; margin: 0; }";' +
-        'document.querySelector(".sheet").className="sheet "+o;setTimeout(function(){fitSheet();setTimeout(function(){window.print();},350);},60);}' +
-        'window.onload=function(){fitSheet();};';
+        'document.querySelector(".sheet").className="sheet "+o;try{fitSheet();}catch(e){}window.print();}' +
+        'setTimeout(function(){try{fitSheet();}catch(e){}setTimeout(function(){try{window.print();}catch(e){}},350);},400);';
     win.document.write('<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>' + title + '</title>' +
         '<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Amiri:wght@400;700&display=swap" rel="stylesheet">' +
         '<style id="pageStyle">@page { size: A4 portrait; margin: 0; }</style><style>' + css + '</style></head><body>' +
@@ -22529,7 +22530,7 @@ function gbPrint() {
     
     // 1️⃣ بناء الدباجة
     var headerHTML = '<div class="print-header"><div class="ph-right">' +
-        '<div><b>وزارة التربية والتعليم</b></div>' +
+        '<div><b>إمبراطورية الرياضيات</b></div>' +
         '<div>المديرية العامة بمحافظة <u>' + gbEsc(hdr['gb-gov']||'') + '</u></div>' +
         '<div>مدرسة <u>' + gbEsc(hdr['gb-school']||'') + '</u></div>' +
         '</div>' +
@@ -24249,7 +24250,7 @@ function gsExport() {
 // ════════════════════════════════════════════════════════════
 var GB_TEMPLATES = {
     'official': {
-        name: 'القالب الرسمي (وزارة التربية)',
+        name: 'القالب الأساسي',
         columns: [
             // type: input=قابل للإدخال | computed=محسوب | name=الاسم
             // protected: لا يمكن حذف هذا العمود
