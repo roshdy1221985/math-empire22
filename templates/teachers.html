@@ -11537,6 +11537,7 @@ function empirePrintDoc(title, contentHtml, extraCss) {
         '<div class="eb-bar">🖨️ اطبع: <button onclick="setOrient(\'portrait\')">📄 رأسي</button>' +
         '<button class="alt" onclick="setOrient(\'landscape\')">📃 أفقي</button></div>' +
         '<div class="eb-doc">' + contentHtml + '</div>' + footer +
+        '<scr' + 'ipt>' + js + '</scr' + 'ipt>' +
         '</body></html>');
     win.document.close();
 }
@@ -21953,6 +21954,17 @@ var GB_TEACHER_KEY = 'gradebook_v1';
 
 function gbInit() {
     gbLoad();
+
+    // 🆕 تصفير المشروع الافتراضي (10) مرة واحدة — عشان كشف التفريغ فاضي
+    try {
+        if (GB_DATA && !GB_DATA._projFixed) {
+            (GB_DATA.classes || []).forEach(function(cl){
+                (cl.students || []).forEach(function(st){ if (st.project === 10) st.project = 0; });
+            });
+            GB_DATA._projFixed = true;
+            try { gbSave(); } catch(e){}
+        }
+    } catch(e){}
     if (!GB_DATA.classes.length) {
         // ننشئ 3 شعب افتراضية
         GB_DATA.classes = [
@@ -22103,7 +22115,7 @@ function gbAddStudent() {
         hw1: 0, hw2: 0,
         quiz1: 0, quiz2: 0,
         shortExam1: 0, shortExam2: 0,
-        project: 10,
+        project: 0,
         finalExam: 0
     });
     gbSave();
@@ -22306,7 +22318,7 @@ function gbBatchAdd() {
                 quiz2: parseFloat(parts[6])||0,
                 shortExam1: parseFloat(parts[7])||0,
                 shortExam2: parseFloat(parts[8])||0,
-                project: parseFloat(parts[9])||10,
+                project: parseFloat(parts[9])||0,
                 finalExam: parseFloat(parts[10])||0
             });
         } else {
@@ -22315,7 +22327,7 @@ function gbBatchAdd() {
                 name: line,
                 oral1: 0, oral2: 0, hw1: 0, hw2: 0,
                 quiz1: 0, quiz2: 0, shortExam1: 0, shortExam2: 0,
-                project: 10, finalExam: 0
+                project: 0, finalExam: 0
             });
         }
         added++;
@@ -22562,14 +22574,14 @@ function gbPrint() {
     
     cls.students.forEach(function(s, i) {
         var c = gbComputeV2(s);
-        var hasAnyGrade = visibleCols.some(function(col){ return col.type === 'input' && s[col.id] !== undefined && s[col.id] !== '' && s[col.id] !== null; });
+        var hasAnyGrade = visibleCols.some(function(col){ return col.type === 'input' && parseFloat(s[col.id]); });
         tableHTML += '<tr><td>' + (i+1) + '</td>';
         visibleCols.forEach(function(col) {
             var val = '';
             if (col.type === 'name') {
                 val = gbEsc(s.name || '');
             } else if (col.type === 'input') {
-                val = (s[col.id] !== undefined ? s[col.id] : '');
+                val = (parseFloat(s[col.id]) ? s[col.id] : '');
             } else if (col.type === 'computed') {
                 if (!hasAnyGrade) { val = ''; } else {
                 var cv = c[col.computeFrom];
@@ -24653,7 +24665,7 @@ function gbRenderTableV2() {
             if (col.type === 'name') {
                 html += '<td class="gb-cell-name"><input type="text" value="' + gbEsc(s.name) + '" onchange="gbUpdateField(' + s.id + ',\'name\',this.value)"></td>';
             } else if (col.type === 'input') {
-                var val = s[col.id] !== undefined ? s[col.id] : '';
+                var val = parseFloat(s[col.id]) ? s[col.id] : '';
                 var max = col.max || 100;
                 // 🆕 نضيف data attrs للـ Smart Fill
                 html += '<td class="gb-fillable-cell" data-col-id="' + col.id + '" data-col-idx="' + colIdx + '">' +
@@ -24664,7 +24676,7 @@ function gbRenderTableV2() {
                     '</td>';
             } else if (col.type === 'computed') {
                 var cv = c[col.computeFrom];
-                if (cv === undefined) cv = '-';
+                if (cv === undefined || cv === 0 || cv === '0' || cv === '0.0') cv = '';
                 
                 if (col.id === 'level1' || col.id === 'level2' || col.id === 'overall' || col.id === 'totalLvl') {
                     html += '<td><span class="' + gbLevelClass(cv) + '">' + cv + '</span></td>';
@@ -25322,7 +25334,7 @@ window.gbAddStudent = function() {
     var newStudent = { id: Date.now(), name: 'طالب جديد' };
     GB_DATA.columns.forEach(function(col) {
         if (col.type === 'input') {
-            newStudent[col.id] = (col.id === 'project') ? 10 : 0;
+            newStudent[col.id] = 0;
         }
     });
     
