@@ -5279,7 +5279,7 @@
         <div id="gb-print-area">
             <div class="gb-header">
                 <div class="gb-h-col" style="text-align:right;">
-                    <div class="gb-h-line"><b>إمبراطورية الرياضيات</b></div>
+                    <div class="gb-h-line"><b>المديرية العامة للتربية والتعليم</b></div>
                     <div class="gb-h-line">المديرية العامة بمحافظة 
                         <input type="text" id="gb-gov" class="gb-h-input" value="مسقط" onchange="gbSaveHeader()">
                     </div>
@@ -22521,12 +22521,9 @@ function rhClassBars(classes) {
 }
 
 function _gbRoyal(html){
-  var st='<style>body{padding-bottom:16mm;}.gb-royal-foot{position:fixed;bottom:0;left:0;right:0;text-align:center;font-weight:700;color:#0f2340;font-size:10pt;border-top:2px solid #d4af37;padding:4px 0 5px;background:#fff;font-family:Cairo,sans-serif;}.gb-royal-foot .ph{direction:ltr;unicode-bidi:bidi-override;}@media print{}</style>';
-  var foot='<div class="gb-royal-foot">👑 أ. رشدي سيد &nbsp;•&nbsp; <span class="ph">📱 96690123</span></div>';
   var js='<scr'+'ipt>setTimeout(function(){try{window.print();}catch(e){}},550);</scr'+'ipt>';
   html=String(html||'');
-  if(html.indexOf('</head>')>=0) html=html.replace('</head>', st+'</head>'); else html=st+html;
-  if(html.indexOf('</body>')>=0) html=html.replace('</body>', foot+js+'</body>'); else html=html+foot+js;
+  if(html.indexOf('</body>')>=0) html=html.replace('</body>', js+'</body>'); else html=html+js;
   return html;
 }
 function gbPrint() {
@@ -22539,7 +22536,6 @@ function gbPrint() {
     
     // 1️⃣ بناء الدباجة
     var headerHTML = '<div class="print-header"><div class="ph-right">' +
-        '<div><b>إمبراطورية الرياضيات</b></div>' +
         '<div>المديرية العامة بمحافظة <u>' + gbEsc(hdr['gb-gov']||'') + '</u></div>' +
         '<div>مدرسة <u>' + gbEsc(hdr['gb-school']||'') + '</u></div>' +
         '</div>' +
@@ -22566,6 +22562,7 @@ function gbPrint() {
     
     cls.students.forEach(function(s, i) {
         var c = gbComputeV2(s);
+        var hasAnyGrade = visibleCols.some(function(col){ return col.type === 'input' && s[col.id] !== undefined && s[col.id] !== '' && s[col.id] !== null; });
         tableHTML += '<tr><td>' + (i+1) + '</td>';
         visibleCols.forEach(function(col) {
             var val = '';
@@ -22574,10 +22571,12 @@ function gbPrint() {
             } else if (col.type === 'input') {
                 val = (s[col.id] !== undefined ? s[col.id] : '');
             } else if (col.type === 'computed') {
+                if (!hasAnyGrade) { val = ''; } else {
                 var cv = c[col.computeFrom];
                 if (cv === undefined || cv === null) val = '-';
                 else if (typeof cv === 'number') val = cv.toFixed(1);
                 else val = cv;
+                }
             }
             
             // تلوين المستويات
