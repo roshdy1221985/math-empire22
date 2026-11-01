@@ -82,7 +82,7 @@ sup{font-size:.7em}.frac{display:inline-flex;flex-direction:column;vertical-alig
    <label>امتحانات سابقة (سطر لكل ملف: المسار | الصفحات)</label><textarea id="k-ex" dir="ltr" placeholder="11م/امتحانات/2024_ف1.pdf | 1-6"></textarea>
    <div class="grid"><div><label>أسئلة لكل درس</label><input id="k-n" type="number" value="30" min="10" max="60"></div><div><label>نسبة الأسئلة من خارج المصادر ٪</label><input id="k-x" type="number" value="15" min="0" max="50"></div></div>
    <div id="k-les" style="margin-top:10px"></div>
-   <button class="btn" style="margin-top:10px" onclick="kStart()">🏭 تشغيل المصنع</button>
+   <div class="row" style="margin-top:10px"><button class="btn s" onclick="kAuto()">📚 تعبئة المسارات والصفحات من المستودع</button><button class="btn" onclick="kStart()">🏭 تشغيل المصنع</button></div>
   </div>
   <div class="card"><h2>📦 حزم الدروس <button class="btn s" style="float:left" onclick="kResume()">🔁 استئناف</button></h2><div id="packs"></div></div>
   <div class="card hide" id="k-prev"><h2 id="k-pt"></h2><div class="row"><button class="btn s" onclick="kShow('interactive_html')">🎮 الدرس التفاعلي</button><button class="btn s" onclick="kShow('pdf_html')">📄 ملف الدرس</button><button class="btn ok" onclick="kPublish()">🚀 اعتماد ونشر الدرس والملف</button><button class="btn bad" onclick="kReject()">رفض</button></div>
@@ -185,6 +185,16 @@ async function kPublish(){if(!KP)return;if(!confirm('نشر الدرس التف�
  const r=await fetch(API+'/api/manager/packs/'+KP.id+'/publish',{method:'POST',headers:{'Authorization':'Bearer '+TOK},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);toast('🚀 تم النشر');kLoad()}catch(e){toast('❌ '+e.message)}}
 async function kReject(){if(!KP||!confirm('رفض هذه الحزمة؟'))return;try{await api('/api/manager/packs/'+KP.id+'/reject',{json:{}});toast('تم الرفض');document.getElementById('k-prev').classList.add('hide');kLoad()}catch(e){toast('❌ '+e.message)}}
 async function kResume(){try{await api('/api/manager/packs/resume',{json:{}});toast('🔁 تم الاستئناف');kLoad()}catch(e){toast('❌ '+e.message)}}
+
+function kN(t){return String(t||'').replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[\u0660-\u0669]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/[^\u0621-\u064A0-9 ]/g,' ').replace(/(^| )ال/g,' ').replace(/\s+/g,' ').trim()}
+function kSim(a,b){const A=new Set(kN(a).split(' ').filter(w=>w.length>1)),B=new Set(kN(b).split(' ').filter(w=>w.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(w=>{if(B.has(w))n++});return n/Math.min(A.size,B.size)}
+async function kAuto(){const {g,u}=kCur();if(!u){toast('اختر الوحدة أولًا');return}try{const ix=await api('/api/manager/books/index');
+ const cands=(ix.units||[]).filter(x=>kSim(x.grade,g.name)>=0.99||kN(x.grade)===kN(g.name));let best=null,sc=0;cands.forEach(x=>{const v=kSim(x.title,u.name)+(kN(u.name).includes(kN(x.title))?1:0);if(v>sc){sc=v;best=x}});
+ if(!best){toast('⚠️ لم أجد هذه الوحدة في فهرس المستودع');return}
+ if(best.book)document.getElementById('k-book').value=best.book.path;if(best.act)document.getElementById('k-act').value=best.act.path;
+ const ex=(ix.exams||[]).filter(e=>e.grade_code===best.grade_code&&!e.answers).map(e=>e.path+' | 1-'+Math.min(e.pages,12));document.getElementById('k-ex').value=ex.join('\n');
+ let filled=0;(u.lessons||[]).forEach((l,i)=>{const m=(best.lessons||[]).map(x=>[x,kSim(x.lesson,l.name)+(kN(l.name).slice(0,3)===kN(x.lesson).slice(0,3)?0.5:0)]).sort((a,b)=>b[1]-a[1])[0];if(m&&m[1]>=0.5){document.querySelector(`.kb[data-i="${i}"]`).value=m[0].book_pages||'';document.querySelector(`.ka[data-i="${i}"]`).value=m[0].act_pages||'';filled++}});
+ toast('📚 تم: '+best.title+(filled?' — صفحات '+hd(filled)+' درسًا':' — اكتب صفحات الدروس يدويًا'))}catch(e){toast('❌ '+e.message)}}
 boot();
 </script>
 </body>

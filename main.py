@@ -19601,6 +19601,20 @@ async def _pack_queue():
         if not r.data: break
         await _pack_run(r.data[0]["id"])
 
+@app.get("/api/manager/books/index")
+async def books_index(request: Request):
+    """📚 فهرس مستودع الكتب (index.json) لتعبئة المسارات والصفحات تلقائيًا"""
+    u = _mgr_user(request)
+    import httpx
+    repo = os.getenv("BOOKS_REPO", "").strip(); tok = os.getenv("GITHUB_TOKEN", "").strip()
+    if not repo: raise HTTPException(status_code=503, detail="BOOKS_REPO غير مضبوط")
+    h = {"Accept": "application/vnd.github.raw"}
+    if tok: h["Authorization"] = f"Bearer {tok}"
+    async with httpx.AsyncClient(timeout=30.0) as c:
+        r = await c.get(f"https://api.github.com/repos/{repo}/contents/index.json", headers=h)
+    if r.status_code != 200: raise HTTPException(status_code=502, detail=f"تعذر قراءة index.json ({r.status_code})")
+    return r.json()
+
 @app.post("/api/manager/packs")
 async def pack_create(request: Request, bg: _MBg):
     u = _mgr_user(request); _mgr_need(u, "content")
