@@ -16997,12 +16997,15 @@ class EliteArenaManager:
         p2 = queue.pop(0)
         room_id = f"elite_{id(p1['ws'])}_{id(p2['ws'])}"
         self.active_rooms[room_id] = {"p1": p1, "p2": p2, "scores": {p1["name"]: 0, p2["name"]: 0}}
+        # 🔧 [تظبيط الساحة] نفس الأسئلة للمتنافسين: أسئلة النخبة أولًا ثم تُكمَّل من أسئلة الاختيار في البنك
+        battle_qs = _arena_pick_questions(grade, 10)
         for p, opp in [(p1, p2), (p2, p1)]:
             try:
                 await p["ws"].send_json({
                     "type": "matched",
                     "room_id": room_id,
                     "opponent": opp["name"],
+                    "questions": battle_qs,
                     "msg": f"⚔️ تم إيجاد منافس: {opp['name']}"
                 })
             except: pass
@@ -17024,6 +17027,33 @@ class EliteArenaManager:
             self.waiting_players[grade] = [
                 p for p in self.waiting_players[grade] if p["ws"] != websocket
             ]
+        # 🔧 [تظبيط الساحة] إبلاغ المنافس وتنظيف الغرفة عند الانسحاب
+        for rid, room in list(self.active_rooms.items()):
+            if room["p1"]["ws"] == websocket or room["p2"]["ws"] == websocket:
+                other = room["p2"] if room["p1"]["ws"] == websocket else room["p1"]
+                try:
+                    await other["ws"].send_json({"type": "opponent_left", "msg": "🏃 انسحب المنافس — الفوز لك!"})
+                except: pass
+                del self.active_rooms[rid]
+
+def _arena_pick_questions(grade: str, n: int = 10):
+    """🔧 [تظبيط الساحة] يختار أسئلة اختيار من متعدد للصف دون تحميل البنك كله"""
+    cols = "id,grade,lesson,subject,q_type,question,options,answer,image_url,difficulty"
+    picked = []
+    try:
+        el = supabase.table("questions").select(cols).eq("grade", grade).eq("is_elite", True).limit(300).execute().data or []
+        el = [q for q in el if (q.get("options") or "").strip()]
+        random.shuffle(el); picked = el[:n]
+        if len(picked) < n:
+            total = supabase.table("questions").select("id", count="exact").eq("grade", grade).limit(1).execute().count or 0
+            off = random.randint(0, max(0, total - 300))
+            more = supabase.table("questions").select(cols).eq("grade", grade).range(off, off + 299).execute().data or []
+            have = {q["id"] for q in picked}
+            more = [q for q in more if (q.get("options") or "").strip() and q["id"] not in have]
+            random.shuffle(more); picked += more[: n - len(picked)]
+    except Exception as e:
+        print(f"[ARENA] pick failed: {e}", flush=True)
+    return picked
 
 elite_arena_manager = EliteArenaManager()
 
@@ -19043,6 +19073,600 @@ async def rv_stats(admin=Depends(get_current_admin), days: int = 30):
     out = [{**{k: v for k, v in a.items() if k != "devices"}, "devices": len(a["devices"])} for a in agg.values()]
     out.sort(key=lambda x: (str(x["app"]), x["unit"] or 0))
     return {"days": days, "units": out, "total_devices": len({d for a in agg.values() for d in a["devices"]})}
+
+
+
+# ════════════════════════════════════════════════════════════
+# 🧠 مدير المنصة — الفريق + خط إنتاج المحتوى + المراقبة (إضافة فقط)
+# ════════════════════════════════════════════════════════════
+import json as _mj
+import base64 as _mb64
+import asyncio as _masync
+from fastapi import BackgroundTasks as _MBg
+from fastapi.responses import FileResponse as _MFile
+
+_MGR_PERMS = ["content", "review", "reports", "licenses"]
+_MGR_JOB_LOCK = _masync.Lock()
+
+def _mgr_log(actor: str, action: str, detail: str = ""):
+    try:
+        _rv_sb.table("manager_log").insert({"actor": str(actor)[:60], "action": action[:60], "detail": str(detail)[:500]}).execute()
+    except Exception:
+        pass
+
+def _mgr_user(request: Request):
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="يرجى تسجيل الدخول")
+    try:
+        p = jwt.decode(auth.split(" ")[1], SECRET_KEY, algorithms=[ALGORITHM])
+    except Exception:
+        raise HTTPException(status_code=401, detail="جلسة العمل غير صالحة")
+    if p.get("sub") == "admin":
+        return {"id": 0, "name": "المدير العام", "role": "admin", "perms": _MGR_PERMS}
+    if p.get("role") == "staff":
+        sid = str(p.get("sub", "")).replace("staff:", "")
+        r = _rv_sb.table("staff_users").select("id,name,perms,active").eq("id", sid).execute()
+        if not r.data or not r.data[0].get("active"):
+            raise HTTPException(status_code=401, detail="الحساب معطّل")
+        u = r.data[0]
+        return {"id": u["id"], "name": u["name"], "role": "staff", "perms": u.get("perms") or []}
+    raise HTTPException(status_code=401, detail="ليس لديك صلاحية")
+
+def _mgr_need(user: dict, perm: str):
+    if user["role"] != "admin" and perm not in (user.get("perms") or []):
+        raise HTTPException(status_code=403, detail="ليست لديك هذه الصلاحية")
+
+@app.get("/manager")
+async def mgr_page():
+    return _MFile(os.path.join(BASE_DIR, "templates", "manager.html"))
+
+# ─── الفريق ───────────────────────────────────────────────
+@app.post("/api/staff/login")
+async def staff_login(request: Request, username: str = Form(...), password: str = Form(...)):
+    ip = request.client.host if request.client else "x"
+    if _is_rate_limited(ip, 8, 60, "staff_login"):
+        raise HTTPException(status_code=429, detail="محاولات كثيرة")
+    r = _rv_sb.table("staff_users").select("*").eq("username", username.strip().lower()).execute()
+    if not r.data or not r.data[0].get("active") or not verify_password(password, r.data[0]["pass_hash"]):
+        raise HTTPException(status_code=401, detail="بيانات الدخول غير صحيحة")
+    u = r.data[0]
+    _rv_sb.table("staff_users").update({"last_login": datetime.now(timezone.utc).isoformat()}).eq("id", u["id"]).execute()
+    _mgr_log(u["name"], "login")
+    return {"access_token": create_access_token({"sub": f"staff:{u['id']}", "role": "staff"}), "name": u["name"], "perms": u.get("perms") or []}
+
+@app.get("/api/manager/me")
+async def mgr_me(request: Request):
+    return _mgr_user(request)
+
+@app.get("/api/manager/staff")
+async def mgr_staff_list(request: Request):
+    u = _mgr_user(request)
+    if u["role"] != "admin": raise HTTPException(status_code=403, detail="للمدير العام فقط")
+    r = _rv_sb.table("staff_users").select("id,username,name,perms,active,created_at,last_login").order("id").execute()
+    return {"staff": r.data or []}
+
+@app.post("/api/manager/staff")
+async def mgr_staff_save(request: Request):
+    u = _mgr_user(request)
+    if u["role"] != "admin": raise HTTPException(status_code=403, detail="للمدير العام فقط")
+    b = await request.json()
+    row = {"name": str(b.get("name", "")).strip()[:80], "active": bool(b.get("active", True))}
+    if b.get("perms") is not None:
+        row["perms"] = [p for p in b["perms"] if p in _MGR_PERMS]
+    if b.get("password"):
+        if len(str(b["password"])) < 8: raise HTTPException(status_code=400, detail="كلمة المرور ٨ أحرف على الأقل")
+        row["pass_hash"] = hash_password(str(b["password"]))
+    if b.get("id"):
+        _rv_sb.table("staff_users").update(row).eq("id", b["id"]).execute()
+        _mgr_log("المدير العام", "staff_update", row["name"])
+    else:
+        un = str(b.get("username", "")).strip().lower()
+        if not un or "pass_hash" not in row: raise HTTPException(status_code=400, detail="اسم المستخدم وكلمة المرور مطلوبان")
+        row["username"] = un
+        row.setdefault("perms", [])
+        _rv_sb.table("staff_users").insert(row).execute()
+        _mgr_log("المدير العام", "staff_create", un)
+    return {"ok": True}
+
+# ─── أدوات Gemini ─────────────────────────────────────────
+async def _mgr_gemini(parts: list, temperature: float = 0.7, max_tokens: int = 8000) -> dict:
+    import httpx
+    key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not key: raise RuntimeError("GEMINI_API_KEY مفقود")
+    last = None
+    for model in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-2.5-flash-lite"]:
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={key}"
+            payload = {"contents": [{"parts": parts}], "generationConfig": {"temperature": temperature, "maxOutputTokens": max_tokens, "responseMimeType": "application/json"}}
+            async with httpx.AsyncClient(timeout=120.0) as c:
+                r = await c.post(url, json=payload)
+            if r.status_code != 200:
+                last = f"{model}: {r.status_code}"; continue
+            txt = r.json()["candidates"][0]["content"]["parts"][0]["text"]
+            txt = txt.strip().removeprefix("```json").removesuffix("```").strip()
+            return _mj.loads(txt)
+        except Exception as e:
+            last = f"{model}: {e}"
+    raise RuntimeError(f"فشل Gemini — {last}")
+
+async def _mgr_book_pdf(path: str, pages: str):
+    """يجلب كتابًا من مستودع GitHub الخاص ويقتطع الصفحات المطلوبة"""
+    import httpx
+    repo = os.getenv("BOOKS_REPO", "").strip(); tok = os.getenv("GITHUB_TOKEN", "").strip()
+    if not repo or not path: return None
+    url = f"https://api.github.com/repos/{repo}/contents/{path}"
+    h = {"Accept": "application/vnd.github.raw"}
+    if tok: h["Authorization"] = f"Bearer {tok}"
+    async with httpx.AsyncClient(timeout=90.0, follow_redirects=True) as c:
+        r = await c.get(url, headers=h)
+    if r.status_code != 200: raise RuntimeError(f"تعذر جلب الكتاب ({r.status_code})")
+    data = r.content
+    if pages:
+        from pypdf import PdfReader, PdfWriter
+        import io
+        rd = PdfReader(io.BytesIO(data)); w = PdfWriter(); idx = []
+        for part in pages.replace(" ", "").split(","):
+            if "-" in part:
+                a, b = part.split("-"); idx += list(range(int(a), int(b) + 1))
+            elif part: idx.append(int(part))
+        for i in idx:
+            if 1 <= i <= len(rd.pages): w.add_page(rd.pages[i - 1])
+        out = io.BytesIO(); w.write(out); data = out.getvalue()
+    if len(data) > 18_000_000: raise RuntimeError("الصفحات المختارة كبيرة جدًا — قلّل عدد الصفحات")
+    return data
+
+def _mgr_norm_ans(a) -> str:
+    s = str(a or "").strip()
+    s = s.translate(str.maketrans("٠١٢٣٤٥٦٧٨٩٫−", "0123456789.-")).replace(" ", "").replace("$", "")
+    try:
+        if "/" in s:
+            n, d = s.split("/", 1); return str(round(float(n) / float(d), 4))
+        return str(round(float(s), 4))
+    except Exception:
+        return s.lower()
+
+async def _mgr_run_job(job_id: int):
+    async with _MGR_JOB_LOCK:
+        j = _rv_sb.table("content_jobs").select("*").eq("id", job_id).execute().data[0]
+        log = []
+        def upd(**kw):
+            kw["log"] = "\n".join(log)[-3000:]
+            _rv_sb.table("content_jobs").update(kw).eq("id", job_id).execute()
+        try:
+            upd(status="running")
+            n = int(j.get("n_req") or 15)
+            parts = []
+            if j.get("book_path"):
+                pdf = await _mgr_book_pdf(j["book_path"], j.get("pages") or "")
+                if pdf:
+                    parts.append({"inline_data": {"mime_type": "application/pdf", "data": _mb64.b64encode(pdf).decode()}})
+                    log.append("📖 تم إرفاق صفحات الكتاب")
+            n_mcq = max(1, round(n * 0.5)); n_tf = max(1, round(n * 0.2)); n_short = max(1, n - n_mcq - n_tf)
+            prompt = f"""أنت خبير مناهج الرياضيات في سلطنة عُمان (سلسلة كامبريدج المعرّبة).
+الصف: {j['grade']} | الفصل: {j.get('semester') or ''} | الوحدة: {j.get('unit') or ''} | الدرس: {j['lesson']}
+{"اعتمد على صفحات الكتاب المرفقة: أعد صياغة تمارينه وأمثلته ثم أضف أسئلة مشابهة بأرقام مختلفة." if parts else "اعتمد على محتوى هذا الدرس في المنهج العُماني."}
+أنشئ {n} سؤالًا: {n_mcq} اختيار من متعدد (٤ خيارات) ، {n_tf} صواب/خطأ ، {n_short} إجابة قصيرة رقمية.
+قواعد صارمة:
+- العربية الفصحى ، الرموز: س ، ص ، جـ ، π ، والأسس بالشكل س^2 والكسور \\frac{{أ}}{{ب}} والجذر \\sqrt{{س}} داخل $...$.
+- الخيارات بدون فواصل داخلها ، والإجابة تطابق أحد الخيارات حرفيًا.
+- صواب/خطأ: الإجابة "صواب" أو "خطأ".
+- الإجابة القصيرة: عدد فقط (صحيح أو عشري أو كسر a/b) بأرقام إنجليزية.
+- لكل سؤال شرح مختصر للحل (explanation).
+- تدرّج: سهل ، متوسط ، صعب (difficulty: easy/medium/hard).
+أخرج JSON فقط: {{"questions":[{{"type":"mcq|tf|short","q":"...","options":["..."],"answer":"...","explanation":"...","difficulty":"medium"}}]}}"""
+            res = await _mgr_gemini(parts + [{"text": prompt}], 0.8)
+            qs = [q for q in (res.get("questions") or []) if (q.get("q") or "").strip() and str(q.get("answer", "")).strip()]
+            log.append(f"🤖 تم توليد {len(qs)} سؤالًا")
+            # تحقق مستقل: حل الأسئلة دون رؤية الإجابات
+            ver = {}
+            try:
+                plain = [{"i": i, "q": q["q"], "options": q.get("options") or []} for i, q in enumerate(qs)]
+                vr = await _mgr_gemini([{"text": "حل الأسئلة الرياضية الآتية بدقة خطوة بخطوة في ذهنك ، ثم أعد الإجابة النهائية فقط لكل سؤال (للاختيار: نص الخيار الصحيح حرفيًا ، لصواب/خطأ: صواب أو خطأ ، للقصيرة: عدد بأرقام إنجليزية). أخرج JSON فقط: {\"answers\":[{\"i\":0,\"answer\":\"...\"}]}\n" + _mj.dumps(plain, ensure_ascii=False)}], 0.0)
+                for a in (vr.get("answers") or []): ver[int(a.get("i", -1))] = a.get("answer")
+            except Exception as e:
+                log.append(f"⚠️ تعذر التحقق المستقل: {str(e)[:80]}")
+            rows = []; nv = 0
+            for i, q in enumerate(qs):
+                t = q.get("type", "mcq")
+                opts = [str(o).replace(",", "؛").replace("،", "؛").strip() for o in (q.get("options") or []) if str(o).strip()]
+                ans = str(q.get("answer", "")).replace(",", "؛").replace("،", "؛").strip()
+                if t == "tf": opts = ["صواب", "خطأ"]; qtype = "choice"
+                elif t == "short": opts = []; qtype = "short"
+                else: qtype = "choice"
+                if qtype == "choice" and ans not in opts: continue
+                v2 = ver.get(i)
+                ok = v2 is not None and _mgr_norm_ans(v2) == _mgr_norm_ans(ans)
+                nv += 1 if ok else 0
+                rows.append({"job_id": job_id, "grade": j["grade"], "semester": j.get("semester") or "", "unit": j.get("unit") or "", "lesson": j["lesson"],
+                             "q_type": qtype, "question": q["q"].strip(), "options": ",".join(opts), "answer": ans,
+                             "difficulty": q.get("difficulty") if q.get("difficulty") in ("easy", "medium", "hard") else "medium",
+                             "explanation": str(q.get("explanation", ""))[:1500], "check_answer": str(v2 or "")[:200], "verified": ok, "status": "pending"})
+            if rows: _rv_sb.table("question_drafts").insert(rows).execute()
+            log.append(f"✅ {len(rows)} سؤالًا في طابور المراجعة ، منها {nv} متطابقة في التحقق")
+            upd(status="done", n_made=len(rows), n_verified=nv, finished_at=datetime.now(timezone.utc).isoformat())
+        except Exception as e:
+            log.append(f"❌ {str(e)[:300]}")
+            upd(status="failed", finished_at=datetime.now(timezone.utc).isoformat())
+
+async def _mgr_run_queue():
+    while True:
+        r = _rv_sb.table("content_jobs").select("id").eq("status", "queued").order("id").limit(1).execute()
+        if not r.data: break
+        await _mgr_run_job(r.data[0]["id"])
+
+def _mgr_enqueue(items: list, actor: str) -> int:
+    rows = [{"grade": it["grade"], "semester": it.get("semester", ""), "unit": it.get("unit", ""), "lesson": it["lesson"],
+             "n_req": max(5, min(int(it.get("n", 15)), 40)), "book_path": it.get("book_path", "")[:300], "pages": it.get("pages", "")[:60],
+             "status": "queued", "created_by": actor[:60]} for it in items if it.get("grade") and it.get("lesson")]
+    if rows: _rv_sb.table("content_jobs").insert(rows).execute()
+    return len(rows)
+
+# ─── خط الإنتاج ───────────────────────────────────────────
+@app.post("/api/manager/jobs")
+async def mgr_jobs_create(request: Request, bg: _MBg):
+    u = _mgr_user(request); _mgr_need(u, "content")
+    b = await request.json()
+    n = _mgr_enqueue(b.get("items") or [], u["name"])
+    _mgr_log(u["name"], "jobs_create", f"{n} درسًا")
+    bg.add_task(_mgr_run_queue)
+    return {"queued": n}
+
+@app.get("/api/manager/jobs")
+async def mgr_jobs_list(request: Request, limit: int = 60):
+    u = _mgr_user(request)
+    r = _rv_sb.table("content_jobs").select("id,grade,unit,lesson,status,n_req,n_made,n_verified,created_by,created_at,finished_at,log").order("id", desc=True).limit(min(limit, 200)).execute()
+    return {"jobs": r.data or []}
+
+@app.post("/api/manager/jobs/resume")
+async def mgr_jobs_resume(request: Request, bg: _MBg):
+    u = _mgr_user(request); _mgr_need(u, "content")
+    _rv_sb.table("content_jobs").update({"status": "queued"}).in_("status", ["running", "failed"]).execute()
+    bg.add_task(_mgr_run_queue)
+    return {"ok": True}
+
+# ─── طابور المراجعة ───────────────────────────────────────
+@app.get("/api/manager/drafts")
+async def mgr_drafts(request: Request, status: str = "pending", grade: str = "", lesson: str = "", job_id: int = 0, verified: str = "", limit: int = 100):
+    u = _mgr_user(request); _mgr_need(u, "review")
+    q = _rv_sb.table("question_drafts").select("*").eq("status", status)
+    if grade: q = q.eq("grade", grade)
+    if lesson: q = q.eq("lesson", lesson)
+    if job_id: q = q.eq("job_id", job_id)
+    if verified in ("1", "0"): q = q.eq("verified", verified == "1")
+    r = q.order("id").limit(min(limit, 300)).execute()
+    return {"drafts": r.data or []}
+
+@app.put("/api/manager/drafts/{did}")
+async def mgr_draft_edit(did: int, request: Request):
+    u = _mgr_user(request); _mgr_need(u, "review")
+    b = await request.json()
+    row = {k: str(b[k])[:4000] for k in ("question", "options", "answer", "explanation", "difficulty") if k in b}
+    _rv_sb.table("question_drafts").update(row).eq("id", did).execute()
+    return {"ok": True}
+
+@app.post("/api/manager/drafts/action")
+async def mgr_draft_action(request: Request):
+    u = _mgr_user(request); _mgr_need(u, "review")
+    b = await request.json(); ids = [int(x) for x in (b.get("ids") or [])][:300]; act = b.get("action")
+    if not ids or act not in ("approve", "reject"): raise HTTPException(status_code=400, detail="طلب غير صالح")
+    r = _rv_sb.table("question_drafts").select("*").in_("id", ids).eq("status", "pending").execute()
+    done = 0; dup = 0
+    for d in (r.data or []):
+        if act == "approve":
+            ex = supabase.table("questions").select("id").eq("lesson", d["lesson"]).eq("question", d["question"]).limit(1).execute()
+            if ex.data:
+                dup += 1
+            else:
+                row = {k: d[k] for k in ("grade", "semester", "unit", "lesson", "q_type", "question", "options", "answer")}
+                row.update({"subject": "رياضيات", "image_url": "", "difficulty": d.get("difficulty") or "medium"})
+                try:
+                    supabase.table("questions").insert(row).execute()
+                except Exception:
+                    row.pop("semester", None); row.pop("unit", None); row.pop("difficulty", None)
+                    supabase.table("questions").insert(row).execute()
+                done += 1
+        _rv_sb.table("question_drafts").update({"status": "approved" if act == "approve" else "rejected", "reviewer": u["name"]}).eq("id", d["id"]).execute()
+        if act == "reject": done += 1
+    _mgr_log(u["name"], "drafts_" + act, f"{done} (مكرر {dup})")
+    return {"done": done, "duplicates": dup}
+
+# ─── المراقبة والطيار الآلي ───────────────────────────────
+def _mgr_coverage(target: int = 30):
+    try:
+        struct = supabase.table("grades").select("name, semesters(name, units(name, lessons(name)))").execute().data or []
+    except Exception:
+        struct = []
+    cnt = {}
+    start = 0
+    while True:
+        r = supabase.table("questions").select("grade,lesson").range(start, start + 999).execute()
+        rows = r.data or []
+        for q in rows:
+            k = (str(q.get("grade") or "").strip(), str(q.get("lesson") or "").strip()); cnt[k] = cnt.get(k, 0) + 1
+        if len(rows) < 1000 or start > 60000: break
+        start += 1000
+    pend = {}
+    try:
+        for d in (_rv_sb.table("question_drafts").select("grade,lesson").eq("status", "pending").limit(20000).execute().data or []):
+            k = (d["grade"], d["lesson"]); pend[k] = pend.get(k, 0) + 1
+    except Exception:
+        pass
+    grades = []; gaps = []
+    for g in struct:
+        tl = 0; full = 0; qn = 0
+        for s in (g.get("semesters") or []):
+            for un in (s.get("units") or []):
+                for l in (un.get("lessons") or []):
+                    tl += 1; c = cnt.get((g["name"].strip(), l["name"].strip()), 0); qn += c
+                    if c >= target: full += 1
+                    else: gaps.append({"grade": g["name"], "semester": s["name"], "unit": un["name"], "lesson": l["name"], "count": c, "pending": pend.get((g["name"], l["name"]), 0)})
+        grades.append({"grade": g["name"], "lessons": tl, "covered": full, "questions": qn, "pct": round(100 * full / tl) if tl else 0})
+    gaps.sort(key=lambda x: (x["count"] + x["pending"]))
+    return grades, gaps
+
+@app.get("/api/manager/overview")
+async def mgr_overview(request: Request, target: int = 30):
+    u = _mgr_user(request); _mgr_need(u, "reports")
+    grades, gaps = _mgr_coverage(target)
+    def c(table, **f):
+        try:
+            q = _rv_sb.table(table).select("id", count="exact")
+            for k, v in f.items(): q = q.eq(k, v)
+            return q.limit(1).execute().count or 0
+        except Exception:
+            return 0
+    since = (datetime.now(timezone.utc) - timedelta(days=7)).isoformat()
+    try:
+        act = supabase.table("results").select("id", count="exact").gte("timestamp", since).limit(1).execute().count or 0
+    except Exception:
+        act = None
+    total_l = sum(g["lessons"] for g in grades); cov_l = sum(g["covered"] for g in grades)
+    recs = []
+    pend = c("question_drafts", status="pending")
+    if pend > 50: recs.append(f"📝 يوجد {pend} سؤالًا ينتظر المراجعة — ابدأ بالأسئلة المتطابقة في التحقق.")
+    low = sorted([g for g in grades if g["lessons"]], key=lambda g: g["pct"])[:2]
+    for g in low: recs.append(f"📉 تغطية {g['grade']} {g['pct']}٪ فقط — شغّل الطيار الآلي لهذا الصف.")
+    if c("content_jobs", status="failed"): recs.append("⚠️ توجد مهام فشلت — راجع سجلها ثم اضغط «استئناف».")
+    if not os.getenv("BOOKS_REPO"): recs.append("📚 اربط مستودع الكتب (BOOKS_REPO و GITHUB_TOKEN) ليولّد الذكاء الاصطناعي من صفحات الكتاب نفسها.")
+    return {"grades": grades, "gaps": gaps[:40], "lessons_total": total_l, "lessons_covered": cov_l,
+            "pending": pend, "jobs_running": c("content_jobs", status="running") + c("content_jobs", status="queued"),
+            "jobs_failed": c("content_jobs", status="failed"), "activity_7d": act, "recommendations": recs}
+
+async def _mgr_autopilot(max_lessons: int, per_lesson: int, target: int, grade: str, actor: str) -> int:
+    _, gaps = _mgr_coverage(target)
+    if grade: gaps = [g for g in gaps if g["grade"] == grade]
+    pick = [g for g in gaps if g["pending"] == 0][:max(1, min(max_lessons, 20))]
+    return _mgr_enqueue([{**g, "n": per_lesson} for g in pick], actor)
+
+@app.post("/api/manager/autopilot")
+async def mgr_autopilot(request: Request, bg: _MBg):
+    u = _mgr_user(request); _mgr_need(u, "content")
+    b = await request.json()
+    n = await _mgr_autopilot(int(b.get("max_lessons", 5)), int(b.get("per_lesson", 15)), int(b.get("target", 30)), b.get("grade", ""), u["name"])
+    _mgr_log(u["name"], "autopilot", f"{n} درسًا")
+    bg.add_task(_mgr_run_queue)
+    return {"queued": n}
+
+@app.get("/api/manager/cron")
+async def mgr_cron(key: str, bg: _MBg):
+    """للجدولة الخارجية (cron-job.org): يملأ أضعف ٣ دروس يوميًا"""
+    if not os.getenv("MANAGER_CRON_KEY") or key != os.getenv("MANAGER_CRON_KEY"):
+        raise HTTPException(status_code=401, detail="مفتاح غير صحيح")
+    n = await _mgr_autopilot(int(os.getenv("MANAGER_DAILY_LESSONS", "3")), 15, 30, "", "الطيار الآلي")
+    _mgr_log("الطيار الآلي", "cron", f"{n} درسًا")
+    bg.add_task(_mgr_run_queue)
+    return {"queued": n}
+
+@app.post("/api/manager/drafts/import")
+async def mgr_drafts_import(request: Request):
+    """📥 إدخال أسئلة جاهزة (من إعداد Claude أو غيره) إلى طابور المراجعة"""
+    u = _mgr_user(request); _mgr_need(u, "content")
+    b = await request.json(); src = str(b.get("source", "استيراد"))[:40]
+    rows = []
+    for q in (b.get("questions") or [])[:2000]:
+        if not q.get("grade") or not q.get("lesson") or not str(q.get("question", "")).strip(): continue
+        rows.append({"grade": q["grade"], "semester": q.get("semester", ""), "unit": q.get("unit", ""), "lesson": q["lesson"],
+                     "q_type": q.get("q_type", "choice"), "question": str(q["question"])[:4000], "options": str(q.get("options", ""))[:2000],
+                     "answer": str(q.get("answer", ""))[:500], "difficulty": q.get("difficulty", "medium"), "explanation": str(q.get("explanation", ""))[:1500],
+                     "check_answer": src, "verified": bool(q.get("verified", True)), "status": "pending"})
+    for i in range(0, len(rows), 200):
+        _rv_sb.table("question_drafts").insert(rows[i:i + 200]).execute()
+    _mgr_log(u["name"], "drafts_import", f"{len(rows)} سؤالًا من {src}")
+    return {"inserted": len(rows)}
+
+@app.get("/api/manager/log")
+async def mgr_logs(request: Request, limit: int = 100):
+    u = _mgr_user(request)
+    if u["role"] != "admin": raise HTTPException(status_code=403, detail="للمدير العام فقط")
+    r = _rv_sb.table("manager_log").select("*").order("id", desc=True).limit(min(limit, 500)).execute()
+    return {"log": r.data or []}
+
+
+
+# ════════════════════════════════════════════════════════════
+# 📦 مصنع الدرس — أسئلة (كتاب + نشاط + امتحانات + نسبة خارجية) + درس تفاعلي + ملف PDF (إضافة فقط)
+# ════════════════════════════════════════════════════════════
+_PACK_STYLE = """<style>body{font-family:Tajawal,Amiri,serif;margin:0;background:#f7f4ec;color:#13213a;direction:rtl}
+.wrap{max-width:860px;margin:auto;padding:16px}.hd{background:linear-gradient(135deg,#0d1b2a,#1b3769);color:#fff;border-radius:16px;padding:18px;border-bottom:5px solid #d4af37}
+.hd h1{margin:0;font:700 1.6rem Amiri;color:#ffd54f}.hd p{margin:4px 0 0;opacity:.85}.card{background:#fff;border-radius:14px;padding:14px 16px;margin:12px 0;box-shadow:0 2px 10px #0001;border-right:5px solid #d4af37}
+.card h2{margin:0 0 8px;font-size:1.15rem;color:#1b3769}.rule{background:#fff8e1;border-radius:10px;padding:10px;margin:6px 0;line-height:2}
+.ex{border:1px solid #e3d6b2;border-radius:10px;padding:10px;margin:8px 0}.st{display:none;background:#f3f7ff;border-radius:8px;padding:6px 10px;margin:4px 0}
+.st.show{display:block}button{font:700 .95rem Tajawal;border:none;border-radius:10px;padding:8px 14px;cursor:pointer;background:#1b3769;color:#ffd54f;margin:4px 0}
+.q{border:1px solid #e3e8f2;border-radius:10px;padding:10px;margin:8px 0}.op{display:block;width:100%;text-align:right;background:#f5f7fb;color:#13213a;margin:5px 0}
+.op.ok{background:#c8f7d4}.op.no{background:#ffd2d2}.fb{min-height:20px;font-weight:700}sup{font-size:.7em}.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.1}.fr>span:first-child{border-bottom:1px solid}
+.ft{text-align:center;color:#888;font-size:.85rem;margin:20px 0}@media print{button{display:none}.st{display:block}.card{break-inside:avoid;box-shadow:none}}</style>"""
+
+_PACK_JS = r"""<script>
+const hd=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function mf(s){s=String(s==null?'':s).replace(/[&<>]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[m])).replace(/\$/g,'');
+s=s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'<span class="fr"><span>$1</span><span>$2</span></span>').replace(/\\sqrt\{([^{}]*)\}/g,'√($1)').replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/\^(-?[0-9]+)/g,'<sup>$1</sup>').replace(/\\times/g,'×').replace(/\\div/g,'÷').replace(/\\pi/g,'π').replace(/\\le/g,'≤').replace(/\\ge/g,'≥').replace(/\\ne/g,'≠');return hd(s)}
+document.querySelectorAll('[data-m]').forEach(e=>e.innerHTML=mf(e.getAttribute('data-m')));
+function step(b){const ex=b.closest('.ex');const h=ex.querySelector('.st:not(.show)');if(h)h.classList.add('show');if(!ex.querySelector('.st:not(.show)'))b.style.display='none'}
+function ans(b,ok){const q=b.closest('.q');if(q.dataset.done)return;q.dataset.done=1;b.classList.add(ok?'ok':'no');q.querySelectorAll('.op').forEach(x=>{if(x.dataset.c==='1')x.classList.add('ok')});
+const s=document.getElementById('score');s.dataset.v=(+s.dataset.v||0)+(ok?1:0);s.dataset.n=(+s.dataset.n||0)+1;s.textContent=hd(s.dataset.v+' / '+s.dataset.n);q.querySelector('.fb').textContent=ok?'✅ أحسنت!':'❌ راجع الحل المظلل'}
+</script>"""
+
+def _pack_esc(x):
+    return str(x if x is not None else "").replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace('"', "&quot;")
+
+def _pack_html(j: dict, summ: dict, quiz: list, printable: bool) -> str:
+    rules = "".join(f'<div class="rule" data-m="{_pack_esc(r)}"></div>' for r in (summ.get("rules") or []))
+    objs = "".join(f"<li>{_pack_esc(o)}</li>" for o in (summ.get("objectives") or []))
+    exs = ""
+    for i, e in enumerate(summ.get("examples") or []):
+        sts = "".join(f'<div class="st" data-m="{_pack_esc(s)}"></div>' for s in (e.get("steps") or []))
+        exs += f'<div class="ex"><b>مثال {i+1}:</b> <span data-m="{_pack_esc(e.get("q",""))}"></span>{sts}<div class="st"><b>الإجابة:</b> <span data-m="{_pack_esc(e.get("answer",""))}"></span></div>' + ("" if printable else '<button onclick="step(this)">👣 الخطوة التالية</button>') + "</div>"
+    qz = ""
+    if not printable:
+        for i, q in enumerate(quiz[:8]):
+            ops = "".join(f'<button class="op" data-c="{1 if o == q["answer"] else 0}" onclick="ans(this,{str(o == q["answer"]).lower()})" data-m="{_pack_esc(o)}"></button>' for o in q["options"].split(","))
+            qz += f'<div class="q"><b>{i+1})</b> <span data-m="{_pack_esc(q["question"])}"></span>{ops}<div class="fb"></div></div>'
+        qz = f'<div class="card"><h2>🎯 اختبر نفسك — النتيجة: <span id="score">٠</span></h2>{qz}</div>' if qz else ""
+    else:
+        for i, q in enumerate(quiz[:10]):
+            qz += f'<div class="q"><b>{i+1})</b> <span data-m="{_pack_esc(q["question"])}"></span>' + (f'<div style="margin:4px 0;color:#555">{" ، ".join(_pack_esc(o) for o in q["options"].split(","))}</div>' if q["options"] else "") + "</div>"
+        qz = f'<div class="card"><h2>📝 تدريبات</h2>{qz}</div>' if qz else ""
+    note = f'<div class="card"><h2>💡 تذكّر</h2><div data-m="{_pack_esc(summ.get("tip",""))}"></div></div>' if summ.get("tip") else ""
+    return (f'<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">'
+            f'<title>{_pack_esc(j["lesson"])}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700&family=Amiri:wght@700&display=swap" rel="stylesheet">{_PACK_STYLE}</head><body><div class="wrap">'
+            f'<div class="hd"><h1>{_pack_esc(j["lesson"])}</h1><p>{_pack_esc(j["grade"])} — {_pack_esc(j.get("unit") or "")}</p></div>'
+            f'<div class="card"><h2>🎯 أهداف الدرس</h2><ul>{objs}</ul></div><div class="card"><h2>📘 القواعد والمفاهيم</h2>{rules}</div>'
+            f'<div class="card"><h2>✏️ أمثلة محلولة</h2>{exs}</div>{note}{qz}<div class="ft">إمبراطورية الرياضيات — أ. رشدي سيد</div></div>{_PACK_JS}</body></html>')
+
+async def _pack_run(pid: int):
+    async with _MGR_JOB_LOCK:
+        p = _rv_sb.table("lesson_packs").select("*").eq("id", pid).execute().data[0]
+        log = []
+        def upd(**kw):
+            kw["log"] = "\n".join(log)[-3000:]; _rv_sb.table("lesson_packs").update(kw).eq("id", pid).execute()
+        try:
+            upd(status="running")
+            parts = []
+            for label, path, pages in [("كتاب الطالب", p.get("book_path"), p.get("book_pages")), ("كتاب النشاط", p.get("act_path"), p.get("act_pages"))] + \
+                                      [("امتحان سابق", e.get("path"), e.get("pages")) for e in (p.get("exams") or [])]:
+                if path and pages:
+                    pdf = await _mgr_book_pdf(path, pages)
+                    if pdf:
+                        parts.append({"text": f"📄 المصدر التالي: {label}"}); parts.append({"inline_data": {"mime_type": "application/pdf", "data": _mb64.b64encode(pdf).decode()}})
+                        log.append(f"📖 أُرفق: {label} ({pages})")
+            if not parts: log.append("⚠️ لا توجد صفحات مصدر — سيعتمد التوليد على معرفة المنهج فقط")
+            n = int(p.get("n_questions") or 30); ext = max(0, min(int(p.get("external_pct") or 15), 50))
+            prompt = f"""أنت خبير مناهج الرياضيات في سلطنة عُمان. الصف: {p['grade']} | الوحدة: {p.get('unit') or ''} | الدرس: {p['lesson']}
+المهمة (ملفات PDF مرفقة مع وسم مصدر كل ملف):
+1) ملخص الدرس: objectives (٣-٥ أهداف) ، rules (القواعد والقوانين بدقة كما في الكتاب) ، examples (٣-٤ أمثلة محلولة من الكتاب: q ، steps[] خطوات قصيرة ، answer) ، tip (نصيحة أو خطأ شائع).
+2) بنك أسئلة من {n} سؤالًا: نحو {100-ext}٪ مأخوذة/معاد صياغتها من تمارين كتاب الطالب وكتاب النشاط والامتحانات السابقة المرفقة (اذكر source: "كتاب" أو "نشاط" أو "امتحان" و page) ، ونحو {ext}٪ أسئلة جديدة خارجها (source: "خارجي").
+   التوزيع: ٥٠٪ اختيار من متعدد (٤ خيارات) ، ٢٠٪ صواب/خطأ ، ٣٠٪ إجابة قصيرة رقمية. تدرّج easy/medium/hard. لكل سؤال explanation مختصر.
+قواعد: العربية الفصحى ، الرياضيات داخل $...$ بصيغة: س^2 ، \\frac{{أ}}{{ب}} ، \\sqrt{{س}} ؛ الخيارات بلا فواصل داخلها ؛ إجابة الاختيار تطابق خيارًا حرفيًا ؛ صواب/خطأ: "صواب" أو "خطأ" ؛ القصيرة: عدد بأرقام إنجليزية.
+أخرج JSON فقط: {{"summary":{{"objectives":[],"rules":[],"examples":[{{"q":"","steps":[],"answer":""}}],"tip":""}},"questions":[{{"source":"كتاب","page":"","type":"mcq|tf|short","q":"","options":[],"answer":"","explanation":"","difficulty":"medium"}}]}}"""
+            res = await _mgr_gemini(parts + [{"text": prompt}], 0.6, 16000)
+            summ = res.get("summary") or {}; qs = [q for q in (res.get("questions") or []) if str(q.get("q", "")).strip() and str(q.get("answer", "")).strip()]
+            log.append(f"🤖 ملخص + {len(qs)} سؤالًا")
+            ver = {}
+            try:
+                plain = [{"i": i, "q": q["q"], "options": q.get("options") or []} for i, q in enumerate(qs)]
+                vr = await _mgr_gemini([{"text": "حل الأسئلة الآتية بدقة ثم أعد الإجابة النهائية فقط (الاختيار: نص الخيار حرفيًا ، صواب/خطأ ، القصيرة: عدد بأرقام إنجليزية). JSON فقط: {\"answers\":[{\"i\":0,\"answer\":\"\"}]}\n" + _mj.dumps(plain, ensure_ascii=False)}], 0.0, 8000)
+                for a in (vr.get("answers") or []): ver[int(a.get("i", -1))] = a.get("answer")
+            except Exception as e:
+                log.append(f"⚠️ التحقق: {str(e)[:80]}")
+            rows = []; nv = 0; quiz = []
+            for i, q in enumerate(qs):
+                t = q.get("type", "mcq")
+                opts = [str(o).replace(",", "؛").replace("،", "؛").strip() for o in (q.get("options") or []) if str(o).strip()]
+                ans = str(q.get("answer", "")).replace(",", "؛").replace("،", "؛").strip()
+                if t == "tf": opts = ["صواب", "خطأ"]
+                elif t == "short": opts = []
+                if opts and ans not in opts: continue
+                ok = ver.get(i) is not None and _mgr_norm_ans(ver.get(i)) == _mgr_norm_ans(ans); nv += ok
+                src = str(q.get("source", "")); pg = str(q.get("page", ""))
+                row = {"pack_id": pid, "job_id": None, "grade": p["grade"], "semester": p.get("semester") or "", "unit": p.get("unit") or "", "lesson": p["lesson"],
+                       "q_type": "short" if not opts else "choice", "question": q["q"].strip(), "options": ",".join(opts), "answer": ans,
+                       "difficulty": q.get("difficulty") if q.get("difficulty") in ("easy", "medium", "hard") else "medium",
+                       "explanation": str(q.get("explanation", ""))[:1500], "check_answer": str(ver.get(i) or "")[:200], "verified": ok,
+                       "source": (src + (f" ص{pg}" if pg else ""))[:40], "status": "pending"}
+                rows.append(row)
+                if opts and ok and len(opts) > 2: quiz.append(row)
+            if rows: _rv_sb.table("question_drafts").insert(rows).execute()
+            upd(status="ready", n_questions_made=len(rows), n_verified=nv, summary=summ,
+                interactive_html=_pack_html(p, summ, quiz, False), pdf_html=_pack_html(p, summ, quiz, True),
+                finished_at=datetime.now(timezone.utc).isoformat())
+            log.append(f"✅ جاهز للمراجعة: {len(rows)} سؤالًا ({nv} متطابق) + درس تفاعلي + ملف الدرس")
+            upd()
+        except Exception as e:
+            log.append(f"❌ {str(e)[:300]}"); upd(status="failed")
+
+async def _pack_queue():
+    while True:
+        r = _rv_sb.table("lesson_packs").select("id").eq("status", "queued").order("id").limit(1).execute()
+        if not r.data: break
+        await _pack_run(r.data[0]["id"])
+
+@app.post("/api/manager/packs")
+async def pack_create(request: Request, bg: _MBg):
+    u = _mgr_user(request); _mgr_need(u, "content")
+    b = await request.json(); rows = []
+    for it in (b.get("items") or [])[:40]:
+        if not it.get("grade") or not it.get("lesson"): continue
+        rows.append({"grade": it["grade"], "semester": it.get("semester", ""), "unit": it.get("unit", ""), "lesson": it["lesson"],
+                     "book_path": it.get("book_path", ""), "book_pages": it.get("book_pages", ""), "act_path": it.get("act_path", ""), "act_pages": it.get("act_pages", ""),
+                     "exams": it.get("exams") or [], "n_questions": max(10, min(int(it.get("n", 30)), 60)), "external_pct": int(it.get("external_pct", 15)),
+                     "status": "queued", "created_by": u["name"]})
+    if rows: _rv_sb.table("lesson_packs").insert(rows).execute()
+    _mgr_log(u["name"], "packs_create", f"{len(rows)} درسًا")
+    bg.add_task(_pack_queue)
+    return {"queued": len(rows)}
+
+@app.get("/api/manager/packs")
+async def pack_list(request: Request):
+    u = _mgr_user(request)
+    r = _rv_sb.table("lesson_packs").select("id,grade,unit,lesson,status,n_questions,n_questions_made,n_verified,created_by,created_at,log").order("id", desc=True).limit(80).execute()
+    return {"packs": r.data or []}
+
+@app.get("/api/manager/packs/{pid}")
+async def pack_get(pid: int, request: Request):
+    u = _mgr_user(request)
+    r = _rv_sb.table("lesson_packs").select("*").eq("id", pid).execute()
+    if not r.data: raise HTTPException(status_code=404, detail="غير موجود")
+    return r.data[0]
+
+@app.post("/api/manager/packs/resume")
+async def pack_resume(request: Request, bg: _MBg):
+    u = _mgr_user(request); _mgr_need(u, "content")
+    _rv_sb.table("lesson_packs").update({"status": "queued"}).in_("status", ["running", "failed"]).execute()
+    bg.add_task(_pack_queue); return {"ok": True}
+
+@app.post("/api/manager/packs/{pid}/publish")
+async def pack_publish(pid: int, request: Request, pdf: UploadFile = File(default=None)):
+    """نشر الدرس التفاعلي في مكتبة الدروس + ملف PDF في مصادر الدرس (الأسئلة تُعتمد من طابور المراجعة)"""
+    u = _mgr_user(request); _mgr_need(u, "review")
+    p = _rv_sb.table("lesson_packs").select("*").eq("id", pid).execute().data[0]
+    import time as _pt
+    out = {}
+    html = p.get("interactive_html") or ""
+    if html:
+        fn = f"lessons/interactive_{int(_pt.time())}_pack{pid}.html"
+        supabase.storage.from_("resources").upload(path=fn, file=html.encode("utf-8"), file_options={"content-type": "text/html; charset=utf-8"})
+        url = supabase.storage.from_("resources").get_public_url(fn)
+        supabase.table("html_lessons").insert({"title": p["lesson"][:200], "grade": p["grade"][:100], "semester": (p.get("semester") or "")[:100], "unit": (p.get("unit") or "")[:200],
+            "lesson": p["lesson"][:300], "description": "🎮 درس تفاعلي", "file_url": url, "file_size_kb": len(html.encode()) // 1024, "sanitized": True}).execute()
+        out["interactive_url"] = url
+    if pdf is not None and pdf.filename:
+        content = await pdf.read()
+        if not content.startswith(b"%PDF") or len(content) > 15_000_000: raise HTTPException(status_code=400, detail="ملف PDF غير صالح")
+        fn = f"res_{uuid.uuid4().hex}.pdf"
+        supabase.storage.from_("resources").upload(path=fn, file=content, file_options={"content-type": "application/pdf"})
+        url = supabase.storage.from_("resources").get_public_url(fn)
+        supabase.table("summaries").insert({"lesson": p["lesson"], "pdf_url": url, "resource_type": "pdf", "resource_label": "📄 ملف الدرس"}).execute()
+        out["pdf_url"] = url
+    _rv_sb.table("lesson_packs").update({"status": "published", "published_by": u["name"]}).eq("id", pid).execute()
+    _mgr_log(u["name"], "pack_publish", p["lesson"])
+    return out
+
+@app.post("/api/manager/packs/{pid}/reject")
+async def pack_reject(pid: int, request: Request):
+    u = _mgr_user(request); _mgr_need(u, "review")
+    _rv_sb.table("lesson_packs").update({"status": "rejected"}).eq("id", pid).execute()
+    return {"ok": True}
 
 
 if __name__ == "__main__":

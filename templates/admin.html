@@ -4642,7 +4642,7 @@ html, body {
                 </div>
                 <div id="bk-banks"></div>
                 <div class="card" style="margin-top:14px;">
-                    <button class="btn-gold" onclick="bkImport()"><i class="fas fa-upload"></i> استيراد المحدد إلى بنك الأسئلة</button>
+                    <label style="display:flex;gap:6px;align-items:center;margin-bottom:8px;"><input type="checkbox" id="bk-review" checked> إرسال إلى <b>طابور المراجعة</b> في مدير المنصة (أراجع وأعتمد بنفسي) بدل البنك مباشرة</label><button class="btn-gold" onclick="bkImport()"><i class="fas fa-upload"></i> استيراد المحدد إلى بنك الأسئلة</button>
                     <div id="bk-log" style="margin-top:10px;max-height:260px;overflow:auto;font-size:.9rem;"></div>
                 </div>
             </section>
@@ -19070,7 +19070,7 @@ async function bkImport(){const banks=(BK.data&&BK.data.banks)||[];const log=doc
  for(let bi=0;bi<banks.length;bi++){if(!document.getElementById('bk-on-'+bi).checked)continue;const bk=banks[bi];const {g,s,u}=bkCurUnit(bi);if(!g||!s||!u){log.innerHTML+='<div>⚠️ '+escAdmin(bk.unit)+': اختر الصف والفصل والوحدة</div>';continue;}
   let rows=[];bk.lessons.forEach((l,li)=>{const sel=document.getElementById('bk-ls-'+bi+'-'+li);const L=(u.lessons||[]).find(x=>String(x.id)===sel.value);if(!L){miss+=l.questions.length;return;}
    l.questions.forEach(q=>rows.push({grade:g.name,semester:s.name,unit:u.name,lesson:L.name,subject:'رياضيات',q_type:q.q_type,question:q.question,options:q.options,answer:q.answer,difficulty:q.difficulty,is_elite:'false'}));});
-  for(let i=0;i<rows.length;i+=40){try{const r=await fetch(API_URL+'/api/admin/questions/bulk',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({questions:rows.slice(i,i+40)})});const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);total+=(j.inserted||0);log.innerHTML+='<div>✅ '+escAdmin(bk.unit)+': '+(j.inserted||0)+' سؤال</div>';}catch(e){log.innerHTML+='<div>❌ '+escAdmin(bk.unit)+': '+escAdmin(e.message)+'</div>';}}
+  const toRev=document.getElementById('bk-review').checked;for(let i=0;i<rows.length;i+=40){try{const r=await fetch(API_URL+(toRev?'/api/manager/drafts/import':'/api/admin/questions/bulk'),{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify(toRev?{source:'إعداد Claude',questions:rows.slice(i,i+40)}:{questions:rows.slice(i,i+40)})});const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);total+=(j.inserted||0);log.innerHTML+='<div>✅ '+escAdmin(bk.unit)+': '+(j.inserted||0)+' سؤال</div>';}catch(e){log.innerHTML+='<div>❌ '+escAdmin(bk.unit)+': '+escAdmin(e.message)+'</div>';}}
   done[bk.key]=new Date().toLocaleDateString('ar');}
  localStorage.setItem('bk_done',JSON.stringify(done));log.innerHTML+='<div style="color:var(--gold);font-weight:bold;">🏁 تم استيراد '+total+' سؤال'+(miss?' — تم تخطي '+miss+' لعدم اختيار الدرس':'')+'</div>';showToast('🏁 تم الاستيراد','success');}
 </script>

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>🧠 مدير المنصة — إمبراطورية الرياضيات</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;700;800&family=Amiri:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0f23;--card:#141a33;--line:#2a3256;--gold:#d4af37;--txt:#eef2ff;--mut:#9aa4c7;--ok:#2ecc71;--bad:#e74c3c;--warn:#f39c12}
+*{box-sizing:border-box}body{margin:0;font-family:Tajawal,sans-serif;background:var(--bg);color:var(--txt);padding-bottom:env(safe-area-inset-bottom)}
+header{position:sticky;top:0;z-index:5;background:#0d1330ee;backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 14px;padding-top:calc(10px + env(safe-area-inset-top));display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+header h1{font:700 1.3rem Amiri;color:var(--gold);margin:0;flex:1}
+nav{display:flex;gap:6px;flex-wrap:wrap}nav button{background:#1c2448;color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:7px 12px;font:700 .9rem Tajawal;cursor:pointer}nav button.on{background:var(--gold);color:#111}
+main{max-width:1100px;margin:auto;padding:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:14px}
+.card h2{margin:0 0 10px;font:700 1.15rem Tajawal;color:var(--gold)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
+.kpi{background:#1a2142;border-radius:12px;padding:12px;text-align:center}.kpi b{display:block;font-size:1.7rem;color:var(--gold)}.kpi span{color:var(--mut);font-size:.85rem}
+label{display:block;font-size:.85rem;color:var(--mut);margin:6px 0 3px}
+input,select,textarea{width:100%;background:#0f1530;color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:8px;font:1rem Tajawal}
+textarea{min-height:70px}
+.btn{background:var(--gold);color:#111;border:none;border-radius:10px;padding:9px 16px;font:800 .95rem Tajawal;cursor:pointer}.btn.s{background:#26305c;color:var(--txt)}.btn.ok{background:var(--ok);color:#fff}.btn.bad{background:var(--bad);color:#fff}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+table{width:100%;border-collapse:collapse;font-size:.9rem}th,td{border-bottom:1px solid var(--line);padding:7px;text-align:right;vertical-align:top}th{color:var(--mut);font-weight:700}
+.bar{height:8px;background:#222a52;border-radius:6px;overflow:hidden}.bar i{display:block;height:100%;background:linear-gradient(90deg,#d4af37,#2ecc71)}
+.tag{display:inline-block;border-radius:8px;padding:1px 8px;font-size:.78rem;font-weight:700}.t-ok{background:#1e5e3a;color:#b9f6ca}.t-no{background:#5e3a1e;color:#ffd8a8}.t-run{background:#1e3a5e;color:#bbdefb}.t-bad{background:#5e1e1e;color:#ffcdd2}
+.q{background:#10173a;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}.q .qt{font-size:1.05rem;line-height:1.9}.q .op{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}.q .op span{background:#1c2448;border-radius:8px;padding:3px 10px}.q .op span.c{background:#1e5e3a}
+.ex{color:var(--mut);font-size:.88rem;border-top:1px dashed var(--line);padding-top:6px;margin-top:6px}
+.hide{display:none}#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#111;border:1px solid var(--gold);color:var(--gold);padding:10px 18px;border-radius:12px;display:none;z-index:9}
+#login{max-width:380px;margin:12vh auto}
+.rec{background:#1b2246;border-right:4px solid var(--gold);border-radius:8px;padding:8px 10px;margin:6px 0}
+sup{font-size:.7em}.frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;line-height:1.1}.frac>span:first-child{border-bottom:1px solid currentColor}
+</style>
+</head>
+<body>
+<div id="login" class="card">
+  <h2>🧠 مدير المنصة</h2>
+  <p style="color:var(--mut)">ادخل بحساب المدير العام أو بحساب فريق العمل.</p>
+  <label>نوع الحساب</label><select id="lg-kind"><option value="staff">👥 فريق العمل</option><option value="admin">👑 المدير العام</option></select>
+  <label>اسم المستخدم</label><input id="lg-user" autocomplete="username">
+  <label>كلمة المرور</label><input id="lg-pass" type="password" autocomplete="current-password">
+  <div class="row" style="margin-top:12px"><button class="btn" onclick="login()">دخول</button><span id="lg-msg" style="color:var(--bad)"></span></div>
+</div>
+
+<div id="app" class="hide">
+<header><h1>🧠 مدير المنصة</h1><span id="me" style="color:var(--mut)"></span>
+<nav id="nav"></nav><button class="btn s" onclick="logout()">خروج</button></header>
+<main>
+ <section id="t-home">
+  <div class="grid" id="kpis"></div>
+  <div class="card" style="margin-top:14px"><h2>💡 توصيات المدير الذكي</h2><div id="recs"></div></div>
+  <div class="card"><h2>📚 تغطية بنوك الأسئلة لكل صف <small style="color:var(--mut)">(الهدف <input id="target" type="number" value="30" style="width:70px;display:inline-block" onchange="loadHome()"> سؤالًا للدرس)</small></h2><div id="cov"></div></div>
+  <div class="card"><h2>🚀 الطيار الآلي</h2><p style="color:var(--mut);margin-top:0">يختار أضعف الدروس تغطية ويولّد لها أسئلة في طابور المراجعة تلقائيًا.</p>
+   <div class="grid"><div><label>الصف (اختياري)</label><select id="ap-grade"><option value="">كل الصفوف</option></select></div><div><label>عدد الدروس</label><input id="ap-n" type="number" value="5" min="1" max="20"></div><div><label>أسئلة لكل درس</label><input id="ap-q" type="number" value="15" min="5" max="40"></div></div>
+   <button class="btn" style="margin-top:10px" onclick="autopilot()">🚀 تشغيل الآن</button></div>
+  <div class="card"><h2>🕳️ أكبر الفجوات</h2><div id="gaps"></div></div>
+ </section>
+
+ <section id="t-prod" class="hide">
+  <div class="card"><h2>🏭 خط الإنتاج — وحدة كاملة بضغطة</h2>
+   <div class="grid"><div><label>الصف</label><select id="p-g" onchange="pSem()"></select></div><div><label>الفصل</label><select id="p-s" onchange="pUnit()"></select></div><div><label>الوحدة</label><select id="p-u" onchange="pLes()"></select></div><div><label>أسئلة لكل درس</label><input id="p-n" type="number" value="15" min="5" max="40"></div></div>
+   <label>ملف الكتاب في المستودع (اختياري) — مثال: 11م/ف1/و5_كتاب.pdf</label><input id="p-book" dir="ltr">
+   <div id="p-les" style="margin-top:10px"></div>
+   <button class="btn" style="margin-top:10px" onclick="pStart()">▶️ ابدأ الإنتاج</button>
+  </div>
+  <div class="card"><h2>⏱️ المهام <button class="btn s" style="float:left" onclick="resume()">🔁 استئناف المتوقف</button></h2><div id="jobs"></div></div>
+ </section>
+
+ <section id="t-rev" class="hide">
+  <div class="card"><h2>✅ طابور المراجعة</h2>
+   <div class="grid"><div><label>الصف</label><select id="r-g" onchange="loadDrafts()"><option value="">الكل</option></select></div><div><label>الدرس</label><input id="r-l" placeholder="اسم الدرس كما في الديوان" onchange="loadDrafts()"></div><div><label>التحقق</label><select id="r-v" onchange="loadDrafts()"><option value="">الكل</option><option value="1">✅ متطابقة</option><option value="0">⚠️ تحتاج انتباه</option></select></div></div>
+   <div class="row" style="margin-top:10px"><button class="btn ok" onclick="bulk('approve',true)">✅ اعتماد كل المتطابقة المعروضة</button><button class="btn s" onclick="bulk('approve',false)">اعتماد المحدد</button><button class="btn bad" onclick="bulk('reject',false)">رفض المحدد</button><span id="r-count" style="color:var(--mut)"></span></div>
+  </div>
+  <div id="drafts"></div>
+ </section>
+
+ <section id="t-pack" class="hide">
+  <div class="card"><h2>📦 مصنع الدرس — أسئلة + درس تفاعلي + ملف PDF</h2>
+   <p style="color:var(--mut);margin-top:0">المصادر من مستودع الكتب: كتاب الطالب وكتاب النشاط والامتحانات السابقة ، مع نسبة صغيرة من خارجها. كل الناتج يدخل المراجعة قبل النشر.</p>
+   <div class="grid"><div><label>الصف</label><select id="k-g" onchange="kSem()"></select></div><div><label>الفصل</label><select id="k-s" onchange="kUnit()"></select></div><div><label>الوحدة</label><select id="k-u" onchange="kLes()"></select></div></div>
+   <div class="grid"><div><label>ملف كتاب الطالب في المستودع</label><input id="k-book" dir="ltr" placeholder="11م/ف1/و5_كتاب.pdf"></div><div><label>ملف كتاب النشاط</label><input id="k-act" dir="ltr" placeholder="11م/ف1/و5_نشاط.pdf"></div></div>
+   <label>امتحانات سابقة (سطر لكل ملف: المسار | الصفحات)</label><textarea id="k-ex" dir="ltr" placeholder="11م/امتحانات/2024_ف1.pdf | 1-6"></textarea>
+   <div class="grid"><div><label>أسئلة لكل درس</label><input id="k-n" type="number" value="30" min="10" max="60"></div><div><label>نسبة الأسئلة من خارج المصادر ٪</label><input id="k-x" type="number" value="15" min="0" max="50"></div></div>
+   <div id="k-les" style="margin-top:10px"></div>
+   <button class="btn" style="margin-top:10px" onclick="kStart()">🏭 تشغيل المصنع</button>
+  </div>
+  <div class="card"><h2>📦 حزم الدروس <button class="btn s" style="float:left" onclick="kResume()">🔁 استئناف</button></h2><div id="packs"></div></div>
+  <div class="card hide" id="k-prev"><h2 id="k-pt"></h2><div class="row"><button class="btn s" onclick="kShow('interactive_html')">🎮 الدرس التفاعلي</button><button class="btn s" onclick="kShow('pdf_html')">📄 ملف الدرس</button><button class="btn ok" onclick="kPublish()">🚀 اعتماد ونشر الدرس والملف</button><button class="btn bad" onclick="kReject()">رفض</button></div>
+   <p style="color:var(--mut)">💡 أسئلة هذه الحزمة تُراجع وتُعتمد من تبويب «المراجعة» (فلتر الدرس).</p>
+   <iframe id="k-frame" style="width:100%;height:70vh;border:1px solid var(--line);border-radius:12px;background:#fff;margin-top:8px"></iframe></div>
+ </section>
+
+ <section id="t-team" class="hide">
+  <div class="card"><h2>👥 فريق العمل</h2>
+   <div class="grid"><div><label>الاسم</label><input id="s-name"></div><div><label>اسم المستخدم</label><input id="s-user" dir="ltr"></div><div><label>كلمة المرور (٨+)</label><input id="s-pass" type="password"></div></div>
+   <label>الصلاحيات</label><div class="row" id="s-perms"></div>
+   <button class="btn" style="margin-top:10px" onclick="saveStaff()">➕ إضافة / تحديث</button><input type="hidden" id="s-id">
+  </div>
+  <div class="card"><div id="staff"></div></div>
+ </section>
+
+ <section id="t-log" class="hide"><div class="card"><h2>📜 سجل العمليات</h2><div id="logs"></div></div></section>
+</main>
+</div>
+<div id="toast"></div>
+<script>
+const API=location.origin;let TOK=localStorage.getItem('mgrToken')||'',ME=null,CUR=[];
+const PERMS={content:'🏭 الإنتاج',review:'✅ المراجعة',reports:'📊 التقارير',licenses:'🔑 التفعيل'};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const toast=m=>{const t=document.getElementById('toast');t.textContent=m;t.style.display='block';clearTimeout(t._h);t._h=setTimeout(()=>t.style.display='none',3500)};
+const hd=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
+function mfmt(s){s=esc(s).replace(/\$/g,'');s=s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'<span class="frac"><span>$1</span><span>$2</span></span>').replace(/\\sqrt\{([^{}]*)\}/g,'√($1)').replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/\^(-?[0-9٠-٩]+)/g,'<sup>$1</sup>');return hd(s)}
+async function api(p,o={}){o.headers=Object.assign({'Authorization':'Bearer '+TOK},o.headers||{});if(o.json){o.method=o.method||'POST';o.headers['Content-Type']='application/json';o.body=JSON.stringify(o.json);delete o.json}const r=await fetch(API+p,o);const j=await r.json().catch(()=>({}));if(r.status===401){logout();throw new Error('انتهت الجلسة')}if(!r.ok)throw new Error(j.detail||('خطأ '+r.status));return j}
+async function login(){const k=document.getElementById('lg-kind').value,fd=new FormData();fd.append('username',document.getElementById('lg-user').value);fd.append('password',document.getElementById('lg-pass').value);
+ try{const r=await fetch(API+(k==='admin'?'/api/admin/login':'/api/staff/login'),{method:'POST',body:fd});const j=await r.json();if(!r.ok||!j.access_token)throw new Error(j.detail||'بيانات غير صحيحة');TOK=j.access_token;localStorage.setItem('mgrToken',TOK);boot()}catch(e){document.getElementById('lg-msg').textContent=e.message}}
+function logout(){localStorage.removeItem('mgrToken');TOK='';location.reload()}
+async function boot(){if(!TOK)return;try{ME=await api('/api/manager/me')}catch(e){return}
+ document.getElementById('login').classList.add('hide');document.getElementById('app').classList.remove('hide');document.getElementById('me').textContent=ME.name;
+ const tabs=[['home','🏠 القيادة','reports'],['pack','📦 مصنع الدرس','content'],['prod','🏭 الإنتاج','content'],['rev','✅ المراجعة','review'],['team','👥 الفريق','admin'],['log','📜 السجل','admin']].filter(t=>t[2]==='admin'?ME.role==='admin':(ME.role==='admin'||ME.perms.includes(t[2])));
+ document.getElementById('nav').innerHTML=tabs.map(t=>`<button data-t="${t[0]}" onclick="tab('${t[0]}')">${t[1]}</button>`).join('');
+ try{CUR=await (await fetch(API+'/api/curriculum/structure')).json()}catch(e){CUR=[]}
+ const go=CUR.map(g=>`<option>${esc(g.name)}</option>`).join('');document.getElementById('ap-grade').innerHTML='<option value="">كل الصفوف</option>'+go;document.getElementById('r-g').innerHTML='<option value="">الكل</option>'+go;document.getElementById('p-g').innerHTML='<option value="">— اختر —</option>'+CUR.map((g,i)=>`<option value="${i}">${esc(g.name)}</option>`).join('');document.getElementById('k-g').innerHTML=document.getElementById('p-g').innerHTML;
+ document.getElementById('s-perms').innerHTML=Object.entries(PERMS).map(([k,v])=>`<label style="display:flex;gap:4px;align-items:center;color:var(--txt)"><input type="checkbox" value="${k}" style="width:auto">${v}</label>`).join('');
+ tab(tabs[0][0])}
+function tab(t){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hide'));document.getElementById('t-'+t).classList.remove('hide');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
+ ({home:loadHome,pack:kLoad,prod:loadJobs,rev:loadDrafts,team:loadStaff,log:loadLog})[t]()}
+async function loadHome(){try{const o=await api('/api/manager/overview?target='+document.getElementById('target').value);
+ document.getElementById('kpis').innerHTML=[['الدروس المكتملة',hd(o.lessons_covered)+' / '+hd(o.lessons_total)],['تنتظر المراجعة',hd(o.pending)],['مهام جارية',hd(o.jobs_running)],['مهام فشلت',hd(o.jobs_failed)],['إجابات الطلاب (٧ أيام)',o.activity_7d==null?'—':hd(o.activity_7d)]].map(k=>`<div class="kpi"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
+ document.getElementById('recs').innerHTML=(o.recommendations.length?o.recommendations:['✅ كل شيء على ما يرام']).map(r=>`<div class="rec">${esc(r)}</div>`).join('');
+ document.getElementById('cov').innerHTML='<table><tr><th>الصف</th><th>الدروس</th><th>المكتملة</th><th>الأسئلة</th><th style="width:30%">التغطية</th></tr>'+o.grades.map(g=>`<tr><td>${esc(g.grade)}</td><td>${hd(g.lessons)}</td><td>${hd(g.covered)}</td><td>${hd(g.questions)}</td><td><div class="bar"><i style="width:${g.pct}%"></i></div> ${hd(g.pct)}٪</td></tr>`).join('')+'</table>';
+ document.getElementById('gaps').innerHTML='<table><tr><th>الصف</th><th>الوحدة</th><th>الدرس</th><th>الأسئلة</th><th>معلّقة</th></tr>'+o.gaps.map(g=>`<tr><td>${esc(g.grade)}</td><td>${esc(g.unit)}</td><td>${esc(g.lesson)}</td><td>${hd(g.count)}</td><td>${hd(g.pending)}</td></tr>`).join('')+'</table>';
+ }catch(e){toast('❌ '+e.message)}}
+async function autopilot(){try{const r=await api('/api/manager/autopilot',{json:{grade:document.getElementById('ap-grade').value,max_lessons:+document.getElementById('ap-n').value,per_lesson:+document.getElementById('ap-q').value,target:+document.getElementById('target').value}});toast('🚀 أُضيف '+hd(r.queued)+' درسًا لخط الإنتاج');}catch(e){toast('❌ '+e.message)}}
+const gSel=()=>CUR[+document.getElementById('p-g').value];
+function opts(list){return (list||[]).map((x,i)=>`<option value="${i}">${esc(x.name)}</option>`).join('')}
+function pSem(){const g=gSel();document.getElementById('p-s').innerHTML=opts(g&&g.semesters);pUnit()}
+function pUnit(){const g=gSel(),s=g&&g.semesters&&g.semesters[+document.getElementById('p-s').value];document.getElementById('p-u').innerHTML=opts(s&&s.units);pLes()}
+function pCur(){const g=gSel(),s=g&&g.semesters&&g.semesters[+document.getElementById('p-s').value],u=s&&s.units&&s.units[+document.getElementById('p-u').value];return {g,s,u}}
+function pLes(){const {u}=pCur();document.getElementById('p-les').innerHTML=u?'<table><tr><th><input type="checkbox" checked style="width:auto" onchange="document.querySelectorAll(\'.pl\').forEach(c=>c.checked=this.checked)"></th><th>الدرس</th><th>صفحات الكتاب (مثال 3-6)</th></tr>'+(u.lessons||[]).map((l,i)=>`<tr><td><input type="checkbox" class="pl" data-i="${i}" checked style="width:auto"></td><td>${esc(l.name)}</td><td><input class="pp" data-i="${i}" dir="ltr" placeholder="—"></td></tr>`).join('')+'</table>':''}
+async function pStart(){const {g,s,u}=pCur();if(!u){toast('اختر الوحدة');return}const n=+document.getElementById('p-n').value,book=document.getElementById('p-book').value.trim();
+ const items=[...document.querySelectorAll('.pl')].filter(c=>c.checked).map(c=>{const l=u.lessons[+c.dataset.i];const pg=document.querySelector(`.pp[data-i="${c.dataset.i}"]`).value.trim();return {grade:g.name,semester:s.name,unit:u.name,lesson:l.name,n,book_path:pg?book:'',pages:pg}});
+ try{const r=await api('/api/manager/jobs',{json:{items}});toast('▶️ بدأ إنتاج '+hd(r.queued)+' درسًا');loadJobs()}catch(e){toast('❌ '+e.message)}}
+async function loadJobs(){try{const j=await api('/api/manager/jobs');const st={queued:['في الانتظار','t-no'],running:['جارٍ','t-run'],done:['تم','t-ok'],failed:['فشل','t-bad']};
+ document.getElementById('jobs').innerHTML='<table><tr><th>#</th><th>الدرس</th><th>الحالة</th><th>المولّد</th><th>المتطابق</th><th>بواسطة</th></tr>'+j.jobs.map(x=>`<tr title="${esc(x.log||'')}"><td>${hd(x.id)}</td><td>${esc(x.grade)}<br><small style="color:var(--mut)">${esc(x.lesson)}</small></td><td><span class="tag ${(st[x.status]||['',''])[1]}">${(st[x.status]||[x.status])[0]}</span></td><td>${hd(x.n_made||0)} / ${hd(x.n_req)}</td><td>${hd(x.n_verified||0)}</td><td>${esc(x.created_by||'')}</td></tr>`).join('')+'</table>';
+ if(j.jobs.some(x=>x.status==='running'||x.status==='queued')){clearTimeout(window._jt);window._jt=setTimeout(()=>{if(!document.getElementById('t-prod').classList.contains('hide'))loadJobs()},8000)}}catch(e){toast('❌ '+e.message)}}
+async function resume(){try{await api('/api/manager/jobs/resume',{json:{}});toast('🔁 تم الاستئناف');loadJobs()}catch(e){toast('❌ '+e.message)}}
+let DR=[];
+async function loadDrafts(){const q=new URLSearchParams({status:'pending',grade:document.getElementById('r-g').value,lesson:document.getElementById('r-l').value,verified:document.getElementById('r-v').value,limit:100});
+ try{DR=(await api('/api/manager/drafts?'+q)).drafts;document.getElementById('r-count').textContent=hd(DR.length)+' سؤالًا معروضًا';
+ document.getElementById('drafts').innerHTML=DR.map(d=>`<div class="q" id="d${d.id}"><div class="row" style="justify-content:space-between"><label style="display:flex;gap:6px;align-items:center;color:var(--txt)"><input type="checkbox" class="dc" value="${d.id}" style="width:auto"> ${esc(d.grade)} — ${esc(d.lesson)}</label><span>${d.verified?'<span class="tag t-ok">✅ متطابق في التحقق</span>':'<span class="tag t-no">⚠️ تحقق: '+esc(d.check_answer||'—')+'</span>'} <span class="tag t-run">${esc(d.difficulty||'')}</span>${d.source?' <span class="tag t-no">📚 '+esc(d.source)+'</span>':''}</span></div>
+  <div class="qt">${mfmt(d.question)}</div>${d.options?'<div class="op">'+d.options.split(',').map(o=>`<span class="${o===d.answer?'c':''}">${mfmt(o)}</span>`).join('')+'</div>':'<div class="op"><span class="c">الإجابة: '+mfmt(d.answer)+'</span></div>'}
+  ${d.explanation?'<div class="ex">💡 '+mfmt(d.explanation)+'</div>':''}
+  <div class="row" style="margin-top:8px"><button class="btn ok" onclick="act([${d.id}],'approve')">اعتماد</button><button class="btn s" onclick="edit(${d.id})">تعديل</button><button class="btn bad" onclick="act([${d.id}],'reject')">رفض</button></div></div>`).join('')||'<div class="card">🎉 لا توجد أسئلة تنتظر المراجعة</div>'}catch(e){toast('❌ '+e.message)}}
+async function act(ids,a){try{const r=await api('/api/manager/drafts/action',{json:{ids,action:a}});toast((a==='approve'?'✅ اعتُمد ':'🗑️ رُفض ')+hd(r.done)+(r.duplicates?' — مكرر '+hd(r.duplicates):''));ids.forEach(i=>{const e=document.getElementById('d'+i);if(e)e.remove()})}catch(e){toast('❌ '+e.message)}}
+function bulk(a,onlyVerified){const ids=onlyVerified?DR.filter(d=>d.verified).map(d=>d.id):[...document.querySelectorAll('.dc:checked')].map(c=>+c.value);if(!ids.length){toast('لا يوجد شيء محدد');return}if(confirm((a==='approve'?'اعتماد ':'رفض ')+ids.length+' سؤالًا؟'))act(ids,a)}
+function edit(id){const d=DR.find(x=>x.id===id);const box=document.getElementById('d'+id);box.innerHTML=`<label>السؤال</label><textarea id="e-q">${esc(d.question)}</textarea><label>الخيارات (مفصولة بفاصلة)</label><input id="e-o" value="${esc(d.options)}"><label>الإجابة</label><input id="e-a" value="${esc(d.answer)}"><label>الشرح</label><textarea id="e-x">${esc(d.explanation||'')}</textarea><div class="row" style="margin-top:8px"><button class="btn" onclick="saveEdit(${id})">💾 حفظ</button><button class="btn s" onclick="loadDrafts()">إلغاء</button></div>`}
+async function saveEdit(id){const o=document.getElementById('e-o').value,a=document.getElementById('e-a').value;if(o&&!o.split(',').includes(a)){toast('⚠️ الإجابة يجب أن تطابق أحد الخيارات');return}
+ try{await api('/api/manager/drafts/'+id,{method:'PUT',json:{question:document.getElementById('e-q').value,options:o,answer:a,explanation:document.getElementById('e-x').value}});toast('💾 تم الحفظ');loadDrafts()}catch(e){toast('❌ '+e.message)}}
+async function loadStaff(){try{const j=await api('/api/manager/staff');document.getElementById('staff').innerHTML='<table><tr><th>الاسم</th><th>المستخدم</th><th>الصلاحيات</th><th>الحالة</th><th>آخر دخول</th><th></th></tr>'+j.staff.map(s=>`<tr><td>${esc(s.name)}</td><td dir="ltr">${esc(s.username)}</td><td>${(s.perms||[]).map(p=>PERMS[p]||p).join('، ')}</td><td>${s.active?'✅':'⛔'}</td><td>${esc((s.last_login||'').slice(0,16).replace('T',' '))}</td><td><button class="btn s" onclick='pickStaff(${JSON.stringify(s).replace(/'/g,"&#39;")})'>تعديل</button> <button class="btn ${s.active?'bad':'ok'}" onclick="toggleStaff(${s.id},${!s.active},'${esc(s.name)}')">${s.active?'تعطيل':'تفعيل'}</button></td></tr>`).join('')+'</table>'}catch(e){toast('❌ '+e.message)}}
+function pickStaff(s){document.getElementById('s-id').value=s.id;document.getElementById('s-name').value=s.name;document.getElementById('s-user').value=s.username;document.getElementById('s-user').disabled=true;document.getElementById('s-pass').value='';document.querySelectorAll('#s-perms input').forEach(c=>c.checked=(s.perms||[]).includes(c.value));scrollTo(0,0)}
+async function saveStaff(){const b={id:+document.getElementById('s-id').value||undefined,name:document.getElementById('s-name').value,username:document.getElementById('s-user').value,password:document.getElementById('s-pass').value||undefined,perms:[...document.querySelectorAll('#s-perms input:checked')].map(c=>c.value),active:true};
+ try{await api('/api/manager/staff',{json:b});toast('✅ تم الحفظ');['s-id','s-name','s-user','s-pass'].forEach(i=>document.getElementById(i).value='');document.getElementById('s-user').disabled=false;loadStaff()}catch(e){toast('❌ '+e.message)}}
+async function toggleStaff(id,active,name){try{await api('/api/manager/staff',{json:{id,name,active,perms:undefined}});loadStaff()}catch(e){toast('❌ '+e.message)}}
+async function loadLog(){try{const j=await api('/api/manager/log');document.getElementById('logs').innerHTML='<table><tr><th>الوقت</th><th>المستخدم</th><th>العملية</th><th>التفاصيل</th></tr>'+j.log.map(l=>`<tr><td>${esc((l.ts||'').slice(0,16).replace('T',' '))}</td><td>${esc(l.actor)}</td><td>${esc(l.action)}</td><td>${esc(l.detail)}</td></tr>`).join('')+'</table>'}catch(e){toast('❌ '+e.message)}}
+
+const kG=()=>CUR[+document.getElementById('k-g').value];
+function kSem(){const g=kG();document.getElementById('k-s').innerHTML=opts(g&&g.semesters);kUnit()}
+function kUnit(){const g=kG(),s=g&&g.semesters&&g.semesters[+document.getElementById('k-s').value];document.getElementById('k-u').innerHTML=opts(s&&s.units);kLes()}
+function kCur(){const g=kG(),s=g&&g.semesters&&g.semesters[+document.getElementById('k-s').value],u=s&&s.units&&s.units[+document.getElementById('k-u').value];return {g,s,u}}
+function kLes(){const {u}=kCur();document.getElementById('k-les').innerHTML=u?'<table><tr><th>✔</th><th>الدرس</th><th>صفحات كتاب الطالب</th><th>صفحات النشاط</th></tr>'+(u.lessons||[]).map((l,i)=>`<tr><td><input type="checkbox" class="kl" data-i="${i}" checked style="width:auto"></td><td>${esc(l.name)}</td><td><input class="kb" data-i="${i}" dir="ltr" placeholder="3-8"></td><td><input class="ka" data-i="${i}" dir="ltr" placeholder="2-4"></td></tr>`).join('')+'</table>':''}
+async function kStart(){const {g,s,u}=kCur();if(!u){toast('اختر الوحدة');return}
+ const exams=document.getElementById('k-ex').value.split('\n').map(x=>x.split('|').map(y=>y.trim())).filter(x=>x[0]&&x[1]).map(x=>({path:x[0],pages:x[1]}));
+ const items=[...document.querySelectorAll('.kl')].filter(c=>c.checked).map(c=>{const i=c.dataset.i,l=u.lessons[+i];return {grade:g.name,semester:s.name,unit:u.name,lesson:l.name,book_path:document.getElementById('k-book').value.trim(),book_pages:document.querySelector(`.kb[data-i="${i}"]`).value.trim(),act_path:document.getElementById('k-act').value.trim(),act_pages:document.querySelector(`.ka[data-i="${i}"]`).value.trim(),exams,n:+document.getElementById('k-n').value,external_pct:+document.getElementById('k-x').value}});
+ try{const r=await api('/api/manager/packs',{json:{items}});toast('🏭 بدأ تصنيع '+hd(r.queued)+' درسًا');kLoad()}catch(e){toast('❌ '+e.message)}}
+let KP=null;
+async function kLoad(){try{const j=await api('/api/manager/packs');const st={queued:['في الانتظار','t-no'],running:['جارٍ','t-run'],ready:['جاهز للمراجعة','t-ok'],published:['منشور','t-ok'],failed:['فشل','t-bad'],rejected:['مرفوض','t-bad']};
+ document.getElementById('packs').innerHTML='<table><tr><th>#</th><th>الدرس</th><th>الحالة</th><th>الأسئلة</th><th>متطابق</th><th></th></tr>'+j.packs.map(x=>`<tr title="${esc(x.log||'')}"><td>${hd(x.id)}</td><td>${esc(x.grade)}<br><small style="color:var(--mut)">${esc(x.lesson)}</small></td><td><span class="tag ${(st[x.status]||['',''])[1]}">${(st[x.status]||[x.status])[0]}</span></td><td>${hd(x.n_questions_made||0)}</td><td>${hd(x.n_verified||0)}</td><td>${x.status==='ready'||x.status==='published'?`<button class="btn s" onclick="kOpen(${x.id})">👁️ معاينة</button>`:''}</td></tr>`).join('')+'</table>';
+ if(j.packs.some(x=>x.status==='running'||x.status==='queued')){clearTimeout(window._kt);window._kt=setTimeout(()=>{if(!document.getElementById('t-pack').classList.contains('hide'))kLoad()},10000)}}catch(e){toast('❌ '+e.message)}}
+async function kOpen(id){try{KP=await api('/api/manager/packs/'+id);document.getElementById('k-prev').classList.remove('hide');document.getElementById('k-pt').textContent='👁️ '+KP.lesson;kShow('interactive_html');document.getElementById('k-prev').scrollIntoView()}catch(e){toast('❌ '+e.message)}}
+function kShow(f){document.getElementById('k-frame').srcdoc=KP[f]||'<p>لا يوجد محتوى</p>'}
+function kLib(){return new Promise((res,rej)=>{if(window.html2pdf)return res();const sc=document.createElement('script');sc.src='https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js';sc.onload=res;sc.onerror=rej;document.head.appendChild(sc)})}
+async function kPdf(){await kLib();const f=document.getElementById('k-frame');f.srcdoc=KP.pdf_html;await new Promise(r=>f.onload=r);await new Promise(r=>setTimeout(r,800));
+ return await html2pdf().set({margin:[8,8,8,8],filename:'lesson.pdf',image:{type:'jpeg',quality:0.95},html2canvas:{scale:2,useCORS:true},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','legacy']}}).from(f.contentDocument.body).outputPdf('blob')}
+async function kPublish(){if(!KP)return;if(!confirm('نشر الدرس التفاعلي وملف PDF للطلاب؟'))return;try{toast('⏳ جارٍ تجهيز ملف PDF…');const blob=await kPdf();const fd=new FormData();fd.append('pdf',blob,'lesson.pdf');
+ const r=await fetch(API+'/api/manager/packs/'+KP.id+'/publish',{method:'POST',headers:{'Authorization':'Bearer '+TOK},body:fd});const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);toast('🚀 تم النشر');kLoad()}catch(e){toast('❌ '+e.message)}}
+async function kReject(){if(!KP||!confirm('رفض هذه الحزمة؟'))return;try{await api('/api/manager/packs/'+KP.id+'/reject',{json:{}});toast('تم الرفض');document.getElementById('k-prev').classList.add('hide');kLoad()}catch(e){toast('❌ '+e.message)}}
+async function kResume(){try{await api('/api/manager/packs/resume',{json:{}});toast('🔁 تم الاستئناف');kLoad()}catch(e){toast('❌ '+e.message)}}
+boot();
+</script>
+</body>
+</html>

@@ -7814,8 +7814,10 @@
                 document.getElementById('btn-elite-arena-cancel').style.display = 'none';
                 showToast('⚔️ وجدنا لك منافساً: ' + data.opponent, 'success');
                 // تحميل أسئلة النخبة
-                await eliteLoadBattleQuestions();
+                if (Array.isArray(data.questions) && data.questions.length) { eliteBattleQs = data.questions; eliteBattleIdx = 0; } else { await eliteLoadBattleQuestions(); } // 🔧 نفس الأسئلة للمتنافسين
                 eliteShowBattleQuestion();
+            } else if (data.type === 'opponent_left') { // 🔧 انسحاب المنافس
+                showToast(data.msg || 'انسحب المنافس', 'success'); eliteBattleIdx = eliteBattleQs.length; eliteMyScore = Math.max(eliteMyScore, eliteOppScore + 1); eliteShowBattleQuestion();
             } else if (data.type === 'score_update') {
                 const scores = data.scores;
                 const myName = currentUser.full_name;
