@@ -2551,6 +2551,8 @@ html, body {
                     <div class="nav-link nl-gold" onclick="showSection('bank')"><i class="fas fa-gem"></i> بنك التحديات</div>
                     <div class="nav-link nl-orange" onclick="showSection('scrolls')"><i class="fas fa-scroll"></i> لفائف المعرفة (PDF)</div>
                     <div class="nav-link" onclick="showSection('html-lessons');setTimeout(function(){populateGradeDropdown('hl');populateGradeDropdown('flt-hl');loadHtmlLessons();},100);" style="color:#5dade2;"><i class="fas fa-laptop-code"></i> الدروس التفاعلية</div>
+                    <div class="nav-link" onclick="showSection('rv-reviews');setTimeout(rvLoadAll,100);" style="color:#d4af37;"><i class="fas fa-key"></i> المراجعات التفاعلية والتفعيل 📚</div>
+                    <div class="nav-link" onclick="showSection('bk-import');setTimeout(bkInit,100);" style="color:#2ecc71;"><i class="fas fa-file-import"></i> استيراد بنوك جاهزة 📥</div>
                     <div class="nav-link" onclick="showSection('videos-mgr');setTimeout(loadVideosList,100);" style="color:#e91e63;"><i class="fas fa-video"></i> الفيديوهات القصيرة</div>
                 </div>
                 
@@ -4627,6 +4629,53 @@ html, body {
                         <br><br>
                         <strong>الحدود:</strong> 15 سؤال لكل طالب كل 5 دقائق (لمنع الإسراف).
                     </div>
+                </div>
+            </section>
+
+            <!-- ==================== 📥 استيراد بنوك جاهزة (إضافة) ==================== -->
+            <section id="bk-import" class="section">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-file-import"></i> استيراد بنوك أسئلة جاهزة 📥</h2>
+                    <p style="opacity:.75;margin-top:5px;">اختر ملف البنوك (JSON) ، وستُربط كل وحدة ودرس تلقائيًا بديوان المنهج. راجع الربط ثم اضغط «استيراد».</p>
+                    <input type="file" id="bk-file" accept=".json" onchange="bkLoadFile(this)" style="margin-top:10px;">
+                    <div id="bk-summary" style="margin-top:10px;opacity:.85;"></div>
+                </div>
+                <div id="bk-banks"></div>
+                <div class="card" style="margin-top:14px;">
+                    <button class="btn-gold" onclick="bkImport()"><i class="fas fa-upload"></i> استيراد المحدد إلى بنك الأسئلة</button>
+                    <div id="bk-log" style="margin-top:10px;max-height:260px;overflow:auto;font-size:.9rem;"></div>
+                </div>
+            </section>
+
+            <!-- ==================== 📚 المراجعات التفاعلية (إضافة) ==================== -->
+            <section id="rv-reviews" class="section">
+                <div class="card">
+                    <h2 style="color:var(--gold);"><i class="fas fa-key"></i> المراجعات التفاعلية — التفعيل والإحصاءات 📚</h2>
+                    <p style="opacity:.7;margin-top:5px;">أكواد التفعيل مرتبطة برقم جهاز الطالب/المعلم. الكود الصادر من هنا يعمل فورًا داخل التطبيق ويُحفظ على السيرفر.</p>
+                    <div id="rv-ping" style="margin:10px 0;opacity:.8;">⏳ فحص الاتصال...</div>
+                    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:12px;">
+                        <div><label>رقم الجهاز</label><input id="rv-dev" placeholder="XXXX-XXXX" maxlength="12" style="direction:ltr;text-align:center;font-family:monospace;letter-spacing:2px;"></div>
+                        <div><label>نوع التفعيل</label><select id="rv-scope">
+                            <option value="APP:math11">اشتراك الحادي عشر المتقدم (math11)</option>
+                            <option value="APP:math12">اشتراك الثاني عشر الأساسي (math12)</option>
+                            <option value="APP:math12a">اشتراك الثاني عشر المتقدم (math12a)</option>
+                            <option value="APP:math8">اشتراك الصف الثامن (math8)</option>
+                            <option value="PRINT">🖨️ الطباعة النظيفة للمعلم</option>
+                            <option value="ALL">⭐ كل شيء</option></select></div>
+                        <div><label>اسم العميل</label><input id="rv-cust"></div>
+                        <div><label>ملاحظة</label><input id="rv-note"></div>
+                    </div>
+                    <button class="btn-gold" style="margin-top:12px;" onclick="rvIssue()"><i class="fas fa-key"></i> إصدار الكود</button>
+                    <div id="rv-out" style="margin-top:12px;font-size:1.4rem;font-family:monospace;letter-spacing:3px;color:var(--gold);"></div>
+                </div>
+                <div class="card" style="margin-top:16px;">
+                    <h3 style="color:var(--gold);">📊 الاستخدام (آخر <select id="rv-days" onchange="rvStats()" style="width:auto;display:inline-block;"><option>7</option><option selected>30</option><option>90</option><option>365</option></select> يومًا)</h3>
+                    <div id="rv-stats" style="overflow-x:auto;margin-top:10px;">—</div>
+                </div>
+                <div class="card" style="margin-top:16px;">
+                    <h3 style="color:var(--gold);">🔐 التفعيلات</h3>
+                    <input id="rv-q" placeholder="بحث برقم الجهاز أو اسم العميل" oninput="clearTimeout(window._rvT);window._rvT=setTimeout(rvLic,400)" style="margin:8px 0;">
+                    <div id="rv-lic" style="overflow-x:auto;">—</div>
                 </div>
             </section>
 
@@ -18976,6 +19025,54 @@ function escAdmin(s) {
 }
 
 
+</script>
+
+<script>
+/* ===== 📚 المراجعات التفاعلية (إضافة فقط) ===== */
+function rvTok(){return localStorage.getItem('adminToken')||localStorage.getItem('admin_token')||sessionStorage.getItem('admin_token')||'';}
+async function rvApi(path,opt){opt=opt||{};opt.headers=Object.assign({'Authorization':'Bearer '+rvTok()},opt.headers||{});const r=await fetch(API_URL+path,opt);const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.detail||('خطأ '+r.status));return j;}
+function rvEsc(s){return String(s==null?'':s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+const RV_APPS={math8:'الثامن',math11:'الحادي عشر م',math12:'الثاني عشر أ',math12a:'الثاني عشر م',file:'ملف منفرد'};
+async function rvLoadAll(){try{const p=await fetch(API_URL+'/api/reviews/ping').then(r=>r.json());document.getElementById('rv-ping').innerHTML=p.ok?(p.lic?'✅ الاتصال سليم ونظام الأكواد مفعّل':'⚠️ الاتصال سليم لكن REVIEWS_LIC_SECRET غير مضبوط'):'❌';}catch(e){document.getElementById('rv-ping').textContent='❌ تعذر الاتصال';}rvStats();rvLic();}
+async function rvIssue(){const dev=document.getElementById('rv-dev').value,scope=document.getElementById('rv-scope').value;try{const j=await rvApi('/api/admin/reviews/license/issue',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device:dev,scope:scope,customer:document.getElementById('rv-cust').value,note:document.getElementById('rv-note').value})});
+ const lab=document.getElementById('rv-scope').selectedOptions[0].text;document.getElementById('rv-out').innerHTML=rvEsc(j.code)+' <button class="btn-gold" style="font-size:.85rem;letter-spacing:0" onclick="navigator.clipboard.writeText(\'كود التفعيل ('+rvEsc(lab)+'):\\n'+rvEsc(j.code)+'\\nيعمل على جهازك فقط. مع تحيات أ. رشدي سيد\');showToast(\'✅ تم نسخ الرسالة\',\'success\')">نسخ رسالة</button>';showToast('✅ تم إصدار الكود','success');rvLic();}catch(e){showToast('❌ '+e.message,'error');}}
+async function rvRevoke(dev,scope){if(!confirm('إلغاء تفعيل '+dev+' ؟'))return;try{await rvApi('/api/admin/reviews/license/revoke',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({device:dev,scope:scope})});showToast('تم الإلغاء','success');rvLic();}catch(e){showToast('❌ '+e.message,'error');}}
+async function rvStats(){const el=document.getElementById('rv-stats');try{const j=await rvApi('/api/admin/reviews/stats?days='+document.getElementById('rv-days').value);if(!j.units.length){el.textContent='لا توجد بيانات بعد';return;}
+ el.innerHTML='<p>إجمالي الأجهزة: <b>'+j.total_devices+'</b></p><table><tr><th>التطبيق</th><th>الوحدة</th><th>فتح</th><th>مشاهدات</th><th>أجهزة</th><th>تفعيلات</th></tr>'+j.units.map(u=>'<tr><td>'+rvEsc(RV_APPS[u.app]||u.app)+'</td><td>'+rvEsc(u.unit+' — '+u.title)+'</td><td>'+u.opens+'</td><td>'+u.views+'</td><td>'+u.devices+'</td><td>'+u.activations+'</td></tr>').join('')+'</table>';}catch(e){el.textContent='❌ '+e.message;}}
+async function rvLic(){const el=document.getElementById('rv-lic');try{const j=await rvApi('/api/admin/reviews/licenses?q='+encodeURIComponent(document.getElementById('rv-q').value||''));if(!j.licenses.length){el.textContent='لا توجد تفعيلات';return;}
+ el.innerHTML='<table><tr><th>الجهاز</th><th>النوع</th><th>العميل</th><th>الحالة</th><th>التاريخ</th><th></th></tr>'+j.licenses.map(l=>'<tr><td style="font-family:monospace">'+rvEsc(l.device)+'</td><td>'+rvEsc(l.scope)+'</td><td>'+rvEsc(l.customer||'—')+'</td><td>'+(l.active?'✅':'⛔')+'</td><td>'+rvEsc((l.created_at||'').slice(0,10))+'</td><td>'+(l.active?'<button class="btn-gold" style="font-size:.8rem" data-d="'+rvEsc(l.device)+'" data-s="'+rvEsc(l.scope)+'" onclick="rvRevoke(this.dataset.d,this.dataset.s)">إلغاء</button>':'')+'</td></tr>').join('')+'</table>';}catch(e){el.textContent='❌ '+e.message;}}
+</script>
+
+<script>
+/* ===== 📥 استيراد بنوك جاهزة (إضافة فقط) ===== */
+let BK={data:null,cur:[]};
+function bkN(t){return String(t||'').replace(/[\u064B-\u0652\u0640]/g,'').replace(/[أإآ]/g,'ا').replace(/ة/g,'ه').replace(/ى/g,'ي').replace(/[^\u0621-\u064A0-9\u0660-\u0669 ]/g,' ').replace(/(^| )ال/g,' ').replace(/\s+/g,' ').trim();}
+function bkSim(a,b){const A=new Set(bkN(a).split(' ').filter(w=>w.length>1)),B=new Set(bkN(b).split(' ').filter(w=>w.length>1));if(!A.size||!B.size)return 0;let n=0;A.forEach(w=>{if(B.has(w))n++});return n/Math.min(A.size,B.size);}
+function bkDig(t){return String(t||'').replace(/[\u0660-\u0669]/g,d=>'\u0660\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668\u0669'.indexOf(d));}
+function bkBest(list,title,num){let best=null,sc=0;list.forEach(x=>{let v=bkSim(x.name,title);const n=bkDig(num).match(/\d+/g);if(n&&n.length>=2){const nm=bkDig(x.name);if(nm.includes(n[0]+'-'+n[1])||nm.includes(n[1]+'-'+n[0]))v+=1}if(v>sc){sc=v;best=x}});return sc>=0.34?best:null;}
+async function bkInit(){if(BK.cur.length)return;try{const r=await fetch(API_URL+'/api/curriculum/structure');BK.cur=await r.json();document.getElementById('bk-summary').textContent='✅ تم تحميل ديوان المنهج: '+BK.cur.length+' صفوف';}catch(e){document.getElementById('bk-summary').textContent='❌ تعذر تحميل ديوان المنهج';}}
+function bkLoadFile(inp){const f=inp.files[0];if(!f)return;const r=new FileReader();r.onload=async()=>{try{BK.data=JSON.parse(r.result);await bkInit();bkRender();}catch(e){showToast('❌ ملف غير صالح','error');}};r.readAsText(f,'utf-8');}
+function bkOpts(list,sel){return '<option value="">— اختر —</option>'+(list||[]).map(x=>'<option value="'+x.id+'"'+(sel&&sel.id===x.id?' selected':'')+'>'+escAdmin(x.name)+'</option>').join('');}
+function bkGrade(id){return BK.cur.find(g=>String(g.id)===String(id));}
+function bkRender(){const box=document.getElementById('bk-banks');const banks=BK.data.banks||[];let tot=0;const done=JSON.parse(localStorage.getItem('bk_done')||'{}');
+ box.innerHTML=banks.map((bk,bi)=>{const n=bk.lessons.reduce((a,l)=>a+l.questions.length,0);tot+=n;const g=BK.cur.find(x=>bkN(x.name)===bkN(bk.grade_hint))||BK.cur.find(x=>bkSim(x.name,bk.grade_hint)>=0.99);bk._g=g;
+  return '<div class="card" style="margin-top:12px;"><label style="display:flex;gap:8px;align-items:center;"><input type="checkbox" id="bk-on-'+bi+'" '+(done[bk.key]?'':'checked')+'> <b style="color:var(--gold);">'+escAdmin(bk.unitName+': '+bk.unit)+'</b> — '+n+' سؤال'+(done[bk.key]?' <span style="color:#e67e22;">(تم استيراده سابقًا '+escAdmin(done[bk.key])+')</span>':'')+'</label>'+
+  '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px;margin-top:8px;"><div><label>الصف</label><select id="bk-g-'+bi+'" onchange="bkSem('+bi+')">'+bkOpts(BK.cur,g)+'</select></div><div><label>الفصل</label><select id="bk-s-'+bi+'" onchange="bkUnit('+bi+')"></select></div><div><label>الوحدة</label><select id="bk-u-'+bi+'" onchange="bkLes('+bi+')"></select></div></div><div id="bk-l-'+bi+'" style="margin-top:8px;"></div></div>';}).join('');
+ document.getElementById('bk-summary').textContent='📦 '+banks.length+' وحدات — '+tot+' سؤالًا';banks.forEach((bk,bi)=>bkSem(bi,true));}
+function bkSem(bi,auto){const bk=BK.data.banks[bi];const g=bkGrade(document.getElementById('bk-g-'+bi).value);const sems=(g&&g.semesters)||[];let sel=null;if(auto){for(const s of sems){if((s.units||[]).some(u=>bkSim(u.name,bk.unit)>=0.5)){sel=s;break}}if(!sel)sel=sems[0];}
+ document.getElementById('bk-s-'+bi).innerHTML=bkOpts(sems,sel);bkUnit(bi,auto);}
+function bkUnit(bi,auto){const bk=BK.data.banks[bi];const g=bkGrade(document.getElementById('bk-g-'+bi).value);const s=((g&&g.semesters)||[]).find(x=>String(x.id)===document.getElementById('bk-s-'+bi).value);const units=(s&&s.units)||[];const sel=auto?bkBest(units,bk.unit,''):null;
+ document.getElementById('bk-u-'+bi).innerHTML=bkOpts(units,sel);bkLes(bi);}
+function bkCurUnit(bi){const g=bkGrade(document.getElementById('bk-g-'+bi).value);const s=((g&&g.semesters)||[]).find(x=>String(x.id)===document.getElementById('bk-s-'+bi).value);return {g,s,u:((s&&s.units)||[]).find(x=>String(x.id)===document.getElementById('bk-u-'+bi).value)};}
+function bkLes(bi){const bk=BK.data.banks[bi];const {u}=bkCurUnit(bi);const ls=(u&&u.lessons)||[];
+ document.getElementById('bk-l-'+bi).innerHTML='<table><tr><th>درس المراجعة</th><th>الأسئلة</th><th>درس الديوان</th></tr>'+bk.lessons.map((l,li)=>{const sel=bkBest(ls,l.title,l.num)||(l.num==='م'?ls.find(x=>bkN(x.name).includes('مراجع')):null);return '<tr><td>'+escAdmin(l.num+' '+l.title)+'</td><td>'+l.questions.length+'</td><td><select id="bk-ls-'+bi+'-'+li+'">'+bkOpts(ls,sel)+'</select></td></tr>';}).join('')+'</table>';}
+async function bkImport(){const banks=(BK.data&&BK.data.banks)||[];const log=document.getElementById('bk-log');const done=JSON.parse(localStorage.getItem('bk_done')||'{}');let total=0,miss=0;const tok=localStorage.getItem('adminToken');
+ for(let bi=0;bi<banks.length;bi++){if(!document.getElementById('bk-on-'+bi).checked)continue;const bk=banks[bi];const {g,s,u}=bkCurUnit(bi);if(!g||!s||!u){log.innerHTML+='<div>⚠️ '+escAdmin(bk.unit)+': اختر الصف والفصل والوحدة</div>';continue;}
+  let rows=[];bk.lessons.forEach((l,li)=>{const sel=document.getElementById('bk-ls-'+bi+'-'+li);const L=(u.lessons||[]).find(x=>String(x.id)===sel.value);if(!L){miss+=l.questions.length;return;}
+   l.questions.forEach(q=>rows.push({grade:g.name,semester:s.name,unit:u.name,lesson:L.name,subject:'رياضيات',q_type:q.q_type,question:q.question,options:q.options,answer:q.answer,difficulty:q.difficulty,is_elite:'false'}));});
+  for(let i=0;i<rows.length;i+=40){try{const r=await fetch(API_URL+'/api/admin/questions/bulk',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+tok},body:JSON.stringify({questions:rows.slice(i,i+40)})});const j=await r.json();if(!r.ok)throw new Error(j.detail||r.status);total+=(j.inserted||0);log.innerHTML+='<div>✅ '+escAdmin(bk.unit)+': '+(j.inserted||0)+' سؤال</div>';}catch(e){log.innerHTML+='<div>❌ '+escAdmin(bk.unit)+': '+escAdmin(e.message)+'</div>';}}
+  done[bk.key]=new Date().toLocaleDateString('ar');}
+ localStorage.setItem('bk_done',JSON.stringify(done));log.innerHTML+='<div style="color:var(--gold);font-weight:bold;">🏁 تم استيراد '+total+' سؤال'+(miss?' — تم تخطي '+miss+' لعدم اختيار الدرس':'')+'</div>';showToast('🏁 تم الاستيراد','success');}
 </script>
 
 </body>

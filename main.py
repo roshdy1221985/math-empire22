@@ -361,6 +361,8 @@ _ALLOWED_ORIGINS = [o.strip() for o in os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:8001,http://127.0.0.1:8001"
 ).split(",") if o.strip()]
+# ➕ [المراجعات التفاعلية] السماح لتطبيقات GitHub Pages بالاتصال (إضافة فقط)
+_ALLOWED_ORIGINS += [o for o in ["https://roshdy1221985.github.io"] if o not in _ALLOWED_ORIGINS]
 
 
 # ════════════════════════════════════════════════════════════
@@ -18912,6 +18914,135 @@ async def get_motivation_templates(admin = Depends(get_current_admin)):
     """قوالب الرسائل التحفيزية الجاهزة"""
     return MOTIVATION_TEMPLATES
 
+
+
+
+# ════════════════════════════════════════════════════════════
+# 📚 المراجعات التفاعلية — ربط التطبيقات والتفعيل (إضافة فقط)
+# ════════════════════════════════════════════════════════════
+from pydantic import BaseModel as _RvBase
+from typing import List as _RvList
+
+_RV_SECRET = os.getenv("REVIEWS_LIC_SECRET", "")
+_rv_sb = create_client(SUPABASE_URL, os.getenv("SUPABASE_SERVICE_KEY") or SUPABASE_KEY)
+_RV_AL = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+_RV_SCOPES = {"PRINT", "ALL", "APP:math8", "APP:math11", "APP:math12", "APP:math12a"}
+
+def _rv_h53(s: str, seed: int = 0) -> int:
+    M = 0xFFFFFFFF
+    h1 = (0xdeadbeef ^ seed) & M; h2 = (0x41c6ce57 ^ seed) & M
+    for ch in s:
+        c = ord(ch); h1 = ((h1 ^ c) * 2654435761) & M; h2 = ((h2 ^ c) * 1597334677) & M
+    h1 = (((h1 ^ (h1 >> 16)) * 2246822507) & M) ^ (((h2 ^ (h2 >> 13)) * 3266489909) & M)
+    h2 = (((h2 ^ (h2 >> 16)) * 2246822507) & M) ^ (((h1 ^ (h1 >> 13)) * 3266489909) & M)
+    return 4294967296 * (2097151 & h2) + (h1 & M)
+
+def _rv_norm(x) -> str:
+    return "".join(ch for ch in str(x or "").upper() if ch.isascii() and ch.isalnum())
+
+def _rv_code(device: str, scope: str) -> str:
+    n = _rv_h53(_rv_norm(device) + "|" + scope + "|" + _RV_SECRET); out = ""
+    for _ in range(8):
+        out += _RV_AL[n % 32]; n //= 32
+    return out[:4] + "-" + out[4:]
+
+def _rv_check(device: str, scope: str, code: str) -> bool:
+    if not _RV_SECRET: return False
+    c = _rv_norm(code)
+    return c in (_rv_norm(_rv_code(device, scope)), _rv_norm(_rv_code(device, "ALL")))
+
+class _RvEvent(_RvBase):
+    type: str; ts: int; app: str = ""; unit: int = 0; title: str = ""; subj: str = ""
+    device: str = ""; student: str = ""; data: dict = {}
+class _RvEvents(_RvBase):
+    events: _RvList[_RvEvent]
+class _RvVerify(_RvBase):
+    device: str; scope: str; code: str
+class _RvIssue(_RvBase):
+    device: str; scope: str; customer: str = ""; note: str = ""
+
+@app.get("/api/reviews/ping")
+async def rv_ping():
+    return {"ok": True, "t": int(_time.time()), "lic": bool(_RV_SECRET)}
+
+@app.post("/api/reviews/events")
+async def rv_events(body: _RvEvents, request: Request):
+    ip = request.client.host if request.client else "x"
+    if _is_rate_limited(ip, 30, 60, "rv_events"):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة")
+    rows = [{"type": e.type[:20], "ts": int(e.ts), "app": e.app[:20], "unit": int(e.unit), "title": e.title[:120],
+             "device": _rv_norm(e.device)[:12], "student": e.student[:40], "data": e.data if len(str(e.data)) < 4000 else {}}
+            for e in body.events[:100]]
+    try:
+        if rows: _rv_sb.table("review_events").insert(rows).execute()
+    except Exception as ex:
+        print(f"[REVIEWS] events insert failed: {ex}", flush=True)
+        return {"ok": False}
+    return {"ok": True, "n": len(rows)}
+
+@app.post("/api/reviews/license/verify")
+async def rv_verify(v: _RvVerify, request: Request):
+    ip = request.client.host if request.client else "x"
+    if _is_rate_limited(ip, 20, 60, "rv_verify"):
+        raise HTTPException(status_code=429, detail="طلبات كثيرة")
+    ok = v.scope in _RV_SCOPES and _rv_check(v.device, v.scope, v.code)
+    if ok:
+        try:
+            _rv_sb.table("review_licenses").upsert({"device": _rv_norm(v.device), "scope": v.scope, "code": _rv_norm(v.code),
+                "active": True}, on_conflict="device,scope").execute()
+        except Exception as ex:
+            print(f"[REVIEWS] license upsert failed: {ex}", flush=True)
+    return {"ok": ok}
+
+@app.get("/api/reviews/license/{device}")
+async def rv_device_licenses(device: str):
+    try:
+        r = _rv_sb.table("review_licenses").select("scope,code").eq("device", _rv_norm(device)).eq("active", True).execute()
+        return {"licenses": r.data or []}
+    except Exception:
+        return {"licenses": []}
+
+@app.post("/api/admin/reviews/license/issue")
+async def rv_issue(i: _RvIssue, admin=Depends(get_current_admin)):
+    if not _RV_SECRET:
+        raise HTTPException(status_code=503, detail="REVIEWS_LIC_SECRET غير مضبوط في متغيرات البيئة")
+    if i.scope not in _RV_SCOPES or len(_rv_norm(i.device)) != 8:
+        raise HTTPException(status_code=400, detail="رقم الجهاز أو النوع غير صحيح")
+    c = _rv_code(i.device, i.scope)
+    _rv_sb.table("review_licenses").upsert({"device": _rv_norm(i.device), "scope": i.scope, "code": _rv_norm(c),
+        "customer": i.customer[:80], "note": i.note[:200], "active": True}, on_conflict="device,scope").execute()
+    return {"code": c}
+
+@app.post("/api/admin/reviews/license/revoke")
+async def rv_revoke(i: _RvIssue, admin=Depends(get_current_admin)):
+    _rv_sb.table("review_licenses").update({"active": False}).eq("device", _rv_norm(i.device)).eq("scope", i.scope).execute()
+    return {"ok": True}
+
+@app.get("/api/admin/reviews/licenses")
+async def rv_list_licenses(admin=Depends(get_current_admin), q: str = ""):
+    r = _rv_sb.table("review_licenses").select("*").order("created_at", desc=True).limit(500).execute()
+    rows = r.data or []
+    if q:
+        qq = q.strip().upper()
+        rows = [x for x in rows if qq in (x.get("device") or "") or qq in str(x.get("customer") or "").upper()]
+    return {"licenses": rows}
+
+@app.get("/api/admin/reviews/stats")
+async def rv_stats(admin=Depends(get_current_admin), days: int = 30):
+    since = int((_time.time() - max(1, min(days, 365)) * 86400) * 1000)
+    r = _rv_sb.table("review_events").select("app,unit,title,type,device").gte("ts", since).limit(50000).execute()
+    agg = {}
+    for e in (r.data or []):
+        k = f'{e.get("app")}|{e.get("unit")}'
+        a = agg.setdefault(k, {"app": e.get("app"), "unit": e.get("unit"), "title": e.get("title") or "", "opens": 0, "views": 0, "activations": 0, "devices": set()})
+        t = e.get("type")
+        if t == "open": a["opens"] += 1
+        elif t == "view": a["views"] += 1
+        elif t == "activate": a["activations"] += 1
+        a["devices"].add(e.get("device"))
+    out = [{**{k: v for k, v in a.items() if k != "devices"}, "devices": len(a["devices"])} for a in agg.values()]
+    out.sort(key=lambda x: (str(x["app"]), x["unit"] or 0))
+    return {"days": days, "units": out, "total_devices": len({d for a in agg.values() for d in a["devices"]})}
 
 
 if __name__ == "__main__":
