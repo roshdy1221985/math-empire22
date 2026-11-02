@@ -19102,7 +19102,7 @@ def _mgr_user(request: Request):
         p = jwt.decode(auth.split(" ")[1], SECRET_KEY, algorithms=[ALGORITHM])
     except Exception:
         raise HTTPException(status_code=401, detail="جلسة العمل غير صالحة")
-    if p.get("sub") == "admin":
+    if p.get("sub") in ("admin", os.getenv("ADMIN_USERNAME", "admin")) and p.get("role") != "staff":
         return {"id": 0, "name": "المدير العام", "role": "admin", "perms": _MGR_PERMS}
     if p.get("role") == "staff":
         sid = str(p.get("sub", "")).replace("staff:", "")
@@ -19134,6 +19134,23 @@ async def staff_login(request: Request, username: str = Form(...), password: str
     _rv_sb.table("staff_users").update({"last_login": datetime.now(timezone.utc).isoformat()}).eq("id", u["id"]).execute()
     _mgr_log(u["name"], "login")
     return {"access_token": create_access_token({"sub": f"staff:{u['id']}", "role": "staff"}), "name": u["name"], "perms": u.get("perms") or []}
+
+@app.get("/api/manager/health")
+async def mgr_health(request: Request):
+    """🩺 فحص جاهزية مدير المنصة: الجداول والأعمدة ومتغيرات البيئة"""
+    u = _mgr_user(request)
+    checks = []
+    tables = {"staff_users": "id", "content_jobs": "id", "question_drafts": "id,source,pack_id", "lesson_packs": "id,n_questions_made,interactive_html",
+              "manager_log": "id", "review_events": "id", "review_licenses": "device"}
+    for t, cols in tables.items():
+        try:
+            _rv_sb.table(t).select(cols).limit(1).execute(); checks.append({"name": f"جدول {t}", "ok": True})
+        except Exception as e:
+            checks.append({"name": f"جدول {t}", "ok": False, "fix": "نفّذ migration.sql كاملًا في Supabase", "err": str(e)[:160]})
+    for k, why in [("GEMINI_API_KEY", "توليد الأسئلة"), ("SUPABASE_SERVICE_KEY", "الكتابة في الجداول الجديدة المحمية"), ("BOOKS_REPO", "قراءة الكتب"), ("GITHUB_TOKEN", "قراءة المستودع الخاص"),
+                   ("REVIEWS_LIC_SECRET", "أكواد التفعيل"), ("MANAGER_CRON_KEY", "الطيار الآلي اليومي")]:
+        checks.append({"name": f"متغير {k}", "ok": bool(os.getenv(k, "").strip()), "fix": f"أضفه في Render ← Environment ({why})"})
+    return {"checks": checks, "ready": all(c["ok"] for c in checks if c["name"].startswith("جدول"))}
 
 @app.get("/api/manager/me")
 async def mgr_me(request: Request):
@@ -19315,7 +19332,10 @@ async def mgr_jobs_create(request: Request, bg: _MBg):
 @app.get("/api/manager/jobs")
 async def mgr_jobs_list(request: Request, limit: int = 60):
     u = _mgr_user(request)
-    r = _rv_sb.table("content_jobs").select("id,grade,unit,lesson,status,n_req,n_made,n_verified,created_by,created_at,finished_at,log").order("id", desc=True).limit(min(limit, 200)).execute()
+    try:
+        r = _rv_sb.table("content_jobs").select("id,grade,unit,lesson,status,n_req,n_made,n_verified,created_by,created_at,finished_at,log").order("id", desc=True).limit(min(limit, 200)).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"جدول content_jobs غير جاهز — نفّذ migration.sql ({str(e)[:120]})")
     return {"jobs": r.data or []}
 
 @app.post("/api/manager/jobs/resume")
@@ -19334,7 +19354,10 @@ async def mgr_drafts(request: Request, status: str = "pending", grade: str = "",
     if lesson: q = q.eq("lesson", lesson)
     if job_id: q = q.eq("job_id", job_id)
     if verified in ("1", "0"): q = q.eq("verified", verified == "1")
-    r = q.order("id").limit(min(limit, 300)).execute()
+    try:
+        r = q.order("id").limit(min(limit, 300)).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"جدول question_drafts غير جاهز — نفّذ migration.sql ({str(e)[:120]})")
     return {"drafts": r.data or []}
 
 @app.put("/api/manager/drafts/{did}")
@@ -19625,7 +19648,10 @@ async def pack_create(request: Request, bg: _MBg):
                      "book_path": it.get("book_path", ""), "book_pages": it.get("book_pages", ""), "act_path": it.get("act_path", ""), "act_pages": it.get("act_pages", ""),
                      "exams": it.get("exams") or [], "n_questions": max(10, min(int(it.get("n", 30)), 60)), "external_pct": int(it.get("external_pct", 15)),
                      "status": "queued", "created_by": u["name"]})
-    if rows: _rv_sb.table("lesson_packs").insert(rows).execute()
+    try:
+        if rows: _rv_sb.table("lesson_packs").insert(rows).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"تعذر حفظ الحزم — {str(e)[:200]}")
     _mgr_log(u["name"], "packs_create", f"{len(rows)} درسًا")
     bg.add_task(_pack_queue)
     return {"queued": len(rows)}
@@ -19633,7 +19659,10 @@ async def pack_create(request: Request, bg: _MBg):
 @app.get("/api/manager/packs")
 async def pack_list(request: Request):
     u = _mgr_user(request)
-    r = _rv_sb.table("lesson_packs").select("id,grade,unit,lesson,status,n_questions,n_questions_made,n_verified,created_by,created_at,log").order("id", desc=True).limit(80).execute()
+    try:
+        r = _rv_sb.table("lesson_packs").select("id,grade,unit,lesson,status,n_questions,n_questions_made,n_verified,created_by,created_at,log").order("id", desc=True).limit(80).execute()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"جدول lesson_packs غير جاهز — نفّذ migration.sql ({str(e)[:120]})")
     return {"packs": r.data or []}
 
 @app.get("/api/manager/packs/{pid}")

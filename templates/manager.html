@@ -47,6 +47,7 @@ sup{font-size:.7em}.frac{display:inline-flex;flex-direction:column;vertical-alig
 <nav id="nav"></nav><button class="btn s" onclick="logout()">خروج</button></header>
 <main>
  <section id="t-home">
+  <div class="card" id="health"><h2>🩺 فحص الجاهزية</h2><div id="hl">⏳</div></div>
   <div class="grid" id="kpis"></div>
   <div class="card" style="margin-top:14px"><h2>💡 توصيات المدير الذكي</h2><div id="recs"></div></div>
   <div class="card"><h2>📚 تغطية بنوك الأسئلة لكل صف <small style="color:var(--mut)">(الهدف <input id="target" type="number" value="30" style="width:70px;display:inline-block" onchange="loadHome()"> سؤالًا للدرس)</small></h2><div id="cov"></div></div>
@@ -112,7 +113,7 @@ const hd=s=>String(s).replace(/[0-9]/g,d=>'٠١٢٣٤٥٦٧٨٩'[d]);
 function mfmt(s){s=esc(s).replace(/\$/g,'');s=s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g,'<span class="frac"><span>$1</span><span>$2</span></span>').replace(/\\sqrt\{([^{}]*)\}/g,'√($1)').replace(/\^\{([^{}]*)\}/g,'<sup>$1</sup>').replace(/\^(-?[0-9٠-٩]+)/g,'<sup>$1</sup>');return hd(s)}
 async function api(p,o={}){o.headers=Object.assign({'Authorization':'Bearer '+TOK},o.headers||{});if(o.json){o.method=o.method||'POST';o.headers['Content-Type']='application/json';o.body=JSON.stringify(o.json);delete o.json}const r=await fetch(API+p,o);const j=await r.json().catch(()=>({}));if(r.status===401){logout();throw new Error('انتهت الجلسة')}if(!r.ok)throw new Error(j.detail||('خطأ '+r.status));return j}
 async function login(){const k=document.getElementById('lg-kind').value,fd=new FormData();fd.append('username',document.getElementById('lg-user').value);fd.append('password',document.getElementById('lg-pass').value);
- try{const r=await fetch(API+(k==='admin'?'/api/admin/login':'/api/staff/login'),{method:'POST',body:fd});const j=await r.json();if(!r.ok||!j.access_token)throw new Error(j.detail||'بيانات غير صحيحة');TOK=j.access_token;localStorage.setItem('mgrToken',TOK);boot()}catch(e){document.getElementById('lg-msg').textContent=e.message}}
+ try{const r=await fetch(API+(k==='admin'?'/api/admin/login':'/api/staff/login'),{method:'POST',body:fd});const j=await r.json();if(!r.ok||!j.access_token)throw new Error((r.status===401?'❌ اسم المستخدم أو كلمة المرور غير صحيحة — تأكد من ADMIN_USERNAME و ADMIN_PASSWORD في Render':'')||j.detail||'بيانات غير صحيحة');TOK=j.access_token;localStorage.setItem('mgrToken',TOK);boot()}catch(e){document.getElementById('lg-msg').textContent=e.message}}
 function logout(){localStorage.removeItem('mgrToken');TOK='';location.reload()}
 async function boot(){if(!TOK)return;try{ME=await api('/api/manager/me')}catch(e){return}
  document.getElementById('login').classList.add('hide');document.getElementById('app').classList.remove('hide');document.getElementById('me').textContent=ME.name;
@@ -124,7 +125,8 @@ async function boot(){if(!TOK)return;try{ME=await api('/api/manager/me')}catch(e
  tab(tabs[0][0])}
 function tab(t){document.querySelectorAll('main>section').forEach(s=>s.classList.add('hide'));document.getElementById('t-'+t).classList.remove('hide');document.querySelectorAll('nav button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));
  ({home:loadHome,pack:kLoad,prod:loadJobs,rev:loadDrafts,team:loadStaff,log:loadLog})[t]()}
-async function loadHome(){try{const o=await api('/api/manager/overview?target='+document.getElementById('target').value);
+async function loadHealth(){try{const h=await api('/api/manager/health');const bad=h.checks.filter(c=>!c.ok);document.getElementById('hl').innerHTML=bad.length?bad.map(c=>`<div class="rec" style="border-color:var(--bad)">❌ <b>${esc(c.name)}</b> — ${esc(c.fix||'')}${c.err?'<br><small style="color:var(--mut)" dir="ltr">'+esc(c.err)+'</small>':''}</div>`).join(''):'✅ كل شيء جاهز';document.getElementById('health').style.display=bad.length?'':'none'}catch(e){document.getElementById('hl').textContent='❌ '+e.message}}
+async function loadHome(){loadHealth();try{const o=await api('/api/manager/overview?target='+document.getElementById('target').value);
  document.getElementById('kpis').innerHTML=[['الدروس المكتملة',hd(o.lessons_covered)+' / '+hd(o.lessons_total)],['تنتظر المراجعة',hd(o.pending)],['مهام جارية',hd(o.jobs_running)],['مهام فشلت',hd(o.jobs_failed)],['إجابات الطلاب (٧ أيام)',o.activity_7d==null?'—':hd(o.activity_7d)]].map(k=>`<div class="kpi"><b>${k[1]}</b><span>${k[0]}</span></div>`).join('');
  document.getElementById('recs').innerHTML=(o.recommendations.length?o.recommendations:['✅ كل شيء على ما يرام']).map(r=>`<div class="rec">${esc(r)}</div>`).join('');
  document.getElementById('cov').innerHTML='<table><tr><th>الصف</th><th>الدروس</th><th>المكتملة</th><th>الأسئلة</th><th style="width:30%">التغطية</th></tr>'+o.grades.map(g=>`<tr><td>${esc(g.grade)}</td><td>${hd(g.lessons)}</td><td>${hd(g.covered)}</td><td>${hd(g.questions)}</td><td><div class="bar"><i style="width:${g.pct}%"></i></div> ${hd(g.pct)}٪</td></tr>`).join('')+'</table>';
