@@ -19147,7 +19147,7 @@ async def mgr_health(request: Request):
             _rv_sb.table(t).select(cols).limit(1).execute(); checks.append({"name": f"جدول {t}", "ok": True})
         except Exception as e:
             checks.append({"name": f"جدول {t}", "ok": False, "fix": "نفّذ migration.sql كاملًا في Supabase", "err": str(e)[:160]})
-    for k, why in [("GEMINI_API_KEY", "توليد الأسئلة"), ("SUPABASE_SERVICE_KEY", "الكتابة في الجداول الجديدة المحمية"), ("BOOKS_REPO", "قراءة الكتب"), ("GITHUB_TOKEN", "قراءة المستودع الخاص"),
+    for k, why in [("GEMINI_API_KEY", "توليد الأسئلة"), ("SUPABASE_SERVICE_KEY", "الكتابة في الجداول الجديدة المحمية"), ("BOOKS_INDEX_GDRIVE", "فهرس الكتب على Drive (أو BOOKS_REPO لـ GitHub)"),
                    ("REVIEWS_LIC_SECRET", "أكواد التفعيل"), ("MANAGER_CRON_KEY", "الطيار الآلي اليومي")]:
         checks.append({"name": f"متغير {k}", "ok": bool(os.getenv(k, "").strip()), "fix": f"أضفه في Render ← Environment ({why})"})
     return {"checks": checks, "ready": all(c["ok"] for c in checks if c["name"].startswith("جدول"))}
@@ -19211,14 +19211,21 @@ async def _mgr_book_pdf(path: str, pages: str):
     """يجلب كتابًا من مستودع GitHub الخاص ويقتطع الصفحات المطلوبة"""
     import httpx
     repo = os.getenv("BOOKS_REPO", "").strip(); tok = os.getenv("GITHUB_TOKEN", "").strip()
-    if not repo or not path: return None
-    url = f"https://api.github.com/repos/{repo}/contents/{path}"
-    h = {"Accept": "application/vnd.github.raw"}
-    if tok: h["Authorization"] = f"Bearer {tok}"
-    async with httpx.AsyncClient(timeout=90.0, follow_redirects=True) as c:
+    if not path: return None
+    gid = path.split("gdrive:", 1)[1].strip() if path.startswith("gdrive:") else ""
+    if gid:  # 📁 ملف من Google Drive (مشاركة: أي شخص لديه الرابط)
+        url = f"https://drive.usercontent.google.com/download?id={gid}&export=download&confirm=t"
+        h = {}
+    else:
+        if not repo: return None
+        url = f"https://api.github.com/repos/{repo}/contents/{path}"
+        h = {"Accept": "application/vnd.github.raw"}
+        if tok: h["Authorization"] = f"Bearer {tok}"
+    async with httpx.AsyncClient(timeout=120.0, follow_redirects=True) as c:
         r = await c.get(url, headers=h)
     if r.status_code != 200: raise RuntimeError(f"تعذر جلب الكتاب ({r.status_code})")
     data = r.content
+    if not data.startswith(b"%PDF"): raise RuntimeError("الملف ليس PDF أو غير متاح للمشاركة (اجعله: أي شخص لديه الرابط)")
     if pages:
         from pypdf import PdfReader, PdfWriter
         import io
@@ -19630,7 +19637,13 @@ async def books_index(request: Request):
     u = _mgr_user(request)
     import httpx
     repo = os.getenv("BOOKS_REPO", "").strip(); tok = os.getenv("GITHUB_TOKEN", "").strip()
-    if not repo: raise HTTPException(status_code=503, detail="BOOKS_REPO غير مضبوط")
+    gidx = os.getenv("BOOKS_INDEX_GDRIVE", "").strip()
+    if gidx:  # 📁 فهرس الكتب ملف index.json على Google Drive
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as c:
+            r = await c.get(f"https://drive.usercontent.google.com/download?id={gidx}&export=download&confirm=t")
+        if r.status_code != 200: raise HTTPException(status_code=502, detail=f"تعذر قراءة index.json من Drive ({r.status_code})")
+        return r.json()
+    if not repo: raise HTTPException(status_code=503, detail="اضبط BOOKS_INDEX_GDRIVE (Drive) أو BOOKS_REPO (GitHub)")
     h = {"Accept": "application/vnd.github.raw"}
     if tok: h["Authorization"] = f"Bearer {tok}"
     async with httpx.AsyncClient(timeout=30.0) as c:
